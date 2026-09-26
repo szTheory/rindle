@@ -226,6 +226,13 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   defp narrative_findings(body) do
     with {:ok, section} <- bounded_markdown_section(body, "## Narrative Findings (AI reviewer)") do
       lines = String.split(section, "\n")
+      id_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-\d{2,}\b/, &1)
+      canonical_heading? = &Regex.match?(~r/^###[ \t]+(?:CR|WR|IN)-\d{2,}:[ \t]*.+$/, &1)
+
+      malformed_heading? =
+        lines
+        |> Enum.filter(id_heading?)
+        |> Enum.any?(&(not canonical_heading?.(&1)))
 
       headings =
         lines
@@ -237,48 +244,52 @@ defmodule Rindle.ValidatePhase133ReviewGate do
           end
         end)
 
-      findings =
-        Enum.map(headings, fn {id, index} ->
-          content =
-            lines
-            |> Enum.drop(index + 1)
-            |> Enum.take_while(&(not Regex.match?(~r/^###(?:[ \t]|$)/, &1)))
-            |> Enum.join("\n")
+      if malformed_heading? do
+        {:error, "review narrative finding heading is malformed"}
+      else
+        findings =
+          Enum.map(headings, fn {id, index} ->
+            content =
+              lines
+              |> Enum.drop(index + 1)
+              |> Enum.take_while(&(not Regex.match?(~r/^###(?:[ \t]|$)/, &1)))
+              |> Enum.join("\n")
 
-          case Regex.scan(
-                 ~r/^\*\*Severity:\*\*[ \t]*(BLOCKER|CRITICAL|WARNING|INFO)\b.*$/im,
-                 content,
-                 capture: :all_but_first
-               )
-               |> List.flatten() do
-            [severity] -> {id, String.downcase(severity)}
-            _ -> {id, :invalid}
-          end
-        end)
+            case Regex.scan(
+                   ~r/^\*\*Severity:\*\*[ \t]*(BLOCKER|CRITICAL|WARNING|INFO)\b.*$/im,
+                   content,
+                   capture: :all_but_first
+                 )
+                 |> List.flatten() do
+              [severity] -> {id, String.downcase(severity)}
+              _ -> {id, :invalid}
+            end
+          end)
 
-      ids = Enum.map(findings, &elem(&1, 0))
+        ids = Enum.map(findings, &elem(&1, 0))
 
-      cond do
-        length(ids) != length(Enum.uniq(ids)) ->
-          {:error, "review narrative contains duplicate finding IDs"}
+        cond do
+          length(ids) != length(Enum.uniq(ids)) ->
+            {:error, "review narrative contains duplicate finding IDs"}
 
-        Enum.any?(findings, &(elem(&1, 1) == :invalid)) ->
-          {:error, "review narrative finding severity is missing or malformed"}
+          Enum.any?(findings, &(elem(&1, 1) == :invalid)) ->
+            {:error, "review narrative finding severity is missing or malformed"}
 
-        Enum.any?(findings, fn {id, severity} ->
-          expected =
-              cond do
-                String.starts_with?(id, "CR-") -> ["blocker", "critical"]
-                String.starts_with?(id, "WR-") -> ["warning"]
-                String.starts_with?(id, "IN-") -> ["info"]
-              end
+          Enum.any?(findings, fn {id, severity} ->
+            expected =
+                cond do
+                  String.starts_with?(id, "CR-") -> ["blocker", "critical"]
+                  String.starts_with?(id, "WR-") -> ["warning"]
+                  String.starts_with?(id, "IN-") -> ["info"]
+                end
 
-          severity not in expected
-        end) ->
-          {:error, "review finding severity does not match its ID prefix"}
+            severity not in expected
+          end) ->
+            {:error, "review finding severity does not match its ID prefix"}
 
-        true ->
-          {:ok, findings}
+          true ->
+            {:ok, findings}
+        end
       end
     end
   end

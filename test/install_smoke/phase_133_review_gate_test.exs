@@ -201,6 +201,19 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert status != 0
     assert output =~ "severity does not match"
 
+    malformed_heading =
+      original
+      |> String.replace(
+        "No narrative findings.",
+        "### CR-27 — Critical issue\n\n**Severity:** BLOCKER\n",
+        global: false
+      )
+
+    File.write!(path, malformed_heading)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "finding heading is malformed"
+
     undispositioned_info =
       original
       |> String.replace(
