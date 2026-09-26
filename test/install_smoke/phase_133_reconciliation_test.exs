@@ -828,6 +828,88 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     end
   end
 
+  @tag :plan48_report_gate
+  test "keeps Plan 48 pending at the human checkpoint after exact report gates pass" do
+    fixture = write_fixture!()
+    append_gap_closure_section!(fixture)
+    extend_gap_fixture_to_52!(fixture)
+    mark_plans_complete!(fixture, [43, 44, 45, 46, 47, 50, 51, 52])
+
+    roadmap = File.read!(fixture.roadmap)
+
+    roadmap =
+      String.replace(
+        roadmap,
+        "**Plans**: 46/52 plans executed summarized; 43 completed, " <>
+          "Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, " <>
+          "6 gap-closure plans pending.",
+        "**Plans**: 47/52 plans executed summarized; 43 completed, " <>
+          "Plans 133-27, 133-32, and 133-37 halted with immutable attempts preserved, " <>
+          "Plan 133-48 halted before a decision, 5 gap-closure plans pending."
+      )
+      |> String.replace("| 46/52 |", "| 47/52 |")
+
+    File.write!(fixture.roadmap, roadmap)
+
+    state =
+      File.read!(fixture.state)
+      |> String.replace("completed_plans: 46", "completed_plans: 47")
+      |> String.replace("Plan: 47 of 52", "Plan: 49 of 52")
+      |> String.replace("status: executing", "status: blocked")
+      |> String.replace("Status: EXECUTING", "Status: BLOCKED")
+
+    File.write!(fixture.state, state)
+
+    subject = String.duplicate("a", 40)
+    census = Jason.encode!(%{"subject_sha" => subject}) <> "\n"
+    census_path = Path.join(fixture.root, "#{@phase_rel}/133-EVIDENCE-CENSUS.json")
+    File.write!(census_path, census)
+    census_digest = sha256(census)
+    proposed_ref = "refs/heads/phase-133-evidence-#{String.slice(subject, 0, 12)}"
+
+    summary =
+      """
+      ---
+      status: halted
+      checkpoint: blocking-human-pending
+      report-gate: pass
+      subject_sha: #{subject}
+      census_sha256: #{census_digest}
+      proposed_ref: #{proposed_ref}
+      proposed_ref_status: absent-read-only-lookup
+      decision: null
+      authorized_ref: null
+      authorized_sha: null
+      requirements-completed: []
+      ---
+      """
+
+    File.write!(summary_path(fixture.root, 48), summary)
+    frozen_prefix_before = binary_part(File.read!(fixture.validation), 0, 148_104)
+
+    assert File.read!(fixture.validation) =~
+             "<pending-validation key=\"133-48-01:1\">"
+
+    assert File.read!(fixture.validation) =~
+             "<pending-validation key=\"133-48-02:1\">"
+
+    assert {output, 0} = run_validator(fixture)
+    assert output =~ "phase 133 reconciliation valid"
+    assert binary_part(File.read!(fixture.validation), 0, 148_104) == frozen_prefix_before
+
+    for mutation <- [
+          String.replace(summary, proposed_ref, proposed_ref <> "-wrong"),
+          String.replace(summary, census_digest, String.duplicate("0", 64)),
+          String.replace(summary, subject, String.duplicate("b", 40)),
+          String.replace(summary, "decision: null", "decision: authorize")
+        ] do
+      File.write!(summary_path(fixture.root, 48), mutation)
+      assert {output, status} = run_validator(fixture)
+      assert status != 0
+      assert output =~ "133-48"
+    end
+  end
+
   defp mark_plans_complete!(fixture, plans) do
     Enum.each(plans, &File.write!(summary_path(fixture.root, &1), "---\nstatus: complete\n---\n"))
     mark_records_complete!(fixture, plans)

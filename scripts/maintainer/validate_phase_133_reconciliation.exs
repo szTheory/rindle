@@ -29,6 +29,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   @phase_dir ".planning/phases/133-evidence-charter-and-live-truth"
   @validation_path Path.join(@phase_dir, "133-VALIDATION.md")
+  @census_path Path.join(@phase_dir, "133-EVIDENCE-CENSUS.json")
   @roadmap_path ".planning/ROADMAP.md"
   @state_path ".planning/STATE.md"
   @requirements_path ".planning/REQUIREMENTS.md"
@@ -902,9 +903,11 @@ defmodule Rindle.ValidatePhase133Reconciliation do
             @executed_state
 
           {:ok, %{status: "halted", metadata: metadata}} ->
-            if plan == 48 and Map.get(metadata, "report-gate") == "blocked",
-              do: @pending_state,
-              else: @halted_state
+            if plan == 48 and
+                 (Map.get(metadata, "report-gate") == "blocked" or
+                    plan_48_pending_checkpoint?(root, metadata)),
+               do: @pending_state,
+               else: @halted_state
 
           _ ->
             @pending_state
@@ -1161,7 +1164,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
               end
 
             {:ok, %{status: "halted"} = document} when plan in 33..49 ->
-              case validate_branch_halted_summary(plan, document) do
+              case validate_branch_halted_summary(plan, document, root) do
                 :ok -> {:cont, {:ok, %{state | halted: MapSet.put(state.halted, plan)}}}
                 {:error, reason} -> {:halt, {:error, "halted summary 133-#{plan} #{reason}"}}
               end
@@ -1319,6 +1322,27 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp validate_branch_halted_summary(_plan, _document), do: :ok
+
+  defp validate_branch_halted_summary(48, document, root) do
+    metadata = document.metadata
+
+    cond do
+      Map.get(metadata, "decision") in ["authorize", "stop"] ->
+        validate_branch_halted_summary(48, document)
+
+      Map.get(metadata, "report-gate") == "blocked" ->
+        validate_branch_halted_summary(48, document)
+
+      plan_48_pending_checkpoint?(root, metadata) ->
+        :ok
+
+      true ->
+        {:error, "must bind the passed report gate to the pending exact-pair checkpoint"}
+    end
+  end
+
+  defp validate_branch_halted_summary(plan, document, _root),
+    do: validate_branch_halted_summary(plan, document)
 
   defp bounded_frontmatter(summary) do
     lines = String.split(summary, "\n", trim: false)
@@ -1597,7 +1621,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
              true <-
                Map.get(document.metadata, "requirements-completed") == [] or
                  {:error, "Plan 48 must grant zero requirement credit"},
-             :ok <- validate_plan_48_decision(document, summarized_49) do
+             :ok <- validate_plan_48_decision(root, document, summarized_49) do
           :ok
         else
           {:error, _message} = error ->
@@ -1609,23 +1633,58 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end
   end
 
-  defp validate_plan_48_decision(%{status: "halted", metadata: metadata}, summarized_49) do
+  defp validate_plan_48_decision(root, %{status: "halted", metadata: metadata}, summarized_49) do
     if is_nil(Map.get(metadata, "decision")) do
-      if summarized_49 or metadata["report-gate"] != "blocked" or
-           not is_binary(metadata["halt_reason"]) or
-           not String.contains?(metadata["halt_reason"], "report gate") or
-           not is_nil(metadata["authorized_ref"]) or not is_nil(metadata["authorized_sha"]) do
-        {:error, "Plan 48 pre-decision halt must identify its blocked report gate and no pair"}
-      else
-        :ok
+      cond do
+        summarized_49 ->
+          {:error, "Plan 48 pre-decision checkpoint cannot summarize Plan 49"}
+
+        metadata["report-gate"] == "blocked" and
+          is_binary(metadata["halt_reason"]) and
+          String.contains?(metadata["halt_reason"], "report gate") and
+          is_nil(metadata["authorized_ref"]) and is_nil(metadata["authorized_sha"]) ->
+          :ok
+
+        plan_48_pending_checkpoint?(root, metadata) ->
+          :ok
+
+        true ->
+          {:error,
+           "Plan 48 pre-decision halt must bind a blocked gate or passed pending checkpoint"}
       end
     else
       validate_plan_48_recorded_decision(metadata, summarized_49)
     end
   end
 
-  defp validate_plan_48_decision(%{metadata: metadata}, summarized_49) do
+  defp validate_plan_48_decision(_root, %{metadata: metadata}, summarized_49) do
     validate_plan_48_recorded_decision(metadata, summarized_49)
+  end
+
+  defp plan_48_pending_checkpoint?(root, metadata) do
+    subject = Map.get(metadata, "subject_sha")
+
+    with true <- Map.get(metadata, "report-gate") == "pass",
+         true <- Map.get(metadata, "checkpoint") == "blocking-human-pending",
+         true <- is_nil(Map.get(metadata, "decision")),
+         true <- is_nil(Map.get(metadata, "authorized_ref")),
+         true <- is_nil(Map.get(metadata, "authorized_sha")),
+         true <- Map.get(metadata, "requirements-completed") == [],
+         true <- is_binary(subject) and Regex.match?(~r/\A[0-9a-f]{40}\z/, subject),
+         true <-
+           Map.get(metadata, "proposed_ref") ==
+             "refs/heads/phase-133-evidence-#{String.slice(subject, 0, 12)}",
+         true <- Map.get(metadata, "proposed_ref_status") == "absent-read-only-lookup",
+         digest when is_binary(digest) <- Map.get(metadata, "census_sha256"),
+         true <- Regex.match?(~r/\A[0-9a-f]{64}\z/, digest),
+         {:ok, census_bytes} <- File.read(Path.join(root, @census_path)),
+         true <- sha256(census_bytes) == digest,
+         {:ok, census} <- Jason.decode(census_bytes),
+         true <- Map.get(census, "subject_sha") == subject do
+      true
+    else
+      _ -> false
+    end
   end
 
   defp validate_plan_48_recorded_decision(metadata, summarized_49) do
