@@ -214,16 +214,16 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert status != 0
     assert output =~ "finding heading is malformed"
 
-    for id <- ["CR-1", "WR-1", "IN-1"] do
-      single_digit_heading =
+    for id <- ["CR-1", "WR-1", "IN-1", "CR-27x", "WR-5x", "IN-12x"] do
+      malformed_id_heading =
         String.replace(
           original,
           "No narrative findings.",
-          "### #{id}: Single-digit finding\n\n**Severity:** INFO\n",
+          "### #{id}: Malformed finding\n\n**Severity:** INFO\n",
           global: false
         )
 
-      File.write!(path, single_digit_heading)
+      File.write!(path, malformed_id_heading)
       assert {output, status} = invoke(tmp)
       assert status != 0
       assert output =~ "finding heading is malformed"
