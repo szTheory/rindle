@@ -485,19 +485,16 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
   defp extract_threat_table(section) do
     lines = String.split(section, "\n")
 
+    accepted_headers = [
+      ["ID", "Finding", "Component", "Severity", "Treatment", "Evidence", "Status"],
+      ["Threat ID", "Category", "Component", "Severity", "Disposition", "Mitigation", "Status"]
+    ]
+
     tables =
       lines
       |> Enum.with_index()
       |> Enum.flat_map(fn {line, index} ->
-        if table_cells(line) == [
-             "ID",
-             "Finding",
-             "Component",
-             "Severity",
-             "Treatment",
-             "Evidence",
-             "Status"
-           ] and
+        if table_cells(line) in accepted_headers and
              index + 1 < length(lines) and table_separator?(Enum.at(lines, index + 1)) do
           rows =
             lines

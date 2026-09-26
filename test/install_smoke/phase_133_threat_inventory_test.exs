@@ -181,6 +181,25 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     assert_rejected(path, security_path, data)
   end
 
+  test "rejects malformed and foreign threat table headers", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+    test_header = "| ID | Finding | Component | Severity | Treatment | Evidence | Status |"
+
+    for header <- [
+          "| Threat | Category | Component | Severity | Disposition | Mitigation | Status |",
+          "| ID | Finding | Component | Severity | Treatment | Evidence | Extra | Status |",
+          "| Threat ID | Category | Component | Severity | Disposition | Mitigation | State |"
+        ] do
+      report = String.replace(original, test_header, header, global: false)
+      File.write!(security_path, report)
+      assert_rejected(path, security_path, data)
+    end
+  end
+
   @tag :proof_path_isolation
   test "detached proofs ignore caller source edits and project BEAMs" do
     tmp =
