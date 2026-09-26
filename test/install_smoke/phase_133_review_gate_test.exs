@@ -175,6 +175,17 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       |> String.replace(
         "## Sign-Off",
         "## Sign-Off\n```text\n- [x] No blocking findings\n```"
+      ),
+      String.replace(original, "| CR-09 | closed |", "| CR-09 | open |")
+      |> String.replace(
+        "## Sign-Off",
+        "<!--\n| CR-09 | closed |\n-->\n\n## Sign-Off"
+      ),
+      original
+      |> String.replace("- [x] No blocking findings", "- [ ] No blocking findings")
+      |> String.replace(
+        "## Sign-Off",
+        "## Sign-Off\n<!--\n- [x] No blocking findings\n-->"
       )
     ]
 

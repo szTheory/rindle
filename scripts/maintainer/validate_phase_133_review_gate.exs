@@ -260,7 +260,20 @@ defmodule Rindle.ValidatePhase133ReviewGate do
         {:error, "review contains an unclosed code fence"}
 
       {:ok, visible, nil} ->
-        {:ok, visible |> Enum.reverse() |> Enum.join("\n")}
+        visible
+        |> Enum.reverse()
+        |> Enum.join("\n")
+        |> strip_html_comments()
+    end
+  end
+
+  defp strip_html_comments(body) do
+    visible = Regex.replace(~r/<!--.*?-->/s, body, "")
+
+    if String.contains?(visible, "<!--") or String.contains?(visible, "-->") do
+      {:error, "review contains an unclosed or malformed HTML comment"}
+    else
+      {:ok, visible}
     end
   end
 
