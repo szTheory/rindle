@@ -132,6 +132,8 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
           String.replace(original, "| CR-15 | closed |", "| CR-15 | open |"),
           String.replace(original, "| CR-16 | closed |", "| CR-16 | open |"),
           String.replace(original, "| CR-17 | closed |", "| CR-17 | open |"),
+          String.replace(original, "| CR-18 | closed |", "| CR-18 | open |"),
+          String.replace(original, "| CR-19 | closed |", "| CR-19 | open |"),
           String.replace(original, "| WR-03 | closed |", "| WR-03 | open |"),
           String.replace(original, "blocking: 0", "blocking: 1"),
           String.replace(original, "status: approved", "status: blocked"),
@@ -216,7 +218,13 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
       |> String.replace(
         "## Sign-Off",
         "<textarea>\n| CR-17 | closed |\n- [x] No blocking findings\n</textarea>\n\n## Sign-Off"
+      ),
+      String.replace(original, "| CR-18 | closed |", "| CR-18 | open |")
+      |> String.replace(
+        "| Finding ID | Disposition |",
+        "<?phase-audit\n| Finding ID | Disposition |"
       )
+      |> String.replace("## Sign-Off", "?>\n\n## Sign-Off")
     ]
 
     for mutation <- mutations do
@@ -333,7 +341,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
   defp review(subject, digest) do
     rows =
       Enum.map_join(
-        ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 WR-01 WR-02 WR-03),
+        ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 CR-18 CR-19 WR-01 WR-02 WR-03),
         "\n",
         &"| #{&1} | closed |"
       )

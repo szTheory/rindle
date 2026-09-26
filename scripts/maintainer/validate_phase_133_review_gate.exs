@@ -3,7 +3,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   @phase ".planning/phases/133-evidence-charter-and-live-truth"
   @inventory_ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
   @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
-  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 WR-01 WR-02 WR-03)
+  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 CR-11 CR-12 CR-13 CR-14 CR-15 CR-16 CR-17 CR-18 CR-19 WR-01 WR-02 WR-03)
   @package_proof_ids ~w(T-133-33-SC T-133-34-SC T-133-35-SC T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-SC T-133-42-SC)
   @package_proof_path "scripts/ci/test_phase_133_package_manager_guards.sh"
   @package_proof_command "scripts/ci/test_phase_133_package_manager_guards.sh"
@@ -321,6 +321,9 @@ defmodule Rindle.ValidatePhase133ReviewGate do
 
       Regex.match?(~r/<\/?[a-z][a-z0-9-]*\b[^>]*>/i, visible) ->
         {:error, "review contains raw HTML outside the supported Markdown evidence format"}
+
+      String.contains?(visible, "<?") or String.contains?(visible, "?>") ->
+        {:error, "review contains an unsupported HTML processing instruction"}
 
       true ->
         {:ok, visible}

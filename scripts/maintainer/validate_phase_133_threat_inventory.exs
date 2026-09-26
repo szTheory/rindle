@@ -503,7 +503,14 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     end)
     |> case do
       {:ok, nil, false, visible} ->
-        {:ok, visible |> Enum.reverse() |> Enum.join("\n")}
+        visible = visible |> Enum.reverse() |> Enum.join("\n")
+
+        if Regex.match?(~r/<\/?[a-z][a-z0-9-]*\b[^>]*>|<\?|\?>/i, visible) do
+          {:error,
+           "threat register contains raw HTML outside the supported Markdown table format"}
+        else
+          {:ok, visible}
+        end
 
       {:ok, nil, true, _visible} ->
         {:error, "threat register contains an unclosed HTML comment"}
@@ -537,7 +544,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       {:nomatch, :nomatch} ->
         {:ok, visible <> line, false}
 
-      {{open_at, open_len}, {close_at, _close_len}} when close_at < open_at ->
+      {{open_at, _open_len}, {close_at, _close_len}} when close_at < open_at ->
         {:error, "threat register contains a stray HTML comment terminator"}
 
       {{open_at, open_len}, _} ->

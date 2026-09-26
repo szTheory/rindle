@@ -144,6 +144,24 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     end
   end
 
+  @tag :raw_html_register_guard
+  test "rejects security rows hidden in raw HTML and processing instructions", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+    row = "| T-133-53 | finding | component | high | mitigate | proof | closed |"
+
+    for wrapper <- [
+          "<script>\n#{row}\n</script>",
+          "<?audit\n#{row}\n?>"
+        ] do
+      File.write!(security_path, String.replace(original, row, wrapper))
+      assert_rejected(path, security_path, data)
+    end
+  end
+
   @tag :proof_path_isolation
   test "detached proofs ignore caller source edits and project BEAMs" do
     tmp =
