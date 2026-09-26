@@ -338,7 +338,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
                  env: proof_env,
                  stderr_to_stdout: true
                ),
-             true <- String.contains?(module_path, Path.join(build_path, "test/lib/rindle/ebin")) do
+             true <- String.contains?(module_path, Path.join(build_path, "lib/rindle/ebin")) do
           :ok
         else
           {:error, message} ->

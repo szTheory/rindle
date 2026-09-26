@@ -288,7 +288,7 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
         refute isolated_path =~ "/private/private/"
       end
 
-      isolated_lib = Path.join(build_path, "test/lib")
+      isolated_lib = Path.join(build_path, "lib")
       refute File.exists?(Path.join(isolated_lib, "rindle"))
       refute File.exists?(Path.join(isolated_lib, "plug"))
 

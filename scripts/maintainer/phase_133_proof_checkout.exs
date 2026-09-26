@@ -18,7 +18,7 @@ defmodule Rindle.Phase133ProofCheckout do
 
   def prepare_build_path!(audit_root) do
     build_path = Path.join(audit_root, ".phase133-proof-build")
-    File.mkdir_p!(Path.join(build_path, "test/lib"))
+    File.mkdir_p!(Path.join(build_path, "lib"))
     canonical_path!(build_path)
   end
 
