@@ -158,6 +158,34 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     assert output =~ "CR-09"
   end
 
+  @tag :review_exact_dispositions
+  test "requires exact unique disposition rows and visible sign-off", %{tmp: tmp, dir: dir} do
+    path = Path.join(dir, "133-REVIEW.md")
+    original = File.read!(path)
+
+    mutations = [
+      String.replace(
+        original,
+        "| CR-09 | closed |",
+        "| CR-09 | open; previous version was closed |"
+      ),
+      String.replace(original, "| CR-09 | closed |", "| CR-09 | closed |\n| CR-09 | open |"),
+      original
+      |> String.replace("- [x] No blocking findings", "- [ ] No blocking findings")
+      |> String.replace(
+        "## Sign-Off",
+        "## Sign-Off\n```text\n- [x] No blocking findings\n```"
+      )
+    ]
+
+    for mutation <- mutations do
+      File.write!(path, mutation)
+      assert {output, status} = invoke(tmp)
+      assert status != 0
+      assert output =~ "review"
+    end
+  end
+
   test "requires every named high threat and inventory finding with no synthetic IDs", %{
     tmp: tmp,
     dir: dir

@@ -174,19 +174,19 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   end
 
   defp review_contract(body) do
-    signoff = signoff_section(body)
-
     with {:ok, fields} <- strict_report_fields(body, ["status", "blocking"]),
          {:ok, visible_body} <-
            visible_markdown(remove_frontmatter(body, frontmatter_text(body))),
          failures <- review_disposition_failures(visible_body),
+         {:ok, signoff} <- signoff_section(visible_body),
          true <- fields["status"] == "approved" or {:error, "review is not approved"},
          true <- fields["blocking"] == "0" or {:error, "review has blocking findings"},
          true <-
            failures == [] or
              {:error, "review dispositions are incomplete: #{Enum.join(failures, ", ")}"},
          true <-
-           Regex.match?(~r/^- \[x\] No blocking findings\s*$/mi, signoff) or
+           Regex.scan(~r/^\s*-\s*\[[ xX]\]\s+.*$/m, signoff) ==
+             ["- [x] No blocking findings"] or
              {:error, "review sign-off is incomplete"} do
       :ok
     else
@@ -199,15 +199,34 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   end
 
   defp review_disposition_failures(body) do
+    rows =
+      body
+      |> String.split("\n")
+      |> Enum.flat_map(fn line ->
+        if String.starts_with?(String.trim_leading(line), "|") do
+          cells =
+            line
+            |> String.trim()
+            |> String.trim_leading("|")
+            |> String.trim_trailing("|")
+            |> String.split("|")
+            |> Enum.map(&String.trim/1)
+
+          case cells do
+            [id | rest] when id in @review_ids -> [{id, rest}]
+            _ -> []
+          end
+        else
+          []
+        end
+      end)
+      |> Enum.group_by(&elem(&1, 0), &elem(&1, 1))
+
     Enum.reject(@review_ids, fn id ->
-      Regex.match?(
-        ~r/^\|?\s*#{Regex.escape(id)}\s*\|[^\n]*(?:closed|fixed|dispositioned)(?:[^\n]*)$/im,
-        body
-      ) or
-        Regex.match?(
-          ~r/^[-*]\s*#{Regex.escape(id)}\b[^\n]*(?:closed|fixed|dispositioned)/im,
-          body
-        )
+      case Map.get(rows, id, []) do
+        [[status]] when status in ["closed", "fixed", "dispositioned"] -> true
+        _ -> false
+      end
     end)
   end
 
@@ -506,9 +525,9 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   end
 
   defp signoff_section(body) do
-    case Regex.run(~r/^## Sign-Off\s*\n(.*?)(?=^## |\z)/ms, body, capture: :all_but_first) do
-      [section] -> section
-      _ -> ""
+    case Regex.scan(~r/^## Sign-Off\s*\n(.*?)(?=^## |\z)/ms, body, capture: :all_but_first) do
+      [[section]] -> {:ok, section}
+      _ -> {:error, "review must contain exactly one sign-off section"}
     end
   end
 
