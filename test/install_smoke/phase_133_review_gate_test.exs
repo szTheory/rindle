@@ -219,10 +219,14 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
         "    ### WR-27: Code example only\n\n    **Severity:** WARNING\n",
         global: false
       )
+      |> String.replace("warning: 0", "warning: 1", global: false)
+      |> String.replace("total: 0", "total: 1", global: false)
 
     File.write!(path, four_space_code_heading)
-    assert {output, 0} = invoke(tmp)
-    assert output =~ "review gate valid"
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "finding counts"
+    refute output =~ "WR-27"
 
     count_mismatch = String.replace(original, "total: 0", "total: 1", global: false)
     File.write!(path, count_mismatch)
