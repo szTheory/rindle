@@ -373,6 +373,7 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
              true <-
                frontmatter["census_sha256"] == binding["census_sha256"] or
                  {:error, "security census binding mismatch"},
+             :ok <- threat_open_count_matches(body, frontmatter["threats_open"]),
              true <-
                frontmatter["threats_open"] == "0" or {:error, "security report has open threats"},
              true <-
@@ -396,6 +397,46 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
 
       _ ->
         {:error, "current security report missing"}
+    end
+  end
+
+  defp threat_open_count_matches(body, reported_count) do
+    with {:ok, table} <- threat_register_table(body),
+         rows <- table |> String.split("\n") |> Enum.map(&table_cells/1),
+         true <- rows != [] or {:error, "security threat register has no rows"},
+         {:ok, open_count} <- count_open_threat_rows(rows),
+         {expected_count, ""} <- Integer.parse(reported_count),
+         true <- open_count == expected_count or {:error, "threats_open does not match register"} do
+      :ok
+    else
+      {:error, message} -> {:error, message}
+      _ -> {:error, "security threat register status count is malformed"}
+    end
+  end
+
+  defp count_open_threat_rows(rows) do
+    Enum.reduce_while(rows, {:ok, 0}, fn
+      [id, _finding, _component, _severity, _disposition, _evidence, status], {:ok, count}
+      when id != "" ->
+        case classify_threat_status(status) do
+          :closed -> {:cont, {:ok, count}}
+          :open -> {:cont, {:ok, count + 1}}
+          :invalid -> {:halt, {:error, "security threat register has an unsupported status"}}
+        end
+
+      _row, _acc ->
+        {:halt, {:error, "security threat register contains a malformed row"}}
+    end)
+  end
+
+  defp classify_threat_status(status) do
+    case String.downcase(String.trim(status)) do
+      value
+      when value in ["closed", "closed — accepted", "accepted", "mitigated", "dispositioned"] ->
+        :closed
+
+      value ->
+        if Regex.match?(~r/^open(?:$|[\s—-])/, value), do: :open, else: :invalid
     end
   end
 
@@ -555,6 +596,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
         is_binary(fence) ->
           {:cont, {:ok, fence, false, visible}}
 
+        not in_comment? and indented_code_line?(line) ->
+          {:cont, {:ok, nil, false, visible}}
+
         not in_comment? and not is_nil(opening_fence(line)) ->
           {marker, _info} = opening_fence(line)
           {:cont, {:ok, marker, false, visible}}
@@ -650,6 +694,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
       line
     )
   end
+
+  defp indented_code_line?(line),
+    do: Regex.match?(~r/^(?: {4}|\t)/, line)
 
   defp read_json(path) do
     with {:ok, body} <- File.read(path),

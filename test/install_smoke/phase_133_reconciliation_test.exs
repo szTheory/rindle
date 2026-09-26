@@ -93,6 +93,17 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     |> assert_valid_process_result()
   end
 
+  test "standalone validator never falls back outside MIX_BUILD_PATH", %{fixture: fixture} do
+    isolated_build = Path.join(fixture.root, "isolated-build-without-yaml")
+    File.mkdir_p!(isolated_build)
+
+    {output, status} =
+      run_validator_with(fixture, "elixir", [@script], [{"MIX_BUILD_PATH", isolated_build}])
+
+    assert status != 0
+    assert output =~ "compiled YAML dependency is unavailable under the configured build root"
+  end
+
   test "rejects a one-byte historical mutation", %{fixture: fixture} do
     mutate_validation(fixture, &String.replace(&1, "19/19", "18/19", global: false))
     assert_invalid(fixture, "historical prefix")
@@ -446,7 +457,7 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
     ])
   end
 
-  defp run_validator_with(fixture, executable, arguments) do
+  defp run_validator_with(fixture, executable, arguments, extra_env \\ []) do
     System.cmd(
       executable,
       arguments ++
@@ -459,7 +470,7 @@ defmodule Rindle.InstallSmoke.Phase133ReconciliationTest do
           fixture.historical_sha256
         ],
       cd: Path.expand("../..", __DIR__),
-      env: [{"MIX_QUIET", "1"}],
+      env: [{"MIX_QUIET", "1"} | extra_env],
       stderr_to_stdout: true
     )
   end

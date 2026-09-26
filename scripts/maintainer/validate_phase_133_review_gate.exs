@@ -234,10 +234,14 @@ defmodule Rindle.ValidatePhase133ReviewGate do
 
     case tables do
       [rows] ->
-        Enum.flat_map(rows, fn
-          [id, status] when id in @review_ids -> [{id, [status]}]
-          _ -> []
-        end)
+        if Enum.all?(rows, fn
+             [id, _status] -> id in @review_ids
+             _ -> false
+           end) do
+          Enum.map(rows, fn [id, status] -> {id, [status]} end)
+        else
+          []
+        end
 
       _ ->
         []

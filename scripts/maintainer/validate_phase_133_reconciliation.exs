@@ -1,9 +1,15 @@
 unless Code.ensure_loaded?(YamlElixir) do
   repo_root = Path.expand("../..", __DIR__)
 
+  build_root =
+    case System.get_env("MIX_BUILD_PATH") do
+      path when is_binary(path) and path != "" -> Path.expand(path, repo_root)
+      _ -> Path.join(repo_root, "_build")
+    end
+
   ebin_paths =
     ["test", "dev"]
-    |> Enum.map(&Path.join([repo_root, "_build", &1, "lib"]))
+    |> Enum.map(&Path.join([build_root, &1, "lib"]))
     |> Enum.find_value(fn build_lib ->
       paths = Path.wildcard(Path.join(build_lib, "*/ebin"))
 
@@ -12,7 +18,7 @@ unless Code.ensure_loaded?(YamlElixir) do
     end)
 
   if is_nil(ebin_paths) do
-    raise "[validate-phase-133-reconciliation] compiled YAML dependency is unavailable under the repository build root"
+    raise "[validate-phase-133-reconciliation] compiled YAML dependency is unavailable under the configured build root"
   end
 
   Enum.each(ebin_paths, &Code.prepend_path/1)

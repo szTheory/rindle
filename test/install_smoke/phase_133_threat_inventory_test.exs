@@ -200,6 +200,39 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     end
   end
 
+  test "rejects an open status on a threat outside the inventoried subset", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    original = File.read!(security_path)
+    anchor = "| T-133-53 | finding | component | high | mitigate | proof | closed |"
+    open_row = "| T-133-01 | finding | component | low | mitigate | proof | open |"
+    report = String.replace(original, anchor, open_row <> "\n" <> anchor, global: false)
+    File.write!(security_path, report)
+
+    assert {output, status} = invoke(write(path, data), security_path)
+    assert status != 0
+    assert output =~ "threats_open does not match register"
+  end
+
+  @tag :real_threat_table_guard
+  test "does not treat an indented code block as the threat register", %{
+    path: path,
+    data: data,
+    security_path: security_path
+  } do
+    report =
+      security_path
+      |> File.read!()
+      |> String.split("\n")
+      |> Enum.map(fn line -> if String.starts_with?(line, "|"), do: "    " <> line, else: line end)
+      |> Enum.join("\n")
+
+    File.write!(security_path, report)
+    assert_rejected(path, security_path, data)
+  end
+
   @tag :proof_path_isolation
   test "detached proofs ignore caller source edits and project BEAMs" do
     tmp =
@@ -298,7 +331,12 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       String.replace(original, "status: verified", "status: open_threats"),
       String.replace(original, data["binding"]["subject_sha"], String.duplicate("a", 40)),
       String.replace(original, data["binding"]["census_sha256"], String.duplicate("0", 64)),
-      original <> "\n| T-133-53 | duplicate | component | high | mitigate | evidence | open |\n",
+      String.replace(
+        original,
+        "| T-133-53 | finding | component | high | mitigate | proof | closed |",
+        "| T-133-53 | finding | component | high | mitigate | proof | closed |\n| T-133-53 | duplicate | component | high | mitigate | evidence | open |",
+        global: false
+      ),
       String.replace(original, "| T-133-53 |", "<!--\n| T-133-53 |", global: false) <>
         "\n-->",
       String.replace(original, "| T-133-53 |", "<!--\n| T-133-53 |", global: false),
