@@ -50,7 +50,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @pending_state "pending — not executed"
   @executed_state "passed — executed"
   @halted_state "halted — immutable failed evidence"
-  @blocked_gate_state "halted — blocking gate"
   @halted_credit "failure-history-only"
   @failed_run "34661043059"
   @failed_subject "0f8189ddeed7e7a52b5c7464f17b70ab44596c33"
@@ -898,7 +897,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
           {:ok, %{status: "halted", metadata: metadata}} ->
             if plan == 48 and Map.get(metadata, "report-gate") == "blocked",
-              do: @blocked_gate_state,
+              do: @pending_state,
               else: @halted_state
 
           _ ->
@@ -976,7 +975,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
         branch_status:
           case record.state do
             @executed_state -> "passed — executed"
-            @blocked_gate_state -> "halted — blocking gate"
             @halted_state -> "halted — immutable failed evidence"
             _ -> "pending — not executed"
           end

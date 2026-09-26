@@ -3,7 +3,7 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   @phase ".planning/phases/133-evidence-charter-and-live-truth"
   @inventory_ids ~w(T-133-71 T-133-102 T-133-33-SC T-133-34-05 T-133-34-SC T-133-35-SC T-133-36-05 T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-05 T-133-41-SC T-133-42-SC)
   @high_ids ~w(T-133-32 T-133-53 T-133-74 T-133-85 T-133-91 T-133-105 T-133-39-03 T-133-42-03)
-  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 WR-01 WR-02)
+  @review_ids ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 WR-01 WR-02 WR-03)
   @package_proof_ids ~w(T-133-33-SC T-133-34-SC T-133-35-SC T-133-36-SC T-133-37-SC T-133-38-SC T-133-39-SC T-133-40-SC T-133-41-SC T-133-42-SC)
   @package_proof_path "scripts/ci/test_phase_133_package_manager_guards.sh"
   @package_proof_command "scripts/ci/test_phase_133_package_manager_guards.sh"
@@ -96,7 +96,55 @@ defmodule Rindle.ValidatePhase133ReviewGate do
 
   defp frontmatter(body) do
     text = frontmatter_text(body)
-    if text == "", do: {:error, "frontmatter missing"}, else: {:ok, parse_yaml_subset(text)}
+
+    blocks =
+      Regex.scan(~r/(?:\A|\n)---[ \t]*\n.*?\n---[ \t]*(?=\n|\z)/s, body)
+
+    cond do
+      text == "" -> {:error, "frontmatter missing"}
+      length(blocks) != 1 -> {:error, "report must contain exactly one bounded frontmatter block"}
+      true -> {:ok, parse_yaml_subset(text)}
+    end
+  end
+
+  defp strict_report_fields(body, fields) do
+    text = frontmatter_text(body)
+    body_text = remove_frontmatter(body, text)
+
+    Enum.reduce_while(fields, {:ok, %{}}, fn field, {:ok, parsed} ->
+      matches =
+        Regex.scan(~r/^#{Regex.escape(field)}:\s*(.*?)\s*$/m, text, capture: :all_but_first)
+        |> List.flatten()
+
+      case matches do
+        [value] ->
+          contradictory =
+            Regex.scan(~r/^\s*#{Regex.escape(field)}:\s*(.*?)\s*$/m, body_text,
+              capture: :all_but_first
+            )
+            |> List.flatten()
+            |> Enum.any?(&(&1 != value))
+
+          if contradictory do
+            {:halt, {:error, "report contains contradictory #{field} values outside frontmatter"}}
+          else
+            {:cont, {:ok, Map.put(parsed, field, value)}}
+          end
+
+        _ ->
+          {:halt, {:error, "frontmatter must contain exactly one #{field} field"}}
+      end
+    end)
+  end
+
+  defp remove_frontmatter(body, text) do
+    Regex.replace(
+      ~r/\A---[ \t]*\n.*?\n---[ \t]*(?:\n|\z)/s,
+      body,
+      "",
+      global: false
+    )
+    |> then(fn remainder -> if remainder == body, do: text, else: remainder end)
   end
 
   defp parse_yaml_subset(text) do
@@ -140,21 +188,22 @@ defmodule Rindle.ValidatePhase133ReviewGate do
           )
       end)
 
-    cond do
-      not String.contains?(body, "status: approved") ->
-        {:error, "review is not approved"}
+    with {:ok, fields} <- strict_report_fields(body, ["status", "blocking"]),
+         true <- fields["status"] == "approved" or {:error, "review is not approved"},
+         true <- fields["blocking"] == "0" or {:error, "review has blocking findings"},
+         true <-
+           failures == [] or
+             {:error, "review dispositions are incomplete: #{Enum.join(failures, ", ")}"},
+         true <-
+           Regex.match?(~r/^- \[x\] No blocking findings\s*$/mi, signoff) or
+             {:error, "review sign-off is incomplete"} do
+      :ok
+    else
+      {:error, message} ->
+        {:error, message}
 
-      not Regex.match?(~r/blocking:\s*0\b/, body) ->
-        {:error, "review has blocking findings"}
-
-      failures != [] ->
-        {:error, "review dispositions are incomplete: #{Enum.join(failures, ", ")}"}
-
-      not Regex.match?(~r/^- \[x\] No blocking findings\s*$/mi, signoff) ->
-        {:error, "review sign-off is incomplete"}
-
-      true ->
-        :ok
+      _ ->
+        {:error, "review frontmatter, dispositions, or sign-off is malformed"}
     end
   end
 
@@ -215,12 +264,9 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   end
 
   defp security_contract(body, reports) do
-    with true <-
-           Regex.match?(~r/^status:\s*verified\s*$/m, frontmatter_text(body)) or
-             {:error, "security report is not verified"},
-         true <-
-           Regex.match?(~r/^threats_open:\s*0\s*$/m, frontmatter_text(body)) or
-             {:error, "security report has open threats"},
+    with {:ok, fields} <- strict_report_fields(body, ["status", "threats_open"]),
+         true <- fields["status"] == "verified" or {:error, "security report is not verified"},
+         true <- fields["threats_open"] == "0" or {:error, "security report has open threats"},
          :ok <- require_disposition_rows(body, @high_ids),
          {:ok, inventory_text} <- read(reports, "133-SECURITY-INVENTORY.json"),
          {:ok, inventory} <- Jason.decode(inventory_text),

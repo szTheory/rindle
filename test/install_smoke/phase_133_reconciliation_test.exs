@@ -784,23 +784,9 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     )
 
     validation = File.read!(fixture.validation)
-
-    validation =
-      Enum.reduce(["133-48-01:1", "133-48-02:1"], validation, fn key, contents ->
-        contents
-        |> mutate_gap_record(
-          key,
-          "<branch-status>pending — not executed</branch-status>",
-          "<branch-status>halted — blocking gate</branch-status>"
-        )
-        |> mutate_gap_record(
-          key,
-          "<state>pending — not executed</state>",
-          "<state>halted — blocking gate</state>"
-        )
-      end)
-
-    File.write!(fixture.validation, validation)
+    assert validation =~ "<pending-validation key=\"133-48-01:1\">"
+    assert validation =~ "<state>pending — not executed</state>"
+    refute validation =~ "<state>halted — blocking gate</state>"
     assert {output, 0} = run_validator(fixture)
     assert output =~ "phase 133 reconciliation valid"
 

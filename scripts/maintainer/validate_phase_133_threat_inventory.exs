@@ -288,7 +288,9 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
     try do
       with :ok <-
              Rindle.Phase133ProofCheckout.checkout_subject!(root, audit_root, subject) do
-        build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(root, audit_root)
+        build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(audit_root)
+        deps_path = Rindle.Phase133ProofCheckout.prepare_deps_path!(audit_root)
+        hex_path = Rindle.Phase133ProofCheckout.prepare_hex_path!(audit_root)
 
         commands =
           items
@@ -299,11 +301,17 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
           {"ASDF_ERLANG_VERSION", "27.3.4.15"},
           {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"},
           {"MIX_ENV", "test"},
-          {"MIX_DEPS_PATH", Path.join(root, "deps")},
-          {"MIX_BUILD_PATH", build_path}
+          {"MIX_DEPS_PATH", deps_path},
+          {"MIX_BUILD_PATH", build_path},
+          {"HEX_HOME", hex_path}
         ]
 
         with :ok <-
+               Rindle.Phase133ProofCheckout.materialize_locked_dependencies!(
+                 audit_root,
+                 proof_env
+               ),
+             :ok <-
                Enum.reduce_while(commands, :ok, fn command, :ok ->
                  case System.cmd("bash", ["-lc", command],
                         cd: audit_root,
@@ -461,56 +469,84 @@ defmodule Rindle.ValidatePhase133ThreatInventory do
 
     case {headings, sections} do
       {[_], [[section]]} ->
-        with {:ok, without_comments} <- strip_balanced_comments(section),
-             {:ok, visible} <- strip_balanced_fences(without_comments) do
-          {:ok, visible}
-        end
+        visible_threat_register(section)
 
       _ ->
         {:error, "security report must contain one threat-register table"}
     end
   end
 
-  defp strip_balanced_comments(section) do
-    tokens = Regex.scan(~r/<!--|-->/, section) |> List.flatten()
-
-    case Enum.reduce_while(tokens, :closed, fn
-           "<!--", :closed -> {:cont, :open}
-           "-->", :open -> {:cont, :closed}
-           "<!--", :open -> {:halt, :invalid}
-           "-->", :closed -> {:halt, :invalid}
-         end) do
-      :closed -> {:ok, Regex.replace(~r/<!--.*?-->/s, section, "")}
-      :open -> {:error, "threat register contains an unclosed HTML comment"}
-      :invalid -> {:error, "threat register contains malformed HTML comment delimiters"}
-    end
-  end
-
-  defp strip_balanced_fences(section) do
+  defp visible_threat_register(section) do
     section
     |> String.split("\n")
-    |> Enum.reduce_while({:ok, nil, []}, fn line, {:ok, fence, visible} ->
-      case fence do
-        nil ->
-          case opening_fence(line) do
-            nil -> {:cont, {:ok, nil, [line | visible]}}
-            {marker, _info} -> {:cont, {:ok, marker, visible}}
-          end
+    |> Enum.reduce_while({:ok, nil, false, []}, fn line, {:ok, fence, in_comment?, visible} ->
+      cond do
+        is_binary(fence) and closing_fence?(line, fence) ->
+          {:cont, {:ok, nil, false, visible}}
 
-        marker ->
-          if closing_fence?(line, marker) do
-            {:cont, {:ok, nil, visible}}
-          else
-            {:cont, {:ok, marker, visible}}
+        is_binary(fence) ->
+          {:cont, {:ok, fence, false, visible}}
+
+        not in_comment? and not is_nil(opening_fence(line)) ->
+          {marker, _info} = opening_fence(line)
+          {:cont, {:ok, marker, false, visible}}
+
+        true ->
+          case strip_comment_line(line, in_comment?) do
+            {:ok, visible_line, next_comment?} ->
+              {:cont, {:ok, nil, next_comment?, [visible_line | visible]}}
+
+            {:error, message} ->
+              {:halt, {:error, message}}
           end
       end
     end)
     |> case do
-      {:ok, nil, visible} ->
+      {:ok, nil, false, visible} ->
         {:ok, visible |> Enum.reverse() |> Enum.join("\n")}
 
-      {:ok, marker, _visible} ->
+      {:ok, nil, true, _visible} ->
+        {:error, "threat register contains an unclosed HTML comment"}
+
+      {:ok, marker, _in_comment?, _visible} ->
         {:error, "threat register contains an unclosed #{String.first(marker)} fence"}
+
+      {:error, message} ->
+        {:error, message}
+    end
+  end
+
+  defp strip_comment_line(line, in_comment?, visible \\ "")
+
+  defp strip_comment_line(line, true, visible) do
+    case :binary.match(line, "-->") do
+      {index, length} ->
+        rest = binary_part(line, index + length, byte_size(line) - index - length)
+        strip_comment_line(rest, false, visible)
+
+      :nomatch ->
+        {:ok, visible, true}
+    end
+  end
+
+  defp strip_comment_line(line, false, visible) do
+    opener = :binary.match(line, "<!--")
+    closer = :binary.match(line, "-->")
+
+    case {opener, closer} do
+      {:nomatch, :nomatch} ->
+        {:ok, visible <> line, false}
+
+      {{open_at, open_len}, {close_at, _close_len}} when close_at < open_at ->
+        {:error, "threat register contains a stray HTML comment terminator"}
+
+      {{open_at, open_len}, _} ->
+        prefix = binary_part(line, 0, open_at)
+        rest = binary_part(line, open_at + open_len, byte_size(line) - open_at - open_len)
+        strip_comment_line(rest, true, visible <> prefix)
+
+      {:nomatch, {_close_at, _close_len}} ->
+        {:error, "threat register contains a stray HTML comment terminator"}
     end
   end
 

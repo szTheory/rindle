@@ -116,14 +116,24 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     end
   end
 
-  test "requires exact report metadata and CR-07 closure", %{tmp: tmp, dir: dir} do
+  test "requires exact report metadata and current finding closures", %{tmp: tmp, dir: dir} do
     path = Path.join(dir, "133-REVIEW.md")
     original = File.read!(path)
 
     for mutation <- [
           String.replace(original, @subject, String.duplicate("b", 40)),
-          String.replace(original, "| CR-07 | closed |", "| CR-07 | open |"),
+          String.replace(original, "| CR-08 | closed |", "| CR-08 | open |"),
+          String.replace(original, "| CR-09 | closed |", "| CR-09 | open |"),
+          String.replace(original, "| CR-10 | closed |", "| CR-10 | open |"),
+          String.replace(original, "| WR-03 | closed |", "| WR-03 | open |"),
+          String.replace(original, "blocking: 0", "blocking: 1"),
+          String.replace(original, "status: approved", "status: blocked"),
+          String.replace(original, "status: approved\n", "status: approved\nstatus: blocked\n"),
+          String.replace(original, "status: approved", "status: blocked")
+          |> String.replace("## Sign-Off", "status: approved\n## Sign-Off"),
           String.replace(original, "blocking: 0", "blocking: 1")
+          |> String.replace("## Sign-Off", "blocking: 0\n## Sign-Off"),
+          original <> "\n---\nstatus: approved\nblocking: 0\n---\n"
         ] do
       File.write!(path, mutation)
       assert {output, status} = invoke(tmp)
@@ -238,7 +248,7 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
   defp review(subject, digest) do
     rows =
       Enum.map_join(
-        ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 WR-01 WR-02),
+        ~w(CR-01 CR-02 CR-03 CR-04 CR-05 CR-06 CR-07 CR-08 CR-09 CR-10 WR-01 WR-02 WR-03),
         "\n",
         &"| #{&1} | closed |"
       )

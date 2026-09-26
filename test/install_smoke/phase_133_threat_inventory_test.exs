@@ -66,6 +66,10 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
 
     ## Threat Register
 
+    ```markdown
+    <!-- This unmatched delimiter is literal inside the fenced example.
+    ```
+
     | ID | Finding | Component | Severity | Treatment | Evidence | Status |
     | --- | --- | --- | --- | --- | --- | --- |
     #{Enum.map_join(security_rows, "\n", fn {id, severity, status} -> "| #{id} | finding | component | #{severity} | mitigate | proof | #{status} |" end)}
@@ -184,13 +188,14 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
 
       assert File.read!(Path.join(detached, "src/proof.txt")) == "subject source"
 
-      build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(cache, detached)
+      build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(detached)
       isolated_lib = Path.join(build_path, "test/lib")
       refute File.exists?(Path.join(isolated_lib, "rindle"))
-      assert File.read!(Path.join(isolated_lib, "plug/ebin/dependency.beam")) == "dependency-beam"
+      refute File.exists?(Path.join(isolated_lib, "plug"))
 
       File.write!(Path.join(shared_lib, "rindle/ebin/caller.beam"), "mutated caller-beam")
       refute File.exists?(Path.join(isolated_lib, "rindle/ebin/caller.beam"))
+      refute File.exists?(Path.join(isolated_lib, "plug/ebin/dependency.beam"))
       assert File.read!(Path.join(detached, "src/proof.txt")) == "subject source"
     after
       File.rm_rf!(tmp)
