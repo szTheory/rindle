@@ -176,19 +176,10 @@ defmodule Rindle.ValidatePhase133ReviewGate do
   defp review_contract(body) do
     signoff = signoff_section(body)
 
-    failures =
-      Enum.reject(@review_ids, fn id ->
-        Regex.match?(
-          ~r/^\|?\s*#{Regex.escape(id)}\s*\|[^\n]*(?:closed|fixed|dispositioned)(?:[^\n]*)$/im,
-          body
-        ) or
-          Regex.match?(
-            ~r/^[-*]\s*#{Regex.escape(id)}\b[^\n]*(?:closed|fixed|dispositioned)/im,
-            body
-          )
-      end)
-
     with {:ok, fields} <- strict_report_fields(body, ["status", "blocking"]),
+         {:ok, visible_body} <-
+           visible_markdown(remove_frontmatter(body, frontmatter_text(body))),
+         failures <- review_disposition_failures(visible_body),
          true <- fields["status"] == "approved" or {:error, "review is not approved"},
          true <- fields["blocking"] == "0" or {:error, "review has blocking findings"},
          true <-
@@ -204,6 +195,53 @@ defmodule Rindle.ValidatePhase133ReviewGate do
 
       _ ->
         {:error, "review frontmatter, dispositions, or sign-off is malformed"}
+    end
+  end
+
+  defp review_disposition_failures(body) do
+    Enum.reject(@review_ids, fn id ->
+      Regex.match?(
+        ~r/^\|?\s*#{Regex.escape(id)}\s*\|[^\n]*(?:closed|fixed|dispositioned)(?:[^\n]*)$/im,
+        body
+      ) or
+        Regex.match?(
+          ~r/^[-*]\s*#{Regex.escape(id)}\b[^\n]*(?:closed|fixed|dispositioned)/im,
+          body
+        )
+    end)
+  end
+
+  # Finding dispositions are evidence, so examples inside Markdown code fences
+  # cannot satisfy the report gate. An unclosed fence is malformed evidence.
+  defp visible_markdown(body) do
+    body
+    |> String.split("\n")
+    |> Enum.reduce_while({:ok, [], nil}, fn line, {:ok, visible, fence} ->
+      case {fence, Regex.run(~r/^\s*(`{3,}|~{3,})(.*)$/, line)} do
+        {nil, [_, marker, _info]} ->
+          {:cont, {:ok, visible, {String.first(marker), byte_size(marker)}}}
+
+        {{char, size}, [_, marker, info]} ->
+          if String.first(marker) == char and byte_size(marker) >= size and
+               String.trim(info) == "" do
+            {:cont, {:ok, visible, nil}}
+          else
+            {:cont, {:ok, visible, fence}}
+          end
+
+        {nil, nil} ->
+          {:cont, {:ok, [line | visible], nil}}
+
+        {_open_fence, _} ->
+          {:cont, {:ok, visible, fence}}
+      end
+    end)
+    |> case do
+      {:ok, _visible, fence} when not is_nil(fence) ->
+        {:error, "review contains an unclosed code fence"}
+
+      {:ok, visible, nil} ->
+        {:ok, visible |> Enum.reverse() |> Enum.join("\n")}
     end
   end
 

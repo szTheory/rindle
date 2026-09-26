@@ -19,19 +19,32 @@ defmodule Rindle.Phase133ProofCheckout do
   def prepare_build_path!(audit_root) do
     build_path = Path.join(audit_root, ".phase133-proof-build")
     File.mkdir_p!(Path.join(build_path, "test/lib"))
-    build_path
+    canonical_path!(build_path)
   end
 
   def prepare_deps_path!(audit_root) do
     path = Path.join(audit_root, ".phase133-proof-deps")
     File.mkdir_p!(path)
-    path
+    canonical_path!(path)
   end
 
   def prepare_hex_path!(audit_root) do
     path = Path.join(audit_root, ".phase133-proof-hex")
     File.mkdir_p!(path)
-    path
+    canonical_path!(path)
+  end
+
+  # Mix writes app include links using physical paths. A logical macOS temp
+  # path (for example /var/... or /tmp) can otherwise mix with /private/... and
+  # produce invalid /private/private/... links in the isolated build.
+  defp canonical_path!(path) do
+    case System.cmd("pwd", ["-P"], cd: path, stderr_to_stdout: true) do
+      {physical_path, 0} ->
+        String.trim(physical_path)
+
+      {output, status} ->
+        raise "could not resolve isolated proof path #{path} (#{status}): #{String.trim(output)}"
+    end
   end
 
   def materialize_locked_dependencies!(audit_root, env) do

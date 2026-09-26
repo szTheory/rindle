@@ -142,6 +142,22 @@ defmodule Rindle.InstallSmoke.Phase133ReviewGateTest do
     end
   end
 
+  @tag :review_fenced_disposition
+  test "does not count finding closures inside fenced examples", %{tmp: tmp, dir: dir} do
+    path = Path.join(dir, "133-REVIEW.md")
+    original = File.read!(path)
+
+    mutation =
+      original
+      |> String.replace("| CR-09 | closed |", "| CR-09 | open |")
+      |> String.replace("## Sign-Off", "```text\n| CR-09 | closed |\n```\n\n## Sign-Off")
+
+    File.write!(path, mutation)
+    assert {output, status} = invoke(tmp)
+    assert status != 0
+    assert output =~ "CR-09"
+  end
+
   test "requires every named high threat and inventory finding with no synthetic IDs", %{
     tmp: tmp,
     dir: dir

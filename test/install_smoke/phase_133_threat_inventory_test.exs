@@ -144,6 +144,7 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
     end
   end
 
+  @tag :proof_path_isolation
   test "detached proofs ignore caller source edits and project BEAMs" do
     tmp =
       Path.join(
@@ -189,6 +190,15 @@ defmodule Rindle.InstallSmoke.Phase133ThreatInventoryTest do
       assert File.read!(Path.join(detached, "src/proof.txt")) == "subject source"
 
       build_path = Rindle.Phase133ProofCheckout.prepare_build_path!(detached)
+      deps_path = Rindle.Phase133ProofCheckout.prepare_deps_path!(detached)
+      hex_path = Rindle.Phase133ProofCheckout.prepare_hex_path!(detached)
+
+      for isolated_path <- [build_path, deps_path, hex_path] do
+        {physical_path, 0} = System.cmd("pwd", ["-P"], cd: isolated_path)
+        assert isolated_path == String.trim(physical_path)
+        refute isolated_path =~ "/private/private/"
+      end
+
       isolated_lib = Path.join(build_path, "test/lib")
       refute File.exists?(Path.join(isolated_lib, "rindle"))
       refute File.exists?(Path.join(isolated_lib, "plug"))
