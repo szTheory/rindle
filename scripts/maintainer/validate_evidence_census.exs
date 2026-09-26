@@ -64,6 +64,19 @@ defmodule Rindle.ValidateEvidenceCensus do
     end
   end
 
+  def validate_ledger_contract(ledger, root) when is_map(ledger) do
+    with :ok <- validate_schema(ledger, %{"schema_version" => 1}),
+         :ok <- validate_taxonomy(ledger),
+         :ok <- validate_observation_locations(ledger, root),
+         :ok <- validate_detectors(ledger),
+         :ok <- validate_transition_contract(ledger),
+         :ok <- validate_candidates(ledger, root) do
+      :ok
+    end
+  end
+
+  def validate_ledger_contract(_ledger, _root), do: {:error, "ledger must be an object"}
+
   defp parse_options(argv) do
     case OptionParser.parse(argv, strict: [root: :string, ledger: :string, receipt: :string]) do
       {options, [], []} ->
@@ -683,11 +696,13 @@ defmodule Rindle.ValidateEvidenceCensus do
   defp require_equal(_left, _right, message), do: {:error, message}
 end
 
-case Rindle.ValidateEvidenceCensus.run(System.argv()) do
-  :ok ->
-    :ok
+unless System.get_env("RINDLE_EVIDENCE_CENSUS_VALIDATOR_LIBRARY_ONLY") == "1" do
+  case Rindle.ValidateEvidenceCensus.run(System.argv()) do
+    :ok ->
+      :ok
 
-  {:error, message} ->
-    IO.puts(:stderr, "[validate-evidence-census] #{message}")
-    System.halt(1)
+    {:error, message} ->
+      IO.puts(:stderr, "[validate-evidence-census] #{message}")
+      System.halt(1)
+  end
 end

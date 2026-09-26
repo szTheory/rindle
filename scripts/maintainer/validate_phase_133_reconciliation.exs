@@ -24,6 +24,12 @@ unless Code.ensure_loaded?(YamlElixir) do
   Enum.each(ebin_paths, &Code.prepend_path/1)
 end
 
+unless Code.ensure_loaded?(Rindle.ValidateEvidenceCensus) do
+  System.put_env("RINDLE_EVIDENCE_CENSUS_VALIDATOR_LIBRARY_ONLY", "1")
+  Code.require_file("validate_evidence_census.exs", __DIR__)
+  System.delete_env("RINDLE_EVIDENCE_CENSUS_VALIDATOR_LIBRARY_ONLY")
+end
+
 defmodule Rindle.ValidatePhase133Reconciliation do
   @moduledoc false
 
@@ -1680,7 +1686,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          {:ok, census_bytes} <- File.read(Path.join(root, @census_path)),
          true <- sha256(census_bytes) == digest,
          {:ok, census} <- Jason.decode(census_bytes),
-         true <- Map.get(census, "subject_sha") == subject do
+         true <- Map.get(census, "subject_sha") == subject,
+         :ok <- Rindle.ValidateEvidenceCensus.validate_ledger_contract(census, root) do
       true
     else
       _ -> false

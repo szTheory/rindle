@@ -501,6 +501,7 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
 
   @repo_root Path.expand("../..", __DIR__)
   @phase_rel ".planning/phases/133-evidence-charter-and-live-truth"
+  @census Path.join(@repo_root, Path.join(@phase_rel, "133-EVIDENCE-CENSUS.json"))
   @validator Path.join(@repo_root, "scripts/maintainer/validate_phase_133_reconciliation.exs")
   @branch_heading "## Branch-Aware Validation Addendum (Plans 33–37)"
   @plans_50_heading "## Plans 50–52 Gap-Closure Addendum"
@@ -861,7 +862,14 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     File.write!(fixture.state, state)
 
     subject = String.duplicate("a", 40)
-    census = Jason.encode!(%{"subject_sha" => subject}) <> "\n"
+    census =
+      @census
+      |> File.read!()
+      |> Jason.decode!()
+      |> Map.put("subject_sha", subject)
+      |> Jason.encode!()
+      |> Kernel.<>("\n")
+
     census_path = Path.join(fixture.root, "#{@phase_rel}/133-EVIDENCE-CENSUS.json")
     File.write!(census_path, census)
     census_digest = sha256(census)
@@ -896,6 +904,17 @@ defmodule Rindle.InstallSmoke.Phase133Reconciliation42Test do
     assert {output, 0} = run_validator(fixture)
     assert output =~ "phase 133 reconciliation valid"
     assert binary_part(File.read!(fixture.validation), 0, 148_104) == frozen_prefix_before
+
+    minimal_census = Jason.encode!(%{"subject_sha" => subject}) <> "\n"
+    minimal_digest = sha256(minimal_census)
+
+    File.write!(census_path, minimal_census)
+    File.write!(summary_path(fixture.root, 48), String.replace(summary, census_digest, minimal_digest))
+    assert {output, status} = run_validator(fixture)
+    assert status != 0
+    assert output =~ "133-48"
+
+    File.write!(census_path, census)
 
     for mutation <- [
           String.replace(summary, proposed_ref, proposed_ref <> "-wrong"),
