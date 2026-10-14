@@ -508,10 +508,18 @@ jobs:
     needs: [quality, optional-dependencies]
     env:
       MIX_ENV: test
+      RINDLE_AV_USE_CGROUPS: "false"
       PGUSER: postgres
       PGPASSWORD: postgres
       PGHOST: localhost
       PGPORT: "5432"
+      # TRUTH-08: the adoption proof matrix gate's package authority builds a
+      # fresh generated image consumer against S3-compatible MinIO.
+      RINDLE_MINIO_URL: http://localhost:9000
+      RINDLE_MINIO_ACCESS_KEY: minioadmin
+      RINDLE_MINIO_SECRET_KEY: minioadmin
+      RINDLE_MINIO_BUCKET: rindle-test
+      RINDLE_MINIO_REGION: us-east-1
 
     services:
       postgres:
@@ -554,6 +562,12 @@ jobs:
 
       - name: Run adopter docs link hygiene gate
         run: bash scripts/maintainer/check_docs_links.sh
+
+      - name: Install libvips for the generated image consumer
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+
+      - name: Set up MinIO for the package authority proof
+        uses: ./.github/actions/setup-minio
 
       - name: Run adoption proof matrix drift gate
         run: bash scripts/maintainer/check_adoption_proof_matrix.sh

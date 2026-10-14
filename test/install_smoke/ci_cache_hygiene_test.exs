@@ -53,7 +53,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   end
 
   test "CACHE-01: ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
-    # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×7 in ci.yml.
+    # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×8 in ci.yml.
     # Both went +1 in Phase 112: the lean `adoption-demo-e2e-smoke` PR lane
     # (clone of `adoption-demo-e2e`) adopts BOTH composites too — composite
     # reuse is the desired hygiene, so the lock tracks the new live counts.
@@ -62,8 +62,8 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert count(ci, "uses: ./.github/actions/setup-elixir") == 11,
            "ci.yml must adopt the setup-elixir composite 11× (single source of truth, CACHE-01)"
 
-    assert count(ci, "uses: ./.github/actions/setup-minio") == 7,
-           "ci.yml must adopt the setup-minio composite 7× (single source of truth, CACHE-01)"
+    assert count(ci, "uses: ./.github/actions/setup-minio") == 8,
+           "ci.yml must adopt the setup-minio composite 8× (single source of truth, CACHE-01)"
   end
 
   test "CACHE-01: release.yml adopts the setup-minio composite twice", %{release: release} do
@@ -225,7 +225,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
        } do
     workflows = ci <> nightly <> release
 
-    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 18
+    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 19
     refute workflows =~ "apt-get install -y libvips-dev"
     refute workflows =~ "apt-get install -y ffmpeg"
     assert workflows =~ "install_apt_packages.sh ffmpeg"
