@@ -52,6 +52,8 @@ checkpoint_event_digest=""
 checkpoint_issue_number=""
 checkpoint_issue_state=""
 checkpoint_issue_digest=""
+genesis_run=0
+genesis_attempt=0
 
 [[ -n "${checkpoint_path}" ]] || fail "CHECKPOINT_OUTPUT_PATH must be set"
 
@@ -139,6 +141,27 @@ fetch_artifacts() {
   jq -cS '[.[].artifacts[]]' <<<"${pages}" >"${artifacts_file}"
 }
 
+# Genesis: scheduled runs before the first verdict artifact predate the verdict
+# log and cannot be replayed. Without an authenticated checkpoint, the earliest
+# verdict artifact (retained or expired, or the current attempt when none is
+# visible yet) starts the replay cursor; earlier runs are pre-genesis legacy.
+compute_genesis() {
+  local genesis
+  if [ "${checkpoint_run}" -ne 0 ]; then
+    genesis_run=0
+    genesis_attempt=0
+    return 0
+  fi
+  genesis="$(jq -r --arg prefix 'nightly-incident-verdict-' \
+    --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" '
+      [ .[] | select(.name | startswith($prefix)) |
+        (.name | capture("^nightly-incident-verdict-(?<run>[1-9][0-9]{0,19})-(?<attempt>[1-9][0-9]{0,9})$")) |
+        [(.run | tonumber), (.attempt | tonumber)] ] + [[$high, $high_attempt]] |
+      min | "\(.[0]) \(.[1])"
+    ' "${artifacts_file}")" || fail "malformed canonical artifact name"
+  read -r genesis_run genesis_attempt <<<"${genesis}"
+}
+
 prepare_event_index() {
   jq -e '
     def retention_ok:
@@ -204,12 +227,15 @@ prepare_event_index() {
     (group_by([.run_id, .run_attempt]) | all(.[]; length == 1))
   ' "${workspace}/event-index.json" >/dev/null || fail "duplicate or mismatched canonical event artifact"
 
+  compute_genesis
   jq -cS --arg branch "${DEFAULT_BRANCH}" \
     --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" \
-    --argjson cursor "${checkpoint_run}" --argjson cursor_attempt "${checkpoint_attempt}" '
+    --argjson cursor "${checkpoint_run}" --argjson cursor_attempt "${checkpoint_attempt}" \
+    --argjson genesis "${genesis_run}" --argjson genesis_attempt "${genesis_attempt}" '
       [
         .[] |
         select((.id < $high or (.id == $high and .run_attempt <= $high_attempt)) and .head_branch == $branch) |
+        select(.id > $genesis or (.id == $genesis and .run_attempt >= $genesis_attempt)) |
         select((.id > $cursor or (.id == $cursor and .run_attempt > $cursor_attempt)) and .head_branch == $branch) |
         select(.status == "completed" or .id == $high) |
         {run_id:.id,run_attempt:.run_attempt,event:.event,status:.status,conclusion:.conclusion,sha:.head_sha,branch:.head_branch,url:.html_url,name:.name,path:.path}
@@ -534,6 +560,28 @@ write_checkpoint() {
   mv "${workspace}/checkpoint-final.json" "${checkpoint_path}"
 }
 
+# At genesis, a single labelled open incident with no mutation markers is
+# adopted as the current incident. Fail closed when an open incident with the
+# canonical title lacks the label, or when any mutation marker predates genesis.
+check_genesis_preconditions() {
+  [ "${checkpoint_run}" -eq 0 ] || return 0
+  local titled issues="${workspace}/genesis-issues.json"
+  titled="$(${GH_CLI:-gh} issue list --repo "${GH_REPO}" --state open \
+    --search "in:title \"${incident_title}\"" --limit 100 --json number,title,labels)" ||
+    fail "open incident title lookup failed"
+  jq -e --arg title "${incident_title}" --arg label "${incident_label}" '
+    type == "array" and
+    ([.[] | select(.title == $title and ([.labels[]?.name] | index($label) | not))] | length == 0)
+  ' >/dev/null <<<"${titled}" || fail "an open \"${incident_title}\" incident lacks the ${incident_label} label"
+  inventory "${issues}"
+  jq -e --argjson genesis "${genesis_run}" --argjson genesis_attempt "${genesis_attempt}" '
+    [ .[] | .body, .comments[].body |
+      scan("nightly-mutation:(?:open|update|close):([1-9][0-9]{0,19}):([1-9][0-9]{0,9})") |
+      map(tonumber) | select(.[0] < $genesis or (.[0] == $genesis and .[1] < $genesis_attempt)) ] | length == 0
+  ' "${issues}" >/dev/null || fail "incident mutation history predates the genesis run ${genesis_run}/${genesis_attempt}"
+  echo "Nightly incident replay: genesis at ${genesis_run}/${genesis_attempt}; adopting $(jq -r '[.[] | select(.state == "OPEN") | "#\(.number)"] | if length == 0 then "no open incident" else .[0] end' "${issues}")"
+}
+
 mutation_body() {
   local intent_file="$1" body_file="$2"
   local action marker event
@@ -584,6 +632,7 @@ for ((attempt = 1; attempt <= fetch_attempts; attempt++)); do
   sleep "${sleep_seconds}"
 done
 authenticate_events
+check_genesis_preconditions
 
 for ((restart = 1; restart <= max_restarts; restart++)); do
   before="${workspace}/issues-before-${restart}.json"

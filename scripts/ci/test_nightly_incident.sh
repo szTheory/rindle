@@ -123,6 +123,10 @@ make_fake_gh() {
     '  esac' \
     '  exit 0' \
     'fi' \
+    'if [ "${1-} ${2-}" = "issue list" ] && [[ "$*" == *--search* ]]; then' \
+    '  if [ -f "${state}/title-search.json" ]; then cat "${state}/title-search.json"; else printf "[]\\n"; fi' \
+    '  exit 0' \
+    'fi' \
     'if [ "${1-} ${2-}" = "issue list" ]; then' \
     '  [ "${FAKE_GH_FAIL-}" != list ] || exit 45' \
     '  n="$(counter issue_reads)"' \
@@ -541,6 +545,99 @@ checkpoint_case "concurrent issue-history advancement invalidates checkpoint" co
 checkpoint_case "repository retention cap below 14 days fails before mutation" short-retention
 checkpoint_expiry_boundary_case 3599
 checkpoint_expiry_boundary_case 3601
+
+# Genesis: legacy scheduled runs predate verdict artifacts. The first run that
+# carries a verdict artifact starts the replay cursor, and a single unmarked
+# pre-genesis open incident is adopted as the current incident.
+genesis_fixture() {
+  local verdict="$1" temp
+  temp="$(new_fixture)"
+  jq '.workflow_runs = [
+      {id:90,run_attempt:1,event:"schedule",status:"completed",conclusion:"failure",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",head_branch:"main",html_url:"https://github.com/szTheory/rindle/actions/runs/90",name:"Nightly",path:".github/workflows/nightly.yml"},
+      {id:91,run_attempt:1,event:"schedule",status:"completed",conclusion:"failure",head_sha:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",head_branch:"main",html_url:"https://github.com/szTheory/rindle/actions/runs/91",name:"Nightly",path:".github/workflows/nightly.yml"}
+    ] + [.workflow_runs[-1]]' "${temp}/state/runs.json" >"${temp}/state/runs.next"
+  mv "${temp}/state/runs.next" "${temp}/state/runs.json"
+  write_artifacts "${temp}/state/artifacts.json" green-only
+  write_event "${temp}/state/events/nightly-incident-verdict-103-1.json" 103 1 "${verdict}" "${sha_b}"
+  jq -cn '[
+    {number:36,title:"Nightly CI failure",state:"CLOSED",body:"Legacy Nightly failure",comments:[]},
+    {number:88,title:"Nightly CI failure",state:"OPEN",body:"Legacy Nightly failure",comments:[{body:"Nightly failed again: run 91"}]}
+  ]' >"${temp}/state/issues.json"
+  printf '%s' "${temp}"
+}
+
+genesis_adopt_case() {
+  local name="$1" verdict="$2" want_state="$3" want_marker="$4" temp output got=0 attempts=0 replay_attempts=0
+  temp="$(genesis_fixture "${verdict}")"
+  output="${temp}/output"
+  run_manager "${temp}" "${output}" || got=$?
+  [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
+  if [ "${got}" -eq 0 ] && [ "${attempts}" -eq 1 ] && [ "$(jq length "${temp}/state/issues.json")" -eq 2 ] &&
+     [ "$(jq -r '.[] | select(.number == 88) | .state' "${temp}/state/issues.json")" = "${want_state}" ] &&
+     [ "$(jq -r --arg m "${want_marker}" '[.[] | select(.number == 88) | .comments[].body | select(contains($m) and contains("actions/runs/103"))] | length' "${temp}/state/issues.json")" -eq 1 ] &&
+     [ "$(mutation_effects "${temp}")" -eq 1 ] &&
+     jq -e '.last_run_id == 103 and .issue_number == 88' "${temp}/state/checkpoint-output.json" >/dev/null; then
+    record "${name}" true ""
+  else
+    record "${name}" false "exit=${got} attempts=${attempts}; $(<"${output}")"
+  fi
+
+  rm -f "${temp}/state/artifact_reads" "${temp}/state/issue_reads" "${temp}/state/mutation_attempts"
+  got=0
+  run_manager "${temp}" "${output}" || got=$?
+  [ ! -f "${temp}/state/mutation_attempts" ] || replay_attempts="$(<"${temp}/state/mutation_attempts")"
+  if [ "${got}" -eq 0 ] && [ "${replay_attempts}" -eq 0 ] && [ "$(mutation_effects "${temp}")" -eq 1 ]; then
+    record "${name}: re-run on the same run is mutation-idempotent" true ""
+  else
+    record "${name}: re-run on the same run is mutation-idempotent" false "exit=${got} attempts=${replay_attempts}; $(<"${output}")"
+  fi
+  rm -rf "${temp}"
+}
+
+genesis_fail_closed_case() {
+  local name="$1" setup="$2" reason="$3" temp output got=0 attempts=0
+  temp="$(genesis_fixture green)"
+  output="${temp}/output"
+  case "${setup}" in
+    duplicate-open)
+      jq '. + [{number:89,title:"Nightly CI failure",state:"OPEN",body:"Legacy Nightly failure",comments:[]}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    unlabelled)
+      jq -cn '[{number:88,title:"Nightly CI failure",labels:[{name:"nightly-failure"}]},{number:95,title:"Nightly CI failure",labels:[]}]' \
+        >"${temp}/state/title-search.json"
+      ;;
+    pre-genesis-marker)
+      jq '(.[] | select(.number == 88) | .comments) += [{body:"Evidence marker: nightly-mutation:update:91:1"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    missing-post-genesis)
+      jq '.workflow_runs = [.workflow_runs[0], .workflow_runs[1],
+          (.workflow_runs[2] | .id = 101 | .status = "completed" | .conclusion = "failure" | .head_sha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" | .html_url = "https://github.com/szTheory/rindle/actions/runs/101"),
+          (.workflow_runs[2] | .id = 102 | .status = "completed" | .conclusion = "failure" | .head_sha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" | .html_url = "https://github.com/szTheory/rindle/actions/runs/102"),
+          .workflow_runs[2]]' "${temp}/state/runs.json" >"${temp}/state/runs.next"
+      mv "${temp}/state/runs.next" "${temp}/state/runs.json"
+      write_artifacts "${temp}/state/artifacts.json" missing-middle
+      ;;
+  esac
+  run_manager "${temp}" "${output}" || got=$?
+  [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
+  if [ "${got}" -ne 0 ] && [ "${attempts}" -eq 0 ] && grep -Fq -- "${reason}" "${output}"; then
+    record "${name}" true ""
+  else
+    record "${name}" false "expected pre-mutation failure '${reason}', got exit=${got} attempts=${attempts}; $(<"${output}")"
+  fi
+  rm -rf "${temp}"
+}
+
+genesis_adopt_case "genesis adopts the legacy open incident and closes it citing the green run" green CLOSED "nightly-mutation:close:103:1"
+genesis_adopt_case "genesis adopts the legacy open incident and updates it citing the red run" red OPEN "nightly-mutation:update:103:1"
+genesis_fail_closed_case "genesis with duplicate legacy open incidents fails closed" duplicate-open "competing exact-label incident inventory"
+genesis_fail_closed_case "genesis with an unlabelled open incident fails closed" unlabelled "lacks the nightly-failure label"
+genesis_fail_closed_case "genesis with a mutation marker before the genesis run fails closed" pre-genesis-marker "predates the genesis run 103/1"
+genesis_fail_closed_case "a missing verdict artifact after genesis still fails closed" missing-post-genesis "coverage incomplete"
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
