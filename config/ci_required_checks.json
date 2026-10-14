@@ -1,0 +1,11 @@
+{
+  "schema_version": "rindle-required-checks-v1",
+  "workflow": {
+    "file": "ci.yml",
+    "name": "CI",
+    "job_id": "ci-summary"
+  },
+  "contexts": [
+    "CI Summary"
+  ]
+}

@@ -35,7 +35,10 @@ matrix both of those entrypoints link to.
 
 > Adopters can skip this section. It documents how this repository gates merges and releases.
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring; GitHub branch protection and required-check settings live outside the repo. The `name: CI` and `ci.yml` filename are **invariant** because release automation selects that workflow by name and filename.
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) is the source of truth for job wiring;
+the required-check identity is repository-structured as described under Release train, while the
+applied GitHub branch-protection state remains remote. The `name: CI` and `ci.yml` filename are
+**invariant** because release automation selects that workflow by name and filename.
 
 > CI work is split by trigger so only representative signal stays on the PR critical
 > path (≤7 min target):
@@ -43,9 +46,12 @@ matrix both of those entrypoints link to.
 >   `package-consumer`** runs on PR (stays merge-blocking via `CI Summary`); a new
 >   **`package-consumer-full`** runs on `push:main`/release with the full 5-profile matrix
 >   + release preflight + `hex.publish --dry-run` and is **NOT** a required PR check.
-> - The broad OTP×Elixir **compat matrix**, **`gcs-soak`**, **`package-consumer-gcs-live`**,
->   and an owned gating **Dialyzer** lane move to a separate **`nightly.yml`** (`name:
->   Nightly`), advisory and never a required PR check.
+> - The broad OTP×Elixir **`compat-matrix`**, **`dialyzer`**, **`gcs-soak`**, and
+>   **`package-consumer-gcs-live`** lanes live in the separate **`nightly.yml`**
+>   (`name: Nightly`). They are not required PR checks because Nightly has no PR trigger,
+>   but are all **Nightly-gating** inputs to the strict `Nightly Summary`.
+>   Any applicable lane that fails, is cancelled, is unexpected, is missing, or is
+>   impermissibly skipped makes Nightly red.
 > - **`mux-soak` stays here** in `ci.yml` as a **label-gated PR lane** (not moved to
 >   nightly).
 >
@@ -75,9 +81,19 @@ matrix both of those entrypoints link to.
 | `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets are absent. |
+| `compat-matrix` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Broad OTP×Elixir compatibility; not a required PR check, but every matrix cell feeds strict `Nightly Summary`. |
 | `dialyzer` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Owned type-contract lane; not a required PR check, but a failure makes Nightly red. |
 | `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets are absent; a live-GCS regression makes Nightly red. |
 | `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets are present (skipped otherwise); failures make Nightly red. |
+
+Nightly Dialyzer proves fresh and restored PLT modes independently on the supported Elixir 1.17 / OTP
+27 cell. `Nightly Summary` applies the strict Nightly verdict: failed, cancelled, unexpected, missing,
+or impermissibly skipped gating work is red. For the two live GCS jobs, the bounded upstream-repository
+and required-secrets rule records secret-absent work as not-run rather than passed. Local runs on a
+newer toolchain are diagnostic only. The current supported-cell acceptance authority is the exact-subject
+receipt at `.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json`, authenticated
+against live GitHub run/job/log state and detached local authorities by the repository's
+`bash scripts/ci/verify_nightly_run.sh verify-receipt` contract.
 
 ### Reproducing the coverage step locally (COV-04)
 
@@ -164,9 +180,12 @@ workflow still relies on the complete `ci.yml` run for the exact release SHA.
 `ci.yml` on the release SHA to finish with conclusion `success`. When the latest run is
 not green, or the wait times out, publish **fails closed** — there is no bypass path.
 
-Branch protection enforces a **single** required status check, `CI Summary` (enforced via
-`scripts/setup_branch_protection.sh`, `REQUIRED_CHECKS=("CI Summary")`). None of the individual
-lanes are required contexts; they gate merges transitively through `CI Summary.needs`, which lists
+`config/ci_required_checks.json` is the sole structured authority for branch protection's required
+status-check identity. Its workflow tuple maps `ci.yml` / `CI` / `ci-summary` to the sole required
+context `CI Summary`. `scripts/setup_branch_protection.sh` loads its contexts when rendering or
+applying branch protection, and `scripts/maintainer/validate_live_truth.exs` cross-checks the same
+workflow, job, and context identity against parsed CI topology. None of the individual lanes are
+required contexts; they gate merges transitively through `CI Summary.needs`, which lists
 `quality`, `optional-dependencies`, `integration`, `contract`, `proof`, `package-consumer` (lean),
 `adoption-demo-unit`, `adoption-demo-e2e-smoke`, `adopter`, `brandbook-tokens`, and
 `ci-script-tests`.

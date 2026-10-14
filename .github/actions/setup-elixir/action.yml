@@ -38,6 +38,12 @@ inputs:
     default: "true"
 
 outputs:
+  resolved-elixir-version:
+    description: "Exact Elixir version installed by the pinned setup-beam action."
+    value: ${{ steps.beam.outputs.elixir-version }}
+  resolved-otp-version:
+    description: "Exact Erlang/OTP version installed by the pinned setup-beam action."
+    value: ${{ steps.beam.outputs.otp-version }}
   deps-cache-hit:
     description: "'true' when the deps cache was restored on an exact key hit (for the OBS-01 summary)."
     value: ${{ steps.deps_cache.outputs.cache-hit }}
