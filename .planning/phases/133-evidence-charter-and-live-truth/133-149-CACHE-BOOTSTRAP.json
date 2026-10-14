@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_private_registry_cache_bootstrap",
+  "plan": "133-149",
+  "root": "/Users/jon/projects/rindle/.claude/worktrees/p149-cache-isolation",
+  "source_path": "/Users/jon/.hex/cache.ets",
+  "private_destination": "/private/tmp/rindle-phase133-mux-149-cache-495121f1fc2e1577/cache.ets",
+  "bytes": 4836871,
+  "cache_sha256": "3aab64a4647246c1a06a769b6fd3ec669d35affc49d92013cc3d27e363356187",
+  "source_sha256": "3aab64a4647246c1a06a769b6fd3ec669d35affc49d92013cc3d27e363356187",
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "52811d993e1b0b3a8bf7c73d7a0ebf6dce0015fb18b72cfbc59c2d02fb5a421f"
+}

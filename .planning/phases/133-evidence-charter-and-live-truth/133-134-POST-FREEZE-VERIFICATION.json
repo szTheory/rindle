@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "plan": "133-134",
+  "kind": "post_freeze_verification_failure",
+  "command": "node --test --test-name-pattern='Plan 134 production readiness uses committed bridge history in a copied checkout' test/install_smoke/phase_133_registry_supply_test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: Plan 134 production readiness uses committed bridge history in a copied checkout\nnot ok 1 - Plan 134 production readiness uses committed bridge history in a copied checkout\n  ---\n  duration_ms: 11435.783208\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p134-escalated-1791560070/test/install_smoke/phase_133_registry_supply_test.mjs:234:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    \n    true !== false\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: false\n  actual: true\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p134-escalated-1791560070/test/install_smoke/phase_133_registry_supply_test.mjs:239:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 11542.916792\n",
+  "targetTest": "Plan 134 production readiness uses committed bridge history in a copied checkout",
+  "targetFile": "test/install_smoke/phase_133_registry_supply_test.mjs",
+  "expected": "Copied readiness fixture has no Plan 134 preflight",
+  "actual": "Copied HEAD includes the committed Plan 134 preflight; existsSync is true",
+  "source_commit": "4a7d2b9a0ce758b37f45c429fa92c26bb3b7cd72",
+  "preflight_commit": "1eb9d5edfb75125e5daeab32a2873df2c9eecc44",
+  "preflight_sha256": "c3ce495744c63cad3459babec573a1d15079acd38eb14c8aae3b6f0fc57cb8b0",
+  "authorization_count": 0,
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "repair_proposal": {
+    "applied": false,
+    "path": "/private/tmp/phase133-134-fixture-repair.patch",
+    "verification": "/private/tmp/phase133-134-fixture-repair-verification.json",
+    "passing_tests": 24,
+    "failing_tests": 0
+  }
+}

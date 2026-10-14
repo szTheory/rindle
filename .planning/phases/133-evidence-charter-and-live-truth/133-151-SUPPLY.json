@@ -1,0 +1,692 @@
+{
+  "schema_version": 1,
+  "plan": "133-151",
+  "status": "available",
+  "preflight_sha256": "8e4a75be9c456235710bb4fd7f34335af329117f021011ebb8840e845ff5e5e9",
+  "retrieval_sha256": "10bb762677332d3f8ecb3a21e923cf67ce3b942b178c0d7ee78a3a6e1a4c598a",
+  "cache": {
+    "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/cache.ets",
+    "sha256": "4c0cdb2b8771ab51bc4e92311ff3b5aa4bef9d53372a1c69677587724a2c2e11"
+  },
+  "inventory": {
+    "status": "complete",
+    "locked_package_count": 67,
+    "rows": [
+      {
+        "name": "bunt",
+        "version": "1.0.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "bypass",
+        "version": "2.1.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "cc_precompiler",
+        "version": "0.1.11",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "color",
+        "version": "0.12.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "cowboy",
+        "version": "2.18.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "cowboy_telemetry",
+        "version": "0.4.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "cowlib",
+        "version": "2.19.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "credo",
+        "version": "1.7.18",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "db_connection",
+        "version": "2.10.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "decimal",
+        "version": "3.1.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "dialyxir",
+        "version": "1.4.7",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "doctor",
+        "version": "0.23.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "earmark_parser",
+        "version": "1.4.44",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ecto",
+        "version": "3.13.6",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ecto_sql",
+        "version": "3.13.5",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "elixir_make",
+        "version": "0.10.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "erlex",
+        "version": "0.2.8",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ex_aws",
+        "version": "2.6.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ex_aws_s3",
+        "version": "2.5.9",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ex_doc",
+        "version": "0.40.3",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ex_machina",
+        "version": "2.8.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ex_marcel",
+        "version": "0.2.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "excoveralls",
+        "version": "0.18.5",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "file_system",
+        "version": "1.1.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "finch",
+        "version": "0.23.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "fine",
+        "version": "0.1.6",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "gcs_signed_url",
+        "version": "0.6.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "goth",
+        "version": "1.4.5",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "hpax",
+        "version": "1.0.4",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "image",
+        "version": "0.65.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "jason",
+        "version": "1.4.5",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "jose",
+        "version": "1.11.12",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "junit_formatter",
+        "version": "3.4.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "lazy_html",
+        "version": "0.1.12",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "makeup",
+        "version": "1.2.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "makeup_elixir",
+        "version": "1.0.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "makeup_erlang",
+        "version": "1.1.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "mime",
+        "version": "2.0.7",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "mint",
+        "version": "1.9.3",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "mix_audit",
+        "version": "2.1.5",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "mox",
+        "version": "1.2.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "muontrap",
+        "version": "1.7.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "mux",
+        "version": "3.2.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "nimble_options",
+        "version": "1.1.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "nimble_ownership",
+        "version": "1.0.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "nimble_parsec",
+        "version": "1.4.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "nimble_pool",
+        "version": "1.1.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "oban",
+        "version": "2.21.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "phoenix",
+        "version": "1.8.12",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "phoenix_html",
+        "version": "4.3.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "phoenix_live_view",
+        "version": "1.2.10",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "phoenix_pubsub",
+        "version": "2.2.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "phoenix_template",
+        "version": "1.0.4",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "plug",
+        "version": "1.20.3",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "plug_cowboy",
+        "version": "2.9.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "plug_crypto",
+        "version": "2.2.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "postgrex",
+        "version": "0.22.4",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "ranch",
+        "version": "1.8.1",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "req",
+        "version": "0.7.3",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "sweet_xml",
+        "version": "0.7.5",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "telemetry",
+        "version": "1.4.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "tesla",
+        "version": "1.21.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "vix",
+        "version": "0.38.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "websock",
+        "version": "0.5.3",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "websock_adapter",
+        "version": "0.6.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "yamerl",
+        "version": "0.10.0",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      },
+      {
+        "name": "yaml_elixir",
+        "version": "2.12.2",
+        "versions": true,
+        "locked": true,
+        "inner": true,
+        "outer": true,
+        "deps": true
+      }
+    ],
+    "missing": []
+  },
+  "objects": [
+    {
+      "package": "bypass",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/bypass.signed.gz",
+      "sha256": "6b3e42fa2a0f5e78e312a221cee4c763b14393d5b87769faa232f914807c2248"
+    },
+    {
+      "package": "color",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/color.signed.gz",
+      "sha256": "26ac4ac9c8767a5d0497548939abbf2fe548ef3e1792784fe61b3ef2793d8f47"
+    },
+    {
+      "package": "doctor",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/doctor.signed.gz",
+      "sha256": "9dbfdbb13b62cf313a6850de574e974db6594803a4a3bbc5aef0ee4bafcaffd1"
+    },
+    {
+      "package": "ex_machina",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/ex_machina.signed.gz",
+      "sha256": "22975c18249c713b31ed63002d54752a8c5e41da17f8a2694f996fd0c7a77d49"
+    },
+    {
+      "package": "ex_marcel",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/ex_marcel.signed.gz",
+      "sha256": "679002de921f30c8e392d77dfe0c1279a9d17f358edc2e13eb57ade73742a321"
+    },
+    {
+      "package": "gcs_signed_url",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/gcs_signed_url.signed.gz",
+      "sha256": "24e5acd41f3ed2f1af674232fe80c4a9c0ea253bc55f0c3cab886b2702cca91a"
+    },
+    {
+      "package": "goth",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/goth.signed.gz",
+      "sha256": "48ab151dc298432d10b5fba449ee4748d7eaffb61bb5b2064fb97da446a21e46"
+    },
+    {
+      "package": "image",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/image.signed.gz",
+      "sha256": "6e6fd16bf4d9e6c9d359cfe0ee05a03f9186ae881e707e3ef3bf99af7ddaac65"
+    },
+    {
+      "package": "jose",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/jose.signed.gz",
+      "sha256": "0600f46e16d3eba8525e82eb8bafd0712ad86308ae0fb8dc0af236425cd9388c"
+    },
+    {
+      "package": "junit_formatter",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/junit_formatter.signed.gz",
+      "sha256": "cf5736e26eaafc035f25b155dde84230315bfbd2dd36dfa82c1f3031ed0f3744"
+    },
+    {
+      "package": "muontrap",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/muontrap.signed.gz",
+      "sha256": "229a5cd84ce0afba9ee911468f3442159ae0f30031206bca61e3f8730fec7312"
+    },
+    {
+      "package": "tesla",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/tesla.signed.gz",
+      "sha256": "4b6ae1e89a87e118429fa16e632c2e1c4166163b697bb868261328e2e34666a1"
+    },
+    {
+      "package": "vix",
+      "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/vix.signed.gz",
+      "sha256": "4f4e2dab6bfeed1113b35ffab841e51b66ae7b597daec5f1d6b953956b474a74"
+    }
+  ],
+  "network_request_count": 13,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "09815ff49d79d844ec0386bedf0ac65cc7cd35bc2c41e762b597c6aa7bc6be2b"
+}

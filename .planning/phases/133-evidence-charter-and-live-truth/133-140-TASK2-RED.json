@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-reporter=tap --test-name-pattern='Stop creates exclusive Plan 140 zero-effect evidence and never authorizes a child' test/install_smoke/phase_133_hex_build_140_test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: Stop creates exclusive Plan 140 zero-effect evidence and never authorizes a child\nnot ok 1 - Stop creates exclusive Plan 140 zero-effect evidence and never authorizes a child\n  ---\n  duration_ms: 0.848417\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p140-1791551018/test/install_smoke/phase_133_hex_build_140_test.mjs:309:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Plan 140 needs an independent stopped receipt writer\n    + actual - expected\n    \n    + 'undefined'\n    - 'function'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'function'\n  actual: 'undefined'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p140-1791551018/test/install_smoke/phase_133_hex_build_140_test.mjs:310:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 47.29975\n",
+  "targetTest": "Stop creates exclusive Plan 140 zero-effect evidence and never authorizes a child",
+  "targetFile": "test/install_smoke/phase_133_hex_build_140_test.mjs",
+  "expected": "The literal Stop answer creates a separate exclusive stopped receipt, independently verifies no effects and never authorizes a child.",
+  "actual": "The named assertion reports that recordStopped is undefined.",
+  "semanticAssessment": "The Plan 140 module loads and test discovery succeeds. The target assertion fails on the missing stopped writer behavior, not on syntax, import or fixture setup."
+}

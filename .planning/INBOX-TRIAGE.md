@@ -24,5 +24,5 @@ green-main release train; it does not authorize a feature milestone.
   regression test locking the policy.
 - The missing `dependencies` and `ci` labels should be created so Dependabot can apply the labels
   already declared in repository configuration.
-- No roadmap candidate is promoted. LIFE-06 and STREAM-10 remain signal-gated; the JTBD anchor is
-  refreshed to the post-v1.25 / Hex 0.4.5 baseline.
+- No roadmap candidate is promoted. LIFE-06 and STREAM-10 remain signal-gated; the current release
+  anchor derives as Hex 0.4.6 from `mix.exs` and `.release-please-manifest.json`.

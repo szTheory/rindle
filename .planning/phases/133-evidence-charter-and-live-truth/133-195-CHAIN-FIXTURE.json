@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "plan": "133-195",
+  "status": "fixture_only",
+  "nonce": "32c007ef98a3add232b78b4bd69a2a307c0c6835a7eb78bf",
+  "mode": "fixture",
+  "session_id": 59374,
+  "exit_code": 0,
+  "transcript_bytes": 1786,
+  "output_bytes": 936,
+  "output_sha256": "c7f086bcb701b36c7ccc5d272915f79975b2e8a283f6586bbc94711e72059d73",
+  "calls": [
+    {
+      "index": 0,
+      "tool": "exec_command",
+      "call_nonce": "2eab1e60fb96b4f41f549f7ef078038f32e6831abdc8aba3",
+      "request": {
+        "chunks": 1,
+        "bytes": 480,
+        "sha256": "ad914e8d6dfa2370040b4e82c617ca9d14da0a5c98c16de4a5afd308cb231e06"
+      },
+      "result": {
+        "chunks": 1,
+        "bytes": 213,
+        "sha256": "959327803fd0e6aa12ccea2f4ee4dca19b4c8310732b46e1e929e94da2f27463"
+      },
+      "response": {
+        "keys": [
+          "chunk_id",
+          "wall_time_seconds",
+          "session_id",
+          "original_token_count",
+          "output"
+        ],
+        "unavailable": [
+          "exit_code"
+        ],
+        "chunk_id": "c72e11",
+        "wall_time_seconds": 0.251609333,
+        "original_token_count": 23,
+        "session_id": 59374,
+        "output_bytes": 90,
+        "output_sha256": "579ff2e3c6d693f0abf10c331488d5c24d33f5f621185d48b0961f37f4de2b7e"
+      }
+    },
+    {
+      "index": 1,
+      "tool": "write_stdin",
+      "call_nonce": "a320136602d1164d874d9189edef19a905b1d6348e48557c",
+      "request": {
+        "chunks": 1,
+        "bytes": 78,
+        "sha256": "100c64e831f2dfda4ed79828fda8168b53ca27f7a3144b9a08a25f5d78c7cebb"
+      },
+      "result": {
+        "chunks": 1,
+        "bytes": 1015,
+        "sha256": "0115a5a7fef6d173068ab67dc69f8954332479b1655ac19b090862ae4d4967ad"
+      },
+      "response": {
+        "keys": [
+          "chunk_id",
+          "wall_time_seconds",
+          "exit_code",
+          "original_token_count",
+          "output"
+        ],
+        "unavailable": [
+          "session_id"
+        ],
+        "chunk_id": "f29963",
+        "wall_time_seconds": 0.000010625,
+        "exit_code": 0,
+        "original_token_count": 212,
+        "output_bytes": 846,
+        "output_sha256": "707ee5e52c8aae54f90a3b672d428a4610d39b8b2a4a84e07c436d6b9d3f605d"
+      }
+    }
+  ],
+  "root_identity_sha256": "e2667a2449e57100036be09ecc4b5287a1911dc7450f9a21f83254a13f4c2657",
+  "source": {
+    "chain_core_sha256": "ed670b13af34171168e80845c9a92d4d7244865235c2a2a878ee730b719eddf0",
+    "chain_core_blob": "b570ebe862dff3cf88f6da141a489e147d2304a6",
+    "capture_sha256": "7e57a03fbfeaa7ad1806dd1f203f457a9d65260a38cbe330b18e886a0128448b",
+    "capture_blob": "bb40508a7aa237db3d055128496a064219b2fb42",
+    "bridge_sha256": "60ada51da95ce2d94f8305c90be857bbeb668cc22754ae4bf007393ce4dff5fa",
+    "bridge_blob": "478da784e2246a0fa72964a3e6c1de5082a31507"
+  },
+  "source_sha": "58830fe051cb139df659b3bb2977e4ff907e2848",
+  "source_tree": "89d65be0102eee8115949eed19cb210d4c3e1d1e",
+  "command_sha256": "eded0de7b7bd1b605a267de75207b6d5e530dfa7e8a050b3ce759fb42dee34cc",
+  "child_witness_sha256": "43bc7ba0d85742f59399e140a77f93c3fd361dccc96d2da8cf79706358079c08",
+  "relied_on_adapter_variables": [
+    "GSD_WORKTREE_PATH"
+  ],
+  "effects": {
+    "actual_host_guard": false,
+    "producer_invocations": 0,
+    "production_clones": 0,
+    "mix_invocations": 0,
+    "network_requests": 0,
+    "remote_mutations": 0,
+    "authorization": 0,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  }
+}

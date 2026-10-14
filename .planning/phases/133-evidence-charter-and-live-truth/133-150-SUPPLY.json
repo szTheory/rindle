@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_mux_supply",
+  "plan": "133-150",
+  "status": "available",
+  "preflight_sha256": "c8139f148bcd4261371b3ddc6dbd399a952a1c149a117e0806f158c179e8f64e",
+  "retrieval_sha256": "24557bfcb83cbffb251afced0e1f8d1aa39903ef4716c7155de89bd8aea4571a",
+  "object": {
+    "path": "/private/tmp/rindle-phase133-mux-150.signed.gz",
+    "sha256": "5cb6161aa8b0841ce153542d2b0c76e01ee72108562a9197f8d7e26b0356e412"
+  },
+  "cache": {
+    "path": "/private/tmp/rindle-phase133-mux-150-cache-ad8fc01e51610def/cache.ets",
+    "sha256": "270d5e3cc4c4c6321b3ee0d09efdd4fa7abcf99988cb2c381199f0ed5b5bb320"
+  },
+  "network_request_count": 1,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "history": {
+    "files": {
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-PREFLIGHT.json": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-AUTHORIZATION.json": "e09d0425f0bf838cc890a0c45b051d897a395511b895d05dc7c702406761be6e",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-FETCH-ATTEMPT.json": "c43c680aa560f0e5bbfb29ec4728d085285cfeefbf8db82b1bb150cdb5a78c90",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-CLONE-STARTED.json": "71ea0aacf643f0ea62d43c9dec229bf269cf23131a533af93a6fcfdf1a280d8d",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-CHECKOUT-STARTED.json": "e2adc74a96b2885a62de3f2d0afad635b051bd668a9d0bc5e03e244c44fa8f63",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUPPLY.json": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-126-LOCAL-GATES.json": "bf2aa49b7e6b330370a0245bcac1fed20f147d50cf1354d121a991e5b27127d3",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+      ".planning/REQUIREMENTS.md": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md": "10a6c773444faa14fe827ca8b3d46f8200a949992a32a0c5fe4c99d10c593570",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json": "df484acda67c5919427449344d749a4b5b73123a51d0cda9d774f6159bd8d484",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-134-REGISTRY-PREFLIGHT.json": "48d3e0349c01e9a64cde95bc4d2e2f4f131ab8c9a932a9ebf1f7307e000e6f11",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-134-SUMMARY.md": "a5448faa8c6923adeb70b3fcad5e0c4600d839914fdade05cac743ca53ffbcc0",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-134-POST-FREEZE-VERIFICATION.json": "980e7fa8ef577603351bada9f3690a12f8dbacead8fefd0d389c743be60e8872",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-135-BUILD-PREFLIGHT.json": "19ff6c09824f8a672dfa544457d2d988fd3bedafef57e470152715c7d0172132",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-135-BUILD-AUTHORIZATION.json": "8f555434e29f6a346d534962d8f8c127c2de6f9a4f1c9771e19818dc2044b2e9",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-135-BUILD-STARTED.json": "c30171bb612a43b9f99bf6704724af6e7202555cdec0b40eb1655283a503987c",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-135-COMPATIBILITY.json": "ebb58d4635ecffbcf48f3e9aff45c3aa2deb998b4369ebc20286a0d85056ef93",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-135-SUMMARY.md": "3879069a22409580a831fa9e6e52f1cdfc9f2e7777d636fd93d7c754ba14e6b8",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-138-BUILD-PREFLIGHT.json": "f94db7b6e2052a7bf08e70351b080eed7be2d05619514b1af1b1c5c9732dd2ac",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-138-BUILD-AUTHORIZATION.json": "c796a5ff457302a232640cdc03392df8625291d999f5fbc628e38692564d9f23",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-138-BUILD-STARTED.json": "67e36d51cffaa117b037df4e0130a88f3d1f9814ec47b1c97401f11f31fa9a0c",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-138-COMPATIBILITY.json": "7a5b78a907e9821860272578ad30458baeb8c841245b7e9c7bcc81fe9306ed1c",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-138-SUMMARY.md": "55b145b77d4aab97a36af639d624bc84e118098c559dde7b106c56618dcb1c24",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-143-REGISTRY-PREFLIGHT.json": "00289d078aab9a0c36dd7893753389931861e90a3185c29a194f7a35e798ac69",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-143-SUMMARY.md": "b0325da548b0d5ced104a1ef89281707caf8d1886647796ff08e05e3558902a6",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-143-POST-FREEZE-VERIFICATION.json": "aae3d9f74cb677a0f36ceb4f9c446318f571b7b40dc8b90e6ba8ee5ff98ca8de",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-144-SUMMARY.md": "bf3bd33e08641f51c6206657a5e7329d6b40da19b0a3103320f47f1a725d78a0",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-144-VERIFICATION.json": "0c179148799a3527f51c2e80979dba4d9e96e7c66df51ab35e2bf1f21b647a46",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-145-SUMMARY.md": "d32b396be4bb3e593dbce5943efa9453e7400ca0a34b1b5b6934189743220980",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-146-SUMMARY.md": "f3093901df69a3cc30eff9fcc8126ed0db0ea78d3d9b7b9ab9ceb34cce5298a5",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-147-REGISTRY-PREFLIGHT.json": "ef4373ab172ac0ff5f63c38825b2bf722bc6511810366b1fce540af2d809b53b",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-147-AUTHORIZATION.json": "f470c07a24c2d0a3eb9bc2f4a6920bc7dee001c28228a61b87ea50e542d12e43",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-147-REQUEST-STARTED.json": "b28ad5398c7013701397cc3c15d2bce4def1bc64b0b36c8096d5cf206ec96843",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-147-RETRIEVAL.json": "a7be3501284908508798e095fc210fd557c34bdf0f588527b3054d27ffd9c00d",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-147-SUMMARY.md": "83faa78baeaef294bf50deb5491f6f1f4a75bc458c32753a07c486ef1da7edd9",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-148-DNS-DIAGNOSTIC.json": "73ff7ee3babe793084163194d69f3c1e78af40508f58896c6fc1633928887f48",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-148-REGISTRY-PREFLIGHT.json": "9f255daee7f375bd84d262847a6cd3d8a2d7fea7fcea4f6af2dcd3a7f1807442",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-148-CACHE-INVALIDATION.json": "00b2939375828d1938eaa24e84e57d62bed5b0849e9388b04d8e2b667d3ebd90",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-148-SUMMARY.md": "cff40cf977ec257f60a37e8ffe921ad1481dd42e0fe0abf846edb5ff21341e02",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-149-DNS-DIAGNOSTIC.json": "40a6e49d1271416f1c744f4c2101d5d558ca95fc07b3986990680d4485c3bd23",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-149-CACHE-BOOTSTRAP.json": "75be6db00c9aaae273ac0bcf2d73c27d78e19afcdbb54b033f00d9d5a3f39b3a",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-149-SUMMARY.md": "1aac8ba4b7ae8f63b2af0998a89e0932cea258fc54d5ba31f613abc330545e16",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-150-DNS-DIAGNOSTIC.json": "16ad0007cb51565b7dedd4c164ef852b346b24b19563f9874cee2a528f4855c7",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-150-CACHE-BOOTSTRAP.json": "6678510fbab7fa63cd5fc8f304f04eadbbd7b27afe4eb1fb39165799183324de"
+    },
+    "barred_sha": "87572a019636ba1367c0c7245ae5cb89d0ea1909",
+    "requirements": {
+      "ids": [
+        "EVID-01",
+        "EVID-02",
+        "EVID-03",
+        "EVID-04",
+        "TRUTH-08"
+      ],
+      "status": "pending"
+    },
+    "unresolved_edge_rows": 11,
+    "flagged_edge_rows": [
+      {
+        "requirement": "EVID-01",
+        "category": "boundary",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-01",
+        "category": "adjacency",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-01",
+        "category": "empty",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-01",
+        "category": "ordering",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-01",
+        "category": "precision",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-02",
+        "category": "unclassified",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-03",
+        "category": "boundary",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-03",
+        "category": "precision",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-04",
+        "category": "idempotency",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "EVID-04",
+        "category": "concurrency",
+        "status": "unresolved"
+      },
+      {
+        "requirement": "TRUTH-08",
+        "category": "unclassified",
+        "status": "unresolved"
+      }
+    ]
+  },
+  "report_sha256": "8b6f252791e5c032dd2d9f659d230cb2467c3046ecdf1f1ead710321afae5737"
+}

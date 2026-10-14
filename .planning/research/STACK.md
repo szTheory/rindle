@@ -1,307 +1,156 @@
-# Stack Research
+# Technology Stack
 
-**Domain:** Fast, deterministic CI/CD tooling for an Elixir/Phoenix/Ecto Hex library (v1.20 — DX/infra milestone, ZERO `lib/` public API change)
-**Researched:** 2026-06-20
-**Confidence:** HIGH on versions and idioms (verified against Hex.pm + official docs + Phoenix/Dashbit prior art on 2026-06-20); MEDIUM on partitioning payoff for *this* suite (depends on measured async-safety, not yet inspected) and on exact runner core counts (must be printed from CI logs).
+**Project:** Rindle — v1.26 Pre-Adopter Readiness & Quality Consolidation
+**Researched:** 2026-09-09
+**Overall confidence:** HIGH for repository facts; MEDIUM for current external-tool facts, which were checked against official sources on the research date
 
-> This is a **tooling-and-versions** dossier, not a greenfield stack pick. Rindle already has a 14-job `ci.yml`. Everything below is framed as **what to ADD / PIN / SPLIT / NOT add** against that real file. Every recommendation names the existing job it touches and its **PR-vs-nightly** placement.
+## Recommendation
 
----
+Keep the product and test stack unchanged. This milestone does not justify a new runtime dependency, a new application, or a general-purpose quality platform. Rindle already has the right primitives for the quality census and digital twin: ExUnit, `Oban.Testing`, Mox, Bypass, Jason, Playwright, the Cohort Phoenix app, generated package-consumer proof, Credo, Dialyzer, Doctor, ExCoveralls, `mix_audit`, and repository-owned Bash/Elixir evidence collectors.
 
-## Headline Recommendations (the locked set)
+Add one narrowly scoped CI tool: **actionlint 1.7.12**, installed from its exact release asset with the published SHA-256 checksum. `YamlElixir` proves that YAML parses; actionlint proves that GitHub Actions schema, expressions, contexts, matrices, dependencies, permissions, action inputs, and embedded scripts are structurally credible. Everything else should be an extension of existing seams.
 
-1. **Pin `erlef/setup-beam` to a release SHA + add `version-type: strict`**, and align the version *matrix* to `mix.exs` (`elixir: "~> 1.15"`). The min-supported pair stays `1.15/OTP 26`; the primary lint/test pair should move to a current pair (`1.18/OTP 27`) — see the matrix note. Capture resolved versions via the action's `steps.*.outputs`.
-2. **Split the PLT cache into `actions/cache/restore` + `actions/cache/save` (always-save)** so the PLT persists even when Dialyzer fails. Add OTP+Elixir+lockfile+config dims to the PLT key. Leave deps/_build on the single-step `actions/cache@v4` (their save-on-success behavior is correct).
-3. **Add a real `mix ci` alias** (currently `precommit: ["test"]` only) mirroring the Phoenix-1.8 `precommit` idiom, so local == PR gate. This is the single highest-DX, lowest-risk change.
-4. **Run lint/static ONCE on the latest pair, not per matrix entry.** Today `format`/`credo`/`doctor`/`dialyzer` run inside the 2-entry `quality` matrix → redundant. Hoist them to a single `lint` job on the latest pair.
-5. **Enable `mix test --warnings-as-errors` and `mix test --slowest 20`** in the PR test lane (Elixir ≥1.12 supports the flag; you no longer need `compile --warnings-as-errors` *and* a separate compile of test files for warning signal).
-6. **Add supply-chain hygiene**: `:mix_audit` dep + `mix deps.audit` and `mix hex.audit` as a fast PR step; pin ALL third-party actions to SHAs; add `dependabot.yml` for `github-actions`; keep top-level `permissions: contents: read` (already present) and grant `write` only per-job (release.yml already does this well).
-7. **Partitioning (`--partitions`) is a MAYBE, gated on measurement** — add `mix test --slowest`/`--profile-require` + `mix xref graph` observability FIRST; only shard if the suite is genuinely long after async-safety conversion. Do **not** shard a 2-minute unit suite.
-
----
+The second stack change is not a dependency: replace floating downloads and container tags with committed immutable identities plus checksum/digest verification. This is particularly important for the current BtbN FFmpeg `releases/latest` lookup, the unversioned MinIO `mc` URL, `minio/minio:latest`, and the tag-only Playwright image.
 
 ## Recommended Stack
 
-### Core Technologies (CI runner toolchain)
+### Core Framework
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `erlef/setup-beam` | **v1 → pin to a release SHA** (latest tag is **v1.20.x**; `@v1` is a moving major tag) | Installs Erlang/OTP + Elixir on the runner; emits resolved versions | The ecosystem-standard BEAM installer. `@v1` floats; for a release lib pin to an immutable SHA + Dependabot. Exposes `outputs.otp-version`, `outputs.elixir-version`, `outputs.setup-beam-version` — capture these in the job summary so a green run records exactly what ran. Use `version-type: strict` so a bad/ambiguous version string fails fast instead of resolving fuzzily. |
-| `actions/checkout` | **v4 → pin to SHA** | Checkout | Already on `@v4`; pin to SHA for supply-chain. |
-| `actions/cache` | **v4** (+ `cache/restore` & `cache/save` sub-actions for PLT) | deps / `_build` / PLT / asset PM caching | v4 is the current generation (v1–v3 deprecated; the old `set-output`/Node16 generations are gone). The **restore/save split** is the idiomatic way to persist a cache even when a later step fails — essential for PLT. |
-| `actions/setup-node` | **v4** (Node **20 LTS** → consider **22 LTS**) | Node for Playwright/brandbook lanes | Already `@v4`/Node 20. Node 20 goes EOL 2026-04; **bump to Node 22 LTS** during this milestone. Add `cache: npm` + `cache-dependency-path` to cache the npm cache (NOT `node_modules`). |
-| `actions/upload-artifact` | **v4** | Playwright report on failure | Already `@v4`; pin to SHA. Note v3 was retired Jan-2025, so v4 is mandatory. |
-| `googleapis/release-please-action` | **v4** | Release PR automation | Already `@v4` in `release.yml`; pin to SHA. |
-| Ubuntu runner | **`ubuntu-24.04`** (currently `ubuntu-22.04`) | Job host | Pin explicitly (you already avoid `ubuntu-latest` — good). `ubuntu-22.04` is fine but `ubuntu-24.04` is GA and the default `ubuntu-latest` migrated to it; standard hosted Linux runner = **4 vCPU**. Print `nproc` / `System.schedulers_online/0` once to confirm before tuning `--max-cases`/partitions. |
+| Technology | Current version / contract | Purpose in v1.26 | Decision and rationale |
+|---|---:|---|---|
+| Elixir | Library floor `~> 1.15`; local home `1.17.3-otp-27`; CI compatibility minors 1.15–1.18 | Build, tests, evidence collectors | **Keep.** Do not widen or raise the public support floor in a maintenance milestone. Treat the nightly 1.18 cells as drift warning, not a new support promise. |
+| Erlang/OTP | Local home `27.2`; supported CI floor pair OTP 26; home pair OTP 27; nightly warning includes OTP 28 | Runtime/toolchain proof | **Keep.** Preserve the supported 1.15/26 and 1.17/27 gates. Record exact resolved patch versions in receipts. |
+| Phoenix | Cohort `~> 1.8.7` | Synthetic adopter host | **Keep Cohort as the twin host.** Do not create a fourth demo or move twin-only orchestration into the library. |
+| Ecto SQL | Root `~> 3.11`; Cohort `~> 3.13` | Durable lifecycle and residue assertions | **Keep.** Query the existing Rindle and Oban tables for before/after evidence; do not add an event store. |
+| Oban | Root and Cohort `~> 2.21`; locked root `2.21.1` | Real failure, retry, queue, and recovery behavior | **Keep.** Use manual testing mode plus persisted jobs and `Oban.drain_queue/2` for deterministic execution; use `perform_job/3` for worker-unit contracts. A supervised normal-mode subprocess is reserved for the restart/recovery scenario. |
 
-### Supporting Libraries (Mix dev/test tools — versions verified on Hex.pm 2026-06-20)
+### Database and External Services
 
-| Library | Version (current) | In `mix.exs` now | Purpose | PR vs Nightly |
-|---------|-------------------|------------------|---------|---------------|
-| `credo` | **1.7.19** (rel. 2026-06-05) | `~> 1.7` ✓ | Style/consistency lint | **PR**, fast (<10s). Currently `continue-on-error: true` (advisory per CI-04). Keep advisory unless you want to flip to blocking — that's a policy call, not a version call. |
-| `dialyxir` | **1.4.7** (rel. 2025-11-06) | `~> 1.4` ✓ | Dialyzer wrapper | **Nightly + main** (not every PR). PLT build is the cost; advisory today (CI-04). Keep PLT split-cached. A poorly-spec'd 0.x lib should not hard-gate PRs on Dialyzer. |
-| `mix_audit` (`:mix_audit`) | **2.1.5** (rel. 2025-06-09) | **ABSENT — ADD** | `mix deps.audit` — scans deps for known CVEs (advisory DB) | **PR**, fast. Add `{:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false}`. |
-| `sobelow` | **0.14.1** (rel. 2025-10-14) | **ABSENT** | Phoenix-app security scanner | **DO NOT ADD to core.** Sobelow targets *Phoenix applications* (router/controller/config sinks), not pure libraries. Rindle's `lib/` is a library; Sobelow would mostly no-op or false-positive. Could run it on `examples/adoption_demo` (a real Phoenix app) in **nightly** only. Maintenance cadence is slow — verify before relying on it. |
-| `excoveralls` | **0.18.5** (rel. 2025-01-26) | `~> 0.18` ✓ | Coverage (`mix coveralls`) | **Keep on main/nightly; reconsider on every PR.** `mix coveralls` instruments the whole suite and slows it; if there's no coverage *gate* (min %), running it on every PR buys little. Replace PR test step with plain `mix test --warnings-as-errors --slowest 20`; keep `coveralls` on push-to-main. |
-| `doctor` | `0.22.0` ✓ | `0.22.0` ✓ | `@doc`/`@spec` coverage gate | **PR** (already advisory). Cheap. Fine as-is. |
-| `mix hex.audit` | built into Hex | n/a | Flags retired deps | **PR**, free, instant. Add to `mix ci`. |
-| `mix deps.unlock --check-unused` | built into Mix | n/a | Rejects stale `mix.lock` entries | **PR**, instant. Add to `mix ci`. |
-| `mix deps.get --check-locked` | built into Mix | n/a | Fails if lock would change | **PR**, instant. Add to `mix ci` (replaces bare `mix deps.get` in the gate). |
+| Technology | Current version / seam | Purpose | Decision and integration point |
+|---|---|---|---|
+| PostgreSQL | CI service `postgres:16-alpine`; Cohort-owned Repo | Domain, Oban, retry, and cleanup truth | **Keep.** Pin service/container references by digest while retaining a human-readable version tag where supported. Receipts should include schema prefix, counts by lifecycle state, Oban attempt/state, and zero-residue checks—not raw database dumps. |
+| MinIO | Current CI composite runs `minio/minio` without a tag; demo compose uses `minio/minio:latest` | Hermetic S3-compatible failure/recovery | **Keep, but pin by digest.** Put one committed image reference in `.github/actions/setup-minio/action.yml` and reuse the same value in Cohort compose/templates. |
+| MinIO Client (`mc`) | Floating `https://dl.min.io/.../mc` | Bucket setup and cleanup | **Keep, but pin a timestamped release asset and verify its official `.sha256sum`** before installation. No package-manager wrapper is needed. |
+| FFmpeg/FFprobe | Runtime contract `>= 6`; CI currently resolves the highest stable BtbN asset from a floating latest release | AV failure/recovery and security-invariant proof | **Keep, but pin an immutable retained monthly BtbN release tuple** (`tag`, exact stable GPL asset name, SHA-256 from `checksums.sha256`). Preserve the `>= 6` runtime assertion. Do not bundle FFmpeg into the Hex package. |
+| Mux/GCS | Existing cassette/hermetic seams plus secret-gated real-provider lanes | Provider disorder and live confidence | **Keep.** The deterministic twin uses Mox/Bypass/cassettes. Live provider lanes remain corroborating nightly evidence and must not be required to call the twin deterministic. |
 
-### Development / Determinism Tools (built-in Mix + ExUnit — no new deps)
+### Quality and Evidence Tooling
 
-| Tool / Flag | Purpose | Notes & PR-vs-nightly |
-|------|---------|-------|
-| `mix test --warnings-as-errors` | Compile-warning gate folded into the test run | Elixir ≥1.12. **PR.** Lets you drop the *separate* compile-of-test-files just for warnings. Keep `mix compile --warnings-as-errors` for `lib/` in the lint job. |
-| `mix test --slowest 20` | Prints 20 slowest tests/modules | **PR (observability) + emit to `$GITHUB_STEP_SUMMARY`.** Zero added runtime beyond reporting. This is the data needed to decide partitioning. |
-| `mix test --slowest-modules N` | Per-module slow report (Elixir 1.17+) | Available on your 1.17 lane; better signal than per-test for async planning. |
-| `mix test --partitions N` + `MIX_TEST_PARTITION` | Shard the suite across N parallel matrix jobs | **MAYBE — measure first.** Each partition needs its **own DB** (`rindle_test${MIX_TEST_PARTITION}`) and re-compiles + re-boots services → real per-shard overhead. Only worth it if the suite is long *after* async conversion. Merge coverage if you keep coveralls. Don't oversubscribe a 4-vCPU runner with >2-3 partitions. |
-| `--max-cases` | Concurrency within one `mix test` (default = `2 * schedulers_online`) | Tune **only after** printing `System.schedulers_online/0`. Default is usually right on a 4-vCPU runner; raising it without measurement just thrashes the DB pool. |
-| `--profile-require` | Profiles `test_helper`/`require` time | **Local/nightly diagnostic**, not a gate. Use once to find slow test-helper compilation. |
-| `MIX_ENV=test mix compile --profile time` | Per-module compile-time profile | **Local/nightly diagnostic.** Finds macro-heavy / recompile-thrashing modules. |
-| `mix xref graph --label compile-connected` (+ `--format cycles`) | Compile-time dependency fan-out / cycles | **Local/nightly diagnostic.** Use to spot a module whose change recompiles half the tree (a cache-thrash and incremental-compile killer). |
-| ExUnit `async: true` | Per-module test parallelism | **The single biggest test-speed lever** and it's free. Audit which modules are safe (no `Application` env mutation, no global Mox, no named ETS/registered procs, no fixed ports, Ecto SQL Sandbox in `:manual`/per-test checkout). Convert safe modules; never async modules that mutate global state. This precedes any `--partitions` decision. |
+| Tool | Current exact version | Purpose | Decision and exact seam |
+|---|---:|---|---|
+| Credo | locked `1.7.18` | Curated maintainability/complexity inventory | **Keep.** Extend `scripts/maintainer/credo_quality.sh` only when a finding has an agreed removal trigger; do not replace it with a score dashboard. |
+| Dialyxir | locked `1.4.7` | Type-contract ratchet | **Keep and repair first.** The nightly home cell remains Elixir 1.17 / OTP 27; the ignore file stays removal-only. Do not add a second type checker. |
+| Doctor | locked `0.23.0` | Public documentation/spec/module coverage | **Keep.** It already gates 100/100/100 public coverage; do not use it as a comment-density target. |
+| ExCoveralls | locked `0.18.5` | Exact coverage and JSON output | **Keep.** Use `cover/excoveralls.json` as evidence, but only ratchet behaviorally relevant gaps. Do not chase 100% coverage. |
+| `mix_audit` | locked `2.1.5` | Hex advisory scan | **Keep.** Disposition live findings; do not add Sobelow/Semgrep merely to increase scanner count. |
+| YamlElixir | locked `2.12.2` | Repository-owned YAML parsing/assertions | **Keep.** It remains useful for exact policy/topology tests, but it is not sufficient for GitHub Actions semantics. |
+| actionlint | **add 1.7.12**; Linux amd64 archive SHA-256 `8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8` | Semantic validation of workflows and composite actions | Add a checksum-verifying installer/runner under `scripts/ci/`; lint `.github/workflows/*.{yml,yaml}` and local `action.yml` files. Run it in `ci-script-tests`, which already feeds `CI Summary`, and invoke the same repository script from `mix ci` so local and PR gates remain aligned. |
+| Jason | locked root `1.4.5`; Cohort `~> 1.2` | Final machine-readable receipt | **Keep.** Emit one canonical JSON document and validate it before upload. No schema library is needed; a repository-owned validator should reject absent/unknown required fields and any skipped scenario. |
+| Playwright | exact npm `1.57.0`; image `mcr.microsoft.com/playwright:v1.57.0-noble` | Browser-facing twin assertions | **Keep version; pin image by digest.** Continue `npm ci`. Add twin specs to the existing Cohort suite and shared runner rather than adding Cypress or a browser SaaS. |
+| Mox / Bypass | locked `1.2.0` / `2.1.0` | Deterministic adapter and HTTP failures | **Keep.** Inject named failure scripts at existing adapter/HTTP boundaries: timeout, retryable status, disorder, and partial cleanup. Avoid production fault switches. |
+| JUnit formatter | locked `3.4.0` | Test failure diagnostics | **Keep.** It complements, but does not replace, the lifecycle receipt. |
 
----
+## Exact Integration Points
 
-## The `mix ci` Alias (canonical pattern — ADD this)
+### 1. Quality census
 
-Today `mix.exs` has only `precommit: ["test"]` and a `test:` alias that does `ecto.create/migrate`. There is **no `mix ci`**, so local ≠ CI (a documented DX gap in SEED-003). Adopt the Phoenix-1.8 `precommit` idiom (the community-canonical shape; Phoenix's generated `mix.exs` ships exactly this group):
+Create one repository-owned maintainer command that orchestrates existing checks and writes a versioned JSON result. It should call existing scripts/tasks rather than parse their prose where a JSON or exit-status seam exists:
 
-```elixir
-defp aliases do
-  [
-    # ... existing setup / ecto.* / test aliases ...
+- `mix format --check-formatted`, compile with warnings as errors, `scripts/maintainer/credo_quality.sh`, Doctor, SAFE/refactor contracts, Dialyzer on the supported home pair, ExCoveralls JSON, docs/link/proof checks, package dry-run, repository hygiene, and generated-artifact drift checks.
+- Record command, exit status, immutable source SHA, exact toolchain, and artifact hashes. Each candidate is `fix`, `retain`, or `defer`, with an evidence reference and owner/removal trigger for retained/deferred debt.
+- Keep the census finite and current-head-specific. Do not introduce Code Climate, Sonar, Codecov policy, a maintainability index, or a comment-density score.
 
-    # Single local == PR gate. Mirrors the fast PR lane exactly.
-    ci: [
-      "deps.get --check-locked",
-      "deps.unlock --check-unused",
-      "format --check-formatted",
-      "compile --warnings-as-errors",
-      "hex.audit",
-      "deps.audit",        # requires {:mix_audit, "~> 2.1"}
-      "test --warnings-as-errors --slowest 20"
-    ]
-  ]
-end
+### 2. Structural GitHub Actions validation
+
+Add actionlint to the existing pure-script `ci-script-tests` job, not to every BEAM matrix cell. Run the same script from `mix ci`. Keep targeted `YamlElixir`/shell tests for repository-specific invariants such as `CI Summary.needs`, release coupling, skipped-result policy, exact SHA pins, and required timeouts. actionlint complements those contracts; it does not replace them.
+
+### 3. Digital-twin fault injection
+
+Use the existing Cohort application and built-package environment:
+
+- Pack/unpack Rindle first, point Cohort at that artifact, and prohibit a repository path dependency in the acceptance lane.
+- Use `Oban.Testing` manual mode and `Oban.drain_queue/2` for persisted retry/attempt/state assertions. Use `perform_job/3` only where the scenario is explicitly a worker-unit proof.
+- Use Mox for Rindle behaviours and Bypass/cassettes for HTTP/provider disorder. Failure scripts belong in test support, keyed by a deterministic scenario ID; never add runtime `if fault_injection?` branches to `lib/`.
+- Run restart/parent-death recovery in an isolated OS process or compose service using normal supervised Oban, because manual testing mode intentionally suppresses background execution.
+- Assert visible failure, bounded retry, recovery, idempotent rerun, cleanup, and zero leaked storage/provider/database residue.
+
+### 4. Machine-readable receipts
+
+Emit a final `application/json` receipt with at least:
+
+```text
+schema_version, source_sha, package_sha256, started_at, completed_at,
+toolchain, external_inputs, scenarios[], cleanup, overall_status
 ```
 
-Notes:
-- Phoenix 1.8 generates `precommit: ["compile --warning-as-errors", "deps.unlock --check-unused", "format", "test --warnings-as-errors"]`. The `ci` alias above is that pattern hardened for a *published library* (adds `--check-locked`, `--check-formatted`, `hex.audit`, `deps.audit`).
-- `mix test --warnings-as-errors` is valid on Elixir ≥1.12 (per Dashbit "Warnings as errors and tests"), so warning enforcement lives in the one test run.
-- Keep `precommit` as an alias *to* `ci` (or leave the lighter `precommit` for fast inner-loop) — but the **PR `quality`/`lint` job should literally run `mix ci`** so the gate and local command can never drift. Document `mix ci` in `RUNNING.md`/`CONTRIBUTING`.
+Each scenario should contain stable ID, initial state, injected fault, expected transitions, observed transitions, Oban attempts/states, storage keys represented by redacted/hash-safe identifiers, cleanup result, duration, and `pass|fail`. `skip` must be invalid for a required scenario. Write to a temporary path and rename after validation so interruption cannot leave an apparently complete receipt. If stepwise crash forensics are valuable, JSONL may be an intermediate append log, but the acceptance artifact remains one validated JSON document.
 
----
+Upload the receipt with the already pinned `actions/upload-artifact` action under `if: always()`, a bounded retention period, and `if-no-files-found: error`. Include the upload action's returned artifact SHA-256 digest in the job summary. A summary is presentation; the JSON artifact is authority.
 
-## Caching: exact key recipes (correctness-sensitive)
+### 5. Reproducible inputs and supported toolchains
 
-Rindle's current keys are decent but miss two dims (**arch** and **MIX_ENV**) and the PLT cache is **single-step** (lost on Dialyzer failure). Recommended:
-
-```yaml
-# deps — single-step actions/cache@v4 is correct (save-on-success is fine; deps.get re-runs anyway)
-- uses: actions/cache@v4
-  with:
-    path: deps
-    key: deps-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-ex${{ steps.beam.outputs.elixir-version }}-${{ env.MIX_ENV }}-v1-${{ hashFiles('**/mix.lock') }}
-    restore-keys: deps-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-ex${{ steps.beam.outputs.elixir-version }}-${{ env.MIX_ENV }}-v1-
-
-# _build — same dims; NEVER restore _build across incompatible OTP/Elixir/MIX_ENV
-- uses: actions/cache@v4
-  with:
-    path: _build
-    key: build-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-ex${{ steps.beam.outputs.elixir-version }}-${{ env.MIX_ENV }}-v1-${{ hashFiles('**/mix.lock') }}
-    restore-keys: build-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-ex${{ steps.beam.outputs.elixir-version }}-${{ env.MIX_ENV }}-v1-
-```
-
-**PLT — split restore/save so it persists on Dialyzer failure:**
-
-```yaml
-- name: Restore PLT cache
-  id: plt-cache
-  uses: actions/cache/restore@v4
-  with:
-    path: priv/plts
-    key: plt-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-ex${{ steps.beam.outputs.elixir-version }}-v1-${{ hashFiles('mix.lock', '.dialyzer_ignore.exs') }}
-    restore-keys: plt-${{ runner.os }}-${{ runner.arch }}-otp${{ steps.beam.outputs.otp-version }}-ex${{ steps.beam.outputs.elixir-version }}-v1-
-
-- name: Build PLT
-  if: steps.plt-cache.outputs.cache-hit != 'true'
-  run: mix dialyzer --plt
-
-# CRITICAL: save AFTER building the PLT but BEFORE running dialyzer,
-# so a Dialyzer *finding* (non-zero exit) does not discard the expensive PLT.
-- name: Save PLT cache
-  if: steps.plt-cache.outputs.cache-hit != 'true'
-  uses: actions/cache/save@v4
-  with:
-    path: priv/plts
-    key: ${{ steps.plt-cache.outputs.cache-primary-key }}
-
-- name: Dialyzer
-  run: mix dialyzer --format github
-```
-
-Key-dimension rules (the audit's [6.6] dark corners):
-- **Cache-version buster** (`-v1-`): bump to invalidate the whole class without editing every key.
-- **Separate caches** for `deps`, `_build`, `priv/plts`, and the npm cache — never one mega-key.
-- **PLT key includes OTP + Elixir + lockfile + `.dialyzer_ignore.exs`** (config hash) — the current PLT key omits the ignore file and arch.
-- The `deps-no-optional-*` keys in the `optional-dependencies` job are correctly distinct — keep that separation (an optional-pruned `deps` tree must not collide with the full one).
-- Restore-keys give warm-but-stale fallback; `mix deps.get` after restore reconciles — **never skip `deps.get` after a partial restore.**
-
----
-
-## Playwright-in-CI determinism (the `adoption-demo-e2e` lane)
-
-The lane runs `npx playwright install --with-deps chromium` every run and `npm ci`. Determinism tooling that's idiomatic and worth adopting:
-
-| Lever | Recommendation |
-|-------|----------------|
-| **Pin browser via Playwright version** | The Chromium build is pinned by the `@playwright/test` version in `package-lock.json`. Keep `npm ci` (clean, lockfile-exact) — you already do. Cache the Playwright browser dir keyed on the **resolved Playwright version**, not on lockfile alone. |
-| **Cache browser binaries** | Add `actions/cache@v4` for `~/.cache/ms-playwright` keyed on the Playwright version hash; then `npx playwright install --with-deps chromium` is a fast no-op on cache hit. Saves ~30–60s/run. |
-| **`workers: 1` in CI** | Set `workers: process.env.CI ? 1 : undefined` in `playwright.config` for stability/determinism on a shared runner (sequential = full resources per test; fewer races). Trade-off: slower, but this lane is already the determinism-sensitive one (the Atkinson/freetype 3px and contrast-gate flakes cited in SEED-003). |
-| **`reuseExistingServer: !process.env.CI`** | Always start a fresh server in CI; never reuse a stale dev server. Removes a class of "works locally, flakes in CI" bugs. |
-| **`forbidOnly: !!process.env.CI`** | Fail the build if a stray `test.only` is committed. |
-| **`retries`** | Allow `retries: 1–2` **only** for genuinely non-deterministic external waits, and surface retried tests in the report — never as a blanket flake-masking knob (the audit's "never just retry flaky tests"). |
-| **Deterministic readiness** | The `adoption_demo_e2e.sh` MinIO/server readiness already polls health endpoints (good — no `sleep` masking). Keep that pattern; do not introduce `Process.sleep`-style waits. |
-
-**Do NOT add** a SaaS visual-regression service (Percy/Chromatic/Argos) — SEED-003 explicitly warns against SaaS visual-regression. The existing in-repo contrast/literal gate (`brandbook/src/cohort-contrast.mjs`) + Playwright screenshot specs are the right altitude.
-
----
-
-## Security / Supply-chain Action Tooling
-
-| Practice | Current state | Recommendation |
-|----------|---------------|----------------|
-| **Pin third-party actions to SHAs** | All actions use moving tags (`@v4`, `@v1`, `@v2`) | **PIN every third-party action to an immutable commit SHA** with a `# vX.Y.Z` comment. Highest-value: `erlef/setup-beam`, `googleapis/release-please-action`, `google-github-actions/*`, `FedericoCarboni/setup-ffmpeg`. (`actions/*` are first-party/lower-risk but pin for consistency.) |
-| **Dependabot for actions** | No `.github/dependabot.yml` observed | **ADD** `dependabot.yml` with a `github-actions` ecosystem (and optionally `mix`) so pinned SHAs get automated bump PRs — pinning without Dependabot rots. |
-| **Minimal `permissions:`** | `ci.yml` top-level `contents: read` ✓; `release.yml` grants `write` per-job ✓ | **Already idiomatic.** Keep `contents: read` default; grant `contents/issues/pull-requests: write` only on the `release-please` job; `actions: read` only on `gate-ci-green`. No change needed beyond keeping it tight. |
-| **OIDC vs long-lived creds** | `HEX_API_KEY` long-lived secret in `release` environment; GCS via `GOOGLE_APPLICATION_CREDENTIALS_JSON` | **Hex.pm has no OIDC trusted-publishing path today** (npm/PyPI do; Hex does not as of 2026-06) — so a scoped `HEX_API_KEY` in the protected `release` environment is the correct, idiomatic choice. Keep it environment-scoped, not repo-wide. For GCS, `google-github-actions/auth@v2` already supports **Workload Identity Federation (OIDC)** — prefer WIF over the JSON key if the soak lanes are kept; otherwise leave as-is (advisory soak lanes, low blast radius). |
-| **Fork-PR secret safety** | Uses `pull_request` (not `pull_request_target`); secrets resolve empty on forks; soak lanes fail-closed ✓ | **Already correct and well-documented** (Phase 36 notes). Do not regress to `pull_request_target`. |
-| **Dry-run publish before live** | `mix hex.publish --dry-run --yes` before live ✓; release gated on exact-SHA green CI ✓ | **Already best-in-class.** No change. |
-
----
-
-## Installation (the concrete adds)
-
-```elixir
-# mix.exs deps/0 — ADD (supply-chain):
-{:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
-```
-
-```bash
-# Local DX (after adding mix ci alias):
-mix deps.get
-mix ci            # == the PR fast gate, runnable locally
-
-# Diagnostics to run ONCE to gather the baseline the audit demands:
-mix test --slowest 20
-mix test --slowest-modules 20          # Elixir 1.17 lane
-MIX_ENV=test mix compile --profile time
-mix xref graph --label compile-connected --format cycles
-elixir -e 'IO.puts(System.schedulers_online())'   # confirm runner cores
-```
-
-```yaml
-# .github/dependabot.yml — ADD:
-version: 2
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule: { interval: "weekly" }
-  - package-ecosystem: "mix"
-    directory: "/"
-    schedule: { interval: "weekly" }
-```
-
----
+- Keep full-length SHA pins for every action; current workflows already do this well. Dependabot remains the update mechanism.
+- Pin Docker/Playwright/MinIO images by digest. Tags alone are not immutable.
+- Pin downloaded binaries by exact release asset and verified SHA-256. Never execute a remote installer script.
+- Preserve `.tool-versions` as the exact local home (`Elixir 1.17.3-otp-27`, OTP `27.2`, Node `20.18.1`). In CI, minor selectors may continue to resolve current patches for compatibility coverage, but the receipt must capture `erlef/setup-beam`'s resolved `otp-version`, `elixir-version`, and `setup-beam-version` outputs.
+- Do not claim the nightly 1.18/OTP 28 warning cell as supported unless documentation, package-consumer proof, and release gates intentionally adopt it.
+- Add realistic `timeout-minutes` to every required or nightly job and tighter step-level timeouts around downloads/provider calls. GitHub's default job timeout is 360 minutes, which is not a useful failure bound for this repository.
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| `mix ci` Mix alias | `ex_check` (`mix check`, v0.16.0) | `ex_check` runs all linters in parallel with one command and aggregates output — attractive, but it adds a dep and an abstraction layer. For a library that wants local==CI transparency, a plain `mix ci` alias is more boring/legible (audit's "delete cleverness" lens). Use `ex_check` only if you later want parallel-linter aggregation badly. |
-| `mix_audit` (`mix deps.audit`) | `mix hex.audit` alone | `hex.audit` only flags *retired* Hex packages; `mix_audit` checks a CVE advisory DB. Run **both** — they catch different things, both are fast. |
-| `--partitions` matrix sharding | Single `mix test` with high `async: true` coverage | Prefer async-conversion first (free, no DB-per-shard overhead). Reach for `--partitions` only when async-maxed suite is still the wall-clock pole — which the baseline says it is NOT (unit ~2m; the pole is the Package-Consumer lane, a *scope* problem, not a *parallelism* problem). |
-| `ubuntu-24.04` pinned | GitHub larger runners (8/16-vCPU) | Only if a measured CPU-bound lane (e.g. PLT build, full install-smoke matrix) is the pole AND a 4-vCPU runner is saturated. SEED-003: "larger/exotic runners only with justification." Don't pre-buy cores. |
-| `FedericoCarboni/setup-ffmpeg` removed in favor of `scripts/ci/install_ffmpeg.sh` | Keep the action | The repo already abandoned the action in `ci.yml` (it flaked: "Failed to get latest johnvansickle ffmpeg") but `release.yml`'s `public_verify` job **still uses `FedericoCarboni/setup-ffmpeg@v3`**. **Unify on the script** for consistency/determinism, or pin the action to a SHA. Flagged as an inconsistency to fix. |
+| Category | Recommended | Alternative | Why not |
+|---|---|---|---|
+| Workflow validation | actionlint 1.7.12 binary, checksum-verified | `yamllint`, another YAML parser | Generic YAML syntax cannot validate Actions expressions, contexts, `needs`, matrices, permissions, or action inputs. |
+| Fault injection | Oban.Testing + Mox + Bypass + isolated real-mode process | Chaos engineering framework / bespoke runtime switches | Adds machinery and production risk without improving these bounded lifecycle scenarios. |
+| Receipt format | Jason-generated, repository-validated JSON | Protobuf, Avro, external JSON Schema library | No cross-language streaming protocol is being published; a small versioned internal schema is clearer and dependency-free. |
+| Quality aggregation | Repository-owned command over existing gates | SonarQube, Code Climate, blanket static-analysis suite | Duplicates proven gates, introduces external policy/cost, and encourages metric theater. |
+| Twin host | Existing Cohort generated-package consumer | New demo/application | A new host would duplicate setup while proving less about the maintained adopter path. |
+| Browser proof | Existing Playwright 1.57.0 | Cypress or SaaS visual regression | Duplicate runtime and maintenance burden; existing deterministic specs already cover the required boundary. |
+| Supply-chain pinning | Release SHA/checksum and image digest | Floating `latest` plus version check after download | A post-download version check detects incompatibility, not substitution or run-to-run drift. |
+| Dependency security | Existing Dependabot + `mix_audit`; optionally enable GitHub dependency review if repository support is confirmed | Add Semgrep/Sobelow as mandatory gates | New scanners are not justified by a concrete uncovered sink; dependency review is useful only if its GitHub feature prerequisites are available. |
 
----
+## Installation
 
-## What NOT to Use / NOT to Add
+No Mix or npm dependency installation is recommended.
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Sobelow gating the **library** PR | Sobelow scans Phoenix *app* sinks; `lib/` is a library — mostly noise/no-ops | If wanted, run on `examples/adoption_demo` in **nightly** only |
-| SaaS visual-regression (Percy/Chromatic/Argos) | SEED-003 explicit exclusion; cost + external dep + flake surface | In-repo `cohort-contrast.mjs` + Playwright screenshot specs |
-| `pull_request_target` for fork CI | Runs untrusted fork code with secrets — classic exfil vector | Keep `pull_request`; secrets fail-closed on forks (already done) |
-| Blanket Playwright `retries: 3+` to hide flakes | Masks real determinism bugs (audit's hard "never") | Fix root cause (`workers:1`, fresh server, resilient locators); allow ≤2 retries only for genuine external waits, surfaced in report |
-| `--max-cases`/partition tuning before measuring | Oversubscribes a 4-vCPU runner, thrashes the Ecto pool | Print `schedulers_online`, `--slowest` first; tune from evidence |
-| Caching `_build` across OTP/Elixir/MIX_ENV without those dims in the key | Stale-artifact corruption, masked recompiles | Include OTP+Elixir+MIX_ENV+arch in every `_build`/`deps` key |
-| Single-step cache for PLT | PLT discarded whenever Dialyzer finds an issue → cold rebuild every red run | `actions/cache/restore` + `actions/cache/save` split (save after PLT build, before dialyzer run) |
-| Running `mix coveralls` on every PR with no coverage gate | Instrumentation slows the suite for zero gate value | `mix test` on PR; `mix coveralls` on push-to-main/nightly |
-| Lint/format/credo/doctor inside the 2-entry `quality` matrix | Runs each linter twice (once per Elixir version) for no extra signal | One `lint` job on the latest pair only |
-| Exotic runners (macOS/Windows/ARM) | No compatibility promise requires them for a Linux-deployed library | `ubuntu-24.04`; matrix only OTP/Elixir dims |
+The only added tool is an exact actionlint release downloaded by a repository script:
 
----
+```bash
+ACTIONLINT_VERSION=1.7.12
+ACTIONLINT_ASSET=actionlint_1.7.12_linux_amd64.tar.gz
+ACTIONLINT_SHA256=8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+```
 
-## Stack Patterns by Variant (placement)
+The implementation must download from the matching `rhysd/actionlint` release URL, verify SHA-256 before extraction, cache only under an ignored tool directory, and run the checked binary. macOS local support should map architecture to the corresponding official asset/checksum or fail with an actionable message; it must not silently install an unverified substitute.
 
-**PR fast gate (target < 5 min):**
-- `setup-beam` (SHA-pinned) on **latest pair only** for lint/test; min pair as a separate compat test job
-- `mix ci` (deps checks, format, compile-warnings-as-errors, hex.audit, deps.audit, `mix test --warnings-as-errors --slowest 20`)
-- deps/_build cache (full keys); **no** coveralls, **no** Dialyzer, **no** broad OTP×Elixir matrix
-- The heavy `Package Consumer Proof Matrix + Release Preflight` (the ~15m pole) → **demote most of it to push-to-main/nightly**; keep only a single representative install-smoke on PR. (This is the biggest wall-clock win and is a *scope/trigger* change, not a tooling version.)
+## What Not to Add or Change
 
-**Push-to-main:**
-- Same as PR + `mix coveralls` + maybe the broader install-smoke matrix
-
-**Nightly (`schedule:`):**
-- Full OTP/Elixir compat matrix (1.15/26 … 1.18/27), Dialyzer (split-cached PLT), full install-smoke matrix, MinIO/GCS/Mux soak, optional Sobelow on the demo app, `mix deps.audit`/`hex.audit`
-
-**Release/tag:**
-- Already excellent: exact-SHA green-CI gate → preflight → version-match → `hex.publish --dry-run` → live publish from frozen worktree → public verify. Only change: SHA-pin actions + unify ffmpeg install.
-
----
-
-## Version Compatibility
-
-| Component | Pin / Constraint | Notes |
-|-----------|------------------|-------|
-| `mix.exs` `elixir:` | `~> 1.15` | Min-supported pair = **Elixir 1.15 / OTP 26** (keep as a compat matrix entry). Valid combos: 1.15↔OTP 24–26; 1.16↔OTP 24–26; 1.17↔OTP 25–27; 1.18↔OTP 25–27. Current `quality` matrix is `1.15/26` + `1.17/27` — **add `1.18/OTP 27` as the primary lint/test pair** (1.18 is current stable; verify the latest minor on hex before pinning). |
-| `setup-beam` resolved capture | `steps.beam.outputs.{otp,elixir}-version` | Feed into cache keys AND a job summary line so green runs are self-documenting. `version-type: strict`. |
-| `json_polyfill` | OTP < 27 only (already conditional in `mix.exs`) | OTP 27+ has built-in `:json`; the conditional dep is correct — keep it. This means **OTP 27 lanes don't pull `json_polyfill`** → cache keys must include OTP version (they will, per recipe above). |
-| Node | 20 → **22 LTS** | Node 20 EOL 2026-04; bump `setup-node` to 22 for Playwright/brandbook lanes. |
-| Postgres service | `postgres:16-alpine` | Current and fine; pin major (16) — already done. |
-| `actions/cache` | v4 | v1–v3 deprecated; v4 mandatory. |
-| `actions/upload-artifact` | v4 | v3 retired Jan-2025; v4 mandatory (already used). |
-
----
-
-## Things I could NOT inspect (stated, not guessed)
-
-- **`mix.lock` contents** — not read; exact resolved versions of `credo`/`dialyxir`/`excoveralls` *in the lock* may trail the Hex latest reported above. The `~>` constraints in `mix.exs` are what I verified against.
-- **Actual runner core count / `schedulers_online`** — not measurable from files; must be printed in a CI run. All `--max-cases`/partition advice is conditioned on that measurement.
-- **Per-test async-safety** — I did not read `test/` modules; the async-conversion lever is real but its *magnitude* requires reading test files + `test_helper.exs` + Ecto Sandbox config (`config/test.exs`).
-- **Whether a `dependabot.yml` exists** — not found in the files I was given; if one exists it just needs the `github-actions` ecosystem added.
-- **Exact latest Elixir minor (1.18.x vs a newer 1.19)** — Mix docs referenced 1.19/1.20; confirm the current stable minor on hex.pm before pinning the new primary matrix pair.
-- **`scripts/release_preflight.sh` / `install_smoke.sh` internals** — only their invocation in YAML was read; the ~15m Package-Consumer pole's internal step breakdown needs `--slowest`/per-step timing from real run logs to classify keep/move-to-nightly precisely.
-
----
+- No runtime dependency, database table, public module, telemetry event, error atom, schema/migration change, or new package.
+- No blanket comment generator, code formatter beyond `mix format`, AI-written-comment pass, arbitrary line-count split, or 100% coverage target.
+- No second job backend, event store, queue simulator, fake Oban implementation, or production fault-injection flag.
+- No new demo; Cohort is the maintained twin host, and it still does not count as the named independent Phoenix pilot required for 1.0.
+- No floating tool/image input, remote `curl | sh`, or skipped-as-green required scenario.
+- No CI topology rename that changes `ci.yml`, workflow `name: CI`, `CI Summary`, or release-gate coupling without a separately proven migration.
+- No toolchain-floor or public compatibility expansion hidden inside quality cleanup.
 
 ## Sources
 
-- [erlef/setup-beam — Marketplace + README (outputs, version-type strict)](https://github.com/erlef/setup-beam/blob/main/README.md) — MEDIUM-HIGH
-- [actions/cache restore/save split for PLT persistence — alanvardy "How to cache Dialyzer on CI"](http://alanvardy.com/post/caching-dialyzer) — MEDIUM
-- [dialyxir GitHub Actions split-cache discussion (#497)](https://github.com/jeremyjh/dialyxir/issues/497) — MEDIUM
-- [Hex.pm — credo 1.7.19 (2026-06-05)](https://hex.pm/packages/credo) — HIGH
-- [Hex.pm — dialyxir 1.4.7 (2025-11-06)](https://hex.pm/packages/dialyxir) — HIGH
-- [Hex.pm — mix_audit 2.1.5 (2025-06-09)](https://hex.pm/packages/mix_audit) — HIGH
-- [Hex.pm — sobelow 0.14.1 (2025-10-14)](https://hex.pm/packages/sobelow) — HIGH
-- [Hex.pm — excoveralls 0.18.5 (2025-01-26)](https://hex.pm/packages/excoveralls) — HIGH
-- [Dashbit — "Warnings as errors and tests" (mix test --warnings-as-errors, Elixir ≥1.12)](https://dashbit.co/blog/tests-with-warnings-as-errors) — HIGH
-- [Phoenix — Up and Running / phx.new mix.exs precommit alias (1.8.x)](https://hexdocs.pm/phoenix/up_and_running.html) — MEDIUM
-- [mix deps.unlock --check-unused / deps.get --check-locked — Mix docs](https://hexdocs.pm/mix/Mix.Tasks.Deps.Unlock.html) — HIGH
-- [elixir-ecto/ecto #3599 — mix test --partitions overhead in Ecto-heavy suites](https://github.com/elixir-ecto/ecto/issues/3599) — MEDIUM
-- [Playwright — Continuous Integration (workers:1, reuseExistingServer, browser cache by version)](https://playwright.dev/docs/ci) — HIGH
-- [Fly.io — GitHub Actions for Elixir CI (matrix/cache idioms)](https://fly.io/docs/elixir/advanced-guides/github-actions-elixir-ci-cd/) — MEDIUM
+- [Rindle `mix.exs`](../../mix.exs) and [`mix.lock`](../../mix.lock) — exact repository dependencies and versions (HIGH)
+- [Rindle CI workflow](../../.github/workflows/ci.yml), [Nightly workflow](../../.github/workflows/nightly.yml), [BEAM setup composite](../../.github/actions/setup-elixir/action.yml), and [MinIO setup composite](../../.github/actions/setup-minio/action.yml) — existing integration seams (HIGH)
+- [Oban testing introduction](https://hexdocs.pm/oban/testing.html) and [worker testing](https://hexdocs.pm/oban/testing_workers.html) — inline/manual modes and `Oban.Testing` helpers (MEDIUM; official current docs, compatible seam verified in locked 2.21.1)
+- [actionlint checks](https://github.com/rhysd/actionlint/blob/v1.7.12/docs/checks.md) and [v1.7.12 release](https://github.com/rhysd/actionlint/releases/tag/v1.7.12) — semantic coverage and release checksums (MEDIUM; official project)
+- [GitHub Actions secure use](https://docs.github.com/en/actions/reference/security/secure-use) — full-length commit SHA as immutable action reference (MEDIUM; official)
+- [GitHub workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax) — job/step timeout semantics (MEDIUM; official)
+- [GitHub workflow artifacts](https://docs.github.com/en/actions/tutorials/store-and-share-data) — retention and artifact digest behavior (MEDIUM; official)
+- [erlef/setup-beam README](https://github.com/erlef/setup-beam/blob/main/README.md) — strict/loose version resolution and resolved-version outputs (MEDIUM; official project)
+- [BtbN FFmpeg Builds releases](https://github.com/BtbN/FFmpeg-Builds/releases) and [retention policy](https://github.com/BtbN/FFmpeg-Builds) — immutable release assets and published checksums (MEDIUM; official project)
+- [MinIO Client releases](https://github.com/minio/mc/releases) — timestamped assets, SHA-256, minisign, and GPG material (MEDIUM; official project)
+- [Docker image pull by digest](https://docs.docker.com/reference/cli/docker/image/pull/#pull-an-image-by-digest) — immutable container identity (MEDIUM; official)
+- [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259) and [RFC 7464](https://www.rfc-editor.org/rfc/rfc7464.html) — JSON document and JSON text sequence formats (HIGH; standards)
+
+## Open Validation Items for Implementation
+
+- Resolve and commit the exact digest for each MinIO/Postgres/Playwright image on the target runner architecture; do not copy a platform-specific digest without verifying it.
+- Select a retained monthly BtbN stable GPL release asset and commit its exact checksum; the current `latest` resolver is intentionally not authoritative.
+- Confirm actionlint's repository-specific findings and explicitly configure only evidence-backed exceptions; never blanket-ignore a rule class.
+- Verify every receipt scenario against the built package and fail if package provenance, cleanup proof, or any required scenario is absent.

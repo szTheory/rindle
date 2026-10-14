@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "plan": "133-178",
+  "status": "no_attempt",
+  "source": {
+    "sha": "7c0430bd546c02c1aa0463f156ec103c032d1580",
+    "tree": "584969e1076d31060a1ade30d3bef6152a8fdaa6"
+  },
+  "reason": "plan178_registry_exit",
+  "preparation_sha256": null,
+  "authorization_sha256": null,
+  "attempt_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "dfbf72be85789da72713710ace13898bb5a520c68bdcbb4271e648ea8cd152fd"
+}

@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "plan": "133-144",
+  "status": "complete",
+  "tested_source_sha256": "d7942f53a9f86d17029236f2184ac817d46e612a42136d445d22707ae001670a",
+  "production_commit": "99f8d906e90cc4a303f9803d274400e1e3dd79ac",
+  "source_base": "9005aab0a075b5b29db666efe7bdcd2fd26b1541",
+  "tests": {
+    "command": "node --test test/install_smoke/phase_133_registry_supply_test.mjs",
+    "exit_code": 0,
+    "node": "22.14.0",
+    "tests": 38,
+    "pass": 38,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "output": "TAP version 13\n# Subtest: Plan 143 freezes an independent mux tuple without borrowing Plan 134 authority\nok 1 - Plan 143 freezes an independent mux tuple without borrowing Plan 134 authority\n  ---\n  duration_ms: 6.135833\n  ...\n# Subtest: Plan 143 rejects incompatible readiness, changed runtime, lock, tuple and no-clobber state\nok 2 - Plan 143 rejects incompatible readiness, changed runtime, lock, tuple and no-clobber state\n  ---\n  duration_ms: 5.666209\n  ...\n# Subtest: Plan 143 accepts only its own literal decision and stops replay before any child\nok 3 - Plan 143 accepts only its own literal decision and stops replay before any child\n  ---\n  duration_ms: 23.814875\n  ...\n# Subtest: Plan 143 admits a signed lock-matching request with durable restarted offline readback\nok 4 - Plan 143 admits a signed lock-matching request with durable restarted offline readback\n  ---\n  duration_ms: 18.549917\n  ...\n# Subtest: Plan 143 stops at signature, origin, lock, runtime, key or request-count first red\nok 5 - Plan 143 stops at signature, origin, lock, runtime, key or request-count first red\n  ---\n  duration_ms: 69.075167\n  ...\n# Subtest: Plan 143 rejects cache, restart, transcript and old-marker substitution\nok 6 - Plan 143 rejects cache, restart, transcript and old-marker substitution\n  ---\n  duration_ms: 45.838333\n  ...\n# Subtest: Plan 143 fresh copied checkout archives the frozen source before publication\nok 7 - Plan 143 fresh copied checkout archives the frozen source before publication\n  ---\n  duration_ms: 3026.813375\n  ...\n# Subtest: Plan 143 copied production readiness binds committed source and preserves halted Plan 134\nok 8 - Plan 143 copied production readiness binds committed source and preserves halted Plan 134\n  ---\n  duration_ms: 11366.061958\n  ...\n# Subtest: Plan 143 production CLI halts before preflight for false or drifted copied readiness\nok 9 - Plan 143 production CLI halts before preflight for false or drifted copied readiness\n  ---\n  duration_ms: 6554.3955\n  ...\n# Subtest: Plan 143 production CLI rejects Plan 134 report aliases and replayed preflight\nok 10 - Plan 143 production CLI rejects Plan 134 report aliases and replayed preflight\n  ---\n  duration_ms: 3133.585208\n  ...\n# Subtest: Plan 143 copied source selection uses HEAD before publication and rejects altered receipts\nok 11 - Plan 143 copied source selection uses HEAD before publication and rejects altered receipts\n  ---\n  duration_ms: 3292.189459\n  ...\n# Subtest: Plan 143 copied source selection rejects missing objects and nonancestor sources\nok 12 - Plan 143 copied source selection rejects missing objects and nonancestor sources\n  ---\n  duration_ms: 162.284791\n  ...\n# Subtest: Plan 143 complete suite stays green before and after frozen preflight publication\nok 13 - Plan 143 complete suite stays green before and after frozen preflight publication\n  ---\n  duration_ms: 90039.387667\n  ...\n# {\"history\":\"before-publication\",\"source\":\"38a615d26808d716772bd0b6de48088a45c718b4\",\"tests\":37,\"pass\":37,\"fail\":0,\"repeated_preflight\":\"not-applicable\",\"authority_created\":false}\n# {\"history\":\"after-publication\",\"source\":\"38a615d26808d716772bd0b6de48088a45c718b4\",\"tests\":37,\"pass\":37,\"fail\":0,\"repeated_preflight\":\"rejected\",\"authority_created\":false}\n# Subtest: Plan 143 copied tests preserve executor artifacts, cache and evidence statuses\nok 14 - Plan 143 copied tests preserve executor artifacts, cache and evidence statuses\n  ---\n  duration_ms: 4.410375\n  ...\n# Subtest: Plan 134 freezes the exact mux request only from compatible readiness and verified live bytes\nok 15 - Plan 134 freezes the exact mux request only from compatible readiness and verified live bytes\n  ---\n  duration_ms: 2.788292\n  ...\n# Subtest: Plan 134 rejects false readiness, historical substitutes and unverified live bytes\nok 16 - Plan 134 rejects false readiness, historical substitutes and unverified live bytes\n  ---\n  duration_ms: 1.791375\n  ...\n# Subtest: Plan 134 rejects a rehashed changed URL, cache, argv, lock or readiness tuple\nok 17 - Plan 134 rejects a rehashed changed URL, cache, argv, lock or readiness tuple\n  ---\n  duration_ms: 5.19125\n  ...\n# Subtest: Plan 134 requires its own literal digest-bound answer and rejects replay before a child\nok 18 - Plan 134 requires its own literal digest-bound answer and rejects replay before a child\n  ---\n  duration_ms: 20.645584\n  ...\n# Subtest: Plan 134 admits only one signed lock-matching request with durable restarted offline readback\nok 19 - Plan 134 admits only one signed lock-matching request with durable restarted offline readback\n  ---\n  duration_ms: 10.672459\n  ...\n# Subtest: Plan 134 stops on signature, origin, lock or signing-key first red without starting readback\nok 20 - Plan 134 stops on signature, origin, lock or signing-key first red without starting readback\n  ---\n  duration_ms: 66.850291\n  ...\n# Subtest: Plan 134 rejects rehashed cache, restart, transcript and forged-halt evidence\nok 21 - Plan 134 rejects rehashed cache, restart, transcript and forged-halt evidence\n  ---\n  duration_ms: 36.853375\n  ...\n# Subtest: Plan 134 production readiness uses committed bridge history in a copied checkout\nok 22 - Plan 134 production readiness uses committed bridge history in a copied checkout\n  ---\n  duration_ms: 4551.824917\n  ...\n# Subtest: reads mux 3.2.2 lock checksums and rejects substitutions\nok 23 - reads mux 3.2.2 lock checksums and rejects substitutions\n  ---\n  duration_ms: 0.200625\n  ...\n# Subtest: treats a pinned-runtime Hex module load failure as a terminal preflight stop\nok 24 - treats a pinned-runtime Hex module load failure as a terminal preflight stop\n  ---\n  duration_ms: 0.144666\n  ...\n# Subtest: records the inspected registry cache tuple while keeping authorization disabled on a pinned-runtime failure\nok 25 - records the inspected registry cache tuple while keeping authorization disabled on a pinned-runtime failure\n  ---\n  duration_ms: 0.51\n  ...\n# Subtest: rejects stale source, lock, cache, or modified report evidence\nok 26 - rejects stale source, lock, cache, or modified report evidence\n  ---\n  duration_ms: 0.323834\n  ...\n# Subtest: publishes a preflight report once and refuses to overwrite it\nok 27 - publishes a preflight report once and refuses to overwrite it\n  ---\n  duration_ms: 6.028125\n  ...\n# Subtest: verifies a report-only commit against its frozen source while allowing later source evolution\nok 28 - verifies a report-only commit against its frozen source while allowing later source evolution\n  ---\n  duration_ms: 394.802625\n  ...\n# Subtest: rejects a protected source or lock change between the source freeze and report commit\nok 29 - rejects a protected source or lock change between the source freeze and report commit\n  ---\n  duration_ms: 580.900917\n  ...\n# Subtest: rejects a source or lock blob that does not match the frozen commit\nok 30 - rejects a source or lock blob that does not match the frozen commit\n  ---\n  duration_ms: 330.200333\n  ...\n# Subtest: rejects a report whose source commit is not an ancestor of the report commit\nok 31 - rejects a report whose source commit is not an ancestor of the report commit\n  ---\n  duration_ms: 195.907\n  ...\n# Subtest: rejects an altered report digest and current lock, cache, or dirty protected source\nok 32 - rejects an altered report digest and current lock, cache, or dirty protected source\n  ---\n  duration_ms: 373.992417\n  ...\n# Subtest: verifies the committed Plan 131 compatibility halt as a historical zero-credit input\nok 33 - verifies the committed Plan 131 compatibility halt as a historical zero-credit input\n  ---\n  duration_ms: 453.611667\n  ...\n# Subtest: rejects Plan 130 halt evidence and Plan 126 consumed supply as compatibility authority\nok 34 - rejects Plan 130 halt evidence and Plan 126 consumed supply as compatibility authority\n  ---\n  duration_ms: 0.365875\n  ...\n# Subtest: rejects changed runtime, Hex binary, cache API, lock, source, and report digest\nok 35 - rejects changed runtime, Hex binary, cache API, lock, source, and report digest\n  ---\n  duration_ms: 334.662625\n  ...\n# Subtest: accepts a false compatibility stop only with a matching Plan 132 halt summary and no later artifacts\nok 36 - accepts a false compatibility stop only with a matching Plan 132 halt summary and no later artifacts\n  ---\n  duration_ms: 490.061542\n  ...\n# Subtest: rejects a false compatibility report if Plan 132 publishes a preflight or weakens its halt summary\nok 37 - rejects a false compatibility report if Plan 132 publishes a preflight or weakens its halt summary\n  ---\n  duration_ms: 748.439459\n  ...\n# Subtest: verify-readiness CLI accepts the committed false report only with its exact halt receipt\nok 38 - verify-readiness CLI accepts the committed false report only with its exact halt receipt\n  ---\n  duration_ms: 528.139583\n  ...\n1..38\n# tests 38\n# suites 0\n# pass 38\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 126955.34525\n",
+    "histories": [
+      {
+        "history": "before-publication",
+        "source": "38a615d26808d716772bd0b6de48088a45c718b4",
+        "tests": 37,
+        "pass": 37,
+        "fail": 0,
+        "repeated_preflight": "not-applicable",
+        "authority_created": false
+      },
+      {
+        "history": "after-publication",
+        "source": "38a615d26808d716772bd0b6de48088a45c718b4",
+        "tests": 37,
+        "pass": 37,
+        "fail": 0,
+        "repeated_preflight": "rejected",
+        "authority_created": false
+      }
+    ]
+  },
+  "tracer": {
+    "command": "node --test --test-name-pattern='Plan 143 copied production readiness|Plan 143 production CLI halts before preflight' test/install_smoke/phase_133_registry_supply_test.mjs",
+    "exit_code": 0,
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "output": "TAP version 13\n# Subtest: Plan 143 copied production readiness binds committed source and preserves halted Plan 134\nok 1 - Plan 143 copied production readiness binds committed source and preserves halted Plan 134\n  ---\n  duration_ms: 11404.307916\n  ...\n# Subtest: Plan 143 production CLI halts before preflight for false or drifted copied readiness\nok 2 - Plan 143 production CLI halts before preflight for false or drifted copied readiness\n  ---\n  duration_ms: 6626.503458\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 18082.373333\n"
+  },
+  "red_evidence": {
+    "task1": ".planning/phases/133-evidence-charter-and-live-truth/133-144-TASK-1-RED.json",
+    "task2": ".planning/phases/133-evidence-charter-and-live-truth/133-144-TASK-2-RED.json",
+    "task1_verdict": "RED_EVIDENCE_OK",
+    "task2_verdict": "RED_EVIDENCE_OK"
+  },
+  "checks": {
+    "automation-first_contract": {
+      "command": "./scripts/maintainer/automation_first_contract.sh",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    "syntax": {
+      "command": "node --check test/install_smoke/phase_133_registry_supply_test.mjs",
+      "exit_code": 0,
+      "status": "pass"
+    },
+    "diff": {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "status": "pass"
+    }
+  },
+  "protected_file_count": 386,
+  "all_protected_unchanged": true,
+  "protected_inventory_sha256": "21b7f8ce3206708c794868e458a685a2575561add89269c8ef63f6d923e694f5",
+  "protected_comparisons": {
+    ".planning/STATE.md": {
+      "before": "8d17f80807b2eca1c8f8b80c49419f5d3b66365f1016fee53075bb0efc01d53c",
+      "after": "8d17f80807b2eca1c8f8b80c49419f5d3b66365f1016fee53075bb0efc01d53c"
+    },
+    ".planning/ROADMAP.md": {
+      "before": "da034bad8de8ead66182c2a53cc4d9e78f64e46c02d507181a4bddc7257809e8",
+      "after": "da034bad8de8ead66182c2a53cc4d9e78f64e46c02d507181a4bddc7257809e8"
+    },
+    ".planning/REQUIREMENTS.md": {
+      "before": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+      "after": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883"
+    },
+    ".planning/WINDOWS.md": {
+      "before": "ce724f20e40d13954e74a731fe016bd24e610c4ea159b4b319bfbd9bb0a3d562",
+      "after": "ce724f20e40d13954e74a731fe016bd24e610c4ea159b4b319bfbd9bb0a3d562"
+    },
+    ".planning/PROJECT.md": {
+      "before": "d2425e750576950dcbb5e6cc68fed9b4c06535a62291122891a97288b0dbea87",
+      "after": "d2425e750576950dcbb5e6cc68fed9b4c06535a62291122891a97288b0dbea87"
+    },
+    ".planning/config.json": {
+      "before": "85531954b8e872a75fea5871f714167a57b94538f7e6885b6fb37ec41b6c23aa",
+      "after": "85531954b8e872a75fea5871f714167a57b94538f7e6885b6fb37ec41b6c23aa"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-TASK1-RED.json": {
+      "before": "86c239a5afb22f317c942945673c94f5e31ed68c2f35cb81c62fd332dcbc9bdc",
+      "after": "86c239a5afb22f317c942945673c94f5e31ed68c2f35cb81c62fd332dcbc9bdc"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-CHECKOUT-STARTED.json": {
+      "before": "e2adc74a96b2885a62de3f2d0afad635b051bd668a9d0bc5e03e244c44fa8f63",
+      "after": "e2adc74a96b2885a62de3f2d0afad635b051bd668a9d0bc5e03e244c44fa8f63"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-134-SUMMARY.md": {
+      "before": "a5448faa8c6923adeb70b3fcad5e0c4600d839914fdade05cac743ca53ffbcc0",
+      "after": "a5448faa8c6923adeb70b3fcad5e0c4600d839914fdade05cac743ca53ffbcc0"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-134-PLAN.md": {
+      "before": "de2e624c71f98f3c2678fa527c333906ab2d806f10055fb10c080d2ee26d9d8a",
+      "after": "de2e624c71f98f3c2678fa527c333906ab2d806f10055fb10c080d2ee26d9d8a"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-LOCAL-GATES.json": {
+      "before": "bf2aa49b7e6b330370a0245bcac1fed20f147d50cf1354d121a991e5b27127d3",
+      "after": "bf2aa49b7e6b330370a0245bcac1fed20f147d50cf1354d121a991e5b27127d3"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-AUTHORIZATION.json": {
+      "before": "e09d0425f0bf838cc890a0c45b051d897a395511b895d05dc7c702406761be6e",
+      "after": "e09d0425f0bf838cc890a0c45b051d897a395511b895d05dc7c702406761be6e"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json": {
+      "before": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+      "after": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-QUALIFICATION-ATTEMPT.json": {
+      "before": "cb76feb976848935d764f789caa1b0bfd6c2ee60c49016a0d24401c3c55f0c3b",
+      "after": "cb76feb976848935d764f789caa1b0bfd6c2ee60c49016a0d24401c3c55f0c3b"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-CLONE-STARTED.json": {
+      "before": "71ea0aacf643f0ea62d43c9dec229bf269cf23131a533af93a6fcfdf1a280d8d",
+      "after": "71ea0aacf643f0ea62d43c9dec229bf269cf23131a533af93a6fcfdf1a280d8d"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-141-TASK1-RED.json": {
+      "before": "0cbdc908aa9ff74417679cfc3ce6fb42a6fcbaa78747c7381d45edf7bbe1fa0b",
+      "after": "0cbdc908aa9ff74417679cfc3ce6fb42a6fcbaa78747c7381d45edf7bbe1fa0b"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-PLAN.md": {
+      "before": "21b6c92316b2d93f51732581cc880513a27eb63fd539d55825bf73f0e6fd3bcd",
+      "after": "21b6c92316b2d93f51732581cc880513a27eb63fd539d55825bf73f0e6fd3bcd"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-134-REGISTRY-PREFLIGHT.json": {
+      "before": "48d3e0349c01e9a64cde95bc4d2e2f4f131ab8c9a932a9ebf1f7307e000e6f11",
+      "after": "48d3e0349c01e9a64cde95bc4d2e2f4f131ab8c9a932a9ebf1f7307e000e6f11"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-BUILD-AUTHORIZATION.json": {
+      "before": "ab4f0a32aa2b529ddfc6dcb8af3a5c2fa7a81620c3d4214d4b7d230bd8fc0c3b",
+      "after": "ab4f0a32aa2b529ddfc6dcb8af3a5c2fa7a81620c3d4214d4b7d230bd8fc0c3b"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-BUILD-STARTED.json": {
+      "before": "93279191864430451b5deb3030bfc1c770b47803d7e98c39e55131eb8a21147d",
+      "after": "93279191864430451b5deb3030bfc1c770b47803d7e98c39e55131eb8a21147d"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-COMPATIBILITY.json": {
+      "before": "5dc70df4d7b5fe0db4ca434d391178c0d2bb75c5a998898ffeecf74fc11b24f0",
+      "after": "5dc70df4d7b5fe0db4ca434d391178c0d2bb75c5a998898ffeecf74fc11b24f0"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md": {
+      "before": "10a6c773444faa14fe827ca8b3d46f8200a949992a32a0c5fe4c99d10c593570",
+      "after": "10a6c773444faa14fe827ca8b3d46f8200a949992a32a0c5fe4c99d10c593570"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json": {
+      "before": "df484acda67c5919427449344d749a4b5b73123a51d0cda9d774f6159bd8d484",
+      "after": "df484acda67c5919427449344d749a4b5b73123a51d0cda9d774f6159bd8d484"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-SUMMARY.md": {
+      "before": "b5a9a4292e20ef4dfd147e233e8ab086061c46e740274575c5d554b6c80e4eaf",
+      "after": "b5a9a4292e20ef4dfd147e233e8ab086061c46e740274575c5d554b6c80e4eaf"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-PLAN.md": {
+      "before": "6532a9825ed6bd89f24bed108020ed7c4e9c4d4a03385737017890ed0f7a9ebe",
+      "after": "6532a9825ed6bd89f24bed108020ed7c4e9c4d4a03385737017890ed0f7a9ebe"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-141-TASK2-RED.json": {
+      "before": "40cf1c3d26fdfcb28201caff5b62a632bac1d4a1b57ffb0e0dd3a3b67eb79066",
+      "after": "40cf1c3d26fdfcb28201caff5b62a632bac1d4a1b57ffb0e0dd3a3b67eb79066"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-POST-FREEZE-VERIFICATION.json": {
+      "before": "aae3d9f74cb677a0f36ceb4f9c446318f571b7b40dc8b90e6ba8ee5ff98ca8de",
+      "after": "aae3d9f74cb677a0f36ceb4f9c446318f571b7b40dc8b90e6ba8ee5ff98ca8de"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-SUMMARY.md": {
+      "before": "b0325da548b0d5ced104a1ef89281707caf8d1886647796ff08e05e3558902a6",
+      "after": "b0325da548b0d5ced104a1ef89281707caf8d1886647796ff08e05e3558902a6"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-BUILD-PREFLIGHT.json": {
+      "before": "35cec1f00d30122ed13f9388e50d5de605b34a7fe34c3a80cdf241deb08686c0",
+      "after": "35cec1f00d30122ed13f9388e50d5de605b34a7fe34c3a80cdf241deb08686c0"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-141-READINESS.json": {
+      "before": "8b27e4790835ca03e77ba465994aed0fbbc41ec1aacdfd345a340ddfe76c0dcb",
+      "after": "8b27e4790835ca03e77ba465994aed0fbbc41ec1aacdfd345a340ddfe76c0dcb"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-REGISTRY-PREFLIGHT.json": {
+      "before": "00289d078aab9a0c36dd7893753389931861e90a3185c29a194f7a35e798ac69",
+      "after": "00289d078aab9a0c36dd7893753389931861e90a3185c29a194f7a35e798ac69"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-PREFLIGHT.json": {
+      "before": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a",
+      "after": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-140-TASK2-RED.json": {
+      "before": "781271ffc6e0aa679214e3a75d59f66881d0512cc49792b805ca38271d10af54",
+      "after": "781271ffc6e0aa679214e3a75d59f66881d0512cc49792b805ca38271d10af54"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-141-PLAN.md": {
+      "before": "d99dadf1fef2754ce3c41d6153e8d2d91ff3b3497a1c993317e8ec24c9c7a00c",
+      "after": "d99dadf1fef2754ce3c41d6153e8d2d91ff3b3497a1c993317e8ec24c9c7a00c"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUPPLY.json": {
+      "before": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924",
+      "after": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-134-RED.json": {
+      "before": "e1157f55d5b56b4df02752297237b53d72ec7ab264e957c973860b230733b5c3",
+      "after": "e1157f55d5b56b4df02752297237b53d72ec7ab264e957c973860b230733b5c3"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-PLAN.md": {
+      "before": "bfac307bb24fda561f3292cb7523cae2cf4372241d9fba7a13bd0b15b07e5cfb",
+      "after": "bfac307bb24fda561f3292cb7523cae2cf4372241d9fba7a13bd0b15b07e5cfb"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-141-SUMMARY.md": {
+      "before": "6f364c0a80e3fa5fc607f147400b475e7ce8224e2fa721a290a711f8f21b0f68",
+      "after": "6f364c0a80e3fa5fc607f147400b475e7ce8224e2fa721a290a711f8f21b0f68"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUMMARY.md": {
+      "before": "a75f698c72dcfd800ac469a51cb8fb6130dfd9824d19132edc0e01340705a8e8",
+      "after": "a75f698c72dcfd800ac469a51cb8fb6130dfd9824d19132edc0e01340705a8e8"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-134-POST-FREEZE-VERIFICATION.json": {
+      "before": "980e7fa8ef577603351bada9f3690a12f8dbacead8fefd0d389c743be60e8872",
+      "after": "980e7fa8ef577603351bada9f3690a12f8dbacead8fefd0d389c743be60e8872"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-126-FETCH-ATTEMPT.json": {
+      "before": "c43c680aa560f0e5bbfb29ec4728d085285cfeefbf8db82b1bb150cdb5a78c90",
+      "after": "c43c680aa560f0e5bbfb29ec4728d085285cfeefbf8db82b1bb150cdb5a78c90"
+    },
+    "scripts/maintainer/phase_133_registry_supply.mjs": {
+      "before": "122b5de7f11ba13d3226911255bb2d14ac75debf2cb50b42fcb35cc35933fa12",
+      "after": "122b5de7f11ba13d3226911255bb2d14ac75debf2cb50b42fcb35cc35933fa12"
+    },
+    "/Users/jon/.hex/cache.ets": {
+      "before": "23e3d46ec2f5d1055b0955a1ad7dbc7fb0c5ba26fe436658f08537a4650d9741",
+      "after": "23e3d46ec2f5d1055b0955a1ad7dbc7fb0c5ba26fe436658f08537a4650d9741"
+    }
+  },
+  "changed_protected_files": [],
+  "frozen_source": "38a615d26808d716772bd0b6de48088a45c718b4",
+  "frozen_digest": "a16233b4d8bc191f8393df7533b51cc5d5203645199f94f950a63d61b566a58a",
+  "frozen_input_blobs": [
+    {
+      "path": "scripts/maintainer/phase_133_registry_supply.mjs",
+      "sha256": "122b5de7f11ba13d3226911255bb2d14ac75debf2cb50b42fcb35cc35933fa12",
+      "blob_oid": "1ea314a9e0f89b29d6d4fec402624945b97d47f7"
+    },
+    {
+      "path": "test/install_smoke/phase_133_registry_supply_test.mjs",
+      "sha256": "aa831f2bc8fc53906ffe8023dfe32744473d1180c387421a7bcab99e2ec242f5",
+      "blob_oid": "8044fe21fa413671fffa45519d070939d3fc744c"
+    },
+    {
+      "path": "scripts/maintainer/phase_133_compatibility_bridge_141.mjs",
+      "sha256": "88dabc35cc50dfc3c602242acc237963cfe4af463b86c877ffc74b2f8cc5f244",
+      "blob_oid": "b400af2e57a1462c5f03a4e6c83f4a122ada6665"
+    },
+    {
+      "path": "scripts/maintainer/phase_133_hex_build_140.mjs",
+      "sha256": "24f23d093c21ccd4b439cab45964727082a0be27badc4896de61e6100dd1c9a5",
+      "blob_oid": "84f9164b45410a157a5ff684dd4e950ed828cdb4"
+    },
+    {
+      "path": "scripts/maintainer/phase_133_historical_138_139.mjs",
+      "sha256": "b8262a8088c03ae1c30090d35371068ed2f658db6d17ed80973052ba3f3ab669",
+      "blob_oid": "a05ae82226c20629c120e94d0ba1346ed584bda2"
+    },
+    {
+      "path": "scripts/maintainer/phase_133_hex_build_138.mjs",
+      "sha256": "8f0e02efe07cf4910268e79a0a974054cd9a81847a3a6713611f1f9247661ec4",
+      "blob_oid": "f6854254f991613ddf469d906cf60fc702af34d1"
+    },
+    {
+      "path": "scripts/maintainer/phase_133_hex_source.mjs",
+      "sha256": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968",
+      "blob_oid": "04ddc27b6c6cd91e23d8e9912b875c11fc6b8f7d"
+    },
+    {
+      "path": "scripts/maintainer/phase_133_local_supply.mjs",
+      "sha256": "29b185c176bfe87f56808696432b76ae5191ca108fb06091b744c3ab6a9929ad",
+      "blob_oid": "258f484473bcf4d99049ffa0f81ea63c81adf7dc"
+    }
+  ],
+  "absent_live_artifacts": [
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-AUTHORIZATION.json",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-REQUEST-STARTED.json",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-RETRIEVAL.json",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-143-SUPPLY.json",
+    "/private/tmp/rindle-phase133-mux-143.signed.gz"
+  ],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "unresolved_edge_rows": 11,
+  "registry_requests": 0,
+  "live_authorizations": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "workflow": {
+    "shared_orchestrator_artifacts_modified": false,
+    "requirements_completed": [],
+    "user_setup_required": false
+  },
+  "temporary_failures_resolved": [
+    {
+      "task": 1,
+      "issue": "Large Buffer assertion diff exhausted Node's heap in the dirty-receipt negative check.",
+      "fix": "Use Buffer.equals and a boolean assertion; removed the crash's one disposable checkout."
+    },
+    {
+      "task": 2,
+      "issue": "Inherited NODE_TEST_CONTEXT produced status 0 with no TAP report.",
+      "fix": "Clear NODE_TEST_CONTEXT for bounded child suites; exact test counts reject empty output."
+    },
+    {
+      "task": 2,
+      "issue": "Selected-file fixture failed the clean-checkout gate before one-shot rejection.",
+      "fix": "Materialize the full frozen Git archive with tracked modes before publication and overlay commits."
+    }
+  ]
+}

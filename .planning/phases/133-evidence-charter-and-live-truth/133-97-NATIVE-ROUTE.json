@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "plan": "133-97",
+  "source": {
+    "sha": "c0bf7c8d99b347c62d3ea0055ef05f9978625796",
+    "tree": "168b4c4494fdf8ff78a12dd3b8eed700d5af00c7",
+    "evidence_head": "c0bf7c8d99b347c62d3ea0055ef05f9978625796"
+  },
+  "source_blobs": {
+    "mix.lock": {
+      "git_blob_oid": "af2a1e467fdc60ed4d00edad744e56b430f8c2a9",
+      "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6"
+    },
+    "scripts/maintainer/phase_133_native_route.mjs": {
+      "git_blob_oid": "f039d1f2d26774efe9d0f142de9cb5f4bc0fa3a3",
+      "sha256": "d87686bebbf5af205568a94c7e67214b9dc11c1ac849a97a5efd403f84686c8a"
+    },
+    "scripts/maintainer/test_phase_133_native_route.sh": {
+      "git_blob_oid": "8ba26a728922932601dd13b3ad96ce3cac0a5c01",
+      "sha256": "045c7dbe9984d05b8cfeaf5d95a75eabcafcf777f71d4bbe75a462b3291dd723"
+    },
+    ".planning/REQUIREMENTS.md": {
+      "git_blob_oid": "d09493da244e70a50ce00ef9fc370c484aa4be67",
+      "sha256": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883"
+    }
+  },
+  "mix_lock": {
+    "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+    "vix_version": "0.38.0",
+    "lazy_html_version": "0.1.12"
+  },
+  "dependency_inputs": [
+    {
+      "path": "deps/vix/mix.exs",
+      "status": "missing",
+      "sha256": null
+    },
+    {
+      "path": "deps/vix/checksum.exs",
+      "status": "missing",
+      "sha256": null
+    },
+    {
+      "path": "deps/vix/c_src/Makefile",
+      "status": "missing",
+      "sha256": null
+    },
+    {
+      "path": "deps/lazy_html/mix.exs",
+      "status": "missing",
+      "sha256": null
+    },
+    {
+      "path": "deps/lazy_html/Makefile",
+      "status": "missing",
+      "sha256": null
+    }
+  ],
+  "toolchain": {
+    "status": "unavailable",
+    "reason": "elixir identity probe failed: No version is set for command erl\nConsider adding one of the following versions in your config file at /Users/jon/projects/rindle/.claude/worktrees/agent-p133-97-1791330828644/.tool-versions",
+    "resolved": null,
+    "tools": {
+      "elixir": {
+        "status": "present",
+        "path": "/Users/jon/.asdf/shims/elixir",
+        "reason": null
+      },
+      "erl": {
+        "status": "present",
+        "path": "/Users/jon/.asdf/shims/erl",
+        "reason": null
+      },
+      "mix": {
+        "status": "present",
+        "path": "/Users/jon/.asdf/shims/mix",
+        "reason": null
+      },
+      "pkg-config": {
+        "status": "missing",
+        "path": null,
+        "reason": "not found on absolute PATH entries"
+      },
+      "pkgconf": {
+        "status": "missing",
+        "path": null,
+        "reason": "not found on absolute PATH entries"
+      },
+      "make": {
+        "status": "present",
+        "path": "/usr/bin/make",
+        "reason": null
+      },
+      "gcc": {
+        "status": "present",
+        "path": "/usr/bin/gcc",
+        "reason": null
+      },
+      "cmake": {
+        "status": "unsafe",
+        "path": null,
+        "reason": "first PATH match is a symlink"
+      },
+      "rebar3": {
+        "status": "missing",
+        "path": null,
+        "reason": "not found on absolute PATH entries"
+      }
+    }
+  },
+  "route": {
+    "classification": "unavailable",
+    "platform_libvips": null,
+    "vix_asset": null,
+    "reasons": [
+      "deps/vix/mix.exs: missing",
+      "deps/vix/checksum.exs: missing",
+      "deps/vix/c_src/Makefile: missing",
+      "deps/lazy_html/mix.exs: missing",
+      "deps/lazy_html/Makefile: missing",
+      "elixir identity probe failed: No version is set for command erl\nConsider adding one of the following versions in your config file at /Users/jon/projects/rindle/.claude/worktrees/agent-p133-97-1791330828644/.tool-versions",
+      "LazyHTML 0.1.12 metadata does not establish Lexbor pin 244b84956a6dc7eec293781d051354f351274c46",
+      "local runtime metadata is unavailable",
+      "Vix mix.exs, checksum.exs, or local runtime metadata is unavailable"
+    ]
+  },
+  "lexbor": {
+    "pin": "244b84956a6dc7eec293781d051354f351274c46",
+    "status": "unavailable",
+    "path": "deps/lazy_html/_build/c/third_party/lexbor/244b84956a6dc7eec293781d051354f351274c46",
+    "revision": null,
+    "tree": null,
+    "source_file_count": 0,
+    "reason": "LazyHTML package metadata does not declare the pinned Lexbor commit"
+  },
+  "prospective_fetches": [
+    {
+      "scope": "lexbor_git_commit",
+      "count": 1,
+      "url": "https://github.com/lexbor/lexbor.git",
+      "commit": "244b84956a6dc7eec293781d051354f351274c46"
+    }
+  ],
+  "prospective_fetch_count": 1,
+  "child_commands": {
+    "mix": 0,
+    "network": 0,
+    "install": 0,
+    "local_qualification": 0,
+    "census": 0,
+    "nightly": 0,
+    "issue_mutation": 0,
+    "phase_134": 0
+  },
+  "requirements": {
+    "status": "pending",
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "source_sha256": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+    "git_blob_oid": "d09493da244e70a50ce00ef9fc370c484aa4be67"
+  },
+  "report_sha256": "497a93166a448e1849e823d44e9e2320a322ab45224f353e72c145a8036da5fb"
+}

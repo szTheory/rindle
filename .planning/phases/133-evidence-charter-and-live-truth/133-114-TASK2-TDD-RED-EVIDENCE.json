@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-name-pattern='rejects a loopback exit without a positive sandbox policy-denial witness' scripts/maintainer/phase_133_recovery.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: rejects a loopback exit without a positive sandbox policy-denial witness\nnot ok 1 - rejects a loopback exit without a positive sandbox policy-denial witness\n  ---\n  duration_ms: 1.0125\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p114-retry1-1791407353/scripts/maintainer/phase_133_recovery.test.mjs:210:1'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p114-retry1-1791407353/scripts/maintainer/phase_133_recovery.test.mjs:212:10)\n    Test.runInAsyncScope (node:async_hooks:211:9)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 78.219833\n",
+  "targetTest": "rejects a loopback exit without a positive sandbox policy-denial witness",
+  "targetFile": "scripts/maintainer/phase_133_recovery.test.mjs",
+  "expected": "networkGuard rejects denied_child_exit 77 when the child output has no EPERM or EACCES policy-denial witness",
+  "actual": "networkGuard accepted the stubbed exit 77 and returned an available guard proof without a policy witness",
+  "semanticAssessment": "The named target test executed and failed its intended assertion: the existing guard adapter treats the numeric exit alone as proof and accepts a generic or inherited sandbox failure."
+}

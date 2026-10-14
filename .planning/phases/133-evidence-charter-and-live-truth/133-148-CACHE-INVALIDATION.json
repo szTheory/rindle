@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_registry_cache_invalidation",
+  "plan": "133-148",
+  "root": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+  "preflight_sha256": "ecd10a3f8da234c991ff70a777c40143b1f3e7eaaee00477e4e2645bab6b7be7",
+  "source": "db332fbc1a8d2dcf64cb6e13703d19fae3574517",
+  "tree": "ddac36b5a63cacd31b958bd81d8a07e87e22061b",
+  "cache_destination": "/Users/jon/.hex/cache.ets",
+  "frozen_cache_sha256": "a867e3336d7c70ee7a0efa0f9d4a4d5ba34ae573d26431cbb05a610f3c8d465e",
+  "readiness_command": [
+    "node",
+    "scripts/maintainer/phase_133_registry_supply.mjs",
+    "verify-readiness",
+    "--plan",
+    "133-148"
+  ],
+  "first_failure": {
+    "exit_code": 1,
+    "stderr": "[phase-133-registry-supply] ENOENT: ENOENT: no such file or directory, lstat '/Users/jon/.hex/cache.ets'\n"
+  },
+  "subsequent_observation": {
+    "status": "present",
+    "bytes": 4836871,
+    "sha256": "3aab64a4647246c1a06a769b6fd3ec669d35affc49d92013cc3d27e363356187"
+  },
+  "concurrent_process_observation": {
+    "pid": 75998,
+    "mix_subcommand": "ci.all",
+    "cwd": "/private/tmp/threadline-v146-ci.bjKxRC/repo",
+    "attribution": "concurrent user of default shared Hex home; no direct write trace was collected"
+  },
+  "network_request_count": 0,
+  "authorization_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "unresolved_edge_rows": 11,
+  "report_sha256": "e19cdcdd706a795c29d5fbca4acd40d03f6a9e1572524fadb638ded12099aae6"
+}

@@ -1,0 +1,10 @@
+{
+  "command": "PHASE133_TEST_FILTER=\"asdf runtime selection accepts one matching tool row below the table header\" node scripts/maintainer/phase_133_local_supply.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\nnot ok 1 - asdf runtime selection accepts one matching tool row below the table header\n  # AssertionError [ERR_ASSERTION]: Got unwanted exception: the named erlang row should resolve the selected version\n  # Actual message: \"erlang\"\n  #     at runtimeFixture.erlang (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p105-1791379372/scripts/maintainer/phase_133_local_supply.test.mjs:61:12)\n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/agent-p105-1791379372/scripts/maintainer/phase_133_local_supply.test.mjs:99:5\n1..1\n",
+  "targetTest": "asdf runtime selection accepts one matching tool row below the table header",
+  "targetFile": "scripts/maintainer/phase_133_local_supply.test.mjs",
+  "expected": "runtime() resolves the selected erlang version from the erlang row despite the asdf table header",
+  "actual": "runtime() throws unsupported_runtime for erlang because it reads Version from the header",
+  "semanticAssessment": "The target assertion ran and failed on the planned header-row parsing behavior. The report contains one named test and a complete TAP plan; no fixture, collection, setup, or unrelated failure occurred."
+}

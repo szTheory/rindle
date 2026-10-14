@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "fixture_only",
+  "nonce": "1829579fa119b836836be74b0c9fd07979d8b50d1414db36",
+  "mode": "fixture",
+  "request": {
+    "chunks": 1,
+    "bytes": 344,
+    "sha256": "d9f6016b651958205764d7d78df92c790a96ba30bf9f469470b9e66d73d35283"
+  },
+  "result": {
+    "chunks": 1,
+    "bytes": 232,
+    "sha256": "7a72f17df12e627695f0271f09a963f4063ba64acd64c48d8f729a4b7934da58"
+  },
+  "helper_blob": "bb40508a7aa237db3d055128496a064219b2fb42",
+  "helper_sha256": "7e57a03fbfeaa7ad1806dd1f203f457a9d65260a38cbe330b18e886a0128448b",
+  "response_keys": [
+    "chunk_id",
+    "wall_time_seconds",
+    "exit_code",
+    "original_token_count",
+    "output"
+  ],
+  "response_unavailable": [
+    "session_id"
+  ],
+  "fixture_command": {
+    "id": "node-disposable-functions-exec-v1",
+    "sha256": "3ece1beb0c67504a5988d8717d9b3599bb81bf2575917c0717147c6b6ba6782b"
+  }
+}

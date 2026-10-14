@@ -1,0 +1,10 @@
+{
+  "command": "PHASE133_TEST_FILTER=Plan 176 is admitted as a distinct fresh-source collection identity node scripts/maintainer/phase_133_local_supply.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\nnot ok 1 - Plan 176 is admitted as a distinct fresh-source collection identity\n  # Error: 133-176\n  #     at fail (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p176-wave26-retry1/scripts/maintainer/phase_133_local_supply.mjs:95:57)\n  #     at check (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p176-wave26-retry1/scripts/maintainer/phase_133_local_supply.mjs:96:58)\n  #     at Module.planIdentity (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p176-wave26-retry1/scripts/maintainer/phase_133_local_supply.mjs:540:3)\n  #     at phase (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p176-wave26-retry1/scripts/maintainer/phase_133_local_supply.test.mjs:411:22)\n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p176-wave26-retry1/scripts/maintainer/phase_133_local_supply.test.mjs:681:5\n1..1\n",
+  "targetTest": "Plan 176 is admitted as a distinct fresh-source collection identity",
+  "targetFile": "scripts/maintainer/phase_133_local_supply.test.mjs",
+  "expected": "planIdentity(133-176) returns 133-176",
+  "actual": "plan_identity assertion failure for 133-176",
+  "semanticAssessment": "The named TAP test executed and failed at the assertion for Plan 176 identity; module load and fixture setup succeeded."
+}

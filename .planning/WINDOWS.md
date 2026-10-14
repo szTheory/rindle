@@ -1,15 +1,15 @@
 ---
 schema_version: 1
-open_count: 0
+open_count: 9
 waived_count: 2
-fixed_count: 12
-total_count: 14
-last_updated: 2026-08-26T14:47:47.401Z
+fixed_count: 31
+total_count: 42
+last_updated: 2026-10-10T12:47:54.217Z
 ---
 
 # Broken Windows Ledger
 
-> Cross-phase defect register. `/gsd-ship` blocks while `open_count > 0`.
+> Cross-phase defect register. With `workflow.windows_enforce` enabled, `/gsd-ship` blocks while `open_count > 0`.
 > Waive with `gsd-tools windows waive <id> "<reason>"` (reason required).
 > Mark fixed with `gsd-tools windows fixed <id>`.
 
@@ -29,6 +29,34 @@ last_updated: 2026-08-26T14:47:47.401Z
 | 12 | 126 | deviation | .planning/phases/126-curated-type-ratchet/126-04-SUMMARY.md |  | Verification predicate used a punctuation typo; exact emitted E38 text was used for supported receipt validation. | fixed |  | 2026-08-23T13:45:36.941Z | 2026-08-23T18:15:48.503Z |
 | 13 | 126 | deviation | lib/rindle/upload/broker.ex | 193 | Corrected concatenate_tus_sessions/3 return spec to match its existing session-map result. | fixed |  | 2026-08-23T15:10:46.355Z | 2026-08-23T18:15:48.584Z |
 | 14 | 132 | deviation | .planning/REQUIREMENTS.md |  | CI-14 was restored to open because Plan 132-08 owns its live ten-run acceptance. | fixed |  | 2026-08-26T14:47:14.864Z | 2026-08-26T14:47:47.401Z |
+| 15 | 133 | deviation | test/install_smoke/ci_cache_hygiene_test.exs |  | Updated the obsolete cache-miss save assertion to the planned fresh-save-exact-restore topology | fixed |  | 2026-09-10T00:29:46.836Z | 2026-09-10T00:29:56.052Z |
+| 16 | 133 | stub | examples/adoption_demo/docs/adoption-proof-matrix.md | 43 | GCS resumable browser path remains an explicitly optional demo placeholder; live generated-app proof is separate. | open |  | 2026-09-10T02:11:37.821Z |  |
+| 17 | 133 | deviation | test/install_smoke/evidence_census_test.exs |  | Classified per-test unique census fixture writes for the async-safety guard. | fixed |  | 2026-09-10T02:12:36.558Z | 2026-09-10T02:13:07.278Z |
+| 18 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Corrected the census performance detector to the actual archived Phase 132 receipt. | fixed |  | 2026-09-10T02:13:07.391Z | 2026-09-10T02:13:16.387Z |
+| 19 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Rejected empty generated census and live-truth JSON before canonical hashing | fixed |  | 2026-09-10T22:04:34.028Z | 2026-09-10T22:05:06.934Z |
+| 20 | 133 | deviation | scripts/ci/verify_nightly_run.sh |  | Restored detached Git identity for exact-subject validator execution | fixed |  | 2026-09-10T22:04:34.174Z | 2026-09-10T22:05:07.060Z |
+| 21 | 133 | deviation | scripts/maintainer/evidence_census.exs |  | Canonicalize the inspected root through the physical resolver so platform symlink aliases do not reject contained detector inputs | fixed |  | 2026-09-11T17:20:05.449Z | 2026-09-11T17:20:27.089Z |
+| 22 | 133 | deviation | scripts/maintainer/validate_phase_133_reconciliation.exs |  | Bootstrapped the literal standalone Elixir verification path from repository-bounded compiled dependencies | fixed |  | 2026-09-12T02:07:24.771Z | 2026-09-12T02:07:50.462Z |
+| 23 | 133 | deviation | .planning/ROADMAP.md |  | Corrected halted Plan 133-27 Roadmap tracking after the generic summary-count handler rechecked it | fixed |  | 2026-09-12T02:07:24.858Z | 2026-09-12T02:07:50.550Z |
+| 24 | 133 | deviation | .planning/phases/133-evidence-charter-and-live-truth/133-30-PLAN.md |  | Used the shipped detached ledger-plus-receipt validator interface because the plan's literal --census flag is obsolete. | fixed |  | 2026-09-12T02:52:04.986Z | 2026-09-12T02:52:12.603Z |
+| 25 | 133 | deviation | test/install_smoke/nightly_policy_test.exs |  | Applied the supported Elixir formatter's deterministic indentation and rebound the census to the post-fix subject. | fixed |  | 2026-09-12T02:52:05.087Z | 2026-09-12T02:52:12.726Z |
+| 26 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plan 133-27 to unchecked halted status and corrected post-Plan-30 semantic totals after the generic progress handler rechecked it. | fixed |  | 2026-09-12T02:53:16.183Z | 2026-09-12T02:53:16.295Z |
+| 27 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plan 133-27 to unchecked halted status and corrected post-Plan-31 semantic totals after the generic progress handler rechecked it. | fixed |  | 2026-09-12T03:24:16.251Z | 2026-09-12T03:24:16.357Z |
+| 28 | 133 | unrun-verify | scripts/ci/verify_nightly_run.sh |  | Plan 133-32 terminal run/log/receipt and promotion gates were not run because the sole collector invocation halted on GitHub API rate limiting before candidate creation. | open |  | 2026-09-12T03:36:52.032Z |  |
+| 29 | 133 | deviation | .planning/ROADMAP.md |  | Restored Plans 133-27 and 133-32 to unchecked halted status and corrected post-halt semantic totals after the generic progress handler rechecked both. | fixed |  | 2026-09-12T03:37:31.584Z | 2026-09-12T03:37:45.885Z |
+| 30 | 133 | deviation | .planning/ROADMAP.md |  | Generic progress updater counted halted summaries as completed; restored exact post-Plan-34 branch arithmetic and unchecked halt rows | fixed |  | 2026-09-12T20:25:06.283Z | 2026-09-12T20:25:26.849Z |
+| 31 | 133 | unrun-verify | scripts/ci/test_verify_nightly_run.sh |  | Plan 133-37 qualification commands after the detached exact-SHA census failure were not run because the one authorized attempt was terminal | open |  | 2026-09-13T02:16:05.419Z |  |
+| 32 | 133 | deviation | .planning/phases/133-evidence-charter-and-live-truth/133-37-SUMMARY.md |  | Plan 133-37 halted on immutable run 34732110533 after detached exact-SHA census qualification could not start :rindle | open |  | 2026-09-13T02:16:05.510Z |  |
+| 33 | 133 | unrun-verify | .planning/phases/133-evidence-charter-and-live-truth/133-42-PLAN.md |  | Plan 133-42 Task 2 qualification and promotion gates were not run after immutable Nightly run 34768317696 failed. | open |  | 2026-09-13T16:29:31.472Z |  |
+| 34 | 133 | deviation | test/install_smoke/nightly_policy_test.exs | 206 | Plan 47's formatter discrepancy was corrected by Plan 57 commit 997a1aa0; focused formatting checks passed. | fixed | Corrected by Plan 57 commit 997a1aa0. | 2026-09-25T01:37:13.020Z | 2026-10-08T00:28:02.240Z |
+| 35 | 133 | deviation | test/rindle/doctor_thresholds_test.exs |  | The compatibility tracer reported two invalid Doctor tests because Inspect.Rindle.Domain.MediaProviderAsset could not be loaded | fixed |  | 2026-09-25T01:37:13.119Z | 2026-09-25T02:50:16.376Z |
+| 36 | 133 | unrun-verify | test/install_smoke/nightly_policy_test.exs | 206 | Plan 47's remaining CI jobs were unrun after the formatter failure; Plan 57 passed formatting but stopped at a separate rindle_prefix/Credo gate. Plan 120 retains fresh full local-gate verification. | open |  | 2026-09-25T02:52:47.436Z |  |
+| 37 | 133 | unrun-verify | scripts/maintainer/test_phase_133_local_gates.sh |  | Plan 70 Task 2 verification was not run because the required matching Doctor diagnostic pair was absent and the plan halted before repair. | open |  | 2026-10-02T16:05:57.761Z |  |
+| 38 | 133 | deviation | scripts/maintainer/phase_133_local_supply.mjs |  | Plan 104 halted: runtime probe parses the asdf current header instead of the erlang row; supported runtime selection remains unproved. First-red policy forbids an in-attempt repair or retry. | fixed |  | 2026-10-07T12:19:14.681Z | 2026-10-07T14:01:42.343Z |
+| 39 | 133 | unrun-verify | scripts/maintainer/phase_133_local_supply.mjs |  | Plan 133-105 one-shot collector failed to publish its preflight because the requested staged-cache target had no _build parent; host asdf currently selects Erlang 27.2, not required 27.3.4.15, and the one-shot preflight cannot be retried. | open |  | 2026-10-07T14:01:42.421Z |  |
+| 40 | 133 | unmet-truth | test/install_smoke/phase_133_reconciliation_test.exs |  | Plan 107's original nine Plan 64/79 fixture failures were repaired in Plan 114; its summary records the full reconciliation suite passing. | fixed | Repaired by Plan 114; full reconciliation suite passed per 133-114-SUMMARY.md. | 2026-10-07T19:14:38.888Z | 2026-10-08T00:24:41.831Z |
+| 41 | 133 | deviation | scripts/maintainer/phase_133_local_supply.test.mjs |  | Plan 125 fixed extensionless fake asdf script for Node 20 (resolved; focused tests pass) | fixed |  | 2026-10-08T13:04:25.490Z | 2026-10-08T13:05:27.200Z |
+| 42 | 133 | unmet-truth | .planning/phases/133-evidence-charter-and-live-truth/133-147-TASK-1-VERIFICATION.json |  | Plan 147 Task 1 full suite blocked by shared Hex cache mutation; no GREEN commit or production preflight. | fixed | Private copied-cache snapshots retain production drift rejection; GREEN 4097b3ac and zero-request preflight 6dbf2cbf verified, with all three full runs passing 48/48 and all nested histories passing 46/46. Original failed evidence is preserved. | 2026-10-10T12:47:54.217Z | 2026-10-10T13:46:09Z |
 
 ````json
 [
@@ -199,6 +227,364 @@ last_updated: 2026-08-26T14:47:47.401Z
     "reason": "",
     "recorded_at": "2026-08-26T14:47:14.864Z",
     "resolved_at": "2026-08-26T14:47:47.401Z"
+  },
+  {
+    "id": 15,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/ci_cache_hygiene_test.exs",
+    "line": null,
+    "description": "Updated the obsolete cache-miss save assertion to the planned fresh-save-exact-restore topology",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T00:29:46.836Z",
+    "resolved_at": "2026-09-10T00:29:56.052Z"
+  },
+  {
+    "id": 16,
+    "kind": "stub",
+    "phase": "133",
+    "file": "examples/adoption_demo/docs/adoption-proof-matrix.md",
+    "line": 43,
+    "description": "GCS resumable browser path remains an explicitly optional demo placeholder; live generated-app proof is separate.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-10T02:11:37.821Z",
+    "resolved_at": null
+  },
+  {
+    "id": 17,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/evidence_census_test.exs",
+    "line": null,
+    "description": "Classified per-test unique census fixture writes for the async-safety guard.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T02:12:36.558Z",
+    "resolved_at": "2026-09-10T02:13:07.278Z"
+  },
+  {
+    "id": 18,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/evidence_census.exs",
+    "line": null,
+    "description": "Corrected the census performance detector to the actual archived Phase 132 receipt.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T02:13:07.391Z",
+    "resolved_at": "2026-09-10T02:13:16.387Z"
+  },
+  {
+    "id": 19,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/ci/verify_nightly_run.sh",
+    "line": null,
+    "description": "Rejected empty generated census and live-truth JSON before canonical hashing",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T22:04:34.028Z",
+    "resolved_at": "2026-09-10T22:05:06.934Z"
+  },
+  {
+    "id": 20,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/ci/verify_nightly_run.sh",
+    "line": null,
+    "description": "Restored detached Git identity for exact-subject validator execution",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-10T22:04:34.174Z",
+    "resolved_at": "2026-09-10T22:05:07.060Z"
+  },
+  {
+    "id": 21,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/evidence_census.exs",
+    "line": null,
+    "description": "Canonicalize the inspected root through the physical resolver so platform symlink aliases do not reject contained detector inputs",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-11T17:20:05.449Z",
+    "resolved_at": "2026-09-11T17:20:27.089Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/validate_phase_133_reconciliation.exs",
+    "line": null,
+    "description": "Bootstrapped the literal standalone Elixir verification path from repository-bounded compiled dependencies",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:07:24.771Z",
+    "resolved_at": "2026-09-12T02:07:50.462Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 23,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Corrected halted Plan 133-27 Roadmap tracking after the generic summary-count handler rechecked it",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:07:24.858Z",
+    "resolved_at": "2026-09-12T02:07:50.550Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 24,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/phases/133-evidence-charter-and-live-truth/133-30-PLAN.md",
+    "line": null,
+    "description": "Used the shipped detached ledger-plus-receipt validator interface because the plan's literal --census flag is obsolete.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:52:04.986Z",
+    "resolved_at": "2026-09-12T02:52:12.603Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 25,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/nightly_policy_test.exs",
+    "line": null,
+    "description": "Applied the supported Elixir formatter's deterministic indentation and rebound the census to the post-fix subject.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:52:05.087Z",
+    "resolved_at": "2026-09-12T02:52:12.726Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 26,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Restored Plan 133-27 to unchecked halted status and corrected post-Plan-30 semantic totals after the generic progress handler rechecked it.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T02:53:16.183Z",
+    "resolved_at": "2026-09-12T02:53:16.295Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 27,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Restored Plan 133-27 to unchecked halted status and corrected post-Plan-31 semantic totals after the generic progress handler rechecked it.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T03:24:16.251Z",
+    "resolved_at": "2026-09-12T03:24:16.357Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 28,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "scripts/ci/verify_nightly_run.sh",
+    "line": null,
+    "description": "Plan 133-32 terminal run/log/receipt and promotion gates were not run because the sole collector invocation halted on GitHub API rate limiting before candidate creation.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-12T03:36:52.032Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 29,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Restored Plans 133-27 and 133-32 to unchecked halted status and corrected post-halt semantic totals after the generic progress handler rechecked both.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T03:37:31.584Z",
+    "resolved_at": "2026-09-12T03:37:45.885Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 30,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/ROADMAP.md",
+    "line": null,
+    "description": "Generic progress updater counted halted summaries as completed; restored exact post-Plan-34 branch arithmetic and unchecked halt rows",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-12T20:25:06.283Z",
+    "resolved_at": "2026-09-12T20:25:26.849Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 31,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "scripts/ci/test_verify_nightly_run.sh",
+    "line": null,
+    "description": "Plan 133-37 qualification commands after the detached exact-SHA census failure were not run because the one authorized attempt was terminal",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T02:16:05.419Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 32,
+    "kind": "deviation",
+    "phase": "133",
+    "file": ".planning/phases/133-evidence-charter-and-live-truth/133-37-SUMMARY.md",
+    "line": null,
+    "description": "Plan 133-37 halted on immutable run 34732110533 after detached exact-SHA census qualification could not start :rindle",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T02:16:05.510Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 33,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": ".planning/phases/133-evidence-charter-and-live-truth/133-42-PLAN.md",
+    "line": null,
+    "description": "Plan 133-42 Task 2 qualification and promotion gates were not run after immutable Nightly run 34768317696 failed.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-13T16:29:31.472Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 34,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/install_smoke/nightly_policy_test.exs",
+    "line": 206,
+    "description": "Plan 47's formatter discrepancy was corrected by Plan 57 commit 997a1aa0; focused formatting checks passed.",
+    "status": "fixed",
+    "reason": "Corrected by Plan 57 commit 997a1aa0.",
+    "recorded_at": "2026-09-25T01:37:13.020Z",
+    "resolved_at": "2026-10-08T00:28:02.240Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 35,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "test/rindle/doctor_thresholds_test.exs",
+    "line": null,
+    "description": "The compatibility tracer reported two invalid Doctor tests because Inspect.Rindle.Domain.MediaProviderAsset could not be loaded",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-25T01:37:13.119Z",
+    "resolved_at": "2026-09-25T02:50:16.376Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 36,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "test/install_smoke/nightly_policy_test.exs",
+    "line": 206,
+    "description": "Plan 47's remaining CI jobs were unrun after the formatter failure; Plan 57 passed formatting but stopped at a separate rindle_prefix/Credo gate. Plan 120 retains fresh full local-gate verification.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-25T02:52:47.436Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 37,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "scripts/maintainer/test_phase_133_local_gates.sh",
+    "line": null,
+    "description": "Plan 70 Task 2 verification was not run because the required matching Doctor diagnostic pair was absent and the plan halted before repair.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-02T16:05:57.761Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 38,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/phase_133_local_supply.mjs",
+    "line": null,
+    "description": "Plan 104 halted: runtime probe parses the asdf current header instead of the erlang row; supported runtime selection remains unproved. First-red policy forbids an in-attempt repair or retry.",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-10-07T12:19:14.681Z",
+    "resolved_at": "2026-10-07T14:01:42.343Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 39,
+    "kind": "unrun-verify",
+    "phase": "133",
+    "file": "scripts/maintainer/phase_133_local_supply.mjs",
+    "line": null,
+    "description": "Plan 133-105 one-shot collector failed to publish its preflight because the requested staged-cache target had no _build parent; host asdf currently selects Erlang 27.2, not required 27.3.4.15, and the one-shot preflight cannot be retried.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-10-07T14:01:42.421Z",
+    "resolved_at": null,
+    "milestone": "v1.26"
+  },
+  {
+    "id": 40,
+    "kind": "unmet-truth",
+    "phase": "133",
+    "file": "test/install_smoke/phase_133_reconciliation_test.exs",
+    "line": null,
+    "description": "Plan 107's original nine Plan 64/79 fixture failures were repaired in Plan 114; its summary records the full reconciliation suite passing.",
+    "status": "fixed",
+    "reason": "Repaired by Plan 114; full reconciliation suite passed per 133-114-SUMMARY.md.",
+    "recorded_at": "2026-10-07T19:14:38.888Z",
+    "resolved_at": "2026-10-08T00:24:41.831Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 41,
+    "kind": "deviation",
+    "phase": "133",
+    "file": "scripts/maintainer/phase_133_local_supply.test.mjs",
+    "line": null,
+    "description": "Plan 125 fixed extensionless fake asdf script for Node 20 (resolved; focused tests pass)",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-10-08T13:04:25.490Z",
+    "resolved_at": "2026-10-08T13:05:27.200Z",
+    "milestone": "v1.26"
+  },
+  {
+    "id": 42,
+    "kind": "unmet-truth",
+    "phase": "133",
+    "file": ".planning/phases/133-evidence-charter-and-live-truth/133-147-TASK-1-VERIFICATION.json",
+    "line": null,
+    "description": "Plan 147 Task 1 full suite blocked by shared Hex cache mutation; no GREEN commit or production preflight.",
+    "status": "fixed",
+    "reason": "Private copied-cache snapshots retain production drift rejection; GREEN 4097b3ac and zero-request preflight 6dbf2cbf verified, with all three full runs passing 48/48 and all nested histories passing 46/46. Original failed evidence is preserved.",
+    "recorded_at": "2026-10-10T12:47:54.217Z",
+    "resolved_at": "2026-10-10T13:46:09Z",
+    "milestone": "v1.26"
   }
 ]
 ````

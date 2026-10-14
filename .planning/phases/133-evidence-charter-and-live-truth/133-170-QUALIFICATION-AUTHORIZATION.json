@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "plan": "133-170",
+  "decision": "authorize",
+  "source": {
+    "sha": "56738a56e794a28e8a81b8bd7022d42ffd260cef",
+    "tree": "36343762ed4cc183af9ceea4148a6d9192d7de60"
+  },
+  "command": [
+    "bash",
+    "scripts/maintainer/phase_133_local_gates.sh",
+    "--subject",
+    "56738a56e794a28e8a81b8bd7022d42ffd260cef",
+    "--plan",
+    "133-170",
+    "--offline-cache",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-170-SUPPLY.json",
+    "--output",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-170-LOCAL-GATES.json"
+  ],
+  "decision_sha256": "0f11a39f1b08ebeb85d294e409487c260d64cf25ee37a837a0eeeb09d178adbc",
+  "preflight_sha256": "4dfbfa55ec3e1a69f4da62612459798ef1bb85128b4d6e669e45b95441bfd416",
+  "supply_sha256": "47c5463a42447424053dc9281660e7a95040891fc8bf2f1c59dfd84bf77333a8",
+  "plan155_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+  "plan155_route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "edb6a17d4148fceeeffece80492f23caddfc28a42364f73e13838cddb6f402b7"
+}

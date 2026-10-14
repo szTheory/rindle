@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_hex_build_authorization",
+  "plan": "133-135",
+  "decision": "authorize",
+  "literal_answer": "Authorize once: 57ffe57fcdc4cf22d4b2908ae3a69ca8c7d7529eb192b1a80ff4a91d61e68354",
+  "recorded_at": "2026-10-09T00:02:54.907Z",
+  "preflight_sha256": "57ffe57fcdc4cf22d4b2908ae3a69ca8c7d7529eb192b1a80ff4a91d61e68354",
+  "tuple": {
+    "source": {
+      "url": "https://github.com/hexpm/hex.git",
+      "commit": "a43131c26aeca06064959297d737991163f5ac5d",
+      "tree": "778c9a1387d22da9ea8830d1f02b84c9f7402c7d",
+      "path": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d"
+    },
+    "destination": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135",
+    "source_copy": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/source",
+    "ebin": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/_build/lib/hex/ebin",
+    "fixture": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/fixture/mux.signed.gz",
+    "fixture_key": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/fixture/public.pem",
+    "cache": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/hex/cache.ets",
+    "fixture_trust": "locally generated RSA key; hexpm origin protocol fixture only; no upstream mux provenance or supply credit",
+    "environment": {
+      "PATH": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin",
+      "ASDF_ELIXIR_VERSION": "1.17.3-otp-27",
+      "ASDF_ERLANG_VERSION": "27.3.4.15",
+      "MIX_ENV": "prod",
+      "MIX_HOME": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/mix",
+      "MIX_ARCHIVES": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/archives",
+      "MIX_BUILD_PATH": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/_build",
+      "MIX_DEPS_PATH": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/deps",
+      "HEX_HOME": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/hex",
+      "HEX_OFFLINE": "1",
+      "HEX_UNSAFE_REGISTRY": "0",
+      "HEX_NO_VERIFY_REPO_ORIGIN": "0",
+      "TMPDIR": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/tmp",
+      "ERL_CRASH_DUMP": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/erl_crash.dump",
+      "LANG": "en_US.UTF-8"
+    },
+    "commands": [
+      {
+        "stage": "build",
+        "cwd": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/source",
+        "argv": [
+          "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+          "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/mix",
+          "compile",
+          "--no-deps-check"
+        ]
+      },
+      {
+        "stage": "proof-write",
+        "cwd": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135",
+        "argv": [
+          "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+          "-pa",
+          "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/_build/lib/hex/ebin",
+          "/Users/jon/projects/rindle/.claude/worktrees/agent-p135-wave3/scripts/maintainer/phase_133_registry_compat.exs",
+          "proof-write",
+          "--preflight",
+          "/Users/jon/projects/rindle/.claude/worktrees/agent-p135-wave3/.planning/phases/133-evidence-charter-and-live-truth/133-135-BUILD-PREFLIGHT.json"
+        ]
+      },
+      {
+        "stage": "proof-read",
+        "cwd": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135",
+        "argv": [
+          "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+          "-pa",
+          "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/_build/lib/hex/ebin",
+          "/Users/jon/projects/rindle/.claude/worktrees/agent-p135-wave3/scripts/maintainer/phase_133_registry_compat.exs",
+          "proof-read",
+          "--preflight",
+          "/Users/jon/projects/rindle/.claude/worktrees/agent-p135-wave3/.planning/phases/133-evidence-charter-and-live-truth/133-135-BUILD-PREFLIGHT.json"
+        ]
+      }
+    ],
+    "maximum_builds": 1,
+    "network_scope": "offline; no network client, dependency/package retrieval, global install, mux request or qualification"
+  },
+  "qualification_credit": 0,
+  "requirements_completed": []
+}

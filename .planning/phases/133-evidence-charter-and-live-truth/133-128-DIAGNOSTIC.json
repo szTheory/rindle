@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "plan": "133-128",
+  "kind": "offline-dependency-diagnostic",
+  "status": "observed",
+  "diagnostic_only": true,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements": {
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "status": "pending"
+  },
+  "source": {
+    "sha": "7b680feb1874f9a098b3343943e2876ca889f87d",
+    "tree": "6a6f269f2b436ff8ae4efbb5c12f1d125390aa75"
+  },
+  "inputs": {
+    "supply": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUPPLY.json",
+      "status": "available",
+      "sha256": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924",
+      "report_sha256": "a89bbf89ce4b5ef464055a201e47cbd76f2aabeedd6234751fb1a2a03f2d3c67"
+    },
+    "plan126_artifacts": {
+      "before": {
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-PREFLIGHT.json": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-AUTHORIZATION.json": "e09d0425f0bf838cc890a0c45b051d897a395511b895d05dc7c702406761be6e",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-FETCH-ATTEMPT.json": "c43c680aa560f0e5bbfb29ec4728d085285cfeefbf8db82b1bb150cdb5a78c90",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUPPLY.json": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-QUALIFICATION-ATTEMPT.json": "cb76feb976848935d764f789caa1b0bfd6c2ee60c49016a0d24401c3c55f0c3b",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-LOCAL-GATES.json": "bf2aa49b7e6b330370a0245bcac1fed20f147d50cf1354d121a991e5b27127d3",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUMMARY.md": "a75f698c72dcfd800ac469a51cb8fb6130dfd9824d19132edc0e01340705a8e8"
+      },
+      "after": {
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-PREFLIGHT.json": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-AUTHORIZATION.json": "e09d0425f0bf838cc890a0c45b051d897a395511b895d05dc7c702406761be6e",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-FETCH-ATTEMPT.json": "c43c680aa560f0e5bbfb29ec4728d085285cfeefbf8db82b1bb150cdb5a78c90",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUPPLY.json": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-QUALIFICATION-ATTEMPT.json": "cb76feb976848935d764f789caa1b0bfd6c2ee60c49016a0d24401c3c55f0c3b",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-LOCAL-GATES.json": "bf2aa49b7e6b330370a0245bcac1fed20f147d50cf1354d121a991e5b27127d3",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUMMARY.md": "a75f698c72dcfd800ac469a51cb8fb6130dfd9824d19132edc0e01340705a8e8"
+      }
+    }
+  },
+  "guard": {
+    "initial": {
+      "status": "available",
+      "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "launcher": "/usr/bin/sandbox-exec",
+      "executable": "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+      "host_context": {
+        "platform": "darwin",
+        "node_executable": "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+        "actual_host_requested": true,
+        "context": "macOS executor process"
+      },
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "control_exit": 0,
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "denied_child_exit": 77,
+      "denial_witness": "EPERM",
+      "denial_output": "POLICY_DENIAL:EPERM"
+    },
+    "pre_child": {
+      "status": "available",
+      "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "launcher": "/usr/bin/sandbox-exec",
+      "executable": "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+      "host_context": {
+        "platform": "darwin",
+        "node_executable": "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+        "actual_host_requested": true,
+        "context": "macOS executor process"
+      },
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "control_exit": 0,
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "<home>/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "denied_child_exit": 77,
+      "denial_witness": "EPERM",
+      "denial_output": "POLICY_DENIAL:EPERM"
+    }
+  },
+  "command": {
+    "argv": [
+      "mix",
+      "deps.get",
+      "--check-locked"
+    ],
+    "started": true,
+    "invocations": 1,
+    "exit_code": 1,
+    "effective_exit_code": 1,
+    "environment": {
+      "HEX_OFFLINE": "1",
+      "HEX_UNSAFE_REGISTRY": "0"
+    }
+  },
+  "output": {
+    "original_bytes": 101,
+    "original_lines": 1,
+    "retained_lines": 1,
+    "excerpt": [
+      "** (Mix) Hex is running in offline mode and the registry entry for package mux is not cached locally"
+    ],
+    "truncated": false,
+    "redaction_applied": false,
+    "unsafe_controls_removed": false
+  },
+  "cause": {
+    "classification": "not_determined",
+    "reason": "child_failure_requires_exact_output_review"
+  },
+  "stop_reason": null,
+  "report_sha256": "a1aeca83fd4a961d4636773c2fa7428693f2da488ca6a9a91d716a39c7395cdb"
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "subject_sha": "d3db09b9bd6b77aefdb778db773a638374eaa386",
+  "dependencies": {
+    "command": "mix deps.get",
+    "exit_code": 0
+  },
+  "ci": {
+    "command": "mix ci",
+    "started": true,
+    "exit_code": 1,
+    "test_count": null
+  },
+  "coverage": {
+    "command": "mix coveralls.multiple --type local --type json",
+    "started": false,
+    "invocations": 0,
+    "exit_code": null,
+    "test_count": null,
+    "total_percent": null,
+    "floor_percent": 69
+  },
+  "diagnostics": {
+    "source_header": {
+      "status": "present",
+      "file_type": "file",
+      "repo_relative_path": "deps/jose/include/jose_jwt.hrl",
+      "symlink_text": null,
+      "target_exists": true,
+      "mode": "0644",
+      "permissions": "rw-r--r--",
+      "process_readable": true,
+      "byte_size": 544,
+      "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a"
+    },
+    "staged_header": {
+      "status": "absent",
+      "file_type": null,
+      "repo_relative_path": "_build/test/lib/jose/include/jose_jwt.hrl",
+      "symlink_text": null,
+      "target_exists": false,
+      "mode": null,
+      "permissions": null,
+      "process_readable": false,
+      "byte_size": null,
+      "sha256": null
+    },
+    "app_lookup_path": {
+      "status": "unresolved",
+      "file_type": null,
+      "repo_relative_path": null,
+      "symlink_text": null,
+      "target_exists": false,
+      "mode": null,
+      "permissions": null,
+      "process_readable": false,
+      "byte_size": null,
+      "sha256": null,
+      "external_path_redacted": true
+    },
+    "diagnosis_branch": "mix-staging-or-path",
+    "command_output": {
+      "deps_get": {
+        "lines": [],
+        "original_bytes": 5991,
+        "truncated": true
+      },
+      "ci": {
+        "lines": [
+          "     warning: CAStore.file_path/0 is undefined (module CAStore is not available or is yet to be defined)",
+          "== Compilation error in file lib/jose/jwt.ex ==",
+          "** (RuntimeError) error parsing file <transient>/worktree/_build/test/lib/jose/include/jose_jwt.hrl, got: {:error, :enoent}",
+          "    (elixir 1.17.3) lib/record/extractor.ex:84: Record.Extractor.read_file/2",
+          "    (elixir 1.17.3) lib/record/extractor.ex:50: Record.Extractor.extract_record/2",
+          "    lib/jose/jwt.ex:3: (file)",
+          "could not compile dependency :jose, \"mix compile\" failed. Errors may have been logged above. You can recompile this dependency with \"mix deps.compile jose --force\", update it with \"mix deps.update jose\" or clean it with \"mix deps.clean jose\""
+        ],
+        "original_bytes": 6269,
+        "truncated": true
+      },
+      "coverage": {
+        "lines": [],
+        "original_bytes": 0,
+        "truncated": false
+      }
+    }
+  }
+}

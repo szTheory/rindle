@@ -1,0 +1,4097 @@
+{
+  "schema_version": 1,
+  "plan": "133-152",
+  "status": "ready",
+  "source": {
+    "sha": "e7b6b8fc63d71454aebd58ab484352786f5f42dd",
+    "tree": "f91900468377ffa085730845b53531e3fc883dbf"
+  },
+  "registry": {
+    "plan": "133-153",
+    "root": "/Users/jon/projects/rindle/.claude/worktrees/p153-durable-inputs",
+    "source": {
+      "sha": "0c7a7404df470daf3c9df92bb096fe960ea19def",
+      "tree": "f0112bb87f7d3a127d3983e0afe40b7b34031661"
+    },
+    "preflight_sha256": "b8c5f4ee99030d8c8832a3254e3707e5b5255555d158aa81fca9ae09a6d7a42c",
+    "supply_sha256": "e26601365905b7d041ce296b00df764fbc4b865121bb0d4478b12c2e64f47266",
+    "cache": {
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/registry/cache.ets",
+      "sha256": "ce12a6cb28821645a8e078429cbf5e4eb509de8d240792cba728e8ac56a29b94"
+    },
+    "inventory": {
+      "status": "complete",
+      "locked_package_count": 67,
+      "rows": [
+        {
+          "name": "bunt",
+          "version": "1.0.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "bypass",
+          "version": "2.1.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "cc_precompiler",
+          "version": "0.1.11",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "color",
+          "version": "0.12.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "cowboy",
+          "version": "2.18.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "cowboy_telemetry",
+          "version": "0.4.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "cowlib",
+          "version": "2.19.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "credo",
+          "version": "1.7.18",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "db_connection",
+          "version": "2.10.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "decimal",
+          "version": "3.1.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "dialyxir",
+          "version": "1.4.7",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "doctor",
+          "version": "0.23.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "earmark_parser",
+          "version": "1.4.44",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ecto",
+          "version": "3.13.6",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ecto_sql",
+          "version": "3.13.5",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "elixir_make",
+          "version": "0.10.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "erlex",
+          "version": "0.2.8",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ex_aws",
+          "version": "2.6.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ex_aws_s3",
+          "version": "2.5.9",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ex_doc",
+          "version": "0.40.3",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ex_machina",
+          "version": "2.8.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ex_marcel",
+          "version": "0.2.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "excoveralls",
+          "version": "0.18.5",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "file_system",
+          "version": "1.1.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "finch",
+          "version": "0.23.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "fine",
+          "version": "0.1.6",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "gcs_signed_url",
+          "version": "0.6.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "goth",
+          "version": "1.4.5",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "hpax",
+          "version": "1.0.4",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "image",
+          "version": "0.65.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "jason",
+          "version": "1.4.5",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "jose",
+          "version": "1.11.12",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "junit_formatter",
+          "version": "3.4.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "lazy_html",
+          "version": "0.1.12",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "makeup",
+          "version": "1.2.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "makeup_elixir",
+          "version": "1.0.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "makeup_erlang",
+          "version": "1.1.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "mime",
+          "version": "2.0.7",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "mint",
+          "version": "1.9.3",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "mix_audit",
+          "version": "2.1.5",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "mox",
+          "version": "1.2.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "muontrap",
+          "version": "1.7.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "mux",
+          "version": "3.2.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "nimble_options",
+          "version": "1.1.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "nimble_ownership",
+          "version": "1.0.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "nimble_parsec",
+          "version": "1.4.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "nimble_pool",
+          "version": "1.1.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "oban",
+          "version": "2.21.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "phoenix",
+          "version": "1.8.12",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "phoenix_html",
+          "version": "4.3.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "phoenix_live_view",
+          "version": "1.2.10",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "phoenix_pubsub",
+          "version": "2.2.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "phoenix_template",
+          "version": "1.0.4",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "plug",
+          "version": "1.20.3",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "plug_cowboy",
+          "version": "2.9.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "plug_crypto",
+          "version": "2.2.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "postgrex",
+          "version": "0.22.4",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "ranch",
+          "version": "1.8.1",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "req",
+          "version": "0.7.3",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "sweet_xml",
+          "version": "0.7.5",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "telemetry",
+          "version": "1.4.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "tesla",
+          "version": "1.21.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "vix",
+          "version": "0.38.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "websock",
+          "version": "0.5.3",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "websock_adapter",
+          "version": "0.6.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "yamerl",
+          "version": "0.10.0",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        },
+        {
+          "name": "yaml_elixir",
+          "version": "2.12.2",
+          "versions": true,
+          "locked": true,
+          "inner": true,
+          "outer": true,
+          "deps": true
+        }
+      ],
+      "missing": []
+    },
+    "objects": [
+      {
+        "package": "bunt",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/bunt.signed.gz",
+        "sha256": "a0e266fa6e5ab025e0e01885d8de58678e30b907aefbf7e8be974f2169f762c7"
+      },
+      {
+        "package": "bypass",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/bypass.signed.gz",
+        "sha256": "6b3e42fa2a0f5e78e312a221cee4c763b14393d5b87769faa232f914807c2248"
+      },
+      {
+        "package": "cc_precompiler",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/cc_precompiler.signed.gz",
+        "sha256": "e74be91ccb8a67cfb6dfb6b07a8ba0ce1e6f86f7ffa2236d286e16c237faeb8e"
+      },
+      {
+        "package": "color",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/color.signed.gz",
+        "sha256": "26ac4ac9c8767a5d0497548939abbf2fe548ef3e1792784fe61b3ef2793d8f47"
+      },
+      {
+        "package": "cowboy",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/cowboy.signed.gz",
+        "sha256": "35802c5e0075d2add565117a48a8d99c52b7425d088781daa6104fe91d616068"
+      },
+      {
+        "package": "cowboy_telemetry",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/cowboy_telemetry.signed.gz",
+        "sha256": "5dd9e30466f1a0f3fd2772a58a87351e2eb365f57c9ced523d61483240bba792"
+      },
+      {
+        "package": "cowlib",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/cowlib.signed.gz",
+        "sha256": "a777286d8a64b2b3c569ead1f63bd7428a4efd66d2410762a15c0ad2553b9b97"
+      },
+      {
+        "package": "credo",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/credo.signed.gz",
+        "sha256": "ca161f58ba292df47d605d29083b5a93925bfb4e7a78f9e796fe2b2ef4452054"
+      },
+      {
+        "package": "db_connection",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/db_connection.signed.gz",
+        "sha256": "d05872487bb6bd5c554fb9d564e9c90c4792840313d5171baf8d2909ad2f8744"
+      },
+      {
+        "package": "decimal",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/decimal.signed.gz",
+        "sha256": "6319b18c3c45d436cb148767aaeab90eb48a569d82b7d108d05136e786d55f19"
+      },
+      {
+        "package": "dialyxir",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/dialyxir.signed.gz",
+        "sha256": "cc4743f6ccf3a928ce5c65f8ac04402641daa5d99ec89528a4b648eb1a713154"
+      },
+      {
+        "package": "doctor",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/doctor.signed.gz",
+        "sha256": "9dbfdbb13b62cf313a6850de574e974db6594803a4a3bbc5aef0ee4bafcaffd1"
+      },
+      {
+        "package": "earmark_parser",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/earmark_parser.signed.gz",
+        "sha256": "76e931e987119ca38d675cd1054431eae5ba807c379eb8be1a867e2b537a5f87"
+      },
+      {
+        "package": "ecto",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ecto.signed.gz",
+        "sha256": "a77a4968f90b9ade6b87198d5161d5738ee70d023a5e6ac019bddedf61255fb3"
+      },
+      {
+        "package": "ecto_sql",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ecto_sql.signed.gz",
+        "sha256": "e945888622dbaa9f5382235403c014e01cb1716d14c6d3b65c6de5da4c038b1e"
+      },
+      {
+        "package": "elixir_make",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/elixir_make.signed.gz",
+        "sha256": "06d8083ba8f3eaf1228a7b151e333afbcdcecc0e19445106fda9d8e118be21d5"
+      },
+      {
+        "package": "erlex",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/erlex.signed.gz",
+        "sha256": "4e5eed56cb09df95961f8df1ab4a46f53e6071469fcc548d058095fad08beb14"
+      },
+      {
+        "package": "ex_aws",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ex_aws.signed.gz",
+        "sha256": "e7182c51179e7994b32547d28b178448b480dddb02b9576d28731ede4c531830"
+      },
+      {
+        "package": "ex_aws_s3",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ex_aws_s3.signed.gz",
+        "sha256": "c46ac6827a67b9ab58643bb2cf20e4eb8d7bfa9922ff36a3d0ccac92ce7317cc"
+      },
+      {
+        "package": "ex_doc",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ex_doc.signed.gz",
+        "sha256": "a33747bfb464b8bf4a1c0253ee5ca42f385e2409e06375a925d7ca28dae1515f"
+      },
+      {
+        "package": "ex_machina",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ex_machina.signed.gz",
+        "sha256": "22975c18249c713b31ed63002d54752a8c5e41da17f8a2694f996fd0c7a77d49"
+      },
+      {
+        "package": "ex_marcel",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ex_marcel.signed.gz",
+        "sha256": "679002de921f30c8e392d77dfe0c1279a9d17f358edc2e13eb57ade73742a321"
+      },
+      {
+        "package": "excoveralls",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/excoveralls.signed.gz",
+        "sha256": "e5216b13bea4b57cab6cc5c1d48efb4b2fab3f77a1407be79f89033aa2f0ee23"
+      },
+      {
+        "package": "file_system",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/file_system.signed.gz",
+        "sha256": "9e1b95fc33b1c0607bb7fba8a3ed3723c8dfd0b01ea782fa788ddba1740acb43"
+      },
+      {
+        "package": "finch",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/finch.signed.gz",
+        "sha256": "e153865b78c4bb7cfe4b15885cc861f85619ca3fd26ba43b75fb2308966d2783"
+      },
+      {
+        "package": "fine",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/fine.signed.gz",
+        "sha256": "62a1ddcff0be62e762bd5952fccdee3708856889632368d4ce061a3a993e920e"
+      },
+      {
+        "package": "gcs_signed_url",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/gcs_signed_url.signed.gz",
+        "sha256": "24e5acd41f3ed2f1af674232fe80c4a9c0ea253bc55f0c3cab886b2702cca91a"
+      },
+      {
+        "package": "goth",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/goth.signed.gz",
+        "sha256": "48ab151dc298432d10b5fba449ee4748d7eaffb61bb5b2064fb97da446a21e46"
+      },
+      {
+        "package": "hpax",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/hpax.signed.gz",
+        "sha256": "c6def73a373229b34f4790caf55c32056cdbca79cc27ce5494516078ba1d78f2"
+      },
+      {
+        "package": "image",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/image.signed.gz",
+        "sha256": "6e6fd16bf4d9e6c9d359cfe0ee05a03f9186ae881e707e3ef3bf99af7ddaac65"
+      },
+      {
+        "package": "jason",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/jason.signed.gz",
+        "sha256": "aa566c242ad5747605754261faf5dfa901a4c0918e7855b57ed71c2d7834f31c"
+      },
+      {
+        "package": "jose",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/jose.signed.gz",
+        "sha256": "0600f46e16d3eba8525e82eb8bafd0712ad86308ae0fb8dc0af236425cd9388c"
+      },
+      {
+        "package": "junit_formatter",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/junit_formatter.signed.gz",
+        "sha256": "cf5736e26eaafc035f25b155dde84230315bfbd2dd36dfa82c1f3031ed0f3744"
+      },
+      {
+        "package": "lazy_html",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/lazy_html.signed.gz",
+        "sha256": "9c018a0d3e01295b139784b05a4059079008f77d5fdce561a60985b3d11f5196"
+      },
+      {
+        "package": "makeup",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/makeup.signed.gz",
+        "sha256": "6152f9189418afd84ee72b74ed088d0c58b49248bf7d927a441877169d0c2053"
+      },
+      {
+        "package": "makeup_elixir",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/makeup_elixir.signed.gz",
+        "sha256": "b71e8580dcd15b18abfae75d6bc13d888fea65f9060a78c640a1370921a2e3e7"
+      },
+      {
+        "package": "makeup_erlang",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/makeup_erlang.signed.gz",
+        "sha256": "8b6449c7185b20ef3f334f7aa9c465b0d3ff440b57686780197ab7f987256d64"
+      },
+      {
+        "package": "mime",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/mime.signed.gz",
+        "sha256": "59d38b9d0ab2fe63dc5110d082f98e08c731b0dae19d3be77a1b5bd023bdda0b"
+      },
+      {
+        "package": "mint",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/mint.signed.gz",
+        "sha256": "13fc604cf65bc148a3d6d9e008774fbe6a17ed2de0bc79f9226dfda3c3be1dff"
+      },
+      {
+        "package": "mix_audit",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/mix_audit.signed.gz",
+        "sha256": "525ecc7c412e48d7f60df6d0dbb9a0f3aea77bbfa2ec563f316571631b8eccfa"
+      },
+      {
+        "package": "mox",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/mox.signed.gz",
+        "sha256": "7f3764be50add005240b6f36db45ba1f1623e3c0ba7ba786fed0f869072e0ec7"
+      },
+      {
+        "package": "muontrap",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/muontrap.signed.gz",
+        "sha256": "229a5cd84ce0afba9ee911468f3442159ae0f30031206bca61e3f8730fec7312"
+      },
+      {
+        "package": "mux",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/mux.signed.gz",
+        "sha256": "5cb6161aa8b0841ce153542d2b0c76e01ee72108562a9197f8d7e26b0356e412"
+      },
+      {
+        "package": "nimble_options",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/nimble_options.signed.gz",
+        "sha256": "8cecb806224e434ddd06950a23ac036c82be5ec461fa4d45eae46f5484044187"
+      },
+      {
+        "package": "nimble_ownership",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/nimble_ownership.signed.gz",
+        "sha256": "f0189754607bed3c705195b2adb8c06cdca3da5cad8d3e3e5cbed9a8d78b3268"
+      },
+      {
+        "package": "nimble_parsec",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/nimble_parsec.signed.gz",
+        "sha256": "0b14ea3b0b03b4714f6fca8ce525f3ba8560e6e20a873a096c1b683c0cb768f5"
+      },
+      {
+        "package": "nimble_pool",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/nimble_pool.signed.gz",
+        "sha256": "4fb03ae7e47cb0b1c48b1003e1a9b50aa2ef329af844e4243bf704bd3bcaaf54"
+      },
+      {
+        "package": "oban",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/oban.signed.gz",
+        "sha256": "2b871144546e6d0bec1d0235b5ec396fd3340f252bf3667b00a61d100965c258"
+      },
+      {
+        "package": "phoenix",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/phoenix.signed.gz",
+        "sha256": "84f5b68dae2eea1125968509e51f6a78ead826b235691896811f68e762043ef7"
+      },
+      {
+        "package": "phoenix_html",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/phoenix_html.signed.gz",
+        "sha256": "c6b95894daef85a41ec01cf00cba9dd790e3dec1fe00ca5b4974fe238fd2d8c5"
+      },
+      {
+        "package": "phoenix_live_view",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/phoenix_live_view.signed.gz",
+        "sha256": "6d756079f419c150945ef72e81db133ce943158a4e74e31b50b5a892ad0276d8"
+      },
+      {
+        "package": "phoenix_pubsub",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/phoenix_pubsub.signed.gz",
+        "sha256": "793518fc6c342b86fbb60306bea253b7384f4d91ae92ed5c71008c41ab0e4497"
+      },
+      {
+        "package": "phoenix_template",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/phoenix_template.signed.gz",
+        "sha256": "60380f5c080469d0fdc84218449af1ae0f459d0b21560ed4db52ae6435c4ff1a"
+      },
+      {
+        "package": "plug",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/plug.signed.gz",
+        "sha256": "57f81879f1bbc634e1bc4e0f5eec9299eca875e9a766552c7237399edfd7ea9a"
+      },
+      {
+        "package": "plug_cowboy",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/plug_cowboy.signed.gz",
+        "sha256": "ad5428d529ccbb311f52c4c6373c40812eae61170b71341b72092d065b585bc6"
+      },
+      {
+        "package": "plug_crypto",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/plug_crypto.signed.gz",
+        "sha256": "a78f9dc35764303ac0d6961b95e51bffef63dd701e8ec1d5a254026b35fe5222"
+      },
+      {
+        "package": "postgrex",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/postgrex.signed.gz",
+        "sha256": "e9970d723ee32ecd4f9c528397bc573ea5f38c14a29f32e11d41a59ae02b3585"
+      },
+      {
+        "package": "ranch",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/ranch.signed.gz",
+        "sha256": "24f1afc9401a2238ffc2d8a280601f023913f795f7fa4ca2bb950024fce1e0cd"
+      },
+      {
+        "package": "req",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/req.signed.gz",
+        "sha256": "5e745c8e9d916a9d9cf55765f938b9d65054b4b88a283068250c9c956a9c37b9"
+      },
+      {
+        "package": "sweet_xml",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/sweet_xml.signed.gz",
+        "sha256": "6f045d9657670a0c7126acdb937c1950fac2570a3385ff7eb593a4ae08e745d3"
+      },
+      {
+        "package": "telemetry",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/telemetry.signed.gz",
+        "sha256": "fe2b6250f416cd49823559af428c41bfbc44970e829358ca5dca653d0e6a87cf"
+      },
+      {
+        "package": "tesla",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/tesla.signed.gz",
+        "sha256": "4b6ae1e89a87e118429fa16e632c2e1c4166163b697bb868261328e2e34666a1"
+      },
+      {
+        "package": "vix",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/vix.signed.gz",
+        "sha256": "4f4e2dab6bfeed1113b35ffab841e51b66ae7b597daec5f1d6b953956b474a74"
+      },
+      {
+        "package": "websock",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/websock.signed.gz",
+        "sha256": "c888f6b380619570409c21bebcdfe33579a7620e0f67eedcb09c4eeb5f083ce3"
+      },
+      {
+        "package": "websock_adapter",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/websock_adapter.signed.gz",
+        "sha256": "e4e0f7e670af3a8ee1b21550bcd360a4af9ec3226b1c4ba9aaa13ba79a9511bc"
+      },
+      {
+        "package": "yamerl",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/yamerl.signed.gz",
+        "sha256": "3c0878d6e0a673e86a17ae8be02695c0ea1f45c7ec9e2b8deb3386c81222e8dc"
+      },
+      {
+        "package": "yaml_elixir",
+        "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/yaml_elixir.signed.gz",
+        "sha256": "7a53a9987933db3b3afa7b7889e7b00a5e89056993422ff63b2fec918f2ee1f9"
+      }
+    ],
+    "hex": {
+      "ebin": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/hex-build/lib/hex/ebin",
+      "files": [
+        {
+          "relative": "Elixir.Hex.API.Auth.beam",
+          "sha256": "3bda30d3fd496955c22e45b7b48a33f0febac2f946d67f1a16071d56b34a16eb"
+        },
+        {
+          "relative": "Elixir.Hex.API.Client.beam",
+          "sha256": "14b6bfea0770d973db569bf76a12abab0a1ce179fa60ed26feaa537141e991fa"
+        },
+        {
+          "relative": "Elixir.Hex.API.Key.Organization.beam",
+          "sha256": "1caf672c34952cf3f81ece1fb2bd5782b360f737fff8e2cc93653de99fe63779"
+        },
+        {
+          "relative": "Elixir.Hex.API.Key.beam",
+          "sha256": "e3008e22275779db534e68196d150f0302e0933994868217566d52330ba0ecf7"
+        },
+        {
+          "relative": "Elixir.Hex.API.OAuth.beam",
+          "sha256": "2525af32fc31c287e0b3d8cb607fdf4b1eb47c27cd23d45efbe374707aed1601"
+        },
+        {
+          "relative": "Elixir.Hex.API.Package.Owner.beam",
+          "sha256": "38844cc354162bb5716d031f2e7b10a94ff543cf9eb38b350355eadd1ac4edfd"
+        },
+        {
+          "relative": "Elixir.Hex.API.Package.beam",
+          "sha256": "546f06630c98cc1d560f44ceab4eac0fc7d687768461c2bc488a95e5f0641b8b"
+        },
+        {
+          "relative": "Elixir.Hex.API.Release.beam",
+          "sha256": "c6246893ee9dda69c7b2fc0848f430bacc3db6604d8b2b7aa1200a57e3b05c87"
+        },
+        {
+          "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+          "sha256": "b74df3e51267731b77fdf873e7b580ee22e3473129b1f046348fc0fd641cd53a"
+        },
+        {
+          "relative": "Elixir.Hex.API.ShortURL.beam",
+          "sha256": "3554f43e68975961a9c66906050670e9b1befcf0b94b6f70d01dfc19a5152bdd"
+        },
+        {
+          "relative": "Elixir.Hex.API.User.beam",
+          "sha256": "7897b50acd0f0ccae4b2889210ebdc7bf8da6aa49a813fb6473506fe9be8b60d"
+        },
+        {
+          "relative": "Elixir.Hex.Application.beam",
+          "sha256": "9558eda17b006121dcc80c8417b977b1d42b42ff3f8101eebca46ba6007d9475"
+        },
+        {
+          "relative": "Elixir.Hex.Auth.beam",
+          "sha256": "c9d7fa0c04a998ba253494b1e5c3577eb8b004ed80fc3585428eba52c01de911"
+        },
+        {
+          "relative": "Elixir.Hex.Config.beam",
+          "sha256": "c45050f96eb53ef4a59577ea3d18af8f019f331b33fb7ee66a1bc0e927b9f098"
+        },
+        {
+          "relative": "Elixir.Hex.Cooldown.beam",
+          "sha256": "8069598ad14b88559cba70813313694728ac951133c3053049ad09c5f22ac986"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.Certs.beam",
+          "sha256": "733cd09cf9249262cd29c8885f992b4da4efa164254b7c0bb0c833f04c26f612"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.SSL.beam",
+          "sha256": "1dec66f9f8ae4a581e6555abbe46fff4ad32efdf8ca616592296d3bb1fcb90da"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+          "sha256": "b7a87b21eee10009809a0fcaa24b09efe8020f5905a736af2ffed608087b23e2"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.beam",
+          "sha256": "14dac4a13485f2770c90c1fa765b9fa7c921e30ea0f373ab74acf78717243878"
+        },
+        {
+          "relative": "Elixir.Hex.Ignores.beam",
+          "sha256": "814b7afd637fa013e4dfeb69213146d48171b88a3d9bf80806b48bf2ecff7449"
+        },
+        {
+          "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+          "sha256": "44084f6a10511aa5194b342c45e56ab0e5ce5dae405b820754a51eed7d6ef3d4"
+        },
+        {
+          "relative": "Elixir.Hex.Mix.beam",
+          "sha256": "6ed2dbf6a1615f7145af8438f3924404b3ba9c0cfaf1be17a90579ca1aeb7858"
+        },
+        {
+          "relative": "Elixir.Hex.Netrc.Cache.beam",
+          "sha256": "9a0b219b2a46a7f2eda650ffc6d6f4bc1271e722394972ab470ad1f91b09ca3a"
+        },
+        {
+          "relative": "Elixir.Hex.Netrc.Parser.beam",
+          "sha256": "5d65e548017de15f9bb731ba8eb251021ff23c393cb6a80ae4bb9365bae58844"
+        },
+        {
+          "relative": "Elixir.Hex.Netrc.beam",
+          "sha256": "2760c6478da751b615c2c3c95b5b2519de06d1fe2dd12b7a55a1bf7ee66ceba7"
+        },
+        {
+          "relative": "Elixir.Hex.OAuth.beam",
+          "sha256": "7f9429c84166675d4f65ab8241c721b198e24ffcff75e081f447815ae231257f"
+        },
+        {
+          "relative": "Elixir.Hex.Package.beam",
+          "sha256": "9e6144fa612380fde655348be3215377bbd95befdf01e3e01d2b50bd86a78d46"
+        },
+        {
+          "relative": "Elixir.Hex.Parallel.beam",
+          "sha256": "73f50c4667048ee2bb065f539a7db8086e1d9375ab4e3b5574a11ee11a91374e"
+        },
+        {
+          "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+          "sha256": "1e92467b69e801f282b100f300ae2227cf7721c23754eb26981c0f8a93ad83d3"
+        },
+        {
+          "relative": "Elixir.Hex.Policy.Filter.beam",
+          "sha256": "d75e280940b433274f8e1fe4a151413d34301035a09687c25d15d38779c579ce"
+        },
+        {
+          "relative": "Elixir.Hex.Policy.beam",
+          "sha256": "d25dba833695c41eae46082b7c9bcf7b3d6f5baf1a35110848ae7c4125103f14"
+        },
+        {
+          "relative": "Elixir.Hex.Registry.Cooldown.beam",
+          "sha256": "382f59ff174d20f32421fd447244ea5bcc0f04b3495ce9bf482def59019d4f05"
+        },
+        {
+          "relative": "Elixir.Hex.Registry.Policy.beam",
+          "sha256": "233db04e43a4b7d581e664bd95f618b327d5b7efd7a38731e3175569589182b3"
+        },
+        {
+          "relative": "Elixir.Hex.Registry.Server.beam",
+          "sha256": "1bc02fa3a732f4153688242f135519c1a0e0480fab4eebf5a24835fefafa2185"
+        },
+        {
+          "relative": "Elixir.Hex.RemoteConverger.beam",
+          "sha256": "d1396bfbcda40b67aafb8bcffbe369e1eaf5f410d08f8e82c312f2c54b83ba60"
+        },
+        {
+          "relative": "Elixir.Hex.Repo.beam",
+          "sha256": "347342ceba889b073fbac95d666beb81695ee7b401eea5b70d0313cb1692357b"
+        },
+        {
+          "relative": "Elixir.Hex.SCM.beam",
+          "sha256": "e034fe881c638c462b2793d864ef201ff6eed5b5b49c2a9bf2b4c79096fabf25"
+        },
+        {
+          "relative": "Elixir.Hex.Server.beam",
+          "sha256": "8252b7d86a7cf2cf28662c114e2d4df0ebd0a59794928f0a08f201102c5ec4fb"
+        },
+        {
+          "relative": "Elixir.Hex.Shell.Process.beam",
+          "sha256": "0d624824f4538eababf573c2ab3d85f35342137183f8da8a378b1456b2522ac7"
+        },
+        {
+          "relative": "Elixir.Hex.Shell.beam",
+          "sha256": "6c0e5a97450f643a04f570e0f342d76daccfaca7dc546b0936c4c2cbf1c1f83a"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Assignment.beam",
+          "sha256": "1eb3d9ed7d6224520c28cc54f57bdaa85bc1374dc064e7b4536934f4ee128678"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "406ec2339265d4ecb4aa07578880b320fb9409bff60cb975fff7aa9a100e35ae"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+          "sha256": "f5e51152f2b733056d08ebc47e32684ae7e7d81b32cb6d1618af1b8abb5e9a59"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+          "sha256": "d0e13af0b22c3a103bb3338e12d14755ece1c315c53ec56a2da8c7a4f4b234bc"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+          "sha256": "050f65e018afba6823cb0de098dcf5c7135ea30446e1e9f1c39d49e4fe77f215"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.beam",
+          "sha256": "f3cb87b6b7599be32bce1c47879276ad5d0b748c45ceaef03904ff7ad2545c6d"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "6bca3485cc80b7722bb86b17fe01a903f9954a0221d799266fb2771fbedea264"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+          "sha256": "c8cbc6580e8d01315ff2576c0f650c9c228e8ac399d4f92f67bc99861f1b79c3"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+          "sha256": "158fa4f55759ee70ac379b382f0827ee7090b8349b1e4d3b689e279cedcde6a6"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+          "sha256": "c74898e41571ec88439241b395e03de8bdefbfcfdbc42e0f24c826ed9feae40b"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+          "sha256": "a6bfd8168717b828782056849b77e13ecae5690e1d58abbe3449baa901aa052e"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+          "sha256": "8d6a06ed5d0e35159ec29d9d4aa282aa3078200bd76f45580624ae994fc6a4f4"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Failure.beam",
+          "sha256": "ca5f80344bb4f1bc3e29b8a021860ae9bce6841b2ee867f094dfdef9e7ee5def"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+          "sha256": "b620661f549a87631bf99968e84c8dbe2a56ec1b49e3978d3b7a50b074715257"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.PackageLister.beam",
+          "sha256": "4cf8b9700e013f71b841fa8f599905ea83744f47ff663702ea41f72aaa2f6973"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.PackageRange.beam",
+          "sha256": "b9f75c571e252db395aced73cde03d0866c83bfab7c8ab0cfa789729beffac7e"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+          "sha256": "7b8a931081f4729178042e534bda87ff4023ef9a4e91bfa85db70c3af208e788"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Registry.beam",
+          "sha256": "1e3b7d8fd764e17ba795ccfed8645d0be0a80809dfe16a214e608ba57acd56f0"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+          "sha256": "44f16ac6843f697ebd92a0a9b4682ade4fe5a82cf81931d4ca7388d7a2321ebb"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Requirement.beam",
+          "sha256": "c6641bf9d410d23a1b382d3157df9646453ae417429f6d4bc6bff3ca983ce174"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Solver.beam",
+          "sha256": "be6ac00551003f97eef9c79e88823e39d270e3f5a592aa27f522126991b8cf68"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Term.beam",
+          "sha256": "8eba313e6f18f5e84c8a01c89d26bf7f3a33d65240cfc008ddff227909306c3c"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Util.beam",
+          "sha256": "6fff36f4f89a677b407e4fd8f1c8a9eff13ebba88d38831a49ce7fecdf05c2b0"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.beam",
+          "sha256": "9c034e44f8afcd5eb00de471f12d73e63f8e472f433154e723ad818b7dbd1376"
+        },
+        {
+          "relative": "Elixir.Hex.Sponsor.beam",
+          "sha256": "975cd95fcaf38238f6c07284d2a37282d0e7a8119085492473ba365612f18ee2"
+        },
+        {
+          "relative": "Elixir.Hex.State.beam",
+          "sha256": "b3cc5439f11cde0c7695b7cef288828def0051b45ae654554a180b3e2290dad0"
+        },
+        {
+          "relative": "Elixir.Hex.Stdlib.beam",
+          "sha256": "e91db6e3b7f48ae977d62ac2eba8d99770778af5de3448f30fca363f19c50b83"
+        },
+        {
+          "relative": "Elixir.Hex.Tar.beam",
+          "sha256": "9a1a5e73c52b719e7ef3b33005e5856b1562d1c907ed35d4c5134d661faf0f14"
+        },
+        {
+          "relative": "Elixir.Hex.UpdateChecker.beam",
+          "sha256": "cc8f639d7daf83a03d5b2109c08c5bb52f443ed5de42b4f6b1aab88970247151"
+        },
+        {
+          "relative": "Elixir.Hex.Utils.beam",
+          "sha256": "beb5339ec281ded2d7d641ab1097706309cb9da1c9dd69ba7a2a96a99e6c372a"
+        },
+        {
+          "relative": "Elixir.Hex.beam",
+          "sha256": "8c1706a987d5ea7b8c32b7e0ac6ba06de52d3e1d5f02c0fc29817b29be8ebb41"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+          "sha256": "34bb3150f893ff638687a73ffbbd3c483e3bceb895e60638571422403b640eb0"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "2701e11a423166fc8fd76fc34f011c7851ff421b01a690c1782cb01ded0c7f4c"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+          "sha256": "de2773cb3f2ae49941d48f7f78c05cbe05bc13c3582363e199c6bf5206a0d321"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+          "sha256": "e488ce1a9b237a2b9e5279873908b00912f41a9783f637723cd78d254179b056"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+          "sha256": "e5a4565610e1c573116047367615567cdc566891c1b992e98e55bfa6f23f1458"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+          "sha256": "cae0491c1c0fc5c1439db71700173f9821e2c79d88cd8d327629ca3e417a6c47"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+          "sha256": "145c0452e7a2bf14f9b63fd6679669d9cd0c33636c0d26cd04a4aaee062890cf"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+          "sha256": "9bed267bcd1d4804f384fca5ea4e1a77f93738ebed9f52031019694297f840fa"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+          "sha256": "1bd2cb0ede074143f4971a86934751d6f663c3bebd2ffffa25196cecff700d0b"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+          "sha256": "5c091df1fc989a8c9d7117c1eafdd17d9c1b5690cae2e4eaf29a1e477fd1b073"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+          "sha256": "a39f8fd3d31e3e0dcb53290587b1c453ab2963787a8ffcccd77f59eae1d28b73"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+          "sha256": "5ec22d6fd2fdcfcc2eacfcef36060de6af91f4ccf030c901e74596cec043160e"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+          "sha256": "fb514137f007e4426390056c08fdc9c838b38b9e390320013ef7baeac662f943"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+          "sha256": "b25b66b6e3137b146a7fa272dcb6c65f8731072a26d0b0f1a9e68e0888999494"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+          "sha256": "2118f85a59fe5bee5818d62f5d746060f50c2cbcfd76424238adb2f4faad2a86"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+          "sha256": "38b1fa0e1832c43b4fe0e0c1baabcc40840e15412441a8b386fdd7dc6f906621"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+          "sha256": "6b08383ec851aec7ef1d214ff436d7bf45c82f968140edee38a8118d8514767b"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+          "sha256": "12b3b92f0da2a3d81705a471fbef721e8508379a8b42e4cf26782d5ba1aa242b"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+          "sha256": "1b0e2fb83f35662097f35cf4645fa98ff29dd60ad377db5eb61beea330437d65"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+          "sha256": "d3eb6acbd5d3c8ff522ea7390aa41419e29f8b46e14c360e4b0c280c199d836b"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+          "sha256": "a977dbb58d76c1bde9749b29d0151ecb642891f410664ddcbd9a29470413287c"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+          "sha256": "916bba3c3a5637259fc083a3f02dbaa835a4301b256d6b086c0c997466b78438"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+          "sha256": "d1ba963852eddde85d25287c0a53884f9efdf0ed38879783c6bd3addd0870272"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+          "sha256": "80dbf856758687065c3b1c0e78bfba525994ba279545259a8085b77be9ae453d"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.beam",
+          "sha256": "d30418ec7a397b0f3cf25550c68ca82538846054d2b1ecfea49c42f08fba5c58"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+          "sha256": "f6219c545c90de87837738b644083ee7cda130520df88fcf536554ed906a632e"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "c30145f17579a82717dbcbd0a25e0e608f48c91e8b301fa1a98789991ba24278"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+          "sha256": "708cf96dd16a13f59724e4924fcd5f0861de1b61d95e0d492109c356e35673e0"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+          "sha256": "83e6c36a63976df4c0544f93c1cb22f98e8636f866d896feb2559a16133748dc"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+          "sha256": "311c08468677e787dfce275065417a459476a4862237fce7d94e87018fac5b5f"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+          "sha256": "d49f6efd013bb30bc70a67b74868764dc1e3842e8a32da008bbaa27e04658d82"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+          "sha256": "cc468c439e3c1231388b8acd0f3b4eca0b72c801681a0e712f5ef04ecd810de3"
+        },
+        {
+          "relative": "hex.app",
+          "sha256": "88b39ae7868b971b1cf20924619d7415c43d9ee4d059b39065c1985459f7ce92"
+        },
+        {
+          "relative": "mix_hex_advisory.beam",
+          "sha256": "69e01e25fb96f7c87fc2658359ca5037ba93935bafc9fac2edb38d39ffaf21ae"
+        },
+        {
+          "relative": "mix_hex_api.beam",
+          "sha256": "8779dffa517d04e9a2bc36d1311581a55061de86bd8121935f471112c3673431"
+        },
+        {
+          "relative": "mix_hex_api_auth.beam",
+          "sha256": "26a2187a0fd6c49b5e1cfd5afd284d2fc37eaf34dc0f41b2ac02b5b25cff5f52"
+        },
+        {
+          "relative": "mix_hex_api_key.beam",
+          "sha256": "a103f85d25f55d977dec5348824e102d108807fab7920526ca019f873215d35a"
+        },
+        {
+          "relative": "mix_hex_api_oauth.beam",
+          "sha256": "782f72d9f9a7259851718f33f813d3407e0f47daaab54335c2b49686ddd15f7b"
+        },
+        {
+          "relative": "mix_hex_api_organization.beam",
+          "sha256": "4685dfa6b1176900843fa25a7f1fcd938e7b9307baaf84e4e226008ae573f154"
+        },
+        {
+          "relative": "mix_hex_api_organization_member.beam",
+          "sha256": "391447cf27de4e380e567d5e69f56d33c2e8545a8aa495a6737510e6f0f869eb"
+        },
+        {
+          "relative": "mix_hex_api_package.beam",
+          "sha256": "d0358e6ec3ee9ee99b98790894a255dec5f80d1909b2475d02671ebef4bb1e79"
+        },
+        {
+          "relative": "mix_hex_api_package_owner.beam",
+          "sha256": "a1b535128c1af2e92323da5b5b1371422386ce249389172bed04b7d82964083e"
+        },
+        {
+          "relative": "mix_hex_api_release.beam",
+          "sha256": "d753df23ee4a32f7c2a5f65c452be8e4fbf68a0f3e6ed4a34d6caa064b680c0a"
+        },
+        {
+          "relative": "mix_hex_api_short_url.beam",
+          "sha256": "a47c4d12e773b6bb3caa0ea48d064190fd0a5b19f98cd6031940cd5fbce6a468"
+        },
+        {
+          "relative": "mix_hex_api_user.beam",
+          "sha256": "bdc4c8cff9807257e2ecc413e99e38e6dd67adb400c5843bc653c7e6612badd3"
+        },
+        {
+          "relative": "mix_hex_cli_auth.beam",
+          "sha256": "9388b09c97b1fd63be001907b63cb254e09b94f886cd3aaa2d2ed1701a3c8b1b"
+        },
+        {
+          "relative": "mix_hex_core.beam",
+          "sha256": "095bd15c9b418190abd1c6898610af15dd620d25dac4b2a36b18c1e03a6d8016"
+        },
+        {
+          "relative": "mix_hex_erl_tar.beam",
+          "sha256": "78516c94a02d1bb9cb310be4e2385e20acf6cab3ae2ed98a0b6ae588d7a7aad8"
+        },
+        {
+          "relative": "mix_hex_http.beam",
+          "sha256": "7d0b51dc1c3e19cb874211bae63b5ac3f3681bba103f58bbac05c8e75254755f"
+        },
+        {
+          "relative": "mix_hex_http_httpc.beam",
+          "sha256": "4895ccbac3b8a47057bc71427e8b87a3a6dae355eff88209c5f144eb84df1d1f"
+        },
+        {
+          "relative": "mix_hex_licenses.beam",
+          "sha256": "4bf8a4c270ebbcd6f279a49f520f598c4a8713ce35a5ef189a44704ce0a6087d"
+        },
+        {
+          "relative": "mix_hex_pb_names.beam",
+          "sha256": "121d081dff14c3fc1808f27ecbba61cdb25572554b9892a08aaf52b0ae29a7e6"
+        },
+        {
+          "relative": "mix_hex_pb_package.beam",
+          "sha256": "efe6cf41e5c464f6448bce8a4e22aa648457c35f477b057f9b3851f5cd72e9e6"
+        },
+        {
+          "relative": "mix_hex_pb_policy.beam",
+          "sha256": "9ce0b181e004f57382babfb7ff7d43a8b2b3a51d7a547d34c866c7675023e79f"
+        },
+        {
+          "relative": "mix_hex_pb_signed.beam",
+          "sha256": "b8603a3ff6af17a5ad1ebe10b05cbbdfff98136f711e52d5dc6e942d9bc43b59"
+        },
+        {
+          "relative": "mix_hex_pb_versions.beam",
+          "sha256": "a139d819a3c2d56b176bffadbc82e0e3b781c0f50797245e72412ca1a61630ec"
+        },
+        {
+          "relative": "mix_hex_registry.beam",
+          "sha256": "998d44d14f7beb937bfb31a15a2215bdfa3eb5578996608b09329d3ac9e479fa"
+        },
+        {
+          "relative": "mix_hex_repo.beam",
+          "sha256": "16f81a29090cc5d99accab4fcbc8128559beb2027ca9812b39ca8f3dd4df32d9"
+        },
+        {
+          "relative": "mix_hex_safe_binary_to_term.beam",
+          "sha256": "26bc072465b14eff30436f1600229a10a5f028bd69cd1238e83cc412900a7299"
+        },
+        {
+          "relative": "mix_hex_tarball.beam",
+          "sha256": "e205f04674593c1067a08869b85240ccd6f04d558818bb4c3f0042478b59d8e8"
+        },
+        {
+          "relative": "mix_safe_erl_term.beam",
+          "sha256": "04c101e1c83c97fd015afc8aa7075c5478583a7bf5010776bc4f87942416f42c"
+        }
+      ]
+    },
+    "locations": {
+      "cache": "/Users/jon/projects/rindle/.claude/inputs/phase133/restart-local-20261010/hex",
+      "native_cache": "/Users/jon/projects/rindle/.claude/inputs/phase133/restart-local-20261010/native",
+      "lexbor": "/Users/jon/projects/rindle/.claude/inputs/phase133/restart-local-20261010/lexbor"
+    },
+    "original151": {
+      "plan": "133-151",
+      "root": "/Users/jon/projects/rindle/.claude/worktrees/p151-complete-registry",
+      "source": {
+        "sha": "b6d035624afd26835748c640b1f07ecf0741db91",
+        "tree": "7cfe66921b0300512b769752c97025359492f199"
+      },
+      "preflight_sha256": "8e4a75be9c456235710bb4fd7f34335af329117f021011ebb8840e845ff5e5e9",
+      "authorization_sha256": "3346034bd4ce2678060596dce4125ebcd245b5c08d8627d37ba915d4bc4b98f5",
+      "marker_sha256": "096bdbf8ae960fd3f9198ea420497a97c99fa29e4a7eb69f072caa2385c6f26e",
+      "retrieval_sha256": "10bb762677332d3f8ecb3a21e923cf67ce3b942b178c0d7ee78a3a6e1a4c598a",
+      "supply_sha256": "09815ff49d79d844ec0386bedf0ac65cc7cd35bc2c41e762b597c6aa7bc6be2b",
+      "cache": {
+        "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/cache.ets",
+        "sha256": "4c0cdb2b8771ab51bc4e92311ff3b5aa4bef9d53372a1c69677587724a2c2e11"
+      },
+      "inventory": {
+        "status": "complete",
+        "locked_package_count": 67,
+        "rows": [
+          {
+            "name": "bunt",
+            "version": "1.0.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "bypass",
+            "version": "2.1.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "cc_precompiler",
+            "version": "0.1.11",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "color",
+            "version": "0.12.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "cowboy",
+            "version": "2.18.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "cowboy_telemetry",
+            "version": "0.4.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "cowlib",
+            "version": "2.19.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "credo",
+            "version": "1.7.18",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "db_connection",
+            "version": "2.10.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "decimal",
+            "version": "3.1.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "dialyxir",
+            "version": "1.4.7",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "doctor",
+            "version": "0.23.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "earmark_parser",
+            "version": "1.4.44",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ecto",
+            "version": "3.13.6",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ecto_sql",
+            "version": "3.13.5",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "elixir_make",
+            "version": "0.10.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "erlex",
+            "version": "0.2.8",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ex_aws",
+            "version": "2.6.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ex_aws_s3",
+            "version": "2.5.9",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ex_doc",
+            "version": "0.40.3",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ex_machina",
+            "version": "2.8.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ex_marcel",
+            "version": "0.2.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "excoveralls",
+            "version": "0.18.5",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "file_system",
+            "version": "1.1.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "finch",
+            "version": "0.23.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "fine",
+            "version": "0.1.6",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "gcs_signed_url",
+            "version": "0.6.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "goth",
+            "version": "1.4.5",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "hpax",
+            "version": "1.0.4",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "image",
+            "version": "0.65.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "jason",
+            "version": "1.4.5",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "jose",
+            "version": "1.11.12",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "junit_formatter",
+            "version": "3.4.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "lazy_html",
+            "version": "0.1.12",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "makeup",
+            "version": "1.2.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "makeup_elixir",
+            "version": "1.0.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "makeup_erlang",
+            "version": "1.1.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "mime",
+            "version": "2.0.7",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "mint",
+            "version": "1.9.3",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "mix_audit",
+            "version": "2.1.5",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "mox",
+            "version": "1.2.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "muontrap",
+            "version": "1.7.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "mux",
+            "version": "3.2.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "nimble_options",
+            "version": "1.1.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "nimble_ownership",
+            "version": "1.0.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "nimble_parsec",
+            "version": "1.4.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "nimble_pool",
+            "version": "1.1.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "oban",
+            "version": "2.21.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "phoenix",
+            "version": "1.8.12",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "phoenix_html",
+            "version": "4.3.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "phoenix_live_view",
+            "version": "1.2.10",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "phoenix_pubsub",
+            "version": "2.2.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "phoenix_template",
+            "version": "1.0.4",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "plug",
+            "version": "1.20.3",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "plug_cowboy",
+            "version": "2.9.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "plug_crypto",
+            "version": "2.2.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "postgrex",
+            "version": "0.22.4",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "ranch",
+            "version": "1.8.1",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "req",
+            "version": "0.7.3",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "sweet_xml",
+            "version": "0.7.5",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "telemetry",
+            "version": "1.4.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "tesla",
+            "version": "1.21.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "vix",
+            "version": "0.38.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "websock",
+            "version": "0.5.3",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "websock_adapter",
+            "version": "0.6.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "yamerl",
+            "version": "0.10.0",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          },
+          {
+            "name": "yaml_elixir",
+            "version": "2.12.2",
+            "versions": true,
+            "locked": true,
+            "inner": true,
+            "outer": true,
+            "deps": true
+          }
+        ],
+        "missing": []
+      },
+      "objects": [
+        {
+          "package": "bypass",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/bypass.signed.gz",
+          "sha256": "6b3e42fa2a0f5e78e312a221cee4c763b14393d5b87769faa232f914807c2248"
+        },
+        {
+          "package": "color",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/color.signed.gz",
+          "sha256": "26ac4ac9c8767a5d0497548939abbf2fe548ef3e1792784fe61b3ef2793d8f47"
+        },
+        {
+          "package": "doctor",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/doctor.signed.gz",
+          "sha256": "9dbfdbb13b62cf313a6850de574e974db6594803a4a3bbc5aef0ee4bafcaffd1"
+        },
+        {
+          "package": "ex_machina",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/ex_machina.signed.gz",
+          "sha256": "22975c18249c713b31ed63002d54752a8c5e41da17f8a2694f996fd0c7a77d49"
+        },
+        {
+          "package": "ex_marcel",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/ex_marcel.signed.gz",
+          "sha256": "679002de921f30c8e392d77dfe0c1279a9d17f358edc2e13eb57ade73742a321"
+        },
+        {
+          "package": "gcs_signed_url",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/gcs_signed_url.signed.gz",
+          "sha256": "24e5acd41f3ed2f1af674232fe80c4a9c0ea253bc55f0c3cab886b2702cca91a"
+        },
+        {
+          "package": "goth",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/goth.signed.gz",
+          "sha256": "48ab151dc298432d10b5fba449ee4748d7eaffb61bb5b2064fb97da446a21e46"
+        },
+        {
+          "package": "image",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/image.signed.gz",
+          "sha256": "6e6fd16bf4d9e6c9d359cfe0ee05a03f9186ae881e707e3ef3bf99af7ddaac65"
+        },
+        {
+          "package": "jose",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/jose.signed.gz",
+          "sha256": "0600f46e16d3eba8525e82eb8bafd0712ad86308ae0fb8dc0af236425cd9388c"
+        },
+        {
+          "package": "junit_formatter",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/junit_formatter.signed.gz",
+          "sha256": "cf5736e26eaafc035f25b155dde84230315bfbd2dd36dfa82c1f3031ed0f3744"
+        },
+        {
+          "package": "muontrap",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/muontrap.signed.gz",
+          "sha256": "229a5cd84ce0afba9ee911468f3442159ae0f30031206bca61e3f8730fec7312"
+        },
+        {
+          "package": "tesla",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/tesla.signed.gz",
+          "sha256": "4b6ae1e89a87e118429fa16e632c2e1c4166163b697bb868261328e2e34666a1"
+        },
+        {
+          "package": "vix",
+          "path": "/private/tmp/rindle-phase133-registry-151-cb5fcb9107e08585/vix.signed.gz",
+          "sha256": "4f4e2dab6bfeed1113b35ffab841e51b66ae7b597daec5f1d6b953956b474a74"
+        }
+      ],
+      "hex": {
+        "ebin": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+        "files": [
+          {
+            "relative": "Elixir.Hex.API.Auth.beam",
+            "sha256": "bde6f7f0f31ba7d9f2c39c445ad6adfcab0feb2c2f8982a3d83791bee93dc29c"
+          },
+          {
+            "relative": "Elixir.Hex.API.Client.beam",
+            "sha256": "76db4bd3b9eec40f8b3cef2240748fcd83c927ec2f2435f147717e2b3ccd9373"
+          },
+          {
+            "relative": "Elixir.Hex.API.Key.Organization.beam",
+            "sha256": "df4afe8f0347a4ae35a05bce0abbc87abc50d6ce03e055d09396aca57b3de391"
+          },
+          {
+            "relative": "Elixir.Hex.API.Key.beam",
+            "sha256": "601db0e1439f46b7235deef6a93d2f075d4b611e519f2505adf3a2411b11b536"
+          },
+          {
+            "relative": "Elixir.Hex.API.OAuth.beam",
+            "sha256": "ad0b77133bb6d60b1469a7083e6bfc5477eb43c3a5a19c27402c4e1a41f4cd96"
+          },
+          {
+            "relative": "Elixir.Hex.API.Package.Owner.beam",
+            "sha256": "7b6abf03a75e9108ad9f826fcf3c25969cb656c75d697cea48d5c131df601a36"
+          },
+          {
+            "relative": "Elixir.Hex.API.Package.beam",
+            "sha256": "941ee7e8e8d87d4173f0d6fad7bf6be42d015fed646801e74fdc206b44215087"
+          },
+          {
+            "relative": "Elixir.Hex.API.Release.beam",
+            "sha256": "bff2457bef7d93cae734f0b7eac2daa7a348857d11145130aa89e6de6314a77a"
+          },
+          {
+            "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+            "sha256": "8feaf97d115ea35901f718792fe26022842aa5390118f0d1def7e477e70c2aa7"
+          },
+          {
+            "relative": "Elixir.Hex.API.ShortURL.beam",
+            "sha256": "c4bef65c7108263c67604923eae7cfc82bb51cc5acad281149f1f5a028e788ae"
+          },
+          {
+            "relative": "Elixir.Hex.API.User.beam",
+            "sha256": "836079def21b7fbc7c3726c5b2c7b62d0edddd8cf2045d64a3b3d40bc5faf406"
+          },
+          {
+            "relative": "Elixir.Hex.Application.beam",
+            "sha256": "3a79776755387a54b7f9afe99c1e9729cec5db7aa8bdd873956b12d96567bc5f"
+          },
+          {
+            "relative": "Elixir.Hex.Auth.beam",
+            "sha256": "243bf09812f0d53408d4a0fab87ea8c40fdabdfa6ccee8d4c5d186d4d0a59449"
+          },
+          {
+            "relative": "Elixir.Hex.Config.beam",
+            "sha256": "d9fdf63738a14dd42ee0e7852424b801390ed64f94d69683f9d74f476ab09b6c"
+          },
+          {
+            "relative": "Elixir.Hex.Cooldown.beam",
+            "sha256": "c9742716732257a62f5bd8b6d2fea4274689ddeca7d04313243d58fa4cf0fe4f"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.Certs.beam",
+            "sha256": "4487da9ccaaf9d0c88160e2ea4e61c6c60a8f37f8da5752156173a5514202dd5"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.SSL.beam",
+            "sha256": "6bd2d2b6aaff36256245ea42008f1d70fca83bc4e000e6934ffd2a154c35d132"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+            "sha256": "d62c74639bd13fb4993a64754288f5646853eb56fb8adbb7a721e705c3dc224a"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.beam",
+            "sha256": "103ea3d1182d4a2b099cd94393bd62317b7c043d2e3912847bdd7bb3bb99710e"
+          },
+          {
+            "relative": "Elixir.Hex.Ignores.beam",
+            "sha256": "daaa96c5087fb8fedfcef54de1d7fdd14a9e1bf6c0e102fc6820cebbd4f40f3f"
+          },
+          {
+            "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+            "sha256": "850581d9bcc488d2c15db5fbd3133f768bbd0d95287e34bae1cdc890ecfbbb3d"
+          },
+          {
+            "relative": "Elixir.Hex.Mix.beam",
+            "sha256": "4ce5b0482796e6705d3af2a4c0d322c6951630c0d37fdcce084e62afc8c89fde"
+          },
+          {
+            "relative": "Elixir.Hex.Netrc.Cache.beam",
+            "sha256": "4565b65fe549a39790f1d04ca4a2b9d880b49234c7d6d4143e688d64422eeb97"
+          },
+          {
+            "relative": "Elixir.Hex.Netrc.Parser.beam",
+            "sha256": "343545e6b3094045b12b75f95bbb1cf91273044aa95d50acbdcad1e939d06424"
+          },
+          {
+            "relative": "Elixir.Hex.Netrc.beam",
+            "sha256": "0d733fdf48a94544537937cc7d78245134d99afb73da34525fad0252114a5735"
+          },
+          {
+            "relative": "Elixir.Hex.OAuth.beam",
+            "sha256": "10067a236d7d7f349bb773140cf9a1a3caef340fe9eb2072bf2e4887b7129784"
+          },
+          {
+            "relative": "Elixir.Hex.Package.beam",
+            "sha256": "5b2639db463a636a5662cb2822828574571030c86e6c958b5894cd49189d05c7"
+          },
+          {
+            "relative": "Elixir.Hex.Parallel.beam",
+            "sha256": "a9de049c8eb20396171680a8bcf29667d8fc6fbbca44edcedfd46f35f2b1e791"
+          },
+          {
+            "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+            "sha256": "c137b6f1e73e73707da9795ab055b8d8f2c77169d1fe29582b205425a59efd94"
+          },
+          {
+            "relative": "Elixir.Hex.Policy.Filter.beam",
+            "sha256": "3967e69b6514dd7e7668dc8b0ed305bbb41fc85051b55f0518ea36556cda370d"
+          },
+          {
+            "relative": "Elixir.Hex.Policy.beam",
+            "sha256": "5cb63ddddc958c364afe8fc7aa1ecebbb03699f75323d38495ec587d42057b25"
+          },
+          {
+            "relative": "Elixir.Hex.Registry.Cooldown.beam",
+            "sha256": "cfcc0535110b1681a42a3868902806a3b865a4c565b4752fa0e14e795757f49c"
+          },
+          {
+            "relative": "Elixir.Hex.Registry.Policy.beam",
+            "sha256": "799cec6f613a6cc164f1e330fb8c58ee54b8c9de821fd68f71bca7108126b173"
+          },
+          {
+            "relative": "Elixir.Hex.Registry.Server.beam",
+            "sha256": "cd33995b395596589a073b74a89a88950162553aed8cdd821593d7d42fa12b67"
+          },
+          {
+            "relative": "Elixir.Hex.RemoteConverger.beam",
+            "sha256": "75fb4e5d32db5be2f43e143cbfbc3dd0cba4a59b15955e4a701a53206e147461"
+          },
+          {
+            "relative": "Elixir.Hex.Repo.beam",
+            "sha256": "751193d1cb5de765fa1fb6d7481916b305b7c1878154715aa888e218cbc279eb"
+          },
+          {
+            "relative": "Elixir.Hex.SCM.beam",
+            "sha256": "fe8cbf3ec5ae4af63e1f5e72280ea16890e3375fe7cf5f72b40912ea9d67d0bf"
+          },
+          {
+            "relative": "Elixir.Hex.Server.beam",
+            "sha256": "93aa6d5127d8c9015396e4c03ddab1355f38e74939d857def654712047a39559"
+          },
+          {
+            "relative": "Elixir.Hex.Shell.Process.beam",
+            "sha256": "bca5589782935d97ae368568e0d87f44deb581d71670578e8a27f4e6995f63d1"
+          },
+          {
+            "relative": "Elixir.Hex.Shell.beam",
+            "sha256": "1cbb45557f3377a16ab612e20fab3a47335d42f9010fba888507b33191d385ce"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Assignment.beam",
+            "sha256": "8d0963298a87e5f4d2268d1c0aeb83477036f4d58fd4139dd20d91cb43be3f4d"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "da329613d86c8af3aca9371972ac424322319e74522783e287dcd34d4be3c844"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+            "sha256": "532360c306ef6f5a38a112867ec0dcc31ce4d3155c681a67b0ddca72d6a69dc2"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+            "sha256": "73f8e86a7080757407091312da8434e09192b151958f8826bd7206de1b99890b"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+            "sha256": "aeb849dbce9b8048a223beede34ebedea184b90ff6c0c1b2305dd9d3ae035b9e"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.beam",
+            "sha256": "6e334ea196a56231dd3ca9a4352de0f792b183aee1e27f82c8edec1d0de4f5b6"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "a41cf2521916daf7aa16818781b36231d5c9ee8e42ae13ba6f885b8c224be017"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+            "sha256": "bfc95be1a1b1714b18cbd2661dfee036441d202b9a40e60aac19c67aad9e2f84"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+            "sha256": "27634709bcfd5a8b5ba1e688c015ca31db1781d9c38675e021cf1ffb7d55379c"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+            "sha256": "1a2c3960f59ad634fe475bcf30ff94e3bc93926d612dc6d388702da3951d47eb"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+            "sha256": "7ac91583ab532ddf30c0f39ee77d7d602a4d71a03c7a9393fce2dd333f14c4ba"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+            "sha256": "92a0d466e233cf80da3eec9168f69a882535a3d3fccdd144961b7e25974abace"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Failure.beam",
+            "sha256": "55622a181e9cfc9aa12df063dfffa245227573c2e1abae0c4192f10b5e97ffd4"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+            "sha256": "cb12e6b47d71d208710f0b68d07da1f6a230441163a026a40205ea7653ad29bc"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.PackageLister.beam",
+            "sha256": "00daf958e302a02e014bf36575c14b41974341c5b1b611496b28fb27a7c1dae2"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.PackageRange.beam",
+            "sha256": "f01541d50efa2a6350a0024ba4642354a241b5ea536de7aec9d3eff26f05d427"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+            "sha256": "527810b3d07891ff1a69b2f85ebb6b9b2723a5493056a83d2de82a12d56aa9ae"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Registry.beam",
+            "sha256": "8a9b73056231ae327b5e0239fb0a070fd7d93c364a86dc2677962c2b959ecf25"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+            "sha256": "9cd865279731cebf7eebfc381cc69752e8da63d16ddb519c8a23ebc102c12331"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Requirement.beam",
+            "sha256": "e213852cbfd539c2b9dbdec31222af035ad74bcea76146c7a8896579811cb379"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Solver.beam",
+            "sha256": "d33ea40543a43a181da900532e1c87d3d7e6a2eda2c1dc0bfac31057d7f3d0a2"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Term.beam",
+            "sha256": "ccf82f11bf601052690b1fd724b48f2fdddb04423ff1b6f23783f92562c31d6c"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Util.beam",
+            "sha256": "d7e9ba040e4aac36053db136801241017ceae0e6debb89807ef968c1a564d58c"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.beam",
+            "sha256": "a6088b2cf520b27e6fe721a4e816b6e948531e28c2f2364fa519c1bfcfed6c3a"
+          },
+          {
+            "relative": "Elixir.Hex.Sponsor.beam",
+            "sha256": "d4e11ac89b7fd918ed314eed648678120152ebc106799f62bd177a73da24950a"
+          },
+          {
+            "relative": "Elixir.Hex.State.beam",
+            "sha256": "01222ffc968a305b6664c93719ebd7e36014372ca28a995240d27c72aaa839c3"
+          },
+          {
+            "relative": "Elixir.Hex.Stdlib.beam",
+            "sha256": "a8a4571c5e16c4f3aaa5a76a08063b4816f7523fbf5da18ead9d2589cfd6101b"
+          },
+          {
+            "relative": "Elixir.Hex.Tar.beam",
+            "sha256": "d077ee297f3eebd70ee4a00975e8bdffa7d8d51e389bc388ca724d63d98af61b"
+          },
+          {
+            "relative": "Elixir.Hex.UpdateChecker.beam",
+            "sha256": "97a9c1122c7278ba4566ddb725790ce35452301b2c1e7ac056d4b90e84671d24"
+          },
+          {
+            "relative": "Elixir.Hex.Utils.beam",
+            "sha256": "e079173fe7751c9842b7ced96543e885064291c1f9b5e49b9c6a17e7ebf1ff02"
+          },
+          {
+            "relative": "Elixir.Hex.beam",
+            "sha256": "2d1ffa22983984938017106eb3baadb5c4594c59742ddf00059ff5bf3d0ec9b9"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+            "sha256": "647dfb702229d6cef3ee440782c8296eed04ffe075a8f9205e83dad89060b36d"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "b6dd7700d8fb516f44aff05a06801cc1f98bdb716684b8aec84c97e7df333fd1"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+            "sha256": "45b28d45d06ae16bce785a04fb07b017fe1b14f36c69e9079323429b7adaae44"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+            "sha256": "48abfed364c9c4417c6bc915d32a83c4c8a5e5d2f9f7713ce540b6c1e4a76088"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+            "sha256": "bcd21f50f4f1ca630f78a3ba2de09f0d445eb09864d7cfeee77adb332ae956ef"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+            "sha256": "3a547053e44a0aa8f982c22435f06834d6562a6413e305cd406c70311a7b0eec"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+            "sha256": "ec8c1ce47621a8281ae938702bd206f807e9fdac8f25bd248bfb040e1fcd5758"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+            "sha256": "c393881c579f606c30b3be134a6b7874530e3da61bb02e494b57eff3722b3376"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+            "sha256": "e56dd6b482e2cab72c90fd16c23132b880f499ae34bcdbfee16529bcc9961ccc"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+            "sha256": "3dc0a7278eafde11ff39fc0232fb1c7d8f69b70acff0476c35dc781b3c1082ce"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+            "sha256": "bfe036ef8f4916fc2fa34683086f2da023f7361fee7d6f4ead3ec36b9261a199"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+            "sha256": "725091f53e0a939c8385e305758be0f71e80eafb51893392bed6d6f747a7a4ef"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+            "sha256": "26eda5155d843363ce7474a384589f624b150b99a9e4e82370ce2998a3f5b346"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+            "sha256": "f95c28b0407c891829889e8ce755e109423af2e5d0cb5a15eb52c8249db825e8"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+            "sha256": "ca6d8b6057bc8091b027245a7d9ca9c066ed2866c16ff0a51b7fd90e1073a546"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+            "sha256": "91a704b072eb81762a118845eaf93f509ef7e17e1dbbd46a62b8aff4882eb6c6"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+            "sha256": "7ab141065580f8d053b75af82db2a60ee74c8e3f7c1c3326ddfe408e38d66ef2"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+            "sha256": "a681244de25fe939d0e40c8019d52aafe907b2d2a1aa4ae3145b38e948ee0780"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+            "sha256": "3afadd3ed4ed2252d7cedfcd2855a2358e65206b626270401955bf36cf71bcfd"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+            "sha256": "ac250bbea7909cb5e8007b7b3224c8df877e2832daa487db78021d31fc78e541"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+            "sha256": "c36309cff658d632ae527d4fbf13664d1123dedcc08100450d78283103bbc9ff"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+            "sha256": "030d28016df1c9d959352c669ef0dc039f4ab34b95f6d4effd325f5f43084e04"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+            "sha256": "6ae60e0fabed5710bd8cc42059f1d495ac3349e5141802a567681685317c4e44"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+            "sha256": "1c95811720cc17290a1a32fa94017f311d9229e6e091126fa08c57f9572bf692"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.beam",
+            "sha256": "8a78fc870d4a233a0ce7b9716ab65d0a110e009f01b945211d2d418bd7524d5f"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+            "sha256": "56b09e0fb6d937bb754cbfa0297e9dfc6ab0a6f19a1f258b146d56c28dbf5d05"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "e3216eb58260ae3ef02017a37c727e77c0a67bb4f6bb0c87721513f77664ec36"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+            "sha256": "1d6645c093ec12507b52c23484dbce932d0647b97ebe1b0cf219b1b12e2f0efb"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+            "sha256": "e02c8465191583ba3e04a60a7912062b9c4872a32859782f74c9b159ca56ec61"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+            "sha256": "d10af9a4af8aae1ce75cea0a7afece2ad668a27d00072a02dbe9bf792854fc58"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+            "sha256": "89bc0d2e49672bb507d3d64287930b25c2b2167e3437fc60caf82f776867f738"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+            "sha256": "9e5d1eb7081bc0919214c5269c719fd2b0c77975ae01fa67a18131c3c5e075d9"
+          },
+          {
+            "relative": "hex.app",
+            "sha256": "a075e7a2b06bb6aa6c7093aaf9d2555224b290e75c4b2e7cd5b51c44ab6a9a57"
+          },
+          {
+            "relative": "mix_hex_advisory.beam",
+            "sha256": "8aa5c7f5a8c50ee4d69cc7251f9153d8ad838147f8bf1ac965d8264f854ec7d4"
+          },
+          {
+            "relative": "mix_hex_api.beam",
+            "sha256": "7a5c53239edf5a91b6c02d9cd3a2209b33375ac9cdaa1ed500c45076683b2345"
+          },
+          {
+            "relative": "mix_hex_api_auth.beam",
+            "sha256": "f79fb918b3ccf81816a7c5a5c81798fdbc5feb72069d70eb93dd6de96fcd0d75"
+          },
+          {
+            "relative": "mix_hex_api_key.beam",
+            "sha256": "bf2fe4a462532c37ab1e0c62f7f21a8c2a6450e4170c94171779c247108e615c"
+          },
+          {
+            "relative": "mix_hex_api_oauth.beam",
+            "sha256": "c73b8bb380d93b8303f5c6fc1a7dd306065ae2b6d75fc27048716e54fee02664"
+          },
+          {
+            "relative": "mix_hex_api_organization.beam",
+            "sha256": "5371d3eaede0649ca8cb4184c4c316ddd0f73fb34179dd7d0910dab326d0e1b7"
+          },
+          {
+            "relative": "mix_hex_api_organization_member.beam",
+            "sha256": "fd2cc44d561ef97b0df96bf30c3c3e862af7a35673d93abb318fc26df1dd55e7"
+          },
+          {
+            "relative": "mix_hex_api_package.beam",
+            "sha256": "91cef1cd62cdc01e0455e87afb16c1443f8e096876db93201b1d46ec7492fa0e"
+          },
+          {
+            "relative": "mix_hex_api_package_owner.beam",
+            "sha256": "ab303bd5170dcbf61cafcc9fe35a908753ccb1450f516e06e61899b36bf37312"
+          },
+          {
+            "relative": "mix_hex_api_release.beam",
+            "sha256": "37b561e61f96d9fb031f54676a2b06e17ecc065c74250ca4566917ecefdda334"
+          },
+          {
+            "relative": "mix_hex_api_short_url.beam",
+            "sha256": "e925aa272e3f0578ef6dce0494e3b5c000d9efb83b74bf3db00dd878f5f7d46c"
+          },
+          {
+            "relative": "mix_hex_api_user.beam",
+            "sha256": "00d1740c7ba8b23cb6b374c3ca1ecd8303e2f3f1260af1d3260856bce1d39561"
+          },
+          {
+            "relative": "mix_hex_cli_auth.beam",
+            "sha256": "566d7b411bb1358eed6e5ac74d27f07e67b57c8fde279bf23d54fb5bab893fff"
+          },
+          {
+            "relative": "mix_hex_core.beam",
+            "sha256": "294b5a73218085321feb211505bd0ccc8b49a5883ca523f70c04e759a046f440"
+          },
+          {
+            "relative": "mix_hex_erl_tar.beam",
+            "sha256": "fcd9cbdf89ec9931cf9b91cdd0ce66720a335aca54565b28d7813cbfc2d3fd2f"
+          },
+          {
+            "relative": "mix_hex_http.beam",
+            "sha256": "a20e29f3b233e8811394b90d54b4e646b6ced7b0663b326d900f4fa7a11dad65"
+          },
+          {
+            "relative": "mix_hex_http_httpc.beam",
+            "sha256": "4f6f90e7a5bab15fa584d2d4e5790544b5254382a56bf3694829ee6de48f9f5f"
+          },
+          {
+            "relative": "mix_hex_licenses.beam",
+            "sha256": "f6b30127be3ecae65b1b89cb1d756ef2473ab65b3fb55f41cd6cb6744af80db6"
+          },
+          {
+            "relative": "mix_hex_pb_names.beam",
+            "sha256": "b32a62335108501fda4f17e0bd52e8e75acd88210231001c65d5e64484b5ccf3"
+          },
+          {
+            "relative": "mix_hex_pb_package.beam",
+            "sha256": "f0957b4c6a8131c853f6aa9325fc116562e6b539f40ef9a585cebaddf396872e"
+          },
+          {
+            "relative": "mix_hex_pb_policy.beam",
+            "sha256": "d87d7c4ccf71d0585d5eba55a3faff07596bf820543c7390c71065cfa9e9b71c"
+          },
+          {
+            "relative": "mix_hex_pb_signed.beam",
+            "sha256": "241457907cb95c9df4f7890a71d330fa784f791fc2670ec724f2c1d1a366bee1"
+          },
+          {
+            "relative": "mix_hex_pb_versions.beam",
+            "sha256": "93b211a8d28311f6d1a094df27a617852a8657d8825830e7f5349b51ce55d97c"
+          },
+          {
+            "relative": "mix_hex_registry.beam",
+            "sha256": "c8c8a1ee1bfb36575b7a62b8335a46f61a3e77b596df21dc90a4c86b2b1aa61c"
+          },
+          {
+            "relative": "mix_hex_repo.beam",
+            "sha256": "cb7c7fe56386e9acd9556d46849080aafe5c13f5c82a75f082978d82af7a3c2b"
+          },
+          {
+            "relative": "mix_hex_safe_binary_to_term.beam",
+            "sha256": "574570fb96a20e31f4679241e80ca4cda58645f86bde4f0bc4b4f6afc102a993"
+          },
+          {
+            "relative": "mix_hex_tarball.beam",
+            "sha256": "57c544ed288ebe415b58b2414046bfad73208fb7444a631d489aa094a07a0240"
+          },
+          {
+            "relative": "mix_safe_erl_term.beam",
+            "sha256": "48c4a478147ad9f8919496fd8d8a8f78e8874adb034f2285326794fe2b23339c"
+          }
+        ]
+      },
+      "original_mux": {
+        "plan": "133-150",
+        "root": "/Users/jon/projects/rindle/.claude/worktrees/p150-offline-guard",
+        "source": {
+          "sha": "c739ab3af3cfe4e54ae2c511ba735928ac96124f",
+          "tree": "eec2c6e57a726af4acec8d788f3ec07575c72545",
+          "files": [
+            {
+              "path": "scripts/maintainer/phase_133_registry_supply.mjs",
+              "blob_oid": "8fe48a6057fa0054d2ebbabeeab7cc43dbec2388",
+              "sha256": "c8223fcdd3bbe59e6452bb1a67f78ab9c57654c1a354c3ec1c586d77d6a41838"
+            },
+            {
+              "path": "test/install_smoke/phase_133_registry_supply_test.mjs",
+              "blob_oid": "9e6f8836f4772fa26160ceaee6f9c4edb8a1d641",
+              "sha256": "cdb8c5ec03f1bee239a3b8a9d023e11199d4f6969204dcff44c782aa14c6478a"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_compatibility_bridge_141.mjs",
+              "blob_oid": "b400af2e57a1462c5f03a4e6c83f4a122ada6665",
+              "sha256": "88dabc35cc50dfc3c602242acc237963cfe4af463b86c877ffc74b2f8cc5f244"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_hex_build_140.mjs",
+              "blob_oid": "84f9164b45410a157a5ff684dd4e950ed828cdb4",
+              "sha256": "24f23d093c21ccd4b439cab45964727082a0be27badc4896de61e6100dd1c9a5"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_historical_138_139.mjs",
+              "blob_oid": "a05ae82226c20629c120e94d0ba1346ed584bda2",
+              "sha256": "b8262a8088c03ae1c30090d35371068ed2f658db6d17ed80973052ba3f3ab669"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_hex_build_138.mjs",
+              "blob_oid": "f6854254f991613ddf469d906cf60fc702af34d1",
+              "sha256": "8f0e02efe07cf4910268e79a0a974054cd9a81847a3a6713611f1f9247661ec4"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_hex_source.mjs",
+              "blob_oid": "04ddc27b6c6cd91e23d8e9912b875c11fc6b8f7d",
+              "sha256": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_local_supply.mjs",
+              "blob_oid": "258f484473bcf4d99049ffa0f81ea63c81adf7dc",
+              "sha256": "29b185c176bfe87f56808696432b76ae5191ca108fb06091b744c3ab6a9929ad"
+            },
+            {
+              "path": "scripts/maintainer/phase_133_registry_dns_diagnostic.mjs",
+              "blob_oid": "4b912f0bfddfd0f81ce8c26fa71aac162b1a02ab",
+              "sha256": "edeee2359b3b3863ceb057f704e57e3e2f3722a76c85042634787df91898bacb"
+            },
+            {
+              "path": "test/install_smoke/phase_133_registry_dns_diagnostic_test.mjs",
+              "blob_oid": "58125fd27e97c34b17318f40f002f25453ee5bcc",
+              "sha256": "ef26c72e5a34e269f93525cec5e7b813edaaa370646e8420f78a4db00f9c9ac0"
+            },
+            {
+              "path": "test/install_smoke/phase_133_registry_cache_isolation_test.mjs",
+              "blob_oid": "b5e3d71abac478287881df1dace9449dafe5a59c",
+              "sha256": "b38707194d3ac4ed3f5110b9874a36d3095ea0b611a2f44bf99170606154dc97"
+            },
+            {
+              "path": "test/install_smoke/phase_133_registry_offline_guard_test.mjs",
+              "blob_oid": "8a38858b4270cfdb41d46545ef544613e2deb65e",
+              "sha256": "dfded5f11d7a8e1df24a138564d968659242df502ba2b99b5ac6ead8d40b1fa2"
+            }
+          ]
+        },
+        "supply_sha256": "8b6f252791e5c032dd2d9f659d230cb2467c3046ecdf1f1ead710321afae5737",
+        "object": {
+          "path": "/private/tmp/rindle-phase133-mux-150.signed.gz",
+          "sha256": "5cb6161aa8b0841ce153542d2b0c76e01ee72108562a9197f8d7e26b0356e412"
+        },
+        "cache": {
+          "path": "/private/tmp/rindle-phase133-mux-150-cache-ad8fc01e51610def/cache.ets",
+          "sha256": "270d5e3cc4c4c6321b3ee0d09efdd4fa7abcf99988cb2c381199f0ed5b5bb320"
+        },
+        "cache_key": [
+          "versions",
+          "hexpm",
+          "mux"
+        ],
+        "hex": {
+          "ebin": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+          "files": [
+            {
+              "relative": "Elixir.Hex.API.Auth.beam",
+              "sha256": "bde6f7f0f31ba7d9f2c39c445ad6adfcab0feb2c2f8982a3d83791bee93dc29c"
+            },
+            {
+              "relative": "Elixir.Hex.API.Client.beam",
+              "sha256": "76db4bd3b9eec40f8b3cef2240748fcd83c927ec2f2435f147717e2b3ccd9373"
+            },
+            {
+              "relative": "Elixir.Hex.API.Key.Organization.beam",
+              "sha256": "df4afe8f0347a4ae35a05bce0abbc87abc50d6ce03e055d09396aca57b3de391"
+            },
+            {
+              "relative": "Elixir.Hex.API.Key.beam",
+              "sha256": "601db0e1439f46b7235deef6a93d2f075d4b611e519f2505adf3a2411b11b536"
+            },
+            {
+              "relative": "Elixir.Hex.API.OAuth.beam",
+              "sha256": "ad0b77133bb6d60b1469a7083e6bfc5477eb43c3a5a19c27402c4e1a41f4cd96"
+            },
+            {
+              "relative": "Elixir.Hex.API.Package.Owner.beam",
+              "sha256": "7b6abf03a75e9108ad9f826fcf3c25969cb656c75d697cea48d5c131df601a36"
+            },
+            {
+              "relative": "Elixir.Hex.API.Package.beam",
+              "sha256": "941ee7e8e8d87d4173f0d6fad7bf6be42d015fed646801e74fdc206b44215087"
+            },
+            {
+              "relative": "Elixir.Hex.API.Release.beam",
+              "sha256": "bff2457bef7d93cae734f0b7eac2daa7a348857d11145130aa89e6de6314a77a"
+            },
+            {
+              "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+              "sha256": "8feaf97d115ea35901f718792fe26022842aa5390118f0d1def7e477e70c2aa7"
+            },
+            {
+              "relative": "Elixir.Hex.API.ShortURL.beam",
+              "sha256": "c4bef65c7108263c67604923eae7cfc82bb51cc5acad281149f1f5a028e788ae"
+            },
+            {
+              "relative": "Elixir.Hex.API.User.beam",
+              "sha256": "836079def21b7fbc7c3726c5b2c7b62d0edddd8cf2045d64a3b3d40bc5faf406"
+            },
+            {
+              "relative": "Elixir.Hex.Application.beam",
+              "sha256": "3a79776755387a54b7f9afe99c1e9729cec5db7aa8bdd873956b12d96567bc5f"
+            },
+            {
+              "relative": "Elixir.Hex.Auth.beam",
+              "sha256": "243bf09812f0d53408d4a0fab87ea8c40fdabdfa6ccee8d4c5d186d4d0a59449"
+            },
+            {
+              "relative": "Elixir.Hex.Config.beam",
+              "sha256": "d9fdf63738a14dd42ee0e7852424b801390ed64f94d69683f9d74f476ab09b6c"
+            },
+            {
+              "relative": "Elixir.Hex.Cooldown.beam",
+              "sha256": "c9742716732257a62f5bd8b6d2fea4274689ddeca7d04313243d58fa4cf0fe4f"
+            },
+            {
+              "relative": "Elixir.Hex.HTTP.Certs.beam",
+              "sha256": "4487da9ccaaf9d0c88160e2ea4e61c6c60a8f37f8da5752156173a5514202dd5"
+            },
+            {
+              "relative": "Elixir.Hex.HTTP.SSL.beam",
+              "sha256": "6bd2d2b6aaff36256245ea42008f1d70fca83bc4e000e6934ffd2a154c35d132"
+            },
+            {
+              "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+              "sha256": "d62c74639bd13fb4993a64754288f5646853eb56fb8adbb7a721e705c3dc224a"
+            },
+            {
+              "relative": "Elixir.Hex.HTTP.beam",
+              "sha256": "103ea3d1182d4a2b099cd94393bd62317b7c043d2e3912847bdd7bb3bb99710e"
+            },
+            {
+              "relative": "Elixir.Hex.Ignores.beam",
+              "sha256": "daaa96c5087fb8fedfcef54de1d7fdd14a9e1bf6c0e102fc6820cebbd4f40f3f"
+            },
+            {
+              "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+              "sha256": "850581d9bcc488d2c15db5fbd3133f768bbd0d95287e34bae1cdc890ecfbbb3d"
+            },
+            {
+              "relative": "Elixir.Hex.Mix.beam",
+              "sha256": "4ce5b0482796e6705d3af2a4c0d322c6951630c0d37fdcce084e62afc8c89fde"
+            },
+            {
+              "relative": "Elixir.Hex.Netrc.Cache.beam",
+              "sha256": "4565b65fe549a39790f1d04ca4a2b9d880b49234c7d6d4143e688d64422eeb97"
+            },
+            {
+              "relative": "Elixir.Hex.Netrc.Parser.beam",
+              "sha256": "343545e6b3094045b12b75f95bbb1cf91273044aa95d50acbdcad1e939d06424"
+            },
+            {
+              "relative": "Elixir.Hex.Netrc.beam",
+              "sha256": "0d733fdf48a94544537937cc7d78245134d99afb73da34525fad0252114a5735"
+            },
+            {
+              "relative": "Elixir.Hex.OAuth.beam",
+              "sha256": "10067a236d7d7f349bb773140cf9a1a3caef340fe9eb2072bf2e4887b7129784"
+            },
+            {
+              "relative": "Elixir.Hex.Package.beam",
+              "sha256": "5b2639db463a636a5662cb2822828574571030c86e6c958b5894cd49189d05c7"
+            },
+            {
+              "relative": "Elixir.Hex.Parallel.beam",
+              "sha256": "a9de049c8eb20396171680a8bcf29667d8fc6fbbca44edcedfd46f35f2b1e791"
+            },
+            {
+              "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+              "sha256": "c137b6f1e73e73707da9795ab055b8d8f2c77169d1fe29582b205425a59efd94"
+            },
+            {
+              "relative": "Elixir.Hex.Policy.Filter.beam",
+              "sha256": "3967e69b6514dd7e7668dc8b0ed305bbb41fc85051b55f0518ea36556cda370d"
+            },
+            {
+              "relative": "Elixir.Hex.Policy.beam",
+              "sha256": "5cb63ddddc958c364afe8fc7aa1ecebbb03699f75323d38495ec587d42057b25"
+            },
+            {
+              "relative": "Elixir.Hex.Registry.Cooldown.beam",
+              "sha256": "cfcc0535110b1681a42a3868902806a3b865a4c565b4752fa0e14e795757f49c"
+            },
+            {
+              "relative": "Elixir.Hex.Registry.Policy.beam",
+              "sha256": "799cec6f613a6cc164f1e330fb8c58ee54b8c9de821fd68f71bca7108126b173"
+            },
+            {
+              "relative": "Elixir.Hex.Registry.Server.beam",
+              "sha256": "cd33995b395596589a073b74a89a88950162553aed8cdd821593d7d42fa12b67"
+            },
+            {
+              "relative": "Elixir.Hex.RemoteConverger.beam",
+              "sha256": "75fb4e5d32db5be2f43e143cbfbc3dd0cba4a59b15955e4a701a53206e147461"
+            },
+            {
+              "relative": "Elixir.Hex.Repo.beam",
+              "sha256": "751193d1cb5de765fa1fb6d7481916b305b7c1878154715aa888e218cbc279eb"
+            },
+            {
+              "relative": "Elixir.Hex.SCM.beam",
+              "sha256": "fe8cbf3ec5ae4af63e1f5e72280ea16890e3375fe7cf5f72b40912ea9d67d0bf"
+            },
+            {
+              "relative": "Elixir.Hex.Server.beam",
+              "sha256": "93aa6d5127d8c9015396e4c03ddab1355f38e74939d857def654712047a39559"
+            },
+            {
+              "relative": "Elixir.Hex.Shell.Process.beam",
+              "sha256": "bca5589782935d97ae368568e0d87f44deb581d71670578e8a27f4e6995f63d1"
+            },
+            {
+              "relative": "Elixir.Hex.Shell.beam",
+              "sha256": "1cbb45557f3377a16ab612e20fab3a47335d42f9010fba888507b33191d385ce"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Assignment.beam",
+              "sha256": "8d0963298a87e5f4d2268d1c0aeb83477036f4d58fd4139dd20d91cb43be3f4d"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+              "sha256": "da329613d86c8af3aca9371972ac424322319e74522783e287dcd34d4be3c844"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+              "sha256": "532360c306ef6f5a38a112867ec0dcc31ce4d3155c681a67b0ddca72d6a69dc2"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+              "sha256": "73f8e86a7080757407091312da8434e09192b151958f8826bd7206de1b99890b"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+              "sha256": "aeb849dbce9b8048a223beede34ebedea184b90ff6c0c1b2305dd9d3ae035b9e"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraint.beam",
+              "sha256": "6e334ea196a56231dd3ca9a4352de0f792b183aee1e27f82c8edec1d0de4f5b6"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+              "sha256": "a41cf2521916daf7aa16818781b36231d5c9ee8e42ae13ba6f885b8c224be017"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+              "sha256": "bfc95be1a1b1714b18cbd2661dfee036441d202b9a40e60aac19c67aad9e2f84"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+              "sha256": "27634709bcfd5a8b5ba1e688c015ca31db1781d9c38675e021cf1ffb7d55379c"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+              "sha256": "1a2c3960f59ad634fe475bcf30ff94e3bc93926d612dc6d388702da3951d47eb"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+              "sha256": "7ac91583ab532ddf30c0f39ee77d7d602a4d71a03c7a9393fce2dd333f14c4ba"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+              "sha256": "92a0d466e233cf80da3eec9168f69a882535a3d3fccdd144961b7e25974abace"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Failure.beam",
+              "sha256": "55622a181e9cfc9aa12df063dfffa245227573c2e1abae0c4192f10b5e97ffd4"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+              "sha256": "cb12e6b47d71d208710f0b68d07da1f6a230441163a026a40205ea7653ad29bc"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.PackageLister.beam",
+              "sha256": "00daf958e302a02e014bf36575c14b41974341c5b1b611496b28fb27a7c1dae2"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.PackageRange.beam",
+              "sha256": "f01541d50efa2a6350a0024ba4642354a241b5ea536de7aec9d3eff26f05d427"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+              "sha256": "527810b3d07891ff1a69b2f85ebb6b9b2723a5493056a83d2de82a12d56aa9ae"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Registry.beam",
+              "sha256": "8a9b73056231ae327b5e0239fb0a070fd7d93c364a86dc2677962c2b959ecf25"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+              "sha256": "9cd865279731cebf7eebfc381cc69752e8da63d16ddb519c8a23ebc102c12331"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Requirement.beam",
+              "sha256": "e213852cbfd539c2b9dbdec31222af035ad74bcea76146c7a8896579811cb379"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Solver.beam",
+              "sha256": "d33ea40543a43a181da900532e1c87d3d7e6a2eda2c1dc0bfac31057d7f3d0a2"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Term.beam",
+              "sha256": "ccf82f11bf601052690b1fd724b48f2fdddb04423ff1b6f23783f92562c31d6c"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.Util.beam",
+              "sha256": "d7e9ba040e4aac36053db136801241017ceae0e6debb89807ef968c1a564d58c"
+            },
+            {
+              "relative": "Elixir.Hex.Solver.beam",
+              "sha256": "a6088b2cf520b27e6fe721a4e816b6e948531e28c2f2364fa519c1bfcfed6c3a"
+            },
+            {
+              "relative": "Elixir.Hex.Sponsor.beam",
+              "sha256": "d4e11ac89b7fd918ed314eed648678120152ebc106799f62bd177a73da24950a"
+            },
+            {
+              "relative": "Elixir.Hex.State.beam",
+              "sha256": "01222ffc968a305b6664c93719ebd7e36014372ca28a995240d27c72aaa839c3"
+            },
+            {
+              "relative": "Elixir.Hex.Stdlib.beam",
+              "sha256": "a8a4571c5e16c4f3aaa5a76a08063b4816f7523fbf5da18ead9d2589cfd6101b"
+            },
+            {
+              "relative": "Elixir.Hex.Tar.beam",
+              "sha256": "d077ee297f3eebd70ee4a00975e8bdffa7d8d51e389bc388ca724d63d98af61b"
+            },
+            {
+              "relative": "Elixir.Hex.UpdateChecker.beam",
+              "sha256": "97a9c1122c7278ba4566ddb725790ce35452301b2c1e7ac056d4b90e84671d24"
+            },
+            {
+              "relative": "Elixir.Hex.Utils.beam",
+              "sha256": "e079173fe7751c9842b7ced96543e885064291c1f9b5e49b9c6a17e7ebf1ff02"
+            },
+            {
+              "relative": "Elixir.Hex.beam",
+              "sha256": "2d1ffa22983984938017106eb3baadb5c4594c59742ddf00059ff5bf3d0ec9b9"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+              "sha256": "647dfb702229d6cef3ee440782c8296eed04ffe075a8f9205e83dad89060b36d"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+              "sha256": "b6dd7700d8fb516f44aff05a06801cc1f98bdb716684b8aec84c97e7df333fd1"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+              "sha256": "45b28d45d06ae16bce785a04fb07b017fe1b14f36c69e9079323429b7adaae44"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+              "sha256": "48abfed364c9c4417c6bc915d32a83c4c8a5e5d2f9f7713ce540b6c1e4a76088"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+              "sha256": "bcd21f50f4f1ca630f78a3ba2de09f0d445eb09864d7cfeee77adb332ae956ef"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+              "sha256": "3a547053e44a0aa8f982c22435f06834d6562a6413e305cd406c70311a7b0eec"
+            },
+            {
+              "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+              "sha256": "ec8c1ce47621a8281ae938702bd206f807e9fdac8f25bd248bfb040e1fcd5758"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+              "sha256": "c393881c579f606c30b3be134a6b7874530e3da61bb02e494b57eff3722b3376"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+              "sha256": "e56dd6b482e2cab72c90fd16c23132b880f499ae34bcdbfee16529bcc9961ccc"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+              "sha256": "3dc0a7278eafde11ff39fc0232fb1c7d8f69b70acff0476c35dc781b3c1082ce"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+              "sha256": "bfe036ef8f4916fc2fa34683086f2da023f7361fee7d6f4ead3ec36b9261a199"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+              "sha256": "725091f53e0a939c8385e305758be0f71e80eafb51893392bed6d6f747a7a4ef"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+              "sha256": "26eda5155d843363ce7474a384589f624b150b99a9e4e82370ce2998a3f5b346"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+              "sha256": "f95c28b0407c891829889e8ce755e109423af2e5d0cb5a15eb52c8249db825e8"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+              "sha256": "ca6d8b6057bc8091b027245a7d9ca9c066ed2866c16ff0a51b7fd90e1073a546"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+              "sha256": "91a704b072eb81762a118845eaf93f509ef7e17e1dbbd46a62b8aff4882eb6c6"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+              "sha256": "7ab141065580f8d053b75af82db2a60ee74c8e3f7c1c3326ddfe408e38d66ef2"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+              "sha256": "a681244de25fe939d0e40c8019d52aafe907b2d2a1aa4ae3145b38e948ee0780"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+              "sha256": "3afadd3ed4ed2252d7cedfcd2855a2358e65206b626270401955bf36cf71bcfd"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+              "sha256": "ac250bbea7909cb5e8007b7b3224c8df877e2832daa487db78021d31fc78e541"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+              "sha256": "c36309cff658d632ae527d4fbf13664d1123dedcc08100450d78283103bbc9ff"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+              "sha256": "030d28016df1c9d959352c669ef0dc039f4ab34b95f6d4effd325f5f43084e04"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+              "sha256": "6ae60e0fabed5710bd8cc42059f1d495ac3349e5141802a567681685317c4e44"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+              "sha256": "1c95811720cc17290a1a32fa94017f311d9229e6e091126fa08c57f9572bf692"
+            },
+            {
+              "relative": "Elixir.Mix.Tasks.Hex.beam",
+              "sha256": "8a78fc870d4a233a0ce7b9716ab65d0a110e009f01b945211d2d418bd7524d5f"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+              "sha256": "56b09e0fb6d937bb754cbfa0297e9dfc6ab0a6f19a1f258b146d56c28dbf5d05"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+              "sha256": "e3216eb58260ae3ef02017a37c727e77c0a67bb4f6bb0c87721513f77664ec36"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+              "sha256": "1d6645c093ec12507b52c23484dbce932d0647b97ebe1b0cf219b1b12e2f0efb"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+              "sha256": "e02c8465191583ba3e04a60a7912062b9c4872a32859782f74c9b159ca56ec61"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+              "sha256": "d10af9a4af8aae1ce75cea0a7afece2ad668a27d00072a02dbe9bf792854fc58"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+              "sha256": "89bc0d2e49672bb507d3d64287930b25c2b2167e3437fc60caf82f776867f738"
+            },
+            {
+              "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+              "sha256": "9e5d1eb7081bc0919214c5269c719fd2b0c77975ae01fa67a18131c3c5e075d9"
+            },
+            {
+              "relative": "hex.app",
+              "sha256": "a075e7a2b06bb6aa6c7093aaf9d2555224b290e75c4b2e7cd5b51c44ab6a9a57"
+            },
+            {
+              "relative": "mix_hex_advisory.beam",
+              "sha256": "8aa5c7f5a8c50ee4d69cc7251f9153d8ad838147f8bf1ac965d8264f854ec7d4"
+            },
+            {
+              "relative": "mix_hex_api.beam",
+              "sha256": "7a5c53239edf5a91b6c02d9cd3a2209b33375ac9cdaa1ed500c45076683b2345"
+            },
+            {
+              "relative": "mix_hex_api_auth.beam",
+              "sha256": "f79fb918b3ccf81816a7c5a5c81798fdbc5feb72069d70eb93dd6de96fcd0d75"
+            },
+            {
+              "relative": "mix_hex_api_key.beam",
+              "sha256": "bf2fe4a462532c37ab1e0c62f7f21a8c2a6450e4170c94171779c247108e615c"
+            },
+            {
+              "relative": "mix_hex_api_oauth.beam",
+              "sha256": "c73b8bb380d93b8303f5c6fc1a7dd306065ae2b6d75fc27048716e54fee02664"
+            },
+            {
+              "relative": "mix_hex_api_organization.beam",
+              "sha256": "5371d3eaede0649ca8cb4184c4c316ddd0f73fb34179dd7d0910dab326d0e1b7"
+            },
+            {
+              "relative": "mix_hex_api_organization_member.beam",
+              "sha256": "fd2cc44d561ef97b0df96bf30c3c3e862af7a35673d93abb318fc26df1dd55e7"
+            },
+            {
+              "relative": "mix_hex_api_package.beam",
+              "sha256": "91cef1cd62cdc01e0455e87afb16c1443f8e096876db93201b1d46ec7492fa0e"
+            },
+            {
+              "relative": "mix_hex_api_package_owner.beam",
+              "sha256": "ab303bd5170dcbf61cafcc9fe35a908753ccb1450f516e06e61899b36bf37312"
+            },
+            {
+              "relative": "mix_hex_api_release.beam",
+              "sha256": "37b561e61f96d9fb031f54676a2b06e17ecc065c74250ca4566917ecefdda334"
+            },
+            {
+              "relative": "mix_hex_api_short_url.beam",
+              "sha256": "e925aa272e3f0578ef6dce0494e3b5c000d9efb83b74bf3db00dd878f5f7d46c"
+            },
+            {
+              "relative": "mix_hex_api_user.beam",
+              "sha256": "00d1740c7ba8b23cb6b374c3ca1ecd8303e2f3f1260af1d3260856bce1d39561"
+            },
+            {
+              "relative": "mix_hex_cli_auth.beam",
+              "sha256": "566d7b411bb1358eed6e5ac74d27f07e67b57c8fde279bf23d54fb5bab893fff"
+            },
+            {
+              "relative": "mix_hex_core.beam",
+              "sha256": "294b5a73218085321feb211505bd0ccc8b49a5883ca523f70c04e759a046f440"
+            },
+            {
+              "relative": "mix_hex_erl_tar.beam",
+              "sha256": "fcd9cbdf89ec9931cf9b91cdd0ce66720a335aca54565b28d7813cbfc2d3fd2f"
+            },
+            {
+              "relative": "mix_hex_http.beam",
+              "sha256": "a20e29f3b233e8811394b90d54b4e646b6ced7b0663b326d900f4fa7a11dad65"
+            },
+            {
+              "relative": "mix_hex_http_httpc.beam",
+              "sha256": "4f6f90e7a5bab15fa584d2d4e5790544b5254382a56bf3694829ee6de48f9f5f"
+            },
+            {
+              "relative": "mix_hex_licenses.beam",
+              "sha256": "f6b30127be3ecae65b1b89cb1d756ef2473ab65b3fb55f41cd6cb6744af80db6"
+            },
+            {
+              "relative": "mix_hex_pb_names.beam",
+              "sha256": "b32a62335108501fda4f17e0bd52e8e75acd88210231001c65d5e64484b5ccf3"
+            },
+            {
+              "relative": "mix_hex_pb_package.beam",
+              "sha256": "f0957b4c6a8131c853f6aa9325fc116562e6b539f40ef9a585cebaddf396872e"
+            },
+            {
+              "relative": "mix_hex_pb_policy.beam",
+              "sha256": "d87d7c4ccf71d0585d5eba55a3faff07596bf820543c7390c71065cfa9e9b71c"
+            },
+            {
+              "relative": "mix_hex_pb_signed.beam",
+              "sha256": "241457907cb95c9df4f7890a71d330fa784f791fc2670ec724f2c1d1a366bee1"
+            },
+            {
+              "relative": "mix_hex_pb_versions.beam",
+              "sha256": "93b211a8d28311f6d1a094df27a617852a8657d8825830e7f5349b51ce55d97c"
+            },
+            {
+              "relative": "mix_hex_registry.beam",
+              "sha256": "c8c8a1ee1bfb36575b7a62b8335a46f61a3e77b596df21dc90a4c86b2b1aa61c"
+            },
+            {
+              "relative": "mix_hex_repo.beam",
+              "sha256": "cb7c7fe56386e9acd9556d46849080aafe5c13f5c82a75f082978d82af7a3c2b"
+            },
+            {
+              "relative": "mix_hex_safe_binary_to_term.beam",
+              "sha256": "574570fb96a20e31f4679241e80ca4cda58645f86bde4f0bc4b4f6afc102a993"
+            },
+            {
+              "relative": "mix_hex_tarball.beam",
+              "sha256": "57c544ed288ebe415b58b2414046bfad73208fb7444a631d489aa094a07a0240"
+            },
+            {
+              "relative": "mix_safe_erl_term.beam",
+              "sha256": "48c4a478147ad9f8919496fd8d8a8f78e8874adb034f2285326794fe2b23339c"
+            }
+          ]
+        }
+      }
+    },
+    "original_mux": {
+      "plan": "133-150",
+      "root": "/Users/jon/projects/rindle/.claude/worktrees/p150-offline-guard",
+      "source": {
+        "sha": "c739ab3af3cfe4e54ae2c511ba735928ac96124f",
+        "tree": "eec2c6e57a726af4acec8d788f3ec07575c72545",
+        "files": [
+          {
+            "path": "scripts/maintainer/phase_133_registry_supply.mjs",
+            "blob_oid": "8fe48a6057fa0054d2ebbabeeab7cc43dbec2388",
+            "sha256": "c8223fcdd3bbe59e6452bb1a67f78ab9c57654c1a354c3ec1c586d77d6a41838"
+          },
+          {
+            "path": "test/install_smoke/phase_133_registry_supply_test.mjs",
+            "blob_oid": "9e6f8836f4772fa26160ceaee6f9c4edb8a1d641",
+            "sha256": "cdb8c5ec03f1bee239a3b8a9d023e11199d4f6969204dcff44c782aa14c6478a"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_compatibility_bridge_141.mjs",
+            "blob_oid": "b400af2e57a1462c5f03a4e6c83f4a122ada6665",
+            "sha256": "88dabc35cc50dfc3c602242acc237963cfe4af463b86c877ffc74b2f8cc5f244"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_hex_build_140.mjs",
+            "blob_oid": "84f9164b45410a157a5ff684dd4e950ed828cdb4",
+            "sha256": "24f23d093c21ccd4b439cab45964727082a0be27badc4896de61e6100dd1c9a5"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_historical_138_139.mjs",
+            "blob_oid": "a05ae82226c20629c120e94d0ba1346ed584bda2",
+            "sha256": "b8262a8088c03ae1c30090d35371068ed2f658db6d17ed80973052ba3f3ab669"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_hex_build_138.mjs",
+            "blob_oid": "f6854254f991613ddf469d906cf60fc702af34d1",
+            "sha256": "8f0e02efe07cf4910268e79a0a974054cd9a81847a3a6713611f1f9247661ec4"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_hex_source.mjs",
+            "blob_oid": "04ddc27b6c6cd91e23d8e9912b875c11fc6b8f7d",
+            "sha256": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_local_supply.mjs",
+            "blob_oid": "258f484473bcf4d99049ffa0f81ea63c81adf7dc",
+            "sha256": "29b185c176bfe87f56808696432b76ae5191ca108fb06091b744c3ab6a9929ad"
+          },
+          {
+            "path": "scripts/maintainer/phase_133_registry_dns_diagnostic.mjs",
+            "blob_oid": "4b912f0bfddfd0f81ce8c26fa71aac162b1a02ab",
+            "sha256": "edeee2359b3b3863ceb057f704e57e3e2f3722a76c85042634787df91898bacb"
+          },
+          {
+            "path": "test/install_smoke/phase_133_registry_dns_diagnostic_test.mjs",
+            "blob_oid": "58125fd27e97c34b17318f40f002f25453ee5bcc",
+            "sha256": "ef26c72e5a34e269f93525cec5e7b813edaaa370646e8420f78a4db00f9c9ac0"
+          },
+          {
+            "path": "test/install_smoke/phase_133_registry_cache_isolation_test.mjs",
+            "blob_oid": "b5e3d71abac478287881df1dace9449dafe5a59c",
+            "sha256": "b38707194d3ac4ed3f5110b9874a36d3095ea0b611a2f44bf99170606154dc97"
+          },
+          {
+            "path": "test/install_smoke/phase_133_registry_offline_guard_test.mjs",
+            "blob_oid": "8a38858b4270cfdb41d46545ef544613e2deb65e",
+            "sha256": "dfded5f11d7a8e1df24a138564d968659242df502ba2b99b5ac6ead8d40b1fa2"
+          }
+        ]
+      },
+      "supply_sha256": "8b6f252791e5c032dd2d9f659d230cb2467c3046ecdf1f1ead710321afae5737",
+      "object": {
+        "path": "/private/tmp/rindle-phase133-mux-150.signed.gz",
+        "sha256": "5cb6161aa8b0841ce153542d2b0c76e01ee72108562a9197f8d7e26b0356e412"
+      },
+      "cache": {
+        "path": "/private/tmp/rindle-phase133-mux-150-cache-ad8fc01e51610def/cache.ets",
+        "sha256": "270d5e3cc4c4c6321b3ee0d09efdd4fa7abcf99988cb2c381199f0ed5b5bb320"
+      },
+      "cache_key": [
+        "versions",
+        "hexpm",
+        "mux"
+      ],
+      "hex": {
+        "ebin": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+        "files": [
+          {
+            "relative": "Elixir.Hex.API.Auth.beam",
+            "sha256": "bde6f7f0f31ba7d9f2c39c445ad6adfcab0feb2c2f8982a3d83791bee93dc29c"
+          },
+          {
+            "relative": "Elixir.Hex.API.Client.beam",
+            "sha256": "76db4bd3b9eec40f8b3cef2240748fcd83c927ec2f2435f147717e2b3ccd9373"
+          },
+          {
+            "relative": "Elixir.Hex.API.Key.Organization.beam",
+            "sha256": "df4afe8f0347a4ae35a05bce0abbc87abc50d6ce03e055d09396aca57b3de391"
+          },
+          {
+            "relative": "Elixir.Hex.API.Key.beam",
+            "sha256": "601db0e1439f46b7235deef6a93d2f075d4b611e519f2505adf3a2411b11b536"
+          },
+          {
+            "relative": "Elixir.Hex.API.OAuth.beam",
+            "sha256": "ad0b77133bb6d60b1469a7083e6bfc5477eb43c3a5a19c27402c4e1a41f4cd96"
+          },
+          {
+            "relative": "Elixir.Hex.API.Package.Owner.beam",
+            "sha256": "7b6abf03a75e9108ad9f826fcf3c25969cb656c75d697cea48d5c131df601a36"
+          },
+          {
+            "relative": "Elixir.Hex.API.Package.beam",
+            "sha256": "941ee7e8e8d87d4173f0d6fad7bf6be42d015fed646801e74fdc206b44215087"
+          },
+          {
+            "relative": "Elixir.Hex.API.Release.beam",
+            "sha256": "bff2457bef7d93cae734f0b7eac2daa7a348857d11145130aa89e6de6314a77a"
+          },
+          {
+            "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+            "sha256": "8feaf97d115ea35901f718792fe26022842aa5390118f0d1def7e477e70c2aa7"
+          },
+          {
+            "relative": "Elixir.Hex.API.ShortURL.beam",
+            "sha256": "c4bef65c7108263c67604923eae7cfc82bb51cc5acad281149f1f5a028e788ae"
+          },
+          {
+            "relative": "Elixir.Hex.API.User.beam",
+            "sha256": "836079def21b7fbc7c3726c5b2c7b62d0edddd8cf2045d64a3b3d40bc5faf406"
+          },
+          {
+            "relative": "Elixir.Hex.Application.beam",
+            "sha256": "3a79776755387a54b7f9afe99c1e9729cec5db7aa8bdd873956b12d96567bc5f"
+          },
+          {
+            "relative": "Elixir.Hex.Auth.beam",
+            "sha256": "243bf09812f0d53408d4a0fab87ea8c40fdabdfa6ccee8d4c5d186d4d0a59449"
+          },
+          {
+            "relative": "Elixir.Hex.Config.beam",
+            "sha256": "d9fdf63738a14dd42ee0e7852424b801390ed64f94d69683f9d74f476ab09b6c"
+          },
+          {
+            "relative": "Elixir.Hex.Cooldown.beam",
+            "sha256": "c9742716732257a62f5bd8b6d2fea4274689ddeca7d04313243d58fa4cf0fe4f"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.Certs.beam",
+            "sha256": "4487da9ccaaf9d0c88160e2ea4e61c6c60a8f37f8da5752156173a5514202dd5"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.SSL.beam",
+            "sha256": "6bd2d2b6aaff36256245ea42008f1d70fca83bc4e000e6934ffd2a154c35d132"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+            "sha256": "d62c74639bd13fb4993a64754288f5646853eb56fb8adbb7a721e705c3dc224a"
+          },
+          {
+            "relative": "Elixir.Hex.HTTP.beam",
+            "sha256": "103ea3d1182d4a2b099cd94393bd62317b7c043d2e3912847bdd7bb3bb99710e"
+          },
+          {
+            "relative": "Elixir.Hex.Ignores.beam",
+            "sha256": "daaa96c5087fb8fedfcef54de1d7fdd14a9e1bf6c0e102fc6820cebbd4f40f3f"
+          },
+          {
+            "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+            "sha256": "850581d9bcc488d2c15db5fbd3133f768bbd0d95287e34bae1cdc890ecfbbb3d"
+          },
+          {
+            "relative": "Elixir.Hex.Mix.beam",
+            "sha256": "4ce5b0482796e6705d3af2a4c0d322c6951630c0d37fdcce084e62afc8c89fde"
+          },
+          {
+            "relative": "Elixir.Hex.Netrc.Cache.beam",
+            "sha256": "4565b65fe549a39790f1d04ca4a2b9d880b49234c7d6d4143e688d64422eeb97"
+          },
+          {
+            "relative": "Elixir.Hex.Netrc.Parser.beam",
+            "sha256": "343545e6b3094045b12b75f95bbb1cf91273044aa95d50acbdcad1e939d06424"
+          },
+          {
+            "relative": "Elixir.Hex.Netrc.beam",
+            "sha256": "0d733fdf48a94544537937cc7d78245134d99afb73da34525fad0252114a5735"
+          },
+          {
+            "relative": "Elixir.Hex.OAuth.beam",
+            "sha256": "10067a236d7d7f349bb773140cf9a1a3caef340fe9eb2072bf2e4887b7129784"
+          },
+          {
+            "relative": "Elixir.Hex.Package.beam",
+            "sha256": "5b2639db463a636a5662cb2822828574571030c86e6c958b5894cd49189d05c7"
+          },
+          {
+            "relative": "Elixir.Hex.Parallel.beam",
+            "sha256": "a9de049c8eb20396171680a8bcf29667d8fc6fbbca44edcedfd46f35f2b1e791"
+          },
+          {
+            "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+            "sha256": "c137b6f1e73e73707da9795ab055b8d8f2c77169d1fe29582b205425a59efd94"
+          },
+          {
+            "relative": "Elixir.Hex.Policy.Filter.beam",
+            "sha256": "3967e69b6514dd7e7668dc8b0ed305bbb41fc85051b55f0518ea36556cda370d"
+          },
+          {
+            "relative": "Elixir.Hex.Policy.beam",
+            "sha256": "5cb63ddddc958c364afe8fc7aa1ecebbb03699f75323d38495ec587d42057b25"
+          },
+          {
+            "relative": "Elixir.Hex.Registry.Cooldown.beam",
+            "sha256": "cfcc0535110b1681a42a3868902806a3b865a4c565b4752fa0e14e795757f49c"
+          },
+          {
+            "relative": "Elixir.Hex.Registry.Policy.beam",
+            "sha256": "799cec6f613a6cc164f1e330fb8c58ee54b8c9de821fd68f71bca7108126b173"
+          },
+          {
+            "relative": "Elixir.Hex.Registry.Server.beam",
+            "sha256": "cd33995b395596589a073b74a89a88950162553aed8cdd821593d7d42fa12b67"
+          },
+          {
+            "relative": "Elixir.Hex.RemoteConverger.beam",
+            "sha256": "75fb4e5d32db5be2f43e143cbfbc3dd0cba4a59b15955e4a701a53206e147461"
+          },
+          {
+            "relative": "Elixir.Hex.Repo.beam",
+            "sha256": "751193d1cb5de765fa1fb6d7481916b305b7c1878154715aa888e218cbc279eb"
+          },
+          {
+            "relative": "Elixir.Hex.SCM.beam",
+            "sha256": "fe8cbf3ec5ae4af63e1f5e72280ea16890e3375fe7cf5f72b40912ea9d67d0bf"
+          },
+          {
+            "relative": "Elixir.Hex.Server.beam",
+            "sha256": "93aa6d5127d8c9015396e4c03ddab1355f38e74939d857def654712047a39559"
+          },
+          {
+            "relative": "Elixir.Hex.Shell.Process.beam",
+            "sha256": "bca5589782935d97ae368568e0d87f44deb581d71670578e8a27f4e6995f63d1"
+          },
+          {
+            "relative": "Elixir.Hex.Shell.beam",
+            "sha256": "1cbb45557f3377a16ab612e20fab3a47335d42f9010fba888507b33191d385ce"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Assignment.beam",
+            "sha256": "8d0963298a87e5f4d2268d1c0aeb83477036f4d58fd4139dd20d91cb43be3f4d"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "da329613d86c8af3aca9371972ac424322319e74522783e287dcd34d4be3c844"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+            "sha256": "532360c306ef6f5a38a112867ec0dcc31ce4d3155c681a67b0ddca72d6a69dc2"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+            "sha256": "73f8e86a7080757407091312da8434e09192b151958f8826bd7206de1b99890b"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+            "sha256": "aeb849dbce9b8048a223beede34ebedea184b90ff6c0c1b2305dd9d3ae035b9e"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraint.beam",
+            "sha256": "6e334ea196a56231dd3ca9a4352de0f792b183aee1e27f82c8edec1d0de4f5b6"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "a41cf2521916daf7aa16818781b36231d5c9ee8e42ae13ba6f885b8c224be017"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+            "sha256": "bfc95be1a1b1714b18cbd2661dfee036441d202b9a40e60aac19c67aad9e2f84"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+            "sha256": "27634709bcfd5a8b5ba1e688c015ca31db1781d9c38675e021cf1ffb7d55379c"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+            "sha256": "1a2c3960f59ad634fe475bcf30ff94e3bc93926d612dc6d388702da3951d47eb"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+            "sha256": "7ac91583ab532ddf30c0f39ee77d7d602a4d71a03c7a9393fce2dd333f14c4ba"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+            "sha256": "92a0d466e233cf80da3eec9168f69a882535a3d3fccdd144961b7e25974abace"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Failure.beam",
+            "sha256": "55622a181e9cfc9aa12df063dfffa245227573c2e1abae0c4192f10b5e97ffd4"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+            "sha256": "cb12e6b47d71d208710f0b68d07da1f6a230441163a026a40205ea7653ad29bc"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.PackageLister.beam",
+            "sha256": "00daf958e302a02e014bf36575c14b41974341c5b1b611496b28fb27a7c1dae2"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.PackageRange.beam",
+            "sha256": "f01541d50efa2a6350a0024ba4642354a241b5ea536de7aec9d3eff26f05d427"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+            "sha256": "527810b3d07891ff1a69b2f85ebb6b9b2723a5493056a83d2de82a12d56aa9ae"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Registry.beam",
+            "sha256": "8a9b73056231ae327b5e0239fb0a070fd7d93c364a86dc2677962c2b959ecf25"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+            "sha256": "9cd865279731cebf7eebfc381cc69752e8da63d16ddb519c8a23ebc102c12331"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Requirement.beam",
+            "sha256": "e213852cbfd539c2b9dbdec31222af035ad74bcea76146c7a8896579811cb379"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Solver.beam",
+            "sha256": "d33ea40543a43a181da900532e1c87d3d7e6a2eda2c1dc0bfac31057d7f3d0a2"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Term.beam",
+            "sha256": "ccf82f11bf601052690b1fd724b48f2fdddb04423ff1b6f23783f92562c31d6c"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.Util.beam",
+            "sha256": "d7e9ba040e4aac36053db136801241017ceae0e6debb89807ef968c1a564d58c"
+          },
+          {
+            "relative": "Elixir.Hex.Solver.beam",
+            "sha256": "a6088b2cf520b27e6fe721a4e816b6e948531e28c2f2364fa519c1bfcfed6c3a"
+          },
+          {
+            "relative": "Elixir.Hex.Sponsor.beam",
+            "sha256": "d4e11ac89b7fd918ed314eed648678120152ebc106799f62bd177a73da24950a"
+          },
+          {
+            "relative": "Elixir.Hex.State.beam",
+            "sha256": "01222ffc968a305b6664c93719ebd7e36014372ca28a995240d27c72aaa839c3"
+          },
+          {
+            "relative": "Elixir.Hex.Stdlib.beam",
+            "sha256": "a8a4571c5e16c4f3aaa5a76a08063b4816f7523fbf5da18ead9d2589cfd6101b"
+          },
+          {
+            "relative": "Elixir.Hex.Tar.beam",
+            "sha256": "d077ee297f3eebd70ee4a00975e8bdffa7d8d51e389bc388ca724d63d98af61b"
+          },
+          {
+            "relative": "Elixir.Hex.UpdateChecker.beam",
+            "sha256": "97a9c1122c7278ba4566ddb725790ce35452301b2c1e7ac056d4b90e84671d24"
+          },
+          {
+            "relative": "Elixir.Hex.Utils.beam",
+            "sha256": "e079173fe7751c9842b7ced96543e885064291c1f9b5e49b9c6a17e7ebf1ff02"
+          },
+          {
+            "relative": "Elixir.Hex.beam",
+            "sha256": "2d1ffa22983984938017106eb3baadb5c4594c59742ddf00059ff5bf3d0ec9b9"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+            "sha256": "647dfb702229d6cef3ee440782c8296eed04ffe075a8f9205e83dad89060b36d"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "b6dd7700d8fb516f44aff05a06801cc1f98bdb716684b8aec84c97e7df333fd1"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+            "sha256": "45b28d45d06ae16bce785a04fb07b017fe1b14f36c69e9079323429b7adaae44"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+            "sha256": "48abfed364c9c4417c6bc915d32a83c4c8a5e5d2f9f7713ce540b6c1e4a76088"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+            "sha256": "bcd21f50f4f1ca630f78a3ba2de09f0d445eb09864d7cfeee77adb332ae956ef"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+            "sha256": "3a547053e44a0aa8f982c22435f06834d6562a6413e305cd406c70311a7b0eec"
+          },
+          {
+            "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+            "sha256": "ec8c1ce47621a8281ae938702bd206f807e9fdac8f25bd248bfb040e1fcd5758"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+            "sha256": "c393881c579f606c30b3be134a6b7874530e3da61bb02e494b57eff3722b3376"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+            "sha256": "e56dd6b482e2cab72c90fd16c23132b880f499ae34bcdbfee16529bcc9961ccc"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+            "sha256": "3dc0a7278eafde11ff39fc0232fb1c7d8f69b70acff0476c35dc781b3c1082ce"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+            "sha256": "bfe036ef8f4916fc2fa34683086f2da023f7361fee7d6f4ead3ec36b9261a199"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+            "sha256": "725091f53e0a939c8385e305758be0f71e80eafb51893392bed6d6f747a7a4ef"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+            "sha256": "26eda5155d843363ce7474a384589f624b150b99a9e4e82370ce2998a3f5b346"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+            "sha256": "f95c28b0407c891829889e8ce755e109423af2e5d0cb5a15eb52c8249db825e8"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+            "sha256": "ca6d8b6057bc8091b027245a7d9ca9c066ed2866c16ff0a51b7fd90e1073a546"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+            "sha256": "91a704b072eb81762a118845eaf93f509ef7e17e1dbbd46a62b8aff4882eb6c6"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+            "sha256": "7ab141065580f8d053b75af82db2a60ee74c8e3f7c1c3326ddfe408e38d66ef2"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+            "sha256": "a681244de25fe939d0e40c8019d52aafe907b2d2a1aa4ae3145b38e948ee0780"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+            "sha256": "3afadd3ed4ed2252d7cedfcd2855a2358e65206b626270401955bf36cf71bcfd"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+            "sha256": "ac250bbea7909cb5e8007b7b3224c8df877e2832daa487db78021d31fc78e541"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+            "sha256": "c36309cff658d632ae527d4fbf13664d1123dedcc08100450d78283103bbc9ff"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+            "sha256": "030d28016df1c9d959352c669ef0dc039f4ab34b95f6d4effd325f5f43084e04"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+            "sha256": "6ae60e0fabed5710bd8cc42059f1d495ac3349e5141802a567681685317c4e44"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+            "sha256": "1c95811720cc17290a1a32fa94017f311d9229e6e091126fa08c57f9572bf692"
+          },
+          {
+            "relative": "Elixir.Mix.Tasks.Hex.beam",
+            "sha256": "8a78fc870d4a233a0ce7b9716ab65d0a110e009f01b945211d2d418bd7524d5f"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+            "sha256": "56b09e0fb6d937bb754cbfa0297e9dfc6ab0a6f19a1f258b146d56c28dbf5d05"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+            "sha256": "e3216eb58260ae3ef02017a37c727e77c0a67bb4f6bb0c87721513f77664ec36"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+            "sha256": "1d6645c093ec12507b52c23484dbce932d0647b97ebe1b0cf219b1b12e2f0efb"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+            "sha256": "e02c8465191583ba3e04a60a7912062b9c4872a32859782f74c9b159ca56ec61"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+            "sha256": "d10af9a4af8aae1ce75cea0a7afece2ad668a27d00072a02dbe9bf792854fc58"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+            "sha256": "89bc0d2e49672bb507d3d64287930b25c2b2167e3437fc60caf82f776867f738"
+          },
+          {
+            "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+            "sha256": "9e5d1eb7081bc0919214c5269c719fd2b0c77975ae01fa67a18131c3c5e075d9"
+          },
+          {
+            "relative": "hex.app",
+            "sha256": "a075e7a2b06bb6aa6c7093aaf9d2555224b290e75c4b2e7cd5b51c44ab6a9a57"
+          },
+          {
+            "relative": "mix_hex_advisory.beam",
+            "sha256": "8aa5c7f5a8c50ee4d69cc7251f9153d8ad838147f8bf1ac965d8264f854ec7d4"
+          },
+          {
+            "relative": "mix_hex_api.beam",
+            "sha256": "7a5c53239edf5a91b6c02d9cd3a2209b33375ac9cdaa1ed500c45076683b2345"
+          },
+          {
+            "relative": "mix_hex_api_auth.beam",
+            "sha256": "f79fb918b3ccf81816a7c5a5c81798fdbc5feb72069d70eb93dd6de96fcd0d75"
+          },
+          {
+            "relative": "mix_hex_api_key.beam",
+            "sha256": "bf2fe4a462532c37ab1e0c62f7f21a8c2a6450e4170c94171779c247108e615c"
+          },
+          {
+            "relative": "mix_hex_api_oauth.beam",
+            "sha256": "c73b8bb380d93b8303f5c6fc1a7dd306065ae2b6d75fc27048716e54fee02664"
+          },
+          {
+            "relative": "mix_hex_api_organization.beam",
+            "sha256": "5371d3eaede0649ca8cb4184c4c316ddd0f73fb34179dd7d0910dab326d0e1b7"
+          },
+          {
+            "relative": "mix_hex_api_organization_member.beam",
+            "sha256": "fd2cc44d561ef97b0df96bf30c3c3e862af7a35673d93abb318fc26df1dd55e7"
+          },
+          {
+            "relative": "mix_hex_api_package.beam",
+            "sha256": "91cef1cd62cdc01e0455e87afb16c1443f8e096876db93201b1d46ec7492fa0e"
+          },
+          {
+            "relative": "mix_hex_api_package_owner.beam",
+            "sha256": "ab303bd5170dcbf61cafcc9fe35a908753ccb1450f516e06e61899b36bf37312"
+          },
+          {
+            "relative": "mix_hex_api_release.beam",
+            "sha256": "37b561e61f96d9fb031f54676a2b06e17ecc065c74250ca4566917ecefdda334"
+          },
+          {
+            "relative": "mix_hex_api_short_url.beam",
+            "sha256": "e925aa272e3f0578ef6dce0494e3b5c000d9efb83b74bf3db00dd878f5f7d46c"
+          },
+          {
+            "relative": "mix_hex_api_user.beam",
+            "sha256": "00d1740c7ba8b23cb6b374c3ca1ecd8303e2f3f1260af1d3260856bce1d39561"
+          },
+          {
+            "relative": "mix_hex_cli_auth.beam",
+            "sha256": "566d7b411bb1358eed6e5ac74d27f07e67b57c8fde279bf23d54fb5bab893fff"
+          },
+          {
+            "relative": "mix_hex_core.beam",
+            "sha256": "294b5a73218085321feb211505bd0ccc8b49a5883ca523f70c04e759a046f440"
+          },
+          {
+            "relative": "mix_hex_erl_tar.beam",
+            "sha256": "fcd9cbdf89ec9931cf9b91cdd0ce66720a335aca54565b28d7813cbfc2d3fd2f"
+          },
+          {
+            "relative": "mix_hex_http.beam",
+            "sha256": "a20e29f3b233e8811394b90d54b4e646b6ced7b0663b326d900f4fa7a11dad65"
+          },
+          {
+            "relative": "mix_hex_http_httpc.beam",
+            "sha256": "4f6f90e7a5bab15fa584d2d4e5790544b5254382a56bf3694829ee6de48f9f5f"
+          },
+          {
+            "relative": "mix_hex_licenses.beam",
+            "sha256": "f6b30127be3ecae65b1b89cb1d756ef2473ab65b3fb55f41cd6cb6744af80db6"
+          },
+          {
+            "relative": "mix_hex_pb_names.beam",
+            "sha256": "b32a62335108501fda4f17e0bd52e8e75acd88210231001c65d5e64484b5ccf3"
+          },
+          {
+            "relative": "mix_hex_pb_package.beam",
+            "sha256": "f0957b4c6a8131c853f6aa9325fc116562e6b539f40ef9a585cebaddf396872e"
+          },
+          {
+            "relative": "mix_hex_pb_policy.beam",
+            "sha256": "d87d7c4ccf71d0585d5eba55a3faff07596bf820543c7390c71065cfa9e9b71c"
+          },
+          {
+            "relative": "mix_hex_pb_signed.beam",
+            "sha256": "241457907cb95c9df4f7890a71d330fa784f791fc2670ec724f2c1d1a366bee1"
+          },
+          {
+            "relative": "mix_hex_pb_versions.beam",
+            "sha256": "93b211a8d28311f6d1a094df27a617852a8657d8825830e7f5349b51ce55d97c"
+          },
+          {
+            "relative": "mix_hex_registry.beam",
+            "sha256": "c8c8a1ee1bfb36575b7a62b8335a46f61a3e77b596df21dc90a4c86b2b1aa61c"
+          },
+          {
+            "relative": "mix_hex_repo.beam",
+            "sha256": "cb7c7fe56386e9acd9556d46849080aafe5c13f5c82a75f082978d82af7a3c2b"
+          },
+          {
+            "relative": "mix_hex_safe_binary_to_term.beam",
+            "sha256": "574570fb96a20e31f4679241e80ca4cda58645f86bde4f0bc4b4f6afc102a993"
+          },
+          {
+            "relative": "mix_hex_tarball.beam",
+            "sha256": "57c544ed288ebe415b58b2414046bfad73208fb7444a631d489aa094a07a0240"
+          },
+          {
+            "relative": "mix_safe_erl_term.beam",
+            "sha256": "48c4a478147ad9f8919496fd8d8a8f78e8874adb034f2285326794fe2b23339c"
+          }
+        ]
+      }
+    }
+  },
+  "guard": {
+    "status": "available",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "launcher": "/usr/bin/sandbox-exec",
+    "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+    "host_context": {
+      "platform": "darwin",
+      "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "actual_host_requested": true,
+      "context": "macOS executor process"
+    },
+    "control_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "process.exit(0)"
+    ],
+    "control_exit": 0,
+    "denied_child_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+    ],
+    "denied_child_exit": 77,
+    "denial_witness": "EPERM",
+    "denial_output": "POLICY_DENIAL:EPERM",
+    "probe": "loopback-listen",
+    "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/p152-durable-qualification"
+  },
+  "supply_sha256": "e25d14934179896d150d14bbc51c3d36793af79fbb397e785f5bae5c3489b55c",
+  "runtime": {
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15"
+  },
+  "inputs_sha256": "189ff25f36e038a594c611fdd62f4cef444403aab8566888c17c4e467aea7ac1",
+  "lock_sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+  "command": [
+    "bash",
+    "scripts/maintainer/phase_133_local_gates.sh",
+    "--subject",
+    "e7b6b8fc63d71454aebd58ab484352786f5f42dd",
+    "--plan",
+    "133-152",
+    "--offline-cache",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-152-SUPPLY.json",
+    "--output",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-152-LOCAL-GATES.json"
+  ],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "child_commands": {
+    "qualification": 0,
+    "network_fetch": 0,
+    "remote": 0
+  },
+  "report_sha256": "93e66c30f6b65ebc063624519a8779914a14f47bce346e5ebdbfc744888ff5ef"
+}

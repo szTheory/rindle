@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "plan": "133-196",
+  "status": "no_attempt",
+  "source": {
+    "sha": "5fc6aad7833fdba40ff74675bb5602ae819940fb",
+    "tree": "71d7070fe900ba8415b14455627f9d6cbb9a5e61"
+  },
+  "reason": "producer_exit",
+  "diagnostic_sha256": "3366f503c2bc6320aa0d70719e4f07e9790e8ee83e396fbbb2ce139f2ecdd674",
+  "preparation_sha256": null,
+  "authorization_sha256": null,
+  "producer_invocations": 1,
+  "attempt_count": 0,
+  "network_request_count": 0,
+  "remote_mutation_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "private_stderr": {
+    "retained": true,
+    "audit_nonce": "e61c7dd14a4ae5658c2054fd89134fa2648764fe",
+    "bytes": 170,
+    "sha256": "95fd5abd19d745547dce3e9d10de4831ca4ba753f1e473b6783d0a4e0a12a3f9"
+  },
+  "published": {
+    "diagnostic": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-196-DIAGNOSTIC.json",
+      "sha256": "7de036a05e391b606539b3323e02293c1a508f6d36fd898c833f57fe6a7c0d93",
+      "report_sha256": "3366f503c2bc6320aa0d70719e4f07e9790e8ee83e396fbbb2ce139f2ecdd674"
+    }
+  },
+  "report_sha256": "78bb9aaaeaf30f008ca5082ad86aa743fe313d5dd8e1b99886a3611419689643"
+}

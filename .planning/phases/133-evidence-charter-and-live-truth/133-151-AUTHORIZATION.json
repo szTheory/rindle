@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "plan": "133-151",
+  "decision": "authorize",
+  "source": {
+    "sha": "b6d035624afd26835748c640b1f07ecf0741db91",
+    "tree": "7cfe66921b0300512b769752c97025359492f199",
+    "files": {
+      ".planning/REQUIREMENTS.md": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+      ".tool-versions": "b9be8944df223dfbc8c733e4fd7192f110d2ba8e30c11ef32f1bc29c798b3d38",
+      "mix.lock": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+      "scripts/maintainer/phase_133_compatibility_bridge_141.mjs": "88dabc35cc50dfc3c602242acc237963cfe4af463b86c877ffc74b2f8cc5f244",
+      "scripts/maintainer/phase_133_hex_build_138.mjs": "8f0e02efe07cf4910268e79a0a974054cd9a81847a3a6713611f1f9247661ec4",
+      "scripts/maintainer/phase_133_hex_build_140.mjs": "24f23d093c21ccd4b439cab45964727082a0be27badc4896de61e6100dd1c9a5",
+      "scripts/maintainer/phase_133_hex_source.mjs": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968",
+      "scripts/maintainer/phase_133_historical_138_139.mjs": "b8262a8088c03ae1c30090d35371068ed2f658db6d17ed80973052ba3f3ab669",
+      "scripts/maintainer/phase_133_local_gates.sh": "de8b032d3fed43c021edb150361de0e5faec41ece42ed29fcf27c5e758b1bb26",
+      "scripts/maintainer/phase_133_local_supply.mjs": "c07e9391b4ec243a49b283dfa4465dd7497a921cce9d3ceca89f8c4a60eecfa8",
+      "scripts/maintainer/phase_133_recovery.mjs": "08365d60c2cadb115aa509ec57e04425335c82707b3a0dd516a13ee63b8f36d6",
+      "scripts/maintainer/phase_133_registry_batch_151.mjs": "4e5561d165982a6182c15d7d8c58905501487bb722c4b7b819d5f7138f7b4bd9",
+      "scripts/maintainer/phase_133_registry_batch_151.test.mjs": "01c5f3e81820153ef7878a7c8f2e81553c6ea0b9ee215518d79766a847db3511",
+      "scripts/maintainer/phase_133_registry_dns_diagnostic.mjs": "edeee2359b3b3863ceb057f704e57e3e2f3722a76c85042634787df91898bacb",
+      "scripts/maintainer/phase_133_registry_supply.mjs": "c8223fcdd3bbe59e6452bb1a67f78ab9c57654c1a354c3ec1c586d77d6a41838",
+      "scripts/maintainer/test_phase_133_local_gates.sh": "11ad9bc21a670ee406fb25302504e126c7f4ff75042d96d10efb7d5f5a2886ab"
+    }
+  },
+  "preflight_sha256": "8e4a75be9c456235710bb4fd7f34335af329117f021011ebb8840e845ff5e5e9",
+  "maximum_gets": 13,
+  "missing": [
+    {
+      "name": "bypass",
+      "version": "2.1.0",
+      "inner_sha256": "909782781bf8e20ee86a9cabde36b259d44af8b9f38756173e8f5e2e1fabb9b1",
+      "archive_sha256": "d9b5df8fa5b7a6efa08384e9bbecfe4ce61c77d28a4282f79e02f1ef78d96b80",
+      "relative": "packages/hexpm/bypass-2.1.0.tar",
+      "bytes": 15872,
+      "status": "available"
+    },
+    {
+      "name": "color",
+      "version": "0.12.0",
+      "inner_sha256": "f59f9bb6452a460760d44116ec0c1cf86f9d7707c8756c01f83c6d8fe042ae67",
+      "archive_sha256": "1e17768919dad0bd44f48d0daf294d24bdd5a615bbfe0b4e01a51312203bd294",
+      "relative": "packages/hexpm/color-0.12.0.tar",
+      "bytes": 187904,
+      "status": "available"
+    },
+    {
+      "name": "doctor",
+      "version": "0.23.0",
+      "inner_sha256": "f4c2e51f9d50e3a31500e61483aa3e051559891c5b1b14560e74dc7046852412",
+      "archive_sha256": "b8eb63380fa14d9aced609671600359b1fd057da167339c5031b683eb2bac973",
+      "relative": "packages/hexpm/doctor-0.23.0.tar",
+      "bytes": 26112,
+      "status": "available"
+    },
+    {
+      "name": "ex_machina",
+      "version": "2.8.0",
+      "inner_sha256": "a0e847b5712065055ec3255840e2c78ef9366634d62390839d4880483be38abe",
+      "archive_sha256": "79fe1a9c64c0c1c1fab6c4fa5d871682cb90de5885320c187d117004627a7729",
+      "relative": "packages/hexpm/ex_machina-2.8.0.tar",
+      "bytes": 24576,
+      "status": "available"
+    },
+    {
+      "name": "ex_marcel",
+      "version": "0.2.0",
+      "inner_sha256": "0aae641f4144ff9d3c37f36dc62e1ee94c4a4e8d34683be8321f9c2c7e459ada",
+      "archive_sha256": "fecf90bfe1cb4097d58ac7d444249afc9e8a314413f82cfb29a8a758ec65fcd5",
+      "relative": "packages/hexpm/ex_marcel-0.2.0.tar",
+      "bytes": 107520,
+      "status": "available"
+    },
+    {
+      "name": "gcs_signed_url",
+      "version": "0.6.0",
+      "inner_sha256": "94d8d708f913e2fb60560c04a50252ba90c178665dc49a47e6e44c03e2e9a110",
+      "archive_sha256": "5ad5e4e0de832d774636e12c642a8fedd376522544697934fc06a7ddeeb805aa",
+      "relative": "packages/hexpm/gcs_signed_url-0.6.0.tar",
+      "bytes": 15872,
+      "status": "available"
+    },
+    {
+      "name": "goth",
+      "version": "1.4.5",
+      "inner_sha256": "ee37f96e3519bdecd603f20e7f10c758287088b6d77c0147cd5ee68cf224aade",
+      "archive_sha256": "0fc2dce5bd710651ed179053d0300ce3a5d36afbdde11e500d57f05f398d5ed5",
+      "relative": "packages/hexpm/goth-1.4.5.tar",
+      "bytes": 21504,
+      "status": "available"
+    },
+    {
+      "name": "image",
+      "version": "0.65.0",
+      "inner_sha256": "44908233a1a0dcdbb6ae873ec09fd9ae533d1840d300d8b0b1b186d586b935e6",
+      "archive_sha256": "d2060e08d0f42564f49de1ea97a82a5d237f9ac91edb141dece51f1238dd8b4a",
+      "relative": "packages/hexpm/image-0.65.0.tar",
+      "bytes": 360448,
+      "status": "available"
+    },
+    {
+      "name": "jose",
+      "version": "1.11.12",
+      "inner_sha256": "06e62b467b61d3726cbc19e9b5489f7549c37993de846dfb3ee8259f9ed208b3",
+      "archive_sha256": "31e92b653e9210b696765cdd885437457de1add2a9011d92f8cf63e4641bab7b",
+      "relative": "packages/hexpm/jose-1.11.12.tar",
+      "bytes": 194048,
+      "status": "available"
+    },
+    {
+      "name": "junit_formatter",
+      "version": "3.4.0",
+      "inner_sha256": "d0e8db6c34dab6d3c4154c3b46b21540db1109ae709d6cf99ba7e7a2ce4b1ac2",
+      "archive_sha256": "bb36e2ae83f1ced6ab931c4ce51dd3dbef1ef61bb4932412e173b0cfa259dacd",
+      "relative": "packages/hexpm/junit_formatter-3.4.0.tar",
+      "bytes": 16896,
+      "status": "available"
+    },
+    {
+      "name": "muontrap",
+      "version": "1.7.0",
+      "inner_sha256": "ff6eda43839194dc342b81e02e764fd75389a8ab166318548f3aaec374846600",
+      "archive_sha256": "7bd4a90ae008bf6a25554aa13497b2c05dfa1fcc34be5bdcb8fb4dec9b3422e3",
+      "relative": "packages/hexpm/muontrap-1.7.0.tar",
+      "bytes": 40448,
+      "status": "available"
+    },
+    {
+      "name": "tesla",
+      "version": "1.21.2",
+      "inner_sha256": "71b3a8a000802fa82f0b87c22acbca1e8f6a03f23d727e01b66687111681debc",
+      "archive_sha256": "296bbafd1a328533c57e6b0e93078983cf40a827546e58a20464ce75485d5254",
+      "relative": "packages/hexpm/tesla-1.21.2.tar",
+      "bytes": 92672,
+      "status": "available"
+    },
+    {
+      "name": "vix",
+      "version": "0.38.0",
+      "inner_sha256": "77529ee4f6ced339c3d5f90a9eacf306f5b7109d3d1b5e3ef391a984ad404f75",
+      "archive_sha256": "dca58f654922fa678d5df8e028317483d9c0f8acb2e2714076a8468695687aa7",
+      "relative": "packages/hexpm/vix-0.38.0.tar",
+      "bytes": 73216,
+      "status": "available"
+    }
+  ],
+  "command": [
+    "node",
+    "scripts/maintainer/phase_133_registry_batch_151.mjs",
+    "request-once"
+  ],
+  "literal_answer": "Authorize Plan 151 registry batch once: 8e4a75be9c456235710bb4fd7f34335af329117f021011ebb8840e845ff5e5e9",
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "3346034bd4ce2678060596dce4125ebcd245b5c08d8627d37ba915d4bc4b98f5"
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "plan": "133-126",
+  "status": "authorized",
+  "preflight_sha256": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a",
+  "source": {
+    "sha": "7b680feb1874f9a098b3343943e2876ca889f87d",
+    "tree": "6a6f269f2b436ff8ae4efbb5c12f1d125390aa75",
+    "lock_sha256": "08f35ae39d131fa767141e1961f6c5c58ca63f3368e69bc9b79d550f4fcc1d49"
+  },
+  "destination": "/Users/jon/.hex/native/lexbor",
+  "attempt": 1,
+  "qualification_credit": 0,
+  "requirements_completed": []
+}

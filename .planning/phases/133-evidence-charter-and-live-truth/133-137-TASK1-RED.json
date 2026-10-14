@@ -1,0 +1,10 @@
+{
+  "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 elixir test/install_smoke/phase_133_registry_compat_138_test.exs",
+  "exitCode": 1,
+  "output": "TAP version 13\n1..1\nnot ok 1 - starts SSL and captures its version before starting Hex.State\n# assertion failed: SSL must be started and its version captured before Hex.State.start_link\n",
+  "targetTest": "starts SSL and captures its version before starting Hex.State",
+  "targetFile": "test/install_smoke/phase_133_registry_compat_138_test.exs",
+  "expected": "The Plan 138 proof script starts SSL and captures its version before Hex.State.start_link.",
+  "actual": "The targeted TAP assertion fails because the Plan 138 proof script is not present yet.",
+  "semanticAssessment": "Valid RED: the named target executed and failed on the planned missing SSL bootstrap assertion."
+}

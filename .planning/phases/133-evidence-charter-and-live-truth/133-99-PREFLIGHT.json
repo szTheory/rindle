@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "plan": "133-99",
+  "status": "halted",
+  "terminal_stage": "evidence_insufficient",
+  "reason_code": "plan98_doctor_marker_absent",
+  "reason": "Plan 98 ended upstream at native_route_unavailable. Its Doctor marker is absent because no Mix child started, so there is no exact call-time ArgumentError or stack frame that can justify a repair. Stop automatically without requesting authorization.",
+  "scope": {
+    "source": {
+      "sha": "2f918ffed9ebd7dc9930216d2e4f2bfaae54c39b",
+      "tree": "6cd2b1781aa41d5770e267527c6e36942002fae8",
+      "branch": "worktree-agent-p133-99-1791337224545"
+    },
+    "plan98": {
+      "preflight": {
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-98-PREFLIGHT.json",
+        "report_sha256": "d058cd52c77e3451a46ce148bf9bb2d0ef9cfefa0b37589b5c821da7080c4da7",
+        "file_sha256": "86c3b321244bfe01c9c0f751d435a2b97eb0ed3ac6c84a75d3f4c7d17a1cb3ee"
+      },
+      "decision": {
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-98-DECISION.json",
+        "report_sha256": "4b6fa9a157f4162240ed7891f44475c868754812b92d527c0f8412d88d57af1f",
+        "file_sha256": "2110a030e3a890191e75d9779c09367e6aef3acd4af1933c711435b8df4d4367"
+      },
+      "diagnostic": {
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-98-DIAGNOSTIC.json",
+        "report_sha256": "9f5a5359f263240dfafe09c632f382f344075e37253b91dc40a8eaa4496d8f77",
+        "file_sha256": "ac6f174b7b75a9eb26801db0e267d045e751f8c903e5511b7db70ad16be67908"
+      },
+      "summary": {
+        "path": ".planning/phases/133-evidence-charter-and-live-truth/133-98-SUMMARY.md",
+        "file_sha256": "f81e922e2e82b50f184603b0b3fd703a118c2cd664b92902b0e9c98af51b9884"
+      },
+      "protected_artifacts": {
+        ".planning/phases/133-evidence-charter-and-live-truth/133-87-PLAN.md": "776e8a79aea4bc81a3191aead38b3d1cd178b7b80cf9cdb71bdfb18bf7375b84",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-87-SUMMARY.md": "00a412ccca35ede712d98248ee221e34f61e8d5887b686d0963930d5e012637f",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-91-PLAN.md": "d0332f7e586ed73dccd30d380274bffd1edf9cbb27d0d91954f87bb7ea30663f",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-97-NATIVE-ROUTE.json": "b5a37b7f4dae38f5720699c99c79d4651f9b0d667e81457c7d02054d2fb2a287",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-97-SUMMARY.md": "66e3c1d7e7540e04f027919723dc9e812a9e1e11660dd00c03fe68158626d9ca",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-96-SUMMARY.md": "0ef9efd16baf1ecda48b8df85f1e9f4873b594082cabcf48116dcfc2e4d06d60",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-96-DIAGNOSTIC.json": "1504956567b2222ba152d94cb21fc7a90eb68a8be16b8e32cb99fa6758a0ba16",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-96-SOURCE-CLOSURE.json": "8fde2df317e1af51523f519b0f1e9594d5a421cd0ca25d9bb487263bb84e1dfc",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-95-PLAN.md": "fcdaf1dc49146e57c81ec749a59b5d81f1bd36baacaca3b593f002dba87b6079",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-95-SUMMARY.md": "e9efd18b6d389dec07294689736ba08ca8c9acb93ce29294de9aef9d39c500ce",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-95-DIAGNOSTIC.json": "8b1c909138b5bfdc7d0830119bb3edf95395f7f8d818b17f0fa922b8acfad085",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-91-LOCAL-GATES.json": "aab57d83964d9d3433d472c3c7232ce5b4182dc9f091da7969b8c8b3362268ad",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-91-SUMMARY.md": "91d22eec8d998a3aa769779c03f9f54e6a4334a229524bfb29c0fa67ae1b0d2e",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+        ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-FAILURE-FINGERPRINT.json": "119b2f9afb3736d1f217187f5399683e2ec72d4580c41b5396cf92519709bdd5",
+        ".planning/REQUIREMENTS.md": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+        ".planning/STATE.md": "a2659c799991949a6c4e961690cf5e191bd2a49e4f18a3389cc32b83f05e5854",
+        ".planning/ROADMAP.md": "fc358e7fe1f5c558ba55778117723955e03462e27048a9a90fc8e905ee5b9c2d"
+      },
+      "protected_artifacts_map_sha256": "6d5e2951733452718054a232ad8610a2ffb2938b5bb5cec64365e7385935998a",
+      "native_route_report_sha256": "497a93166a448e1849e823d44e9e2320a322ab45224f353e72c145a8036da5fb"
+    },
+    "doctor_marker": {
+      "status": "absent",
+      "reason": "No Mix child started.",
+      "call_time_argument_error_marker": null,
+      "exact_failing_stack": null,
+      "interpretation": "Plan 98 started no Mix child, so it captured no call-time Doctor marker or failing ArgumentError path."
+    },
+    "linear_history_verification": {
+      "method": "local clone; no network",
+      "clone_path": "/private/tmp/rindle-133-99-linear-verify-1791337821",
+      "head": "25d0ca3eed580c756a85da34dd2963b3c0d56506",
+      "tree": "6cd2b1781aa41d5770e267527c6e36942002fae8",
+      "branch": "worktree-agent-p133-98-1791333325628",
+      "stages": [
+        {
+          "stage": "preflight",
+          "command": "node scripts/maintainer/phase_133_native_doctor.mjs verify --stage preflight --phase-dir .planning/phases/133-evidence-charter-and-live-truth",
+          "exit_code": 0,
+          "report_sha256": "d058cd52c77e3451a46ce148bf9bb2d0ef9cfefa0b37589b5c821da7080c4da7"
+        },
+        {
+          "stage": "decision",
+          "command": "node scripts/maintainer/phase_133_native_doctor.mjs verify --stage decision --phase-dir .planning/phases/133-evidence-charter-and-live-truth",
+          "exit_code": 0,
+          "report_sha256": "4b6fa9a157f4162240ed7891f44475c868754812b92d527c0f8412d88d57af1f"
+        },
+        {
+          "stage": "terminal",
+          "command": "node scripts/maintainer/phase_133_native_doctor.mjs verify --stage terminal --phase-dir .planning/phases/133-evidence-charter-and-live-truth",
+          "exit_code": 0,
+          "report_sha256": "9f5a5359f263240dfafe09c632f382f344075e37253b91dc40a8eaa4496d8f77"
+        }
+      ]
+    },
+    "permitted_plan99_child_scope": [],
+    "child_counts": {
+      "native_asset_reads": 0,
+      "network": 0,
+      "mix": 0,
+      "install": 0,
+      "doctor": 0,
+      "local_gates": 0,
+      "qualification": 0,
+      "coverage": 0,
+      "census": 0,
+      "nightly": 0,
+      "issue_mutation": 0
+    },
+    "qualification_credit": 0,
+    "requirements": {
+      "status": "pending",
+      "ids": [
+        "EVID-01",
+        "EVID-02",
+        "EVID-03",
+        "EVID-04",
+        "TRUTH-08"
+      ]
+    }
+  },
+  "scope_sha256": "46dd62c0c26ac9c8b5a8786bf150b5455027a7caa2417c9f00106eccb7b42029",
+  "child_counts": {
+    "native_asset_reads": 0,
+    "network": 0,
+    "mix": 0,
+    "install": 0,
+    "doctor": 0,
+    "local_gates": 0,
+    "qualification": 0,
+    "coverage": 0,
+    "census": 0,
+    "nightly": 0,
+    "issue_mutation": 0
+  },
+  "qualification_credit": 0,
+  "requirements": {
+    "status": "pending",
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ]
+  },
+  "created_at": "2026-10-07T01:58:40.092Z",
+  "report_sha256": "a191d766edaa80c7d29e66215d6c1f0a10f26c6fb57eb32b221e04286639c7a7"
+}

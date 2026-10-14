@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "plan": "133-152",
+  "decision": "authorize",
+  "source": {
+    "sha": "e7b6b8fc63d71454aebd58ab484352786f5f42dd",
+    "tree": "f91900468377ffa085730845b53531e3fc883dbf"
+  },
+  "command": [
+    "bash",
+    "scripts/maintainer/phase_133_local_gates.sh",
+    "--subject",
+    "e7b6b8fc63d71454aebd58ab484352786f5f42dd",
+    "--plan",
+    "133-152",
+    "--offline-cache",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-152-SUPPLY.json",
+    "--output",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-152-LOCAL-GATES.json"
+  ],
+  "literal_answer": "Authorize Plan 152 qualification once: 93e66c30f6b65ebc063624519a8779914a14f47bce346e5ebdbfc744888ff5ef",
+  "preflight_sha256": "93e66c30f6b65ebc063624519a8779914a14f47bce346e5ebdbfc744888ff5ef",
+  "supply_sha256": "e25d14934179896d150d14bbc51c3d36793af79fbb397e785f5bae5c3489b55c",
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "b4dab21134ab114400f45c8b9e409a74a3b92c5df7409a725459af8f629fc490"
+}

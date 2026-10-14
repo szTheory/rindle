@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "plan": "133-158",
+  "status": "ready",
+  "source": {
+    "sha": "50f9107575b5eb17cc0982b891f2045cc0d9465f",
+    "tree": "2d4be60dd7dd98b6c549ff29f833110dd34dd1f0"
+  },
+  "registry_qualification_sha256": "04a44cedf65d9d5025ddcde6f8b07147c27c33fd8c4d7e6ee5c9e87ca4f3fad5",
+  "plan155_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+  "plan155_route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "supply_sha256": "f7c80dba229a8a991dd7bba3c3fe4a47644855386bc89c878c5c615254e75e79",
+  "registry_cache_sha256": "35f5abd731719fdfa26122661c5f0836c67e25e886660cbdcead4e79dec09078",
+  "lock_sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+  "runtime": {
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15"
+  },
+  "command": [
+    "bash",
+    "scripts/maintainer/phase_133_local_gates.sh",
+    "--subject",
+    "50f9107575b5eb17cc0982b891f2045cc0d9465f",
+    "--plan",
+    "133-158",
+    "--offline-cache",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-158-SUPPLY.json",
+    "--output",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-158-LOCAL-GATES.json"
+  ],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "requirements_completed": [],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "qualification_credit": 0,
+  "qualification_attempt_count": 0,
+  "network_request_count": 0,
+  "child_commands": {
+    "qualification": 0,
+    "network_fetch": 0,
+    "remote": 0
+  },
+  "report_sha256": "4ba73030801bce6f79406ace1e5ae058e659e92d0d7600e53034ca5e1a0175be"
+}

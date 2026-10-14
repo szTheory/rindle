@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "max_entries": 50,
+  "entries": [
+    {
+      "agent_id": "p133-53-retry-20260927T001224Z",
+      "task_description": "Retry interrupted Plan 133-53 executor in existing isolated worktree; continue from committed Task 2 RED tests",
+      "phase": "133",
+      "plan": "133-53",
+      "segment": null,
+      "timestamp": "2026-09-27T00:12:24.747613+00:00",
+      "status": "completed",
+      "completion_timestamp": "2026-09-27T00:38:47.663389+00:00"
+    },
+    {
+      "agent_id": "p133-54-agent-p54-1790470257",
+      "task_description": "Execute Plan 133-54 in its isolated GSD worktree: fix production Plan 42 reconciliation and append Plans 53-54 validation records",
+      "phase": "133",
+      "plan": "133-54",
+      "segment": null,
+      "timestamp": "2026-09-27T00:52:50.644443+00:00",
+      "status": "interrupted",
+      "completion_timestamp": "2026-09-27T00:59:53.666Z"
+    },
+    {
+      "agent_id": "p133-54-retry-20260927T005953Z",
+      "task_description": "Retry Plan 133-54 in its isolated GSD worktree with the shared Git metadata directory writable; prior child stopped before edits",
+      "phase": "133",
+      "plan": "133-54",
+      "segment": null,
+      "timestamp": "2026-09-27T00:59:53.666Z",
+      "status": "interrupted",
+      "completion_timestamp": "2026-09-27T01:05:37.450Z"
+    },
+    {
+      "agent_id": "p133-54-retry-20260927T010537Z",
+      "task_description": "Retry Plan 133-54 in its isolated GSD worktree with scoped Git metadata access and PATH preserved; prior child stopped before edits",
+      "phase": "133",
+      "plan": "133-54",
+      "segment": null,
+      "timestamp": "2026-09-27T01:05:37.450Z",
+      "status": "interrupted",
+      "completion_timestamp": "2026-09-27T06:12:43.000Z"
+    }
+  ]
+}

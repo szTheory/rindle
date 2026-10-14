@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-reporter=tap scripts/maintainer/phase_133_registry_preparation_182.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: Plan 182 exposes a source-bound private offline producer and terminal outcome verifier\nnot ok 1 - Plan 182 exposes a source-bound private offline producer and terminal outcome verifier\n  ---\n  duration_ms: 0.980875\n  location: '/Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p182-1791828549/scripts/maintainer/phase_133_registry_preparation_182.test.mjs:7:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'undefined'\n    - 'function'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'function'\n  actual: 'undefined'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p182-1791828549/scripts/maintainer/phase_133_registry_preparation_182.test.mjs:8:10)\n    Test.runInAsyncScope (node:async_hooks:206:9)\n    Test.run (node:internal/test_runner/test:796:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:527:18)\n    node:internal/test_runner/harness:255:12\n    node:internal/process/task_queues:140:7\n    AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n    AsyncResource.runMicrotask (node:internal/process/task_queues:137:8)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 38.784959\n",
+  "targetTest": "Plan 182 exposes a source-bound private offline producer and terminal outcome verifier",
+  "targetFile": "scripts/maintainer/phase_133_registry_preparation_182.test.mjs",
+  "expected": "Plan 182 exports collectProducer and its source-bound private offline producer contracts.",
+  "actual": "collectProducer is undefined because the Plan 182 implementation does not exist yet.",
+  "semanticAssessment": "The named test executed and failed on the intended API assertion; no syntax, collection, fixture, or unrelated test failure occurred."
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "plan": "133-209",
+  "decision_provenance": [
+    "user decision this session: Archive patch, then clean",
+    "user decision this session: Keep and commit the code fixes"
+  ],
+  "base_commit": "c7c2413254f64530105f9aca5fcd10ad87b40730",
+  "captured_at": "2026-10-14T13:31:46.395Z",
+  "patch_path": ".planning/forensics/133-209-inherited-dirt/inherited.patch",
+  "patch_sha256": "7d61c0ada9ffebcd17aab8c854445be45b1d6b06147bef49377fd6e30eb7ed50",
+  "paths": [
+    {
+      "path": ".planning/ROADMAP.md",
+      "state": "modified",
+      "head_sha256": "7df1b924822f35f0f47bbd17381484a1ba8d122913507ba8425812312f99365d",
+      "worktree_sha256": "e075e9e23077923b3c8c58605ff41dcaccc7f994836658b7c73118da6e2c3677",
+      "diff_sha256": "f2f94dc042c3d10ac3e1c55f272316c7bd4dd04abc1f10a25fcf092f939d1897",
+      "pinned": false
+    },
+    {
+      "path": ".planning/STATE.md",
+      "state": "modified",
+      "head_sha256": "c34d00b8b04bf147528a52bbf6ee0ab0d97e7f3ac5f80921613f38700abeb76d",
+      "worktree_sha256": "ce113c4f2e3d77062edc73e20601ba0a67034161bf86dc93e4c572b598f51d12",
+      "diff_sha256": "ea220fe64479d433e6e958117bdb81745d44051b9f0fd619fd748ec5bb979d96",
+      "pinned": false
+    },
+    {
+      "path": ".planning/state.json",
+      "state": "modified",
+      "head_sha256": "f5edf28d069bb005c1643117531764e811a40fba8d53a6119b23c1a3575a9357",
+      "worktree_sha256": "afa2add4a6c4bbb6439c259e34a34d5994716c4b98f0b1dfb31e59e36c5f2652",
+      "diff_sha256": "5c0164ac01339ac1de545afa0cf507295b0effd9298db35b678a5d21495d1752",
+      "pinned": false
+    },
+    {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/.continue-here.md",
+      "state": "modified",
+      "head_sha256": "769fc2b37b8a3fab6f6549dc11865714163b3118cf149fc567081bb5aeb53603",
+      "worktree_sha256": "3f53f234065194dc3d63550a16b350e00cf315054abd3e9edd1987fdf0805967",
+      "diff_sha256": "68e1512d7476439243e019da6314e59312fb755694c8328ed8fb43a65dca6f4a",
+      "pinned": false
+    },
+    {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-VERIFICATION.md",
+      "state": "modified",
+      "head_sha256": "fe40033925ab538b70b8aa4d32a96e6a4985c2f4a11eb01dc87815ef1d97f13a",
+      "worktree_sha256": "92af2cffbf8000593b51429f6e39b4744a5d42510ad229428ea512fa6af8258f",
+      "diff_sha256": "066acdb75f69ca0953a0b7051750f66a4f08ff83c121c4360061c252477b2d91",
+      "pinned": false
+    },
+    {
+      "path": "scripts/maintainer/phase_133_registry_compat_139.exs",
+      "state": "modified",
+      "head_sha256": "f7035a1a9d463c712fae89643a0c2369bded8e10dcc7f41e0f437b0d1f0a7379",
+      "worktree_sha256": "ea7e62922fb822593ba6f4958cbf0691ac874494bea54951ce247e097442b0ad",
+      "diff_sha256": "fd3c39ca82dc7f76d8008ba36abe0d824a5fd7a95be41e2f0553532c62cb1605",
+      "pinned": true
+    },
+    {
+      "path": "test/install_smoke/phase_133_registry_compat_138_test.exs",
+      "state": "modified",
+      "head_sha256": "f9ef58647c0fe5ea29a5bb8aeb08567be24a36c9d03649a034c9c00752e12cb6",
+      "worktree_sha256": "74c19a8c24ce6d43a3398534a1714e3d423f7a3bc7a9a506fd12141616bfa7df",
+      "diff_sha256": "1fe398eb024193511353c8711b49ae5e7066789ea12a9a3d5275b9dea68fcbdd",
+      "pinned": true
+    },
+    {
+      "path": "test/install_smoke/phase_133_registry_compat_139_test.exs",
+      "state": "modified",
+      "head_sha256": "03d843d0313d083f7bf5460bbc058b3625136a96d401cf47d24aa57f09e05588",
+      "worktree_sha256": "270b77434917cb4caadca99e52f15fca9ff3b78ed4c1304eb34710868f253cd7",
+      "diff_sha256": "778dbc50453d63e4ea42cc175d9804de1a7038a9a23154e1ae1c9be7ef80c07a",
+      "pinned": true
+    },
+    {
+      "path": "test/install_smoke/phase_133_registry_compat_test.exs",
+      "state": "modified",
+      "head_sha256": "d36e30ab2394638ef61aae959fabbb237d90f9b67e6e4bc5553dcd9ac57d12e5",
+      "worktree_sha256": "0a218d84f1816ac5e09f770e384de5f44c118b2577e305c36bfe1af8918cac16",
+      "diff_sha256": "ddcc445fc3e4bd6fd717cc9e7e142a133b1304f170ca045bd3b290e680f86489",
+      "pinned": true
+    },
+    {
+      "path": "test/planning_path_hygiene_test.exs",
+      "state": "modified",
+      "head_sha256": "1a9420aab6a7e218aed1accee09c299221bc571d0ffce4b2177227a0e7f1b336",
+      "worktree_sha256": "f694b6b7878dc05c5acb980871ac1afeb092fb75a3a178d5bcb6a07b29ddafa4",
+      "diff_sha256": "6155f0303550ba8016db699585e6cfcba8d2ebddeb9be17eb1203ea17f315b37",
+      "pinned": true
+    }
+  ],
+  "lock": {
+    "path": ".planning/milestone.lock",
+    "sha256": "089110c5b9322f5cdc3194135e8661e64ad5c6596639ba98497ab2a203c567e4",
+    "copy_path": ".planning/forensics/133-209-inherited-dirt/milestone.lock.copy",
+    "copy_sha256": "089110c5b9322f5cdc3194135e8661e64ad5c6596639ba98497ab2a203c567e4",
+    "pid": 91863,
+    "pid_alive_at_capture": false,
+    "pid_alive_note": "informational at capture only; removal liveness is decided solely by the Task 3 ps -p check immediately before removal"
+  },
+  "lossless_proof": {
+    "script": ".planning/forensics/133-209-inherited-dirt/verify_lossless.sh",
+    "method": "disposable detached worktree at base_commit; git apply --check --binary and git apply --binary of inherited.patch; per-path pre-image sha256, re-derived whole-diff sha256 and lock-copy sha256 asserted",
+    "required_exit": 0
+  },
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ]
+}

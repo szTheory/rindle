@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_ci_forensics_diagnostic",
+  "status": "missing_terminal",
+  "subject_sha": "60ccc124c0b42bf8f2ee47456e6cfec839d6c299",
+  "subject_tree": "cdb14d310c706ed42ea8c57a87c8311c6110adb9",
+  "worktree_id": "b2c3c1135f9fa6ee99544a67ddf82f06ae1b023cf0050a809a498a2218f58cf4",
+  "worktree": {
+    "detached": true,
+    "clean_before_run": true
+  },
+  "toolchain": {
+    "elixir": "1.17.3",
+    "otp": "27",
+    "selected_erlang": "27.3.4.15",
+    "selected_elixir": "1.17.3-otp-27"
+  },
+  "setup": {
+    "toolchain": {
+      "command": "asdf current erlang; asdf current elixir; elixir -e System.version; erl -noshell -eval erlang:system_info(otp_release)",
+      "selected_erlang": "27.3.4.15",
+      "selected_elixir": "1.17.3-otp-27",
+      "elixir": "1.17.3",
+      "otp": "27",
+      "status": "verified",
+      "output": {
+        "asdf_erlang": {
+          "sha256": "e59d67e7f3322f19b16313ffb663321bbbbe465231293e59f70b837db0070998",
+          "original_bytes": 119,
+          "lines": [],
+          "truncated": false
+        },
+        "asdf_elixir": {
+          "sha256": "4a8cad40d3a68c8c3fe7fb69b3d9c5757b8640db1e12feb1f815ae8bdb300d2c",
+          "original_bytes": 119,
+          "lines": [],
+          "truncated": false
+        },
+        "elixir": {
+          "sha256": "13862e6c8e8c6e965934d6408e4769592039786efdaf6ed13e7100328fbb7769",
+          "original_bytes": 6,
+          "lines": [],
+          "truncated": false
+        },
+        "otp": {
+          "sha256": "670671cd97404156226e507973f2ab8330d3022ca96e0c93bdbdb320c41adcaf",
+          "original_bytes": 2,
+          "lines": [],
+          "truncated": false
+        }
+      }
+    },
+    "dependencies": {
+      "name": "deps_get",
+      "command": "mix deps.get",
+      "started": true,
+      "exit_code": 0,
+      "output": {
+        "sha256": "69ea4ad553a0c81230f057f0f43d0dc6117594a7d5146029c80986bdc3ae9ed4",
+        "original_bytes": 5991,
+        "lines": [],
+        "truncated": false
+      }
+    },
+    "jose_preflight": {
+      "name": "jose_preflight",
+      "command": "mix run --no-start --no-deps-check --no-compile -e <focused JOSE structure and Elixir compile>",
+      "started": true,
+      "exit_code": 0,
+      "output": {
+        "sha256": "efc92c8e5b0bbd8cceaeac969a1d7b537c7bb93c7519744c5c5bcee24830aaa6",
+        "original_bytes": 59814,
+        "lines": [
+          "     warning: :jose_jwk.to_pem/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_pem/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_pem_file/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_pem_file/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_public/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_public_file/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_public_key/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_public_map/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.to_thumbprint_map/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.block_decrypt/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.block_encrypt/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.block_encrypt/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.block_encryptor/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_decrypt/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt/4 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_decrypt_ecdh_1pu/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_1pu/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_1pu/4 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_1pu/5 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_decrypt_ecdh_es/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_es/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_es/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_es/4 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_decrypt_ecdh_ss/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_ss/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_ss/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.box_encrypt_ecdh_ss/4 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.generate_key/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.merge/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.shared_secret/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.sign/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     warning: :jose_jwk.sign/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      warning: :jose_jwk.signer/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      warning: :jose_jwk.thumbprint/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      warning: :jose_jwk.thumbprint/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      warning: :jose_jwk.verifier/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      warning: :jose_jwk.verify/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      warning: :jose_jwk.verify_strict/3 is undefined (module :jose_jwk is not available or is yet to be defined)"
+        ],
+        "truncated": true
+      },
+      "stage_verified": true
+    }
+  },
+  "ci": {
+    "command": "mix ci",
+    "started": true,
+    "exit_code": 1,
+    "terminal_summary": null,
+    "terminal_summary_status": "missing",
+    "summary_lines": [],
+    "nested_summaries": [],
+    "test_count": null,
+    "failure_count": null,
+    "output": {
+      "sha256": "d64ece47fd5d90220b19be6f492b1c38f5e4fd2e6ee115bc18783d9adc623f9a",
+      "original_bytes": 6277,
+      "lines": [
+        "== Compilation error in file lib/jose/jwt.ex ==",
+        "** (RuntimeError) error parsing file <diagnostic-worktree>/_build/test/lib/jose/include/jose_jwt.hrl, got: {:error, :enoent}",
+        "could not compile dependency :jose, \"mix compile\" failed. Errors may have been logged above. You can recompile this dependency with \"mix deps.compile jose --force\", update it with \"mix deps.update jose\" or clean it with \"mix deps.clean jose\""
+      ],
+      "truncated": true
+    },
+    "failure_blocks": [],
+    "doctor_fingerprint": null,
+    "diagnosis": "missing_terminal"
+  },
+  "remote_action": "none",
+  "qualification": "diagnostic_only",
+  "blocker": null,
+  "raw_logs_removed_after_publication": true
+}

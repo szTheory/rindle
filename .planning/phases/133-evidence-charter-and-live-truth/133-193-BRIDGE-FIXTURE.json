@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "plan": "133-193",
+  "status": "fixture_only",
+  "nonce": "6ea0e4bf4a28dc0f7962ec8501c2e59b53c79cc3601f7737",
+  "mode": "fixture",
+  "root_identity_sha256": "be977efea5d7f6cbd68030d8ae9c0fae87cef0242efb42a415a795f873324452",
+  "source": {
+    "bridge_core_sha256": "835c4aa3a80299ae4e99fbcfca3ab74f6b222648632fc5a885fea60f87807b97",
+    "bridge_observed_blob": "9360b53f4058a600fb4f3cb142658529e6744df3",
+    "capture_sha256": "7e57a03fbfeaa7ad1806dd1f203f457a9d65260a38cbe330b18e886a0128448b",
+    "capture_blob": "bb40508a7aa237db3d055128496a064219b2fb42"
+  },
+  "command_sha256": "8db48c6b1062c70cc6e3023eafa7e0c11b0029ab9bec775b58fe0049e27bd745",
+  "request": {
+    "chunks": 1,
+    "bytes": 343,
+    "sha256": "0d6e44ad9f6b216a899d045a65254cedee4584725c894825ba16519f56bacbf7"
+  },
+  "result": {
+    "chunks": 1,
+    "bytes": 1056,
+    "sha256": "b40a6d1f47e899a7ea17aac1452b6726b1ea4cfec8ec2e08829bb061f6c72209"
+  },
+  "response": {
+    "keys": [
+      "chunk_id",
+      "wall_time_seconds",
+      "exit_code",
+      "original_token_count",
+      "output"
+    ],
+    "unavailable": [
+      "session_id"
+    ],
+    "chunk_id": "f83e8a",
+    "wall_time_seconds": 0.000005708,
+    "exit_code": 0,
+    "original_token_count": 216,
+    "output_bytes": 864,
+    "output_sha256": "01ce20beb9ce3e96b12b9c6bd998b6984632042a1e634575109f3ff21cf694ec"
+  },
+  "child_witness_sha256": "b34d28750a6582d969f4576f9c6475e350ab59aeea146d889a1ce813cfb5a6c7",
+  "relied_on_adapter_variables": [
+    "GSD_WORKTREE_PATH"
+  ],
+  "effects": {
+    "actual_host_guard": false,
+    "producer_invocations": 0,
+    "production_clones": 0,
+    "mix_invocations": 0,
+    "network_requests": 0,
+    "remote_mutations": 0,
+    "authorization": 0,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  }
+}

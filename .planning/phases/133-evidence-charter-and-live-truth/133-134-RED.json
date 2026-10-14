@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-name-pattern='Plan 134 freezes the exact mux request only from compatible readiness and verified live bytes' test/install_smoke/phase_133_registry_supply_test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: Plan 134 freezes the exact mux request only from compatible readiness and verified live bytes\nnot ok 1 - Plan 134 freezes the exact mux request only from compatible readiness and verified live bytes\n  ---\n  duration_ms: 2.040042\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p134-escalated-1791560070/test/install_smoke/phase_133_registry_supply_test.mjs:83:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    compatible readiness must freeze an executable request tuple\n    + actual - expected\n    \n    + undefined\n    - 'frozen'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'frozen'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p134-escalated-1791560070/test/install_smoke/phase_133_registry_supply_test.mjs:85:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 174.967417\n",
+  "targetTest": "Plan 134 freezes the exact mux request only from compatible readiness and verified live bytes",
+  "targetFile": "test/install_smoke/phase_133_registry_supply_test.mjs",
+  "expected": "A frozen exact mux request tuple from authenticated compatible readiness and live bytes",
+  "actual": "Undefined: the Plan 134 preflight builder does not yet exist",
+  "semanticAssessment": "The named test executed and failed its strict equality assertion: compatible verified input must freeze status frozen, but the absent implementation produced undefined. No setup, import, syntax or unrelated assertion failed."
+}

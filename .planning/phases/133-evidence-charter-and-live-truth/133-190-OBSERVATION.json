@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "plan": "133-190",
+  "status": "halted_untrusted",
+  "collection_branch": "verified_no_attempt",
+  "root_sha256": "e071851347d67e0e4697266230aac9e2797386d7d35aefc77e2283a7caab7391",
+  "source": {
+    "commit": "5e938789d7d9c9770b113bf0da5fb40b0b3b818a",
+    "tree": "c82efc684351afacd218f37b896311ff63a5d1e4",
+    "origin": "committed",
+    "files": {
+      "scripts/maintainer/phase_133_registry_collection_190.mjs": "eee65e17ac954c04534a01b74eb1fd4783d42bdab653c96faefd66b9ec4f0b7a",
+      "scripts/maintainer/phase_133_registry_collection_190.test.mjs": "03d3f57c5eb4cda5d913c5876af4c589eca68660f2e6a750e313b95c6f253444"
+    }
+  },
+  "receipts": {
+    "133-190-DIAGNOSTIC.json": {
+      "present": true,
+      "bytes": 8953,
+      "raw_sha256": "23f22ac69f7bfcca15cb84094d32a9ac8b0c24887c0ebfd897678bf23a754d43",
+      "status": "red",
+      "producer_invocations": 1
+    },
+    "133-190-PREPARATION.json": { "present": false },
+    "133-190-OUTCOME.json": {
+      "present": true,
+      "bytes": 2225,
+      "raw_sha256": "3e0074b2b4fe8dad67e8c0cf3c7d5be1072c6a3916861b8a0c93fcb0fdd508ed",
+      "status": "no_attempt",
+      "producer_invocations": 1
+    }
+  },
+  "parent": {
+    "plan": "133-189",
+    "raw_sha256": "874f09d78251f34f91f44159f7c5d0b742ff017507b8adaf066235527012e277"
+  },
+  "tool_request": {
+    "command": "node scripts/maintainer/phase_133_registry_collection_190.mjs collect-producer --plan 133-190",
+    "sandbox_permissions": "require_escalated"
+  },
+  "tool_result_capture": {
+    "status": "failed_before_persistence",
+    "error": "ReferenceError: btoa is not defined",
+    "actual_result": null,
+    "metadata_state": "The nested structured result was not retained; its available IDs and metadata cannot be determined from the surviving record. No result fields are inferred or reconstructed."
+  },
+  "effects": {
+    "producer_invocations": 1,
+    "attempt_count": 0,
+    "authorization": 0,
+    "qualification_children": 0,
+    "external_network_requests": 0,
+    "remote_requests": 0,
+    "remote_mutations": 0,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "requirements_pending": ["EVID-01", "EVID-02", "EVID-03", "EVID-04", "TRUTH-08"],
+  "unresolved_edge_rows": 11
+}

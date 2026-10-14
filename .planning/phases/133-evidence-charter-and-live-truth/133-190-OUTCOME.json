@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "plan": "133-190",
+  "status": "no_attempt",
+  "source": {
+    "sha": "5e938789d7d9c9770b113bf0da5fb40b0b3b818a",
+    "tree": "c82efc684351afacd218f37b896311ff63a5d1e4"
+  },
+  "reason": "producer_exit",
+  "diagnostic_sha256": "32d176987a641bbfdca568e27f995e1f61c4dc29029a3b25e70afaf5d241ffb7",
+  "preparation_sha256": null,
+  "authorization_sha256": null,
+  "producer_invocations": 1,
+  "attempt_count": 0,
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "published": {
+    "diagnostic": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-190-DIAGNOSTIC.json",
+      "sha256": "23f22ac69f7bfcca15cb84094d32a9ac8b0c24887c0ebfd897678bf23a754d43",
+      "report_sha256": "32d176987a641bbfdca568e27f995e1f61c4dc29029a3b25e70afaf5d241ffb7"
+    }
+  },
+  "report_sha256": "2c20352a531646ba8c1bd10b83852319d4b7968f4e675616229c2c5ad784f966"
+}

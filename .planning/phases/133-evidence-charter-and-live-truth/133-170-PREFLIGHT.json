@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "plan": "133-170",
+  "status": "ready",
+  "source": {
+    "sha": "56738a56e794a28e8a81b8bd7022d42ffd260cef",
+    "tree": "36343762ed4cc183af9ceea4148a6d9192d7de60"
+  },
+  "registry_qualification_result": {
+    "plan": "133-qualification-preflight",
+    "status": "ready",
+    "source": {
+      "sha": "56738a56e794a28e8a81b8bd7022d42ffd260cef",
+      "tree": "36343762ed4cc183af9ceea4148a6d9192d7de60"
+    },
+    "registry_closure_plan": "133-155",
+    "registry_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+    "required_names": 96,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "registry_qualification_sha256": "70af9b1c36fc14cfa0f2a549282e3356cd09c8ff0b1f3c3988be1012603abf75",
+  "plan155_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+  "plan155_route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "supply_sha256": "47c5463a42447424053dc9281660e7a95040891fc8bf2f1c59dfd84bf77333a8",
+  "registry_cache_sha256": "35f5abd731719fdfa26122661c5f0836c67e25e886660cbdcead4e79dec09078",
+  "lock_sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+  "runtime": {
+    "status": "available",
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15",
+    "nif": "2.17",
+    "target": "aarch64-apple-darwin",
+    "installs": {
+      "erlang": "/Users/jon/.asdf/installs/erlang/27.3.4.15",
+      "elixir": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27"
+    },
+    "executables": {
+      "elixir": {
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "sha256": "43dc3fd3babb0feebdafbcbba5700b37e59fad2088c252baac2dff5e2e2917ab"
+      },
+      "erl": {
+        "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+        "sha256": "2e40b559320422aed8e521a43906da5978914104f7556045bc353ec059f16957"
+      },
+      "mix": {
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/mix",
+        "sha256": "e532d1674db8c27b1a00edeb659cd57ab78e90d6aa60dac1eb4414c5a9029225"
+      }
+    },
+    "otp_version_file": {
+      "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/releases/27/OTP_VERSION",
+      "sha256": "eee643b6b95e2d8c5bc418efd168c3b98aba8321bce262a80291b4391723500f"
+    },
+    "beam": {
+      "otp": "27",
+      "root": "/Users/jon/.asdf/installs/erlang/27.3.4.15"
+    },
+    "env": {
+      "ASDF_ERLANG_VERSION": "27.3.4.15",
+      "ASDF_ELIXIR_VERSION": "1.17.3-otp-27",
+      "HEX_OFFLINE": "1",
+      "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.local/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Applications/Little Snitch.app/Contents/Components:/usr/local/go/bin:/Users/jon/.codex/packages/app-server-daemon/releases/0.162.1-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0POa5x3:/Users/jon/.codex/tmp/arg0/codex-arg0nb20N9:/Users/jon/.asdf/installs/nodejs/26.10.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/jon/.asdf/installs/nodejs/26.10.0/bin:/Users/jon/.unity/bin:/Users/jon/.local/bin:/Users/jon/.asdf/installs/python/2.7.18/bin:/Users/jon/.asdf/shims:/opt/homebrew/bin:/Users/jon/Library/Application Support/JetBrains/Toolbox/scripts"
+    }
+  },
+  "guard_identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+  "network_guard": {
+    "status": "available",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "launcher": "/usr/bin/sandbox-exec",
+    "executable": "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+    "host_context": {
+      "platform": "darwin",
+      "node_executable": "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+      "actual_host_requested": true,
+      "context": "macOS executor process"
+    },
+    "control_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+      "-e",
+      "process.exit(0)"
+    ],
+    "control_exit": 0,
+    "denied_child_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+      "-e",
+      "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+    ],
+    "denied_child_exit": 77,
+    "denial_witness": "EPERM",
+    "denial_output": "POLICY_DENIAL:EPERM",
+    "probe": "loopback-listen",
+    "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/phase133-execution"
+  },
+  "command": [
+    "bash",
+    "scripts/maintainer/phase_133_local_gates.sh",
+    "--subject",
+    "56738a56e794a28e8a81b8bd7022d42ffd260cef",
+    "--plan",
+    "133-170",
+    "--offline-cache",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-170-SUPPLY.json",
+    "--output",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-170-LOCAL-GATES.json"
+  ],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "requirements_completed": [],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "qualification_credit": 0,
+  "qualification_attempt_count": 0,
+  "network_request_count": 0,
+  "child_commands": {
+    "qualification": 0,
+    "network_fetch": 0,
+    "remote": 0
+  },
+  "report_sha256": "4dfbfa55ec3e1a69f4da62612459798ef1bb85128b4d6e669e45b95441bfd416"
+}

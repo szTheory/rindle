@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "plan": "133-200",
+  "status": "authenticated_zero_credit",
+  "fixture_only": false,
+  "branch": "preparation_only",
+  "nonce": "7390165702f6b35b60b4433314b6ae1a14c189e42001",
+  "source": {
+    "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+    "tree": "c7fb233b5d273d2a1f105355769870f0d6333919",
+    "files": {
+      "scripts/maintainer/phase_133_registry_collection_200.mjs": {
+        "sha256": "d1fe7acfc7842ee9302fe5f6e99c963f654240e000c17954e79cc418215cb1da",
+        "blob": "dabadd3756483425194e050caad514d35da3f5bd"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200.test.mjs": {
+        "sha256": "0affc5099e953ae7e3571a447d6717b63b27a5cbc3188f4f92863ae555c85496",
+        "blob": "15dd4940abab92fd6845db492e22b50e6e418797"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200_verify.mjs": {
+        "sha256": "011057b56803ba73b5aef33749b898dfd9e70490f8caa73e8e84eb5747583326",
+        "blob": "48dae339cb9e28180dfbf817dd9c8426123fb47d"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200_verify.test.mjs": {
+        "sha256": "566635b1394e618fac76507dc57107276ab2d3a68c60e9040d4eecc584870f40",
+        "blob": "46285b62f241fcc42b3bbf141fe76bdc1fcbcb49"
+      },
+      "scripts/maintainer/phase_133_tool_capture_191.mjs": {
+        "sha256": "7e57a03fbfeaa7ad1806dd1f203f457a9d65260a38cbe330b18e886a0128448b",
+        "blob": "bb40508a7aa237db3d055128496a064219b2fb42"
+      },
+      "scripts/maintainer/phase_133_worktree_bridge_193.mjs": {
+        "sha256": "60ada51da95ce2d94f8305c90be857bbeb668cc22754ae4bf007393ce4dff5fa",
+        "blob": "478da784e2246a0fa72964a3e6c1de5082a31507"
+      },
+      "scripts/maintainer/phase_133_tool_chain_195.mjs": {
+        "sha256": "fe4c6e6a51b1b44a996f1fe2b6d307d7c6a80f7a001b85ba51b13a55304fca22",
+        "blob": "a9b08f9854716ddfb655a8451d0c2818b11cf5a3"
+      },
+      "scripts/maintainer/phase_133_local_supply.mjs": {
+        "sha256": "6dffcbc687e03c29db298d7aedf120f7fc5a2269abd293ed88fab9b32f78336c",
+        "blob": "4a23f6b321ad97bdac9ef9988130a68ef4ddb891"
+      },
+      "scripts/maintainer/phase_133_recovery.mjs": {
+        "sha256": "6256668639d9c69cb282d2f5744aa486bf5e6813bca9f357ba70f9e039eeb094",
+        "blob": "b14eff04ffb1ff443cb79b59d7a13c37f2f67ff3"
+      },
+      "scripts/maintainer/phase_133_registry_producer_179.mjs": {
+        "sha256": "d7de9650341f523324487a8ffa1254d4bfa9014cc030887da9d031b40eba6df3",
+        "blob": "2f0556a7235d621465c8dd1a75a2526a353ff11b"
+      },
+      "scripts/maintainer/phase_133_registry_closure_154.mjs": {
+        "sha256": "58cbb05bc59ae2477708977d86cbb706192b28e1cd45c38fd053339e833c6d27",
+        "blob": "26ec187060a10a66f230c06b6afe88744eb3d81b"
+      }
+    },
+    "producer_pin": {
+      "path": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "version": "22.14.0",
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "report_raw_sha256": "74fb95f020a8a0a451dc9513b5b5006326193f716177bf4800e3b7620f994c28",
+      "report_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+      "launcher": "/usr/bin/sandbox-exec"
+    },
+    "history_contract": {
+      "status": "verified_history",
+      "checked_source_count": 16,
+      "checked_digest_count": 115,
+      "qualification_credit": 0,
+      "authority_sha256": "12db9ffdad968a915e793c956b4699ae25f9b56251d235ebd981db687cd10cdc"
+    }
+  },
+  "history": {
+    "status": "verified_history",
+    "checked_source_count": 16,
+    "checked_digest_count": 115,
+    "qualification_credit": 0,
+    "authority_sha256": "12db9ffdad968a915e793c956b4699ae25f9b56251d235ebd981db687cd10cdc"
+  },
+  "root_identity_sha256": "498943654999d0b0796f5904edb465ad6079d7ed2cf7195397de4baf462d95b2",
+  "fresh_fixture": {
+    "nonce": "7390165702f6b35b60b4433314b6ae1a14c189e467c816e2",
+    "proof_sha256": "03b4139234c9fe84ed6a8160d68cdf544afc88d8a2a2e43be5165132920ef48c",
+    "summary_sha256": "f7e10f05ce3164bf3c68dbca5affa30782215b557475a62e5357343189c6ee4c",
+    "root_identity_sha256": "498943654999d0b0796f5904edb465ad6079d7ed2cf7195397de4baf462d95b2",
+    "source_sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+    "source_tree": "c7fb233b5d273d2a1f105355769870f0d6333919",
+    "source": {
+      "chain_core_sha256": "ed670b13af34171168e80845c9a92d4d7244865235c2a2a878ee730b719eddf0",
+      "chain_core_blob": "b570ebe862dff3cf88f6da141a489e147d2304a6",
+      "capture_sha256": "7e57a03fbfeaa7ad1806dd1f203f457a9d65260a38cbe330b18e886a0128448b",
+      "capture_blob": "bb40508a7aa237db3d055128496a064219b2fb42",
+      "bridge_sha256": "60ada51da95ce2d94f8305c90be857bbeb668cc22754ae4bf007393ce4dff5fa",
+      "bridge_blob": "478da784e2246a0fa72964a3e6c1de5082a31507"
+    },
+    "calls": 2
+  },
+  "chain": {
+    "status": "verified_chain",
+    "nonce": "7390165702f6b35b60b4433314b6ae1a14c189e42001",
+    "mode": "production",
+    "session_id": null,
+    "exit_code": 0,
+    "transcript_bytes": 991,
+    "output_bytes": 254,
+    "output_sha256": "9502a7e9004446ebfef79a6e2bbe2ddfc0d74c18dbe2e0906720465fc1c943d5",
+    "calls": [
+      {
+        "index": 0,
+        "tool": "exec_command",
+        "call_nonce": "7390165702f6b35b60b4433314b6ae1a14c189e4c001",
+        "request": {
+          "chunks": 1,
+          "bytes": 608,
+          "sha256": "543d4775401fdd70dba0349376464c5c5f293402b79a075129e8ee26dc86784b"
+        },
+        "result": {
+          "chunks": 1,
+          "bytes": 383,
+          "sha256": "8a426e91b81d2e0bd6a64cc6fd07cf36255d77ea74b0fe38e4ec367438514854"
+        },
+        "response": {
+          "keys": [
+            "chunk_id",
+            "wall_time_seconds",
+            "exit_code",
+            "original_token_count",
+            "output"
+          ],
+          "unavailable": [
+            "session_id"
+          ],
+          "chunk_id": "5b480e",
+          "wall_time_seconds": 27.076371375,
+          "exit_code": 0,
+          "original_token_count": 64,
+          "output_bytes": 254,
+          "output_sha256": "9502a7e9004446ebfef79a6e2bbe2ddfc0d74c18dbe2e0906720465fc1c943d5"
+        }
+      }
+    ]
+  },
+  "receipts": {
+    "DIAGNOSTIC": {
+      "bytes": 18128,
+      "raw_sha256": "9f2b1e07ea5f56c44547758e636da13cd40e30d8fcc99e6a691094c54c007993",
+      "canonical_sha256": "c09dbd357821a31184eb99f7d3370530f8100270e15c877f1a84d3dc52104fe9",
+      "status": "ready",
+      "source": {
+        "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+        "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+      },
+      "producer_invocations": 1
+    },
+    "PREPARATION": {
+      "bytes": 2529,
+      "raw_sha256": "022682cdc193faa34249ac6f5f78d3d393a219dc16c5609117459b95b5690bf9",
+      "canonical_sha256": "9f5a0fbaed4dcfb94d6daa8c414f0d47e4b5d81119f831597d9f593bde12221b",
+      "status": "preparation_only",
+      "source": {
+        "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+        "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+      },
+      "producer_invocations": null
+    },
+    "OUTCOME": {
+      "bytes": 2770,
+      "raw_sha256": "602e7a036d210a6891cc87d9c5826c009eb8007ceff1daeeccef9f98f7077d4f",
+      "canonical_sha256": "4ce327c3f566007437119ecb71d60e3d0bd360ee416fe759b7738e2a89b65804",
+      "status": "preparation_only",
+      "source": {
+        "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+        "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+      },
+      "producer_invocations": 1
+    }
+  },
+  "runtime_failure": null,
+  "runtime_identity": {
+    "pin": {
+      "path": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "version": "22.14.0",
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "report_raw_sha256": "74fb95f020a8a0a451dc9513b5b5006326193f716177bf4800e3b7620f994c28",
+      "report_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+      "launcher": "/usr/bin/sandbox-exec"
+    },
+    "report_verified": true,
+    "inspected": {
+      "exists": true,
+      "physical": true,
+      "regular": true,
+      "symlink": false,
+      "executable": true,
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+    },
+    "version": {
+      "started": true,
+      "status": "observed",
+      "exit_code": 0,
+      "error": null,
+      "stdout_bytes": 9,
+      "stdout_sha256": "7703fd79909af9b17df6395137bee2b07c3f3b27b6e96e18c909f433cce84f19",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "value": "22.14.0"
+    },
+    "pinned_guard": {
+      "status": "passed",
+      "platform": "darwin",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "control": {
+        "started": true,
+        "status": "observed",
+        "exit_code": 0,
+        "error": null,
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "process.exit(0)"
+        ]
+      },
+      "denial": {
+        "started": true,
+        "status": "observed",
+        "exit_code": 77,
+        "error": null,
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 20,
+        "stderr_sha256": "277d707cbbab0f667cefca45414c4d17740e2e2d89c47d4eabcfa7a67c7fe708",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+        ]
+      },
+      "witness": "EPERM",
+      "proof": {
+        "status": "available",
+        "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "profile": "(version 1) (allow default) (deny network*)",
+        "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "launcher": "/usr/bin/sandbox-exec",
+        "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p200-inline",
+        "host_context": {
+          "platform": "darwin",
+          "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "actual_host_requested": true,
+          "context": "macOS executor process"
+        },
+        "control_argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "process.exit(0)"
+        ],
+        "control_exit": 0,
+        "denied_child_argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+        ],
+        "denied_child_exit": 77,
+        "denial_witness": "EPERM",
+        "denial_output": "POLICY_DENIAL:EPERM",
+        "probe": "loopback-listen"
+      }
+    }
+  },
+  "parent_guard": {
+    "proof": {
+      "status": "available",
+      "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "launcher": "/usr/bin/sandbox-exec",
+      "executable": "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+      "host_context": {
+        "platform": "darwin",
+        "node_executable": "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+        "actual_host_requested": true,
+        "context": "macOS executor process"
+      },
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "control_exit": 0,
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/26.10.0/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "denied_child_exit": 77,
+      "denial_witness": "EPERM",
+      "denial_output": "POLICY_DENIAL:EPERM",
+      "probe": "loopback-listen",
+      "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p200-inline"
+    },
+    "observed": {
+      "stage": "host_guard",
+      "source": {
+        "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+        "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+      },
+      "actual_host_requested": true,
+      "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "count": 2,
+      "control": {
+        "started": true,
+        "status": "passed",
+        "exit_code": 0,
+        "error": null,
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "role": "control",
+        "command_role": "network_guard_control"
+      },
+      "denial": {
+        "started": true,
+        "status": "failed",
+        "exit_code": 77,
+        "error": null,
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 20,
+        "stderr_sha256": "277d707cbbab0f667cefca45414c4d17740e2e2d89c47d4eabcfa7a67c7fe708",
+        "role": "denial",
+        "command_role": "network_guard_denial"
+      },
+      "guard_status": "available",
+      "guard_reason": null,
+      "platform": "darwin"
+    }
+  },
+  "private_stderr": {
+    "retained": true,
+    "audit_nonce": "04f77b142ce405ba61a199575104cc3f6ccd3c99",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "diagnostic_code": null,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "unresolved_edge_rows": 11
+}

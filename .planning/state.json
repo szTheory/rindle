@@ -1,0 +1,48 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
+  "phases": [
+    {
+      "number": "133",
+      "name": "Evidence Charter and Live Truth",
+      "status": "in_progress"
+    },
+    {
+      "number": "134",
+      "name": "Dependency, Security, and Inbox Disposition",
+      "status": "pending"
+    },
+    {
+      "number": "135",
+      "name": "Repository and Code-Craft Consolidation",
+      "status": "pending"
+    },
+    {
+      "number": "136",
+      "name": "Measured Quality and CI Ratchets",
+      "status": "pending"
+    },
+    {
+      "number": "137",
+      "name": "Built-Package Twin Foundation",
+      "status": "pending"
+    },
+    {
+      "number": "138",
+      "name": "Lifecycle Failure and Recovery Matrix",
+      "status": "pending"
+    },
+    {
+      "number": "139",
+      "name": "Exact-Head Readiness Closure",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:plan-phase 133 --gaps",
+    "label": "Plan fresh adapter environment/capture repair",
+    "reason": "Plan192 is terminal before reservation; no ready gap plan remains; require separately reviewed distinct-source successor."
+  },
+  "updated_at": "2026-10-13T15:46:48.277425+00:00"
+}

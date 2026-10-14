@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-reporter=tap --test-name-pattern='portable verifier authenticates committed Plan 140 compatibility history' test/install_smoke/phase_133_compatibility_bridge_141_test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: portable verifier authenticates committed Plan 140 compatibility history\nnot ok 1 - portable verifier authenticates committed Plan 140 compatibility history\n  ---\n  duration_ms: 1.261625\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p141-1791555694/test/install_smoke/phase_133_compatibility_bridge_141_test.mjs:12:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    portable Plan 140 history verifier must exist\n    + actual - expected\n    \n    + 'undefined'\n    - 'function'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'function'\n  actual: 'undefined'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p141-1791555694/test/install_smoke/phase_133_compatibility_bridge_141_test.mjs:13:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 69.082792\n",
+  "targetTest": "portable verifier authenticates committed Plan 140 compatibility history",
+  "targetFile": "test/install_smoke/phase_133_compatibility_bridge_141_test.mjs",
+  "expected": "A portable Plan 140 history verifier is exported and authenticates committed compatibility evidence.",
+  "actual": "The target assertion reports the verifier export is undefined.",
+  "semanticAssessment": "Test collection and imports completed; the named target failed its explicit availability assertion because the planned production verifier does not yet exist."
+}

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_registry_dns_diagnostic",
+  "plan": "133-148",
+  "root": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+  "profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+  "original_profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\"))",
+  "offline_profile": "(version 1) (allow default) (deny network*)",
+  "runtime": {
+    "elixir": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+    "otp_bin": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin"
+  },
+  "node": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+  "children": {
+    "host": {
+      "stage": "host",
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-e",
+        "\npatch = File.read!(Path.join([:code.root_dir() |> List.to_string(), \"releases\", :erlang.system_info(:otp_release) |> List.to_string(), \"OTP_VERSION\"])) |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported DNS runtime\")\ncase :inet.getaddr(~c\"repo.hex.pm\", :inet) do\n  {:ok, address} -> IO.puts(\"DNS_PROOF \" <> (:json.encode(%{host: \"repo.hex.pm\", family: \"inet\", address: Tuple.to_list(address), elixir: System.version(), otp_patch: patch, registry_requests: 0}) |> IO.iodata_to_binary()))\n  {:error, reason} -> IO.puts(:stderr, \"DNS_UNAVAILABLE:\" <> Atom.to_string(reason)); System.halt(78)\nend\n"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin"
+      },
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "DNS_PROOF {\"family\":\"inet\",\"address\":[151,101,193,91],\"host\":\"repo.hex.pm\",\"elixir\":\"1.17.3\",\"otp_patch\":\"27.3.4.15\",\"registry_requests\":0}\n",
+      "stderr": "",
+      "stdout_sha256": "feb19864d1f0d5b1ada2db5cae408750b1f10b2781d9d5fb12cb9d51f9ed8712",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "original": {
+      "stage": "original",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\"))",
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-e",
+        "\npatch = File.read!(Path.join([:code.root_dir() |> List.to_string(), \"releases\", :erlang.system_info(:otp_release) |> List.to_string(), \"OTP_VERSION\"])) |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported DNS runtime\")\ncase :inet.getaddr(~c\"repo.hex.pm\", :inet) do\n  {:ok, address} -> IO.puts(\"DNS_PROOF \" <> (:json.encode(%{host: \"repo.hex.pm\", family: \"inet\", address: Tuple.to_list(address), elixir: System.version(), otp_patch: patch, registry_requests: 0}) |> IO.iodata_to_binary()))\n  {:error, reason} -> IO.puts(:stderr, \"DNS_UNAVAILABLE:\" <> Atom.to_string(reason)); System.halt(78)\nend\n"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin"
+      },
+      "exit_code": 78,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "DNS_UNAVAILABLE:nxdomain\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "28641fe3287f2f5d2beeb19213487e673e2cbb8431f0e46affcff5841d331c58"
+    },
+    "repaired": {
+      "stage": "repaired",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-e",
+        "\npatch = File.read!(Path.join([:code.root_dir() |> List.to_string(), \"releases\", :erlang.system_info(:otp_release) |> List.to_string(), \"OTP_VERSION\"])) |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported DNS runtime\")\ncase :inet.getaddr(~c\"repo.hex.pm\", :inet) do\n  {:ok, address} -> IO.puts(\"DNS_PROOF \" <> (:json.encode(%{host: \"repo.hex.pm\", family: \"inet\", address: Tuple.to_list(address), elixir: System.version(), otp_patch: patch, registry_requests: 0}) |> IO.iodata_to_binary()))\n  {:error, reason} -> IO.puts(:stderr, \"DNS_UNAVAILABLE:\" <> Atom.to_string(reason)); System.halt(78)\nend\n"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin"
+      },
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "DNS_PROOF {\"family\":\"inet\",\"address\":[151,101,193,91],\"host\":\"repo.hex.pm\",\"elixir\":\"1.17.3\",\"otp_patch\":\"27.3.4.15\",\"registry_requests\":0}\n",
+      "stderr": "",
+      "stdout_sha256": "feb19864d1f0d5b1ada2db5cae408750b1f10b2781d9d5fb12cb9d51f9ed8712",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "control": {
+      "stage": "control",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin"
+      },
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "loopback": {
+      "stage": "loopback",
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/p148-dns-recovery",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin"
+      },
+      "exit_code": 77,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "POLICY_DENIAL:EPERM\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "277d707cbbab0f667cefca45414c4d17740e2e2d89c47d4eabcfa7a67c7fe708"
+    }
+  },
+  "registry_requests": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "c88bc20a1b8b6e649fbbd19a819bd87e0a045af3d80966a438ecb4f30295d0ab"
+}

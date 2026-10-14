@@ -1,0 +1,1362 @@
+{
+  "schema_version": 1,
+  "plan": "133-155",
+  "status": "available",
+  "route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "authorization_sha256": "d99eda710c2a9d6be9a3ff4f3ca1df59619c7ad937036d4b652a2582cf9b2990",
+  "retrieval_sha256": "37301cc555d5e17332d83be48e33d57eb9c820079800cac341c1000fbd290485",
+  "preflight_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+  "source": {
+    "sha": "d17595d3465956c8edd216e1e04d2bc99dbd9552",
+    "tree": "6ff2ff127bd2ff473e5658eb9a8f966f29c538d4"
+  },
+  "edge_sha256": "b7accea2b673f3bdc6991a1a570a69720b4da0559eebc19083cb2bdcf8482be5",
+  "required_names": [
+    "bandit",
+    "brotli",
+    "bunt",
+    "bypass",
+    "castore",
+    "cc_precompiler",
+    "color",
+    "configparser_ex",
+    "cowboy",
+    "cowboy_telemetry",
+    "cowlib",
+    "credo",
+    "db_connection",
+    "decimal",
+    "dialyxir",
+    "doctor",
+    "earmark_parser",
+    "ecto",
+    "ecto_sql",
+    "ecto_sqlite3",
+    "elixir_make",
+    "erlex",
+    "evision",
+    "ex_aws",
+    "ex_aws_s3",
+    "ex_doc",
+    "ex_machina",
+    "ex_marcel",
+    "excoveralls",
+    "exla",
+    "file_system",
+    "finch",
+    "fine",
+    "fuse",
+    "gcs_signed_url",
+    "goth",
+    "gun",
+    "hackney",
+    "hpax",
+    "ibrowse",
+    "igniter",
+    "image",
+    "jason",
+    "jose",
+    "jsx",
+    "junit_formatter",
+    "kino",
+    "lazy_html",
+    "makeup",
+    "makeup_c",
+    "makeup_elixir",
+    "makeup_erlang",
+    "makeup_html",
+    "mime",
+    "mint",
+    "mix_audit",
+    "mox",
+    "msgpax",
+    "muontrap",
+    "mux",
+    "myxql",
+    "nimble_csv",
+    "nimble_options",
+    "nimble_ownership",
+    "nimble_parsec",
+    "nimble_pool",
+    "nx",
+    "nx_image",
+    "oban",
+    "opentelemetry_semantic_conventions",
+    "phoenix",
+    "phoenix_html",
+    "phoenix_live_view",
+    "phoenix_pubsub",
+    "phoenix_template",
+    "phoenix_view",
+    "plug",
+    "plug_cowboy",
+    "plug_crypto",
+    "poison",
+    "postgrex",
+    "ranch",
+    "req",
+    "rustler",
+    "scholar",
+    "sweet_xml",
+    "table",
+    "tds",
+    "telemetry",
+    "tesla",
+    "vix",
+    "websock",
+    "websock_adapter",
+    "xav",
+    "yamerl",
+    "yaml_elixir"
+  ],
+  "missing_names": [],
+  "existing_names": [
+    "bunt",
+    "bypass",
+    "cc_precompiler",
+    "color",
+    "cowboy",
+    "cowboy_telemetry",
+    "cowlib",
+    "credo",
+    "db_connection",
+    "decimal",
+    "dialyxir",
+    "doctor",
+    "earmark_parser",
+    "ecto",
+    "ecto_sql",
+    "elixir_make",
+    "erlex",
+    "ex_aws",
+    "ex_aws_s3",
+    "ex_doc",
+    "ex_machina",
+    "ex_marcel",
+    "excoveralls",
+    "file_system",
+    "finch",
+    "fine",
+    "gcs_signed_url",
+    "goth",
+    "hpax",
+    "image",
+    "jason",
+    "jose",
+    "junit_formatter",
+    "lazy_html",
+    "makeup",
+    "makeup_elixir",
+    "makeup_erlang",
+    "mime",
+    "mint",
+    "mix_audit",
+    "mox",
+    "muontrap",
+    "mux",
+    "nimble_options",
+    "nimble_ownership",
+    "nimble_parsec",
+    "nimble_pool",
+    "oban",
+    "phoenix",
+    "phoenix_html",
+    "phoenix_live_view",
+    "phoenix_pubsub",
+    "phoenix_template",
+    "plug",
+    "plug_cowboy",
+    "plug_crypto",
+    "postgrex",
+    "ranch",
+    "req",
+    "sweet_xml",
+    "telemetry",
+    "tesla",
+    "vix",
+    "websock",
+    "websock_adapter",
+    "yamerl",
+    "yaml_elixir"
+  ],
+  "cache": {
+    "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/registry/cache.ets",
+    "sha256": "35f5abd731719fdfa26122661c5f0836c67e25e886660cbdcead4e79dec09078"
+  },
+  "objects": [
+    {
+      "package": "bandit",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/bandit.signed.gz",
+      "sha256": "75dd82e0e62f187631bf68cfbdacf3e115dab5cbee1e78d50fd2ed1422bc0fa1"
+    },
+    {
+      "package": "brotli",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/brotli.signed.gz",
+      "sha256": "f0a90c662301da20e780e093c617c02e5758724cbff4c309d90a4cdb0d052296"
+    },
+    {
+      "package": "bunt",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/bunt.signed.gz",
+      "sha256": "a0e266fa6e5ab025e0e01885d8de58678e30b907aefbf7e8be974f2169f762c7"
+    },
+    {
+      "package": "bypass",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/bypass.signed.gz",
+      "sha256": "6b3e42fa2a0f5e78e312a221cee4c763b14393d5b87769faa232f914807c2248"
+    },
+    {
+      "package": "castore",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/castore.signed.gz",
+      "sha256": "1674cae036750d0fb148c1658d5dc867522a6287bd99c7ad5aaaaefa05b232c0"
+    },
+    {
+      "package": "cc_precompiler",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/cc_precompiler.signed.gz",
+      "sha256": "e74be91ccb8a67cfb6dfb6b07a8ba0ce1e6f86f7ffa2236d286e16c237faeb8e"
+    },
+    {
+      "package": "color",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/color.signed.gz",
+      "sha256": "26ac4ac9c8767a5d0497548939abbf2fe548ef3e1792784fe61b3ef2793d8f47"
+    },
+    {
+      "package": "configparser_ex",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/configparser_ex.signed.gz",
+      "sha256": "0c51ffb1dd08e80491a08a2655f32d49791130d7ddcf4e313753a8d47efc0702"
+    },
+    {
+      "package": "cowboy",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/cowboy.signed.gz",
+      "sha256": "35802c5e0075d2add565117a48a8d99c52b7425d088781daa6104fe91d616068"
+    },
+    {
+      "package": "cowboy_telemetry",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/cowboy_telemetry.signed.gz",
+      "sha256": "5dd9e30466f1a0f3fd2772a58a87351e2eb365f57c9ced523d61483240bba792"
+    },
+    {
+      "package": "cowlib",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/cowlib.signed.gz",
+      "sha256": "a777286d8a64b2b3c569ead1f63bd7428a4efd66d2410762a15c0ad2553b9b97"
+    },
+    {
+      "package": "credo",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/credo.signed.gz",
+      "sha256": "ca161f58ba292df47d605d29083b5a93925bfb4e7a78f9e796fe2b2ef4452054"
+    },
+    {
+      "package": "db_connection",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/db_connection.signed.gz",
+      "sha256": "d05872487bb6bd5c554fb9d564e9c90c4792840313d5171baf8d2909ad2f8744"
+    },
+    {
+      "package": "decimal",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/decimal.signed.gz",
+      "sha256": "6319b18c3c45d436cb148767aaeab90eb48a569d82b7d108d05136e786d55f19"
+    },
+    {
+      "package": "dialyxir",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/dialyxir.signed.gz",
+      "sha256": "cc4743f6ccf3a928ce5c65f8ac04402641daa5d99ec89528a4b648eb1a713154"
+    },
+    {
+      "package": "doctor",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/doctor.signed.gz",
+      "sha256": "9dbfdbb13b62cf313a6850de574e974db6594803a4a3bbc5aef0ee4bafcaffd1"
+    },
+    {
+      "package": "earmark_parser",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/earmark_parser.signed.gz",
+      "sha256": "76e931e987119ca38d675cd1054431eae5ba807c379eb8be1a867e2b537a5f87"
+    },
+    {
+      "package": "ecto",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ecto.signed.gz",
+      "sha256": "a77a4968f90b9ade6b87198d5161d5738ee70d023a5e6ac019bddedf61255fb3"
+    },
+    {
+      "package": "ecto_sql",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ecto_sql.signed.gz",
+      "sha256": "e945888622dbaa9f5382235403c014e01cb1716d14c6d3b65c6de5da4c038b1e"
+    },
+    {
+      "package": "ecto_sqlite3",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ecto_sqlite3.signed.gz",
+      "sha256": "9f80d37c1ef1a5528dd823a58de6e39130efbcb178b1e08774bb1230f5561ed5"
+    },
+    {
+      "package": "elixir_make",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/elixir_make.signed.gz",
+      "sha256": "06d8083ba8f3eaf1228a7b151e333afbcdcecc0e19445106fda9d8e118be21d5"
+    },
+    {
+      "package": "erlex",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/erlex.signed.gz",
+      "sha256": "4e5eed56cb09df95961f8df1ab4a46f53e6071469fcc548d058095fad08beb14"
+    },
+    {
+      "package": "evision",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/evision.signed.gz",
+      "sha256": "95136c900750c2aeb8aa9991a0cfee6de6149d873739bcbbdb641d5e9a489506"
+    },
+    {
+      "package": "ex_aws",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ex_aws.signed.gz",
+      "sha256": "e7182c51179e7994b32547d28b178448b480dddb02b9576d28731ede4c531830"
+    },
+    {
+      "package": "ex_aws_s3",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ex_aws_s3.signed.gz",
+      "sha256": "c46ac6827a67b9ab58643bb2cf20e4eb8d7bfa9922ff36a3d0ccac92ce7317cc"
+    },
+    {
+      "package": "ex_doc",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ex_doc.signed.gz",
+      "sha256": "a33747bfb464b8bf4a1c0253ee5ca42f385e2409e06375a925d7ca28dae1515f"
+    },
+    {
+      "package": "ex_machina",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ex_machina.signed.gz",
+      "sha256": "22975c18249c713b31ed63002d54752a8c5e41da17f8a2694f996fd0c7a77d49"
+    },
+    {
+      "package": "ex_marcel",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ex_marcel.signed.gz",
+      "sha256": "679002de921f30c8e392d77dfe0c1279a9d17f358edc2e13eb57ade73742a321"
+    },
+    {
+      "package": "excoveralls",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/excoveralls.signed.gz",
+      "sha256": "e5216b13bea4b57cab6cc5c1d48efb4b2fab3f77a1407be79f89033aa2f0ee23"
+    },
+    {
+      "package": "exla",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/exla.signed.gz",
+      "sha256": "965af6bf51c67516d4e7dabc756188ae7d4cbcdf7a61cc801ff53c080d5cfc00"
+    },
+    {
+      "package": "file_system",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/file_system.signed.gz",
+      "sha256": "9e1b95fc33b1c0607bb7fba8a3ed3723c8dfd0b01ea782fa788ddba1740acb43"
+    },
+    {
+      "package": "finch",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/finch.signed.gz",
+      "sha256": "e153865b78c4bb7cfe4b15885cc861f85619ca3fd26ba43b75fb2308966d2783"
+    },
+    {
+      "package": "fine",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/fine.signed.gz",
+      "sha256": "62a1ddcff0be62e762bd5952fccdee3708856889632368d4ce061a3a993e920e"
+    },
+    {
+      "package": "fuse",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/fuse.signed.gz",
+      "sha256": "3a0a295454f7ede9c6ce11f9515d7193438e984027f5193e6888b2e0a777f555"
+    },
+    {
+      "package": "gcs_signed_url",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/gcs_signed_url.signed.gz",
+      "sha256": "24e5acd41f3ed2f1af674232fe80c4a9c0ea253bc55f0c3cab886b2702cca91a"
+    },
+    {
+      "package": "goth",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/goth.signed.gz",
+      "sha256": "48ab151dc298432d10b5fba449ee4748d7eaffb61bb5b2064fb97da446a21e46"
+    },
+    {
+      "package": "gun",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/gun.signed.gz",
+      "sha256": "66c23319912ef20f1edf34a2bdbf3dcb6e3fdf5113c2ea0b894359b394a1677b"
+    },
+    {
+      "package": "hackney",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/hackney.signed.gz",
+      "sha256": "db8d02cb0d4dea5afdb11dce511f4c630162eae66e4acc9411294db1774162fe"
+    },
+    {
+      "package": "hpax",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/hpax.signed.gz",
+      "sha256": "c6def73a373229b34f4790caf55c32056cdbca79cc27ce5494516078ba1d78f2"
+    },
+    {
+      "package": "ibrowse",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ibrowse.signed.gz",
+      "sha256": "fc25057a527b4b5ae017aee3294e107d4ef93f7b9f9dcdb17da1311777838de2"
+    },
+    {
+      "package": "igniter",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/igniter.signed.gz",
+      "sha256": "872756cc7da7a3164fc6bde744edfe2a9624dcf4f07736e51564823ec6b3d28f"
+    },
+    {
+      "package": "image",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/image.signed.gz",
+      "sha256": "6e6fd16bf4d9e6c9d359cfe0ee05a03f9186ae881e707e3ef3bf99af7ddaac65"
+    },
+    {
+      "package": "jason",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/jason.signed.gz",
+      "sha256": "aa566c242ad5747605754261faf5dfa901a4c0918e7855b57ed71c2d7834f31c"
+    },
+    {
+      "package": "jose",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/jose.signed.gz",
+      "sha256": "0600f46e16d3eba8525e82eb8bafd0712ad86308ae0fb8dc0af236425cd9388c"
+    },
+    {
+      "package": "jsx",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/jsx.signed.gz",
+      "sha256": "c5dd0f08a9c279ae42a44e5bdfa18f245dcc1589e7b96d6a6478e348f083cfa8"
+    },
+    {
+      "package": "junit_formatter",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/junit_formatter.signed.gz",
+      "sha256": "cf5736e26eaafc035f25b155dde84230315bfbd2dd36dfa82c1f3031ed0f3744"
+    },
+    {
+      "package": "kino",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/kino.signed.gz",
+      "sha256": "03b90357d1b7bbfd0060e4f0889c2561b13d47289c7d6a0af9ecce536642fd1f"
+    },
+    {
+      "package": "lazy_html",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/lazy_html.signed.gz",
+      "sha256": "9c018a0d3e01295b139784b05a4059079008f77d5fdce561a60985b3d11f5196"
+    },
+    {
+      "package": "makeup",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/makeup.signed.gz",
+      "sha256": "6152f9189418afd84ee72b74ed088d0c58b49248bf7d927a441877169d0c2053"
+    },
+    {
+      "package": "makeup_c",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/makeup_c.signed.gz",
+      "sha256": "9ecd1b061b7cf168b9d6b274d52536f14efdbcb8e47ffd9e5472d0ec2ab1b677"
+    },
+    {
+      "package": "makeup_elixir",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/makeup_elixir.signed.gz",
+      "sha256": "b71e8580dcd15b18abfae75d6bc13d888fea65f9060a78c640a1370921a2e3e7"
+    },
+    {
+      "package": "makeup_erlang",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/makeup_erlang.signed.gz",
+      "sha256": "8b6449c7185b20ef3f334f7aa9c465b0d3ff440b57686780197ab7f987256d64"
+    },
+    {
+      "package": "makeup_html",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/makeup_html.signed.gz",
+      "sha256": "86a056fadd20f0606d08d7b62dbdefbc1a5069e016ee65ad03580f80f2a81625"
+    },
+    {
+      "package": "mime",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/mime.signed.gz",
+      "sha256": "59d38b9d0ab2fe63dc5110d082f98e08c731b0dae19d3be77a1b5bd023bdda0b"
+    },
+    {
+      "package": "mint",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/mint.signed.gz",
+      "sha256": "13fc604cf65bc148a3d6d9e008774fbe6a17ed2de0bc79f9226dfda3c3be1dff"
+    },
+    {
+      "package": "mix_audit",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/mix_audit.signed.gz",
+      "sha256": "525ecc7c412e48d7f60df6d0dbb9a0f3aea77bbfa2ec563f316571631b8eccfa"
+    },
+    {
+      "package": "mox",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/mox.signed.gz",
+      "sha256": "7f3764be50add005240b6f36db45ba1f1623e3c0ba7ba786fed0f869072e0ec7"
+    },
+    {
+      "package": "msgpax",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/msgpax.signed.gz",
+      "sha256": "d45b4f686357e573a77381ad5e9dbb78d357be85e015bf8d7450d7edc892a512"
+    },
+    {
+      "package": "muontrap",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/muontrap.signed.gz",
+      "sha256": "229a5cd84ce0afba9ee911468f3442159ae0f30031206bca61e3f8730fec7312"
+    },
+    {
+      "package": "mux",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/mux.signed.gz",
+      "sha256": "5cb6161aa8b0841ce153542d2b0c76e01ee72108562a9197f8d7e26b0356e412"
+    },
+    {
+      "package": "myxql",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/myxql.signed.gz",
+      "sha256": "3b9f3323269dc629e6b183d0f19c3f0ec58eb0e5d7a064f8c133880399cb87f0"
+    },
+    {
+      "package": "nimble_csv",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nimble_csv.signed.gz",
+      "sha256": "b2e4aa166b1eb1bf0191ef4347087b314bd3cef5e28dae694a1798485a13c107"
+    },
+    {
+      "package": "nimble_options",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nimble_options.signed.gz",
+      "sha256": "8cecb806224e434ddd06950a23ac036c82be5ec461fa4d45eae46f5484044187"
+    },
+    {
+      "package": "nimble_ownership",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nimble_ownership.signed.gz",
+      "sha256": "f0189754607bed3c705195b2adb8c06cdca3da5cad8d3e3e5cbed9a8d78b3268"
+    },
+    {
+      "package": "nimble_parsec",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nimble_parsec.signed.gz",
+      "sha256": "0b14ea3b0b03b4714f6fca8ce525f3ba8560e6e20a873a096c1b683c0cb768f5"
+    },
+    {
+      "package": "nimble_pool",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nimble_pool.signed.gz",
+      "sha256": "4fb03ae7e47cb0b1c48b1003e1a9b50aa2ef329af844e4243bf704bd3bcaaf54"
+    },
+    {
+      "package": "nx",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nx.signed.gz",
+      "sha256": "44a63221ebc7bb772919875f7cd5327a8cee858ad3c08ed2097c3b92ebb48a8e"
+    },
+    {
+      "package": "nx_image",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/nx_image.signed.gz",
+      "sha256": "ef5f3f0519c012201045446f82699cd62e76720475913164b6aa519c83029f2e"
+    },
+    {
+      "package": "oban",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/oban.signed.gz",
+      "sha256": "2b871144546e6d0bec1d0235b5ec396fd3340f252bf3667b00a61d100965c258"
+    },
+    {
+      "package": "opentelemetry_semantic_conventions",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/opentelemetry_semantic_conventions.signed.gz",
+      "sha256": "67dc59674595ab02346474fcc527ddc3b615584e7d4088847a6a229e81a0e6ea"
+    },
+    {
+      "package": "phoenix",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/phoenix.signed.gz",
+      "sha256": "84f5b68dae2eea1125968509e51f6a78ead826b235691896811f68e762043ef7"
+    },
+    {
+      "package": "phoenix_html",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/phoenix_html.signed.gz",
+      "sha256": "c6b95894daef85a41ec01cf00cba9dd790e3dec1fe00ca5b4974fe238fd2d8c5"
+    },
+    {
+      "package": "phoenix_live_view",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/phoenix_live_view.signed.gz",
+      "sha256": "6d756079f419c150945ef72e81db133ce943158a4e74e31b50b5a892ad0276d8"
+    },
+    {
+      "package": "phoenix_pubsub",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/phoenix_pubsub.signed.gz",
+      "sha256": "793518fc6c342b86fbb60306bea253b7384f4d91ae92ed5c71008c41ab0e4497"
+    },
+    {
+      "package": "phoenix_template",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/phoenix_template.signed.gz",
+      "sha256": "60380f5c080469d0fdc84218449af1ae0f459d0b21560ed4db52ae6435c4ff1a"
+    },
+    {
+      "package": "phoenix_view",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/phoenix_view.signed.gz",
+      "sha256": "560e4cae00dec7c0940283958401612e8cb36bc8c902485e2d3457217c5cf4e1"
+    },
+    {
+      "package": "plug",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/plug.signed.gz",
+      "sha256": "57f81879f1bbc634e1bc4e0f5eec9299eca875e9a766552c7237399edfd7ea9a"
+    },
+    {
+      "package": "plug_cowboy",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/plug_cowboy.signed.gz",
+      "sha256": "ad5428d529ccbb311f52c4c6373c40812eae61170b71341b72092d065b585bc6"
+    },
+    {
+      "package": "plug_crypto",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/plug_crypto.signed.gz",
+      "sha256": "a78f9dc35764303ac0d6961b95e51bffef63dd701e8ec1d5a254026b35fe5222"
+    },
+    {
+      "package": "poison",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/poison.signed.gz",
+      "sha256": "0afdf12dfde66135051b458d785dac2fb0758eda91bb748649d3f05f129aa94c"
+    },
+    {
+      "package": "postgrex",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/postgrex.signed.gz",
+      "sha256": "e9970d723ee32ecd4f9c528397bc573ea5f38c14a29f32e11d41a59ae02b3585"
+    },
+    {
+      "package": "ranch",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/ranch.signed.gz",
+      "sha256": "24f1afc9401a2238ffc2d8a280601f023913f795f7fa4ca2bb950024fce1e0cd"
+    },
+    {
+      "package": "req",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/req.signed.gz",
+      "sha256": "5e745c8e9d916a9d9cf55765f938b9d65054b4b88a283068250c9c956a9c37b9"
+    },
+    {
+      "package": "rustler",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/rustler.signed.gz",
+      "sha256": "801156d64b5b9944893b5116a9c405895ee79cf8d45939809f49c2f3c593c7fa"
+    },
+    {
+      "package": "scholar",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/scholar.signed.gz",
+      "sha256": "caa8bb73802cf3ab526bb9d165d691565714a895323f8e35dfcd71ec95f6d052"
+    },
+    {
+      "package": "sweet_xml",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/sweet_xml.signed.gz",
+      "sha256": "6f045d9657670a0c7126acdb937c1950fac2570a3385ff7eb593a4ae08e745d3"
+    },
+    {
+      "package": "table",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/table.signed.gz",
+      "sha256": "d9563971294b79e253d6c0f12bda8799def3fceeb47341b27fb66c869def2e66"
+    },
+    {
+      "package": "tds",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/tds.signed.gz",
+      "sha256": "56ac81e3c39661f108b5198c8145ffc280f7cbe7c22f0b4f32897d39bdf35cf4"
+    },
+    {
+      "package": "telemetry",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/telemetry.signed.gz",
+      "sha256": "fe2b6250f416cd49823559af428c41bfbc44970e829358ca5dca653d0e6a87cf"
+    },
+    {
+      "package": "tesla",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/tesla.signed.gz",
+      "sha256": "4b6ae1e89a87e118429fa16e632c2e1c4166163b697bb868261328e2e34666a1"
+    },
+    {
+      "package": "vix",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/vix.signed.gz",
+      "sha256": "4f4e2dab6bfeed1113b35ffab841e51b66ae7b597daec5f1d6b953956b474a74"
+    },
+    {
+      "package": "websock",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/websock.signed.gz",
+      "sha256": "c888f6b380619570409c21bebcdfe33579a7620e0f67eedcb09c4eeb5f083ce3"
+    },
+    {
+      "package": "websock_adapter",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/websock_adapter.signed.gz",
+      "sha256": "e4e0f7e670af3a8ee1b21550bcd360a4af9ec3226b1c4ba9aaa13ba79a9511bc"
+    },
+    {
+      "package": "xav",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/xav.signed.gz",
+      "sha256": "57043ddad5923185994fa35262ea79a818b197f1793d9d03bb99fc228f07d952"
+    },
+    {
+      "package": "yamerl",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/yamerl.signed.gz",
+      "sha256": "3c0878d6e0a673e86a17ae8be02695c0ea1f45c7ec9e2b8deb3386c81222e8dc"
+    },
+    {
+      "package": "yaml_elixir",
+      "path": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8/yaml_elixir.signed.gz",
+      "sha256": "7a53a9987933db3b3afa7b7889e7b00a5e89056993422ff63b2fec918f2ee1f9"
+    }
+  ],
+  "records": [
+    {
+      "origin": "hexpm",
+      "name": "bandit",
+      "object_sha256": "75dd82e0e62f187631bf68cfbdacf3e115dab5cbee1e78d50fd2ed1422bc0fa1",
+      "release_count": 124,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "brotli",
+      "object_sha256": "f0a90c662301da20e780e093c617c02e5758724cbff4c309d90a4cdb0d052296",
+      "release_count": 10,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "bunt",
+      "object_sha256": "a0e266fa6e5ab025e0e01885d8de58678e30b907aefbf7e8be974f2169f762c7",
+      "release_count": 10,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "bypass",
+      "object_sha256": "6b3e42fa2a0f5e78e312a221cee4c763b14393d5b87769faa232f914807c2248",
+      "release_count": 14,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "castore",
+      "object_sha256": "1674cae036750d0fb148c1658d5dc867522a6287bd99c7ad5aaaaefa05b232c0",
+      "release_count": 45,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "cc_precompiler",
+      "object_sha256": "e74be91ccb8a67cfb6dfb6b07a8ba0ce1e6f86f7ffa2236d286e16c237faeb8e",
+      "release_count": 11,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "color",
+      "object_sha256": "26ac4ac9c8767a5d0497548939abbf2fe548ef3e1792784fe61b3ef2793d8f47",
+      "release_count": 14,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "configparser_ex",
+      "object_sha256": "0c51ffb1dd08e80491a08a2655f32d49791130d7ddcf4e313753a8d47efc0702",
+      "release_count": 11,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "cowboy",
+      "object_sha256": "35802c5e0075d2add565117a48a8d99c52b7425d088781daa6104fe91d616068",
+      "release_count": 37,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "cowboy_telemetry",
+      "object_sha256": "5dd9e30466f1a0f3fd2772a58a87351e2eb365f57c9ced523d61483240bba792",
+      "release_count": 5,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "cowlib",
+      "object_sha256": "a777286d8a64b2b3c569ead1f63bd7428a4efd66d2410762a15c0ad2553b9b97",
+      "release_count": 39,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "credo",
+      "object_sha256": "ca161f58ba292df47d605d29083b5a93925bfb4e7a78f9e796fe2b2ef4452054",
+      "release_count": 187,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "db_connection",
+      "object_sha256": "d05872487bb6bd5c554fb9d564e9c90c4792840313d5171baf8d2909ad2f8744",
+      "release_count": 54,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "decimal",
+      "object_sha256": "6319b18c3c45d436cb148767aaeab90eb48a569d82b7d108d05136e786d55f19",
+      "release_count": 38,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "dialyxir",
+      "object_sha256": "cc4743f6ccf3a928ce5c65f8ac04402641daa5d99ec89528a4b648eb1a713154",
+      "release_count": 36,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "doctor",
+      "object_sha256": "9dbfdbb13b62cf313a6850de574e974db6594803a4a3bbc5aef0ee4bafcaffd1",
+      "release_count": 23,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "earmark_parser",
+      "object_sha256": "76e931e987119ca38d675cd1054431eae5ba807c379eb8be1a867e2b537a5f87",
+      "release_count": 42,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ecto",
+      "object_sha256": "a77a4968f90b9ade6b87198d5161d5738ee70d023a5e6ac019bddedf61255fb3",
+      "release_count": 194,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ecto_sql",
+      "object_sha256": "e945888622dbaa9f5382235403c014e01cb1716d14c6d3b65c6de5da4c038b1e",
+      "release_count": 65,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ecto_sqlite3",
+      "object_sha256": "9f80d37c1ef1a5528dd823a58de6e39130efbcb178b1e08774bb1230f5561ed5",
+      "release_count": 52,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "elixir_make",
+      "object_sha256": "06d8083ba8f3eaf1228a7b151e333afbcdcecc0e19445106fda9d8e118be21d5",
+      "release_count": 29,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "erlex",
+      "object_sha256": "4e5eed56cb09df95961f8df1ab4a46f53e6071469fcc548d058095fad08beb14",
+      "release_count": 18,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "evision",
+      "object_sha256": "95136c900750c2aeb8aa9991a0cfee6de6149d873739bcbbdb641d5e9a489506",
+      "release_count": 62,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ex_aws",
+      "object_sha256": "e7182c51179e7994b32547d28b178448b480dddb02b9576d28731ede4c531830",
+      "release_count": 91,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ex_aws_s3",
+      "object_sha256": "c46ac6827a67b9ab58643bb2cf20e4eb8d7bfa9922ff36a3d0ccac92ce7317cc",
+      "release_count": 20,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ex_doc",
+      "object_sha256": "a33747bfb464b8bf4a1c0253ee5ca42f385e2409e06375a925d7ca28dae1515f",
+      "release_count": 136,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ex_machina",
+      "object_sha256": "22975c18249c713b31ed63002d54752a8c5e41da17f8a2694f996fd0c7a77d49",
+      "release_count": 25,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ex_marcel",
+      "object_sha256": "679002de921f30c8e392d77dfe0c1279a9d17f358edc2e13eb57ade73742a321",
+      "release_count": 2,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "excoveralls",
+      "object_sha256": "e5216b13bea4b57cab6cc5c1d48efb4b2fab3f77a1407be79f89033aa2f0ee23",
+      "release_count": 90,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "exla",
+      "object_sha256": "965af6bf51c67516d4e7dabc756188ae7d4cbcdf7a61cc801ff53c080d5cfc00",
+      "release_count": 30,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "file_system",
+      "object_sha256": "9e1b95fc33b1c0607bb7fba8a3ed3723c8dfd0b01ea782fa788ddba1740acb43",
+      "release_count": 21,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "finch",
+      "object_sha256": "e153865b78c4bb7cfe4b15885cc861f85619ca3fd26ba43b75fb2308966d2783",
+      "release_count": 41,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "fine",
+      "object_sha256": "62a1ddcff0be62e762bd5952fccdee3708856889632368d4ce061a3a993e920e",
+      "release_count": 7,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "fuse",
+      "object_sha256": "3a0a295454f7ede9c6ce11f9515d7193438e984027f5193e6888b2e0a777f555",
+      "release_count": 12,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "gcs_signed_url",
+      "object_sha256": "24e5acd41f3ed2f1af674232fe80c4a9c0ea253bc55f0c3cab886b2702cca91a",
+      "release_count": 11,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "goth",
+      "object_sha256": "48ab151dc298432d10b5fba449ee4748d7eaffb61bb5b2064fb97da446a21e46",
+      "release_count": 48,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "gun",
+      "object_sha256": "66c23319912ef20f1edf34a2bdbf3dcb6e3fdf5113c2ea0b894359b394a1677b",
+      "release_count": 24,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "hackney",
+      "object_sha256": "db8d02cb0d4dea5afdb11dce511f4c630162eae66e4acc9411294db1774162fe",
+      "release_count": 124,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "hpax",
+      "object_sha256": "c6def73a373229b34f4790caf55c32056cdbca79cc27ce5494516078ba1d78f2",
+      "release_count": 10,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ibrowse",
+      "object_sha256": "fc25057a527b4b5ae017aee3294e107d4ef93f7b9f9dcdb17da1311777838de2",
+      "release_count": 6,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "igniter",
+      "object_sha256": "872756cc7da7a3164fc6bde744edfe2a9624dcf4f07736e51564823ec6b3d28f",
+      "release_count": 210,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "image",
+      "object_sha256": "6e6fd16bf4d9e6c9d359cfe0ee05a03f9186ae881e707e3ef3bf99af7ddaac65",
+      "release_count": 114,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "jason",
+      "object_sha256": "aa566c242ad5747605754261faf5dfa901a4c0918e7855b57ed71c2d7834f31c",
+      "release_count": 20,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "jose",
+      "object_sha256": "0600f46e16d3eba8525e82eb8bafd0712ad86308ae0fb8dc0af236425cd9388c",
+      "release_count": 46,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "jsx",
+      "object_sha256": "c5dd0f08a9c279ae42a44e5bdfa18f245dcc1589e7b96d6a6478e348f083cfa8",
+      "release_count": 28,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "junit_formatter",
+      "object_sha256": "cf5736e26eaafc035f25b155dde84230315bfbd2dd36dfa82c1f3031ed0f3744",
+      "release_count": 21,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "kino",
+      "object_sha256": "03b90357d1b7bbfd0060e4f0889c2561b13d47289c7d6a0af9ecce536642fd1f",
+      "release_count": 51,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "lazy_html",
+      "object_sha256": "9c018a0d3e01295b139784b05a4059079008f77d5fdce561a60985b3d11f5196",
+      "release_count": 14,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "makeup",
+      "object_sha256": "6152f9189418afd84ee72b74ed088d0c58b49248bf7d927a441877169d0c2053",
+      "release_count": 28,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "makeup_c",
+      "object_sha256": "9ecd1b061b7cf168b9d6b274d52536f14efdbcb8e47ffd9e5472d0ec2ab1b677",
+      "release_count": 2,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "makeup_elixir",
+      "object_sha256": "b71e8580dcd15b18abfae75d6bc13d888fea65f9060a78c640a1370921a2e3e7",
+      "release_count": 27,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "makeup_erlang",
+      "object_sha256": "8b6449c7185b20ef3f334f7aa9c465b0d3ff440b57686780197ab7f987256d64",
+      "release_count": 11,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "makeup_html",
+      "object_sha256": "86a056fadd20f0606d08d7b62dbdefbc1a5069e016ee65ad03580f80f2a81625",
+      "release_count": 5,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "mime",
+      "object_sha256": "59d38b9d0ab2fe63dc5110d082f98e08c731b0dae19d3be77a1b5bd023bdda0b",
+      "release_count": 18,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "mint",
+      "object_sha256": "13fc604cf65bc148a3d6d9e008774fbe6a17ed2de0bc79f9226dfda3c3be1dff",
+      "release_count": 31,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "mix_audit",
+      "object_sha256": "525ecc7c412e48d7f60df6d0dbb9a0f3aea77bbfa2ec563f316571631b8eccfa",
+      "release_count": 22,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "mox",
+      "object_sha256": "7f3764be50add005240b6f36db45ba1f1623e3c0ba7ba786fed0f869072e0ec7",
+      "release_count": 17,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "msgpax",
+      "object_sha256": "d45b4f686357e573a77381ad5e9dbb78d357be85e015bf8d7450d7edc892a512",
+      "release_count": 24,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "muontrap",
+      "object_sha256": "229a5cd84ce0afba9ee911468f3442159ae0f30031206bca61e3f8730fec7312",
+      "release_count": 35,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "mux",
+      "object_sha256": "5cb6161aa8b0841ce153542d2b0c76e01ee72108562a9197f8d7e26b0356e412",
+      "release_count": 25,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "myxql",
+      "object_sha256": "3b9f3323269dc629e6b183d0f19c3f0ec58eb0e5d7a064f8c133880399cb87f0",
+      "release_count": 37,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nimble_csv",
+      "object_sha256": "b2e4aa166b1eb1bf0191ef4347087b314bd3cef5e28dae694a1798485a13c107",
+      "release_count": 12,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nimble_options",
+      "object_sha256": "8cecb806224e434ddd06950a23ac036c82be5ec461fa4d45eae46f5484044187",
+      "release_count": 20,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nimble_ownership",
+      "object_sha256": "f0189754607bed3c705195b2adb8c06cdca3da5cad8d3e3e5cbed9a8d78b3268",
+      "release_count": 9,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nimble_parsec",
+      "object_sha256": "0b14ea3b0b03b4714f6fca8ce525f3ba8560e6e20a873a096c1b683c0cb768f5",
+      "release_count": 24,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nimble_pool",
+      "object_sha256": "4fb03ae7e47cb0b1c48b1003e1a9b50aa2ef329af844e4243bf704bd3bcaaf54",
+      "release_count": 10,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nx",
+      "object_sha256": "44a63221ebc7bb772919875f7cd5327a8cee858ad3c08ed2097c3b92ebb48a8e",
+      "release_count": 31,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "nx_image",
+      "object_sha256": "ef5f3f0519c012201045446f82699cd62e76720475913164b6aa519c83029f2e",
+      "release_count": 4,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "oban",
+      "object_sha256": "2b871144546e6d0bec1d0235b5ec396fd3340f252bf3667b00a61d100965c258",
+      "release_count": 109,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "opentelemetry_semantic_conventions",
+      "object_sha256": "67dc59674595ab02346474fcc527ddc3b615584e7d4088847a6a229e81a0e6ea",
+      "release_count": 3,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "phoenix",
+      "object_sha256": "84f5b68dae2eea1125968509e51f6a78ead826b235691896811f68e762043ef7",
+      "release_count": 182,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "phoenix_html",
+      "object_sha256": "c6b95894daef85a41ec01cf00cba9dd790e3dec1fe00ca5b4974fe238fd2d8c5",
+      "release_count": 67,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "phoenix_live_view",
+      "object_sha256": "6d756079f419c150945ef72e81db133ce943158a4e74e31b50b5a892ad0276d8",
+      "release_count": 193,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "phoenix_pubsub",
+      "object_sha256": "793518fc6c342b86fbb60306bea253b7384f4d91ae92ed5c71008c41ab0e4497",
+      "release_count": 18,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "phoenix_template",
+      "object_sha256": "60380f5c080469d0fdc84218449af1ae0f459d0b21560ed4db52ae6435c4ff1a",
+      "release_count": 7,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "phoenix_view",
+      "object_sha256": "560e4cae00dec7c0940283958401612e8cb36bc8c902485e2d3457217c5cf4e1",
+      "release_count": 9,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "plug",
+      "object_sha256": "57f81879f1bbc634e1bc4e0f5eec9299eca875e9a766552c7237399edfd7ea9a",
+      "release_count": 138,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "plug_cowboy",
+      "object_sha256": "ad5428d529ccbb311f52c4c6373c40812eae61170b71341b72092d065b585bc6",
+      "release_count": 29,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "plug_crypto",
+      "object_sha256": "a78f9dc35764303ac0d6961b95e51bffef63dd701e8ec1d5a254026b35fe5222",
+      "release_count": 14,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "poison",
+      "object_sha256": "0afdf12dfde66135051b458d785dac2fb0758eda91bb748649d3f05f129aa94c",
+      "release_count": 24,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "postgrex",
+      "object_sha256": "e9970d723ee32ecd4f9c528397bc573ea5f38c14a29f32e11d41a59ae02b3585",
+      "release_count": 77,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "ranch",
+      "object_sha256": "24f1afc9401a2238ffc2d8a280601f023913f795f7fa4ca2bb950024fce1e0cd",
+      "release_count": 23,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "req",
+      "object_sha256": "5e745c8e9d916a9d9cf55765f938b9d65054b4b88a283068250c9c956a9c37b9",
+      "release_count": 64,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "rustler",
+      "object_sha256": "801156d64b5b9944893b5116a9c405895ee79cf8d45939809f49c2f3c593c7fa",
+      "release_count": 59,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "scholar",
+      "object_sha256": "caa8bb73802cf3ab526bb9d165d691565714a895323f8e35dfcd71ec95f6d052",
+      "release_count": 9,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "sweet_xml",
+      "object_sha256": "6f045d9657670a0c7126acdb937c1950fac2570a3385ff7eb593a4ae08e745d3",
+      "release_count": 21,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "table",
+      "object_sha256": "d9563971294b79e253d6c0f12bda8799def3fceeb47341b27fb66c869def2e66",
+      "release_count": 8,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "tds",
+      "object_sha256": "56ac81e3c39661f108b5198c8145ffc280f7cbe7c22f0b4f32897d39bdf35cf4",
+      "release_count": 75,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "telemetry",
+      "object_sha256": "fe2b6250f416cd49823559af428c41bfbc44970e829358ca5dca653d0e6a87cf",
+      "release_count": 15,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "tesla",
+      "object_sha256": "4b6ae1e89a87e118429fa16e632c2e1c4166163b697bb868261328e2e34666a1",
+      "release_count": 79,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "vix",
+      "object_sha256": "4f4e2dab6bfeed1113b35ffab841e51b66ae7b597daec5f1d6b953956b474a74",
+      "release_count": 52,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "websock",
+      "object_sha256": "c888f6b380619570409c21bebcdfe33579a7620e0f67eedcb09c4eeb5f083ce3",
+      "release_count": 8,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "websock_adapter",
+      "object_sha256": "e4e0f7e670af3a8ee1b21550bcd360a4af9ec3226b1c4ba9aaa13ba79a9511bc",
+      "release_count": 15,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "xav",
+      "object_sha256": "57043ddad5923185994fa35262ea79a818b197f1793d9d03bb99fc228f07d952",
+      "release_count": 16,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "yamerl",
+      "object_sha256": "3c0878d6e0a673e86a17ae8be02695c0ea1f45c7ec9e2b8deb3386c81222e8dc",
+      "release_count": 10,
+      "cache_verified": true
+    },
+    {
+      "origin": "hexpm",
+      "name": "yaml_elixir",
+      "object_sha256": "7a53a9987933db3b3afa7b7889e7b00a5e89056993422ff63b2fec918f2ee1f9",
+      "release_count": 27,
+      "cache_verified": true
+    }
+  ],
+  "coverage": {
+    "required": 96,
+    "authenticated": 96,
+    "missing": [],
+    "status": "complete"
+  },
+  "network_request_count": 29,
+  "authorization_count": 1,
+  "marker_count": 30,
+  "qualification_attempt_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "report_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5"
+}

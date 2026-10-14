@@ -1,0 +1,891 @@
+{
+  "schema_version": 1,
+  "plan": "133-126",
+  "status": "needs_authorization",
+  "source": {
+    "sha": "7b680feb1874f9a098b3343943e2876ca889f87d",
+    "tree": "6a6f269f2b436ff8ae4efbb5c12f1d125390aa75",
+    "lock_sha256": "08f35ae39d131fa767141e1961f6c5c58ca63f3368e69bc9b79d550f4fcc1d49"
+  },
+  "frozen_after_validator_commit": true,
+  "prerequisite_commits": [
+    "5fac9c2713c38ea4a6bfc2b7e159d3c73a270414",
+    "b9db4f2555d494825d71b57a048bb75eb64b5706",
+    "37c123829fa4cc85f743cfd347460556216d07e0",
+    "013f6ac183fadd9c73b361066bc2970b499ca052"
+  ],
+  "prerequisite_blobs": {
+    "scripts/maintainer/phase_133_recovery.test.mjs": "461e7602826bf160bb3d0d3cc59a26ec5d9e220c",
+    "scripts/maintainer/phase_133_local_supply.test.mjs": "fe26a2a051d546dbf92df81437789a522dc9368a",
+    "scripts/maintainer/test_phase_133_local_gates.sh": "629529f9e3ef30cea570f827bdb466a1f437613e",
+    "scripts/maintainer/validate_phase_133_reconciliation.exs": "175b56898cd373bf0072c6d64a7f9b8fa53b310b",
+    "scripts/maintainer/phase_133_plan118_commit.exs": "4a3774131265c738927ec5e2d5160b561e196a18",
+    "test/install_smoke/phase_133_reconciliation_test.exs": "f7b80bc29f6b5cc0716905867dc0c454ef722c85"
+  },
+  "binding_decisions": [
+    "D-01",
+    "D-02",
+    "D-03",
+    "D-04",
+    "D-05",
+    "D-06",
+    "D-07",
+    "D-08",
+    "D-09",
+    "D-10",
+    "D-11",
+    "D-12",
+    "D-13",
+    "D-14",
+    "D-15",
+    "D-16",
+    "D-17"
+  ],
+  "operation": {
+    "url": "https://github.com/lexbor/lexbor.git",
+    "commit": "244b84956a6dc7eec293781d051354f351274c46",
+    "destination": "/Users/jon/.hex/native/lexbor"
+  },
+  "inputs": {
+    "cache": "/Users/jon/.hex",
+    "packages": [
+      {
+        "name": "bunt",
+        "version": "1.0.0",
+        "inner_sha256": "081c2c665f086849e6d57900292b3a161727ab40431219529f13c4ddcf3e7a44",
+        "archive_sha256": "dc5f86aa08a5f6fa6b8096f0735c4e76d54ae5c9fa2c143e5a1fc7c1cd9bb6b5",
+        "relative": "packages/hexpm/bunt-1.0.0.tar"
+      },
+      {
+        "name": "bypass",
+        "version": "2.1.0",
+        "inner_sha256": "909782781bf8e20ee86a9cabde36b259d44af8b9f38756173e8f5e2e1fabb9b1",
+        "archive_sha256": "d9b5df8fa5b7a6efa08384e9bbecfe4ce61c77d28a4282f79e02f1ef78d96b80",
+        "relative": "packages/hexpm/bypass-2.1.0.tar"
+      },
+      {
+        "name": "cc_precompiler",
+        "version": "0.1.11",
+        "inner_sha256": "8c844d0b9fb98a3edea067f94f616b3f6b29b959b6b3bf25fee94ffe34364768",
+        "archive_sha256": "3427232caf0835f94680e5bcf082408a70b48ad68a5f5c0b02a3bea9f3a075b9",
+        "relative": "packages/hexpm/cc_precompiler-0.1.11.tar"
+      },
+      {
+        "name": "color",
+        "version": "0.12.0",
+        "inner_sha256": "f59f9bb6452a460760d44116ec0c1cf86f9d7707c8756c01f83c6d8fe042ae67",
+        "archive_sha256": "1e17768919dad0bd44f48d0daf294d24bdd5a615bbfe0b4e01a51312203bd294",
+        "relative": "packages/hexpm/color-0.12.0.tar"
+      },
+      {
+        "name": "cowboy",
+        "version": "2.18.0",
+        "inner_sha256": "bff388eb4d6356cb3f88c26e65b515976bf04b401b805d31550c3e60eba8fe18",
+        "archive_sha256": "62d0b26abcf455054972b0da242389c69d5982ce5914afb8c344517f667b9600",
+        "relative": "packages/hexpm/cowboy-2.18.0.tar"
+      },
+      {
+        "name": "cowboy_telemetry",
+        "version": "0.4.0",
+        "inner_sha256": "f239f68b588efa7707abce16a84d0d2acf3a0f50571f8bb7f56a15865aae820c",
+        "archive_sha256": "7d98bac1ee4565d31b62d59f8823dfd8356a169e7fcbb83831b8a5397404c9de",
+        "relative": "packages/hexpm/cowboy_telemetry-0.4.0.tar"
+      },
+      {
+        "name": "cowlib",
+        "version": "2.19.0",
+        "inner_sha256": "c9d11c9d035472e27a740c9f327786c61ed209269b4be0260d59d3ec07b8949f",
+        "archive_sha256": "6dc66e3135b229193ea4dcb14294e79520c923d391315c9c962ef0b4bea72356",
+        "relative": "packages/hexpm/cowlib-2.19.0.tar"
+      },
+      {
+        "name": "credo",
+        "version": "1.7.18",
+        "inner_sha256": "5c5596bf7aedf9c8c227f13272ac499fe8eae6237bd326f2f07dfc173786f042",
+        "archive_sha256": "a189d164685fd945809e862fe76a7420c4398fa288d76257662aecb909d6b3e5",
+        "relative": "packages/hexpm/credo-1.7.18.tar"
+      },
+      {
+        "name": "db_connection",
+        "version": "2.10.2",
+        "inner_sha256": "ae391e803a5adff104da913c2fc1c0c14a37f8b10001dcef568796e1fb7bf95c",
+        "archive_sha256": "510b14482330f1af6490a2fa0efd8d4f1435d1529b165647df22ac0f2df0fa93",
+        "relative": "packages/hexpm/db_connection-2.10.2.tar"
+      },
+      {
+        "name": "decimal",
+        "version": "3.1.1",
+        "inner_sha256": "430d87b04011ce6cbd4fd205be758311a81f87d552d40904abd00f015935b1d0",
+        "archive_sha256": "c5f25f2ced74a0587d03e6023f595db8e924c9d3922c8c8ffd9edfc4498cf1f6",
+        "relative": "packages/hexpm/decimal-3.1.1.tar"
+      },
+      {
+        "name": "dialyxir",
+        "version": "1.4.7",
+        "inner_sha256": "dda948fcee52962e4b6c5b4b16b2d8fa7d50d8645bbae8b8685c3f9ecb7f5f4d",
+        "archive_sha256": "b34527202e6eb8cee198efec110996c25c5898f43a4094df157f8d28f27d9efe",
+        "relative": "packages/hexpm/dialyxir-1.4.7.tar"
+      },
+      {
+        "name": "doctor",
+        "version": "0.23.0",
+        "inner_sha256": "f4c2e51f9d50e3a31500e61483aa3e051559891c5b1b14560e74dc7046852412",
+        "archive_sha256": "b8eb63380fa14d9aced609671600359b1fd057da167339c5031b683eb2bac973",
+        "relative": "packages/hexpm/doctor-0.23.0.tar"
+      },
+      {
+        "name": "earmark_parser",
+        "version": "1.4.44",
+        "inner_sha256": "f20830dd6b5c77afe2b063777ddbbff09f9759396500cdbe7523efd58d7a339c",
+        "archive_sha256": "4778ac752b4701a5599215f7030989c989ffdc4f6df457c5f36938cc2d2a2750",
+        "relative": "packages/hexpm/earmark_parser-1.4.44.tar"
+      },
+      {
+        "name": "ecto",
+        "version": "3.13.6",
+        "inner_sha256": "352135b474f91d1ab99a1b502171d207e9db60421c9e3d0ecab4c7ab96b24d14",
+        "archive_sha256": "8afa059bc16cd2c94739ec0a11e3e5df69d828125119109bef35f20a21a76af2",
+        "relative": "packages/hexpm/ecto-3.13.6.tar"
+      },
+      {
+        "name": "ecto_sql",
+        "version": "3.13.5",
+        "inner_sha256": "2f8282b2ad97bf0f0d3217ea0a6fff320ead9e2f8770f810141189d182dc304e",
+        "archive_sha256": "aa36751f4e6a2b56ae79efb0e088042e010ff4935fc8684e74c23b1f49e25fdc",
+        "relative": "packages/hexpm/ecto_sql-3.13.5.tar"
+      },
+      {
+        "name": "elixir_make",
+        "version": "0.10.0",
+        "inner_sha256": "16577e2583a79bb79237bbff349619ef5d80afffc07eac6e4faf0d00e2ddaf7d",
+        "archive_sha256": "dc1f09fb7fa68866b886abd5f0f3c83553b1a19a52359a899e92af1bb3b31982",
+        "relative": "packages/hexpm/elixir_make-0.10.0.tar"
+      },
+      {
+        "name": "erlex",
+        "version": "0.2.8",
+        "inner_sha256": "cd8116f20f3c0afe376d1e8d1f0ae2452337729f68be016ea544a72f767d9c12",
+        "archive_sha256": "9d66ff9fedf69e49dc3fd12831e12a8a37b76f8651dd21cd45fcf5561a8a7590",
+        "relative": "packages/hexpm/erlex-0.2.8.tar"
+      },
+      {
+        "name": "ex_aws",
+        "version": "2.6.1",
+        "inner_sha256": "194582c7b09455de8a5ab18a0182e6dd937d53df82be2e63c619d01bddaccdfa",
+        "archive_sha256": "67842a08c90a1d9a09dbe4ac05754175c7ca253abe4912987c759395d4bd9d26",
+        "relative": "packages/hexpm/ex_aws-2.6.1.tar"
+      },
+      {
+        "name": "ex_aws_s3",
+        "version": "2.5.9",
+        "inner_sha256": "862b7792f2e60d7010e2920d79964e3fab289bc0fd951b0ba8457a3f7f9d1199",
+        "archive_sha256": "a480d2bb2da64610014021629800e1e9457ca5e4a62f6775bffd963360c2bf90",
+        "relative": "packages/hexpm/ex_aws_s3-2.5.9.tar"
+      },
+      {
+        "name": "ex_doc",
+        "version": "0.40.3",
+        "inner_sha256": "4a972ffe64bc07dc605af487e98fc19b72a4185f55ca031b94c0552d6071c1d9",
+        "archive_sha256": "2756e357742fecd9749b489b85d67c9ce99c465f2e75728d9e6dc8d704b973de",
+        "relative": "packages/hexpm/ex_doc-0.40.3.tar"
+      },
+      {
+        "name": "ex_machina",
+        "version": "2.8.0",
+        "inner_sha256": "a0e847b5712065055ec3255840e2c78ef9366634d62390839d4880483be38abe",
+        "archive_sha256": "79fe1a9c64c0c1c1fab6c4fa5d871682cb90de5885320c187d117004627a7729",
+        "relative": "packages/hexpm/ex_machina-2.8.0.tar"
+      },
+      {
+        "name": "ex_marcel",
+        "version": "0.2.0",
+        "inner_sha256": "0aae641f4144ff9d3c37f36dc62e1ee94c4a4e8d34683be8321f9c2c7e459ada",
+        "archive_sha256": "fecf90bfe1cb4097d58ac7d444249afc9e8a314413f82cfb29a8a758ec65fcd5",
+        "relative": "packages/hexpm/ex_marcel-0.2.0.tar"
+      },
+      {
+        "name": "excoveralls",
+        "version": "0.18.5",
+        "inner_sha256": "e229d0a65982613332ec30f07940038fe451a2e5b29bce2a5022165f0c9b157e",
+        "archive_sha256": "523fe8a15603f86d64852aab2abe8ddbd78e68579c8525ae765facc5eae01562",
+        "relative": "packages/hexpm/excoveralls-0.18.5.tar"
+      },
+      {
+        "name": "file_system",
+        "version": "1.1.1",
+        "inner_sha256": "31864f4685b0148f25bd3fbef2b1228457c0c89024ad67f7a81a3ffbc0bbad3a",
+        "archive_sha256": "7a15ff97dfe526aeefb090a7a9d3d03aa907e100e262a0f8f7746b78f8f87a5d",
+        "relative": "packages/hexpm/file_system-1.1.1.tar"
+      },
+      {
+        "name": "finch",
+        "version": "0.23.0",
+        "inner_sha256": "e3f9287ac25a8832f848b144c2b57346aac65b205e2e0629a52adfe6507fd837",
+        "archive_sha256": "80e58d3f936f57e3fdf404f83a3642897ae6d9fb642934e46da4d8fe761b99d5",
+        "relative": "packages/hexpm/finch-0.23.0.tar"
+      },
+      {
+        "name": "fine",
+        "version": "0.1.6",
+        "inner_sha256": "4bf7151493443c454aac9f2fa2f34f5fefd0346a83fb5586a016c4a135c63247",
+        "archive_sha256": "5638eb4495488e885ebec167fa57973e5c35e1a50c344eb7666c90ec1c4e3b12",
+        "relative": "packages/hexpm/fine-0.1.6.tar"
+      },
+      {
+        "name": "gcs_signed_url",
+        "version": "0.6.0",
+        "inner_sha256": "94d8d708f913e2fb60560c04a50252ba90c178665dc49a47e6e44c03e2e9a110",
+        "archive_sha256": "5ad5e4e0de832d774636e12c642a8fedd376522544697934fc06a7ddeeb805aa",
+        "relative": "packages/hexpm/gcs_signed_url-0.6.0.tar"
+      },
+      {
+        "name": "goth",
+        "version": "1.4.5",
+        "inner_sha256": "ee37f96e3519bdecd603f20e7f10c758287088b6d77c0147cd5ee68cf224aade",
+        "archive_sha256": "0fc2dce5bd710651ed179053d0300ce3a5d36afbdde11e500d57f05f398d5ed5",
+        "relative": "packages/hexpm/goth-1.4.5.tar"
+      },
+      {
+        "name": "hpax",
+        "version": "1.0.4",
+        "inner_sha256": "777de5d433b0fbdc7c418159c8055910faa8047ffdb3d6b31098d2a46cd7685c",
+        "archive_sha256": "afc7cb142ebcc2d01ce7816190b98ce5dd49e799111b24249f3443d730f377ca",
+        "relative": "packages/hexpm/hpax-1.0.4.tar"
+      },
+      {
+        "name": "image",
+        "version": "0.65.0",
+        "inner_sha256": "44908233a1a0dcdbb6ae873ec09fd9ae533d1840d300d8b0b1b186d586b935e6",
+        "archive_sha256": "d2060e08d0f42564f49de1ea97a82a5d237f9ac91edb141dece51f1238dd8b4a",
+        "relative": "packages/hexpm/image-0.65.0.tar"
+      },
+      {
+        "name": "jason",
+        "version": "1.4.5",
+        "inner_sha256": "2e3a008590b0b8d7388c20293e9dcc9cf3e5d642fd2a114e4cbbb52e595d940a",
+        "archive_sha256": "b0c823996102bcd0239b3c2444eb00409b72f6a140c1950bc8b457d836b30684",
+        "relative": "packages/hexpm/jason-1.4.5.tar"
+      },
+      {
+        "name": "jose",
+        "version": "1.11.12",
+        "inner_sha256": "06e62b467b61d3726cbc19e9b5489f7549c37993de846dfb3ee8259f9ed208b3",
+        "archive_sha256": "31e92b653e9210b696765cdd885437457de1add2a9011d92f8cf63e4641bab7b",
+        "relative": "packages/hexpm/jose-1.11.12.tar"
+      },
+      {
+        "name": "junit_formatter",
+        "version": "3.4.0",
+        "inner_sha256": "d0e8db6c34dab6d3c4154c3b46b21540db1109ae709d6cf99ba7e7a2ce4b1ac2",
+        "archive_sha256": "bb36e2ae83f1ced6ab931c4ce51dd3dbef1ef61bb4932412e173b0cfa259dacd",
+        "relative": "packages/hexpm/junit_formatter-3.4.0.tar"
+      },
+      {
+        "name": "lazy_html",
+        "version": "0.1.12",
+        "inner_sha256": "31a55ee622918fce988c94b06232227b42daa64e4eab14ac32081d0f3fd8db6f",
+        "archive_sha256": "8a0da594776caee58782c6f93b2abaa5bdb809daf8d43351a561f7de9dc2e2a8",
+        "relative": "packages/hexpm/lazy_html-0.1.12.tar"
+      },
+      {
+        "name": "makeup",
+        "version": "1.2.1",
+        "inner_sha256": "e90ac1c65589ef354378def3ba19d401e739ee7ee06fb47f94c687016e3713d1",
+        "archive_sha256": "d36484867b0bae0fea568d10131197a4c2e47056a6fbe84922bf6ba71c8d17ce",
+        "relative": "packages/hexpm/makeup-1.2.1.tar"
+      },
+      {
+        "name": "makeup_elixir",
+        "version": "1.0.1",
+        "inner_sha256": "e928a4f984e795e41e3abd27bfc09f51db16ab8ba1aebdba2b3a575437efafc2",
+        "archive_sha256": "7284900d412a3e5cfd97fdaed4f5ed389b8f2b4cb49efc0eb3bd10e2febf9507",
+        "relative": "packages/hexpm/makeup_elixir-1.0.1.tar"
+      },
+      {
+        "name": "makeup_erlang",
+        "version": "1.1.0",
+        "inner_sha256": "835f7e60792e08824cda445639555d7bf1bbbddb1b60b306e33cb6f6db24dc74",
+        "archive_sha256": "1cd6780fb1dd1a03979abaed0fe82712b0625118fd5257d3ebbf73f960c73c3c",
+        "relative": "packages/hexpm/makeup_erlang-1.1.0.tar"
+      },
+      {
+        "name": "mime",
+        "version": "2.0.7",
+        "inner_sha256": "b8d739037be7cd402aee1ba0306edfdef982687ee7e9859bee6198c1e7e2f128",
+        "archive_sha256": "6171188e399ee16023ffc5b76ce445eb6d9672e2e241d2df6050f3c771e80ccd",
+        "relative": "packages/hexpm/mime-2.0.7.tar"
+      },
+      {
+        "name": "mint",
+        "version": "1.9.3",
+        "inner_sha256": "3337184d69179695c7a9f1714d92c11e629d36c8c037a21cf490131d3d150554",
+        "archive_sha256": "5f7c9342480c069dbbc4eeac3490303c9e01870ff01a7f1d29b6107054fc1e74",
+        "relative": "packages/hexpm/mint-1.9.3.tar"
+      },
+      {
+        "name": "mix_audit",
+        "version": "2.1.5",
+        "inner_sha256": "c0f77cee6b4ef9d97e37772359a187a166c7a1e0e08b50edf5bf6959dfe5a016",
+        "archive_sha256": "87f9298e21da32f697af535475860dc1d3617a010e0b418d2ec6142bc8b42d69",
+        "relative": "packages/hexpm/mix_audit-2.1.5.tar"
+      },
+      {
+        "name": "mox",
+        "version": "1.2.0",
+        "inner_sha256": "a2cd96b4b80a3883e3100a221e8adc1b98e4c3a332a8fc434c39526babafd5b3",
+        "archive_sha256": "c7b92b3cc69ee24a7eeeaf944cd7be22013c52fcb580c1f33f50845ec821089a",
+        "relative": "packages/hexpm/mox-1.2.0.tar"
+      },
+      {
+        "name": "muontrap",
+        "version": "1.7.0",
+        "inner_sha256": "ff6eda43839194dc342b81e02e764fd75389a8ab166318548f3aaec374846600",
+        "archive_sha256": "7bd4a90ae008bf6a25554aa13497b2c05dfa1fcc34be5bdcb8fb4dec9b3422e3",
+        "relative": "packages/hexpm/muontrap-1.7.0.tar"
+      },
+      {
+        "name": "mux",
+        "version": "3.2.2",
+        "inner_sha256": "3d5f86a173b646f4c675bf7cc817bb010a1fde4fdb3ecfdd56a374a039e8db58",
+        "archive_sha256": "103a8dd092066eae17b0116cac87fbbb9cf60574f88387bf030500503dc64be9",
+        "relative": "packages/hexpm/mux-3.2.2.tar"
+      },
+      {
+        "name": "nimble_options",
+        "version": "1.1.1",
+        "inner_sha256": "e3a492d54d85fc3fd7c5baf411d9d2852922f66e69476317787a7b2bb000a61b",
+        "archive_sha256": "821b2470ca9442c4b6984882fe9bb0389371b8ddec4d45a9504f00a66f650b44",
+        "relative": "packages/hexpm/nimble_options-1.1.1.tar"
+      },
+      {
+        "name": "nimble_ownership",
+        "version": "1.0.2",
+        "inner_sha256": "fa8a6f2d8c592ad4d79b2ca617473c6aefd5869abfa02563a77682038bf916cf",
+        "archive_sha256": "098af64e1f6f8609c6672127cfe9e9590a5d3fcdd82bc17a377b8692fd81a879",
+        "relative": "packages/hexpm/nimble_ownership-1.0.2.tar"
+      },
+      {
+        "name": "nimble_parsec",
+        "version": "1.4.2",
+        "inner_sha256": "8efba0122db06df95bfaa78f791344a89352ba04baedd3849593bfce4d0dc1c6",
+        "archive_sha256": "4b21398942dda052b403bbe1da991ccd03a053668d147d53fb8c4e0efe09c973",
+        "relative": "packages/hexpm/nimble_parsec-1.4.2.tar"
+      },
+      {
+        "name": "nimble_pool",
+        "version": "1.1.0",
+        "inner_sha256": "bf9c29fbdcba3564a8b800d1eeb5a3c58f36e1e11d7b7fb2e084a643f645f06b",
+        "archive_sha256": "af2e4e6b34197db81f7aad230c1118eac993acc0dae6bc83bac0126d4ae0813a",
+        "relative": "packages/hexpm/nimble_pool-1.1.0.tar"
+      },
+      {
+        "name": "oban",
+        "version": "2.21.1",
+        "inner_sha256": "4b6af7b901ef9baca09e239b5a991ef2fa429cf5a13799bc429a131d610ff692",
+        "archive_sha256": "8162a160924cf4a25905fed2a9242e7787d88e320e3b5b0dcf324eb17c51c4e6",
+        "relative": "packages/hexpm/oban-2.21.1.tar"
+      },
+      {
+        "name": "phoenix",
+        "version": "1.8.12",
+        "inner_sha256": "97409880ebdb4be1de1f2e4f5928d47bf0f4f23af7a5c257b4d597a36fe72845",
+        "archive_sha256": "e33bebd0d207a398952a3778e935040c7848ac677d038a1b3b0d9acb9b831537",
+        "relative": "packages/hexpm/phoenix-1.8.12.tar"
+      },
+      {
+        "name": "phoenix_html",
+        "version": "4.3.0",
+        "inner_sha256": "d3577a5df4b6954cd7890c84d955c470b5310bb49647f0a114a6eeecc850f7ad",
+        "archive_sha256": "3eaa290a78bab0f075f791a46a981bbe769d94bc776869f4f3063a14f30497ad",
+        "relative": "packages/hexpm/phoenix_html-4.3.0.tar"
+      },
+      {
+        "name": "phoenix_live_view",
+        "version": "1.2.10",
+        "inner_sha256": "eb4958045f71d4962373e9ed5967b592375a9dafc73f52997f3996759998a39d",
+        "archive_sha256": "bcf9d64846b770bc64b1a58dc40af406d80eb61b6e516f7aea4cc8cc15e0a1d9",
+        "relative": "packages/hexpm/phoenix_live_view-1.2.10.tar"
+      },
+      {
+        "name": "phoenix_pubsub",
+        "version": "2.2.0",
+        "inner_sha256": "ff3a5616e1bed6804de7773b92cbccfc0b0f473faf1f63d7daf1206c7aeaaa6f",
+        "archive_sha256": "adc313a5bf7136039f63cfd9668fde73bba0765e0614cba80c06ac9460ff3e96",
+        "relative": "packages/hexpm/phoenix_pubsub-2.2.0.tar"
+      },
+      {
+        "name": "phoenix_template",
+        "version": "1.0.4",
+        "inner_sha256": "e2092c132f3b5e5b2d49c96695342eb36d0ed514c5b252a77048d5969330d639",
+        "archive_sha256": "2c0c81f0e5c6753faf5cca2f229c9709919aba34fab866d3bc05060c9c444206",
+        "relative": "packages/hexpm/phoenix_template-1.0.4.tar"
+      },
+      {
+        "name": "plug",
+        "version": "1.20.3",
+        "inner_sha256": "56c480c633ec2ce10140e236e15233bf576e1d323887d7c96711bd02ab5160db",
+        "archive_sha256": "be266aee1b8536ef6409d58cf39a3121319f0ec47cfa1b24024485aa0e76ad76",
+        "relative": "packages/hexpm/plug-1.20.3.tar"
+      },
+      {
+        "name": "plug_cowboy",
+        "version": "2.9.0",
+        "inner_sha256": "87e21e0d9054ced99c36d128f49e3ea2cd8b745fffb97de50bff99706087af4f",
+        "archive_sha256": "2002bafba4f3a45b55a58e68d70211b153a7ed18d37edb1ceb6e96e7a92c422e",
+        "relative": "packages/hexpm/plug_cowboy-2.9.0.tar"
+      },
+      {
+        "name": "plug_crypto",
+        "version": "2.2.0",
+        "inner_sha256": "144014737daaf485407f5ed77daeaad74d651b216a28c87543f8cc7043f8efc8",
+        "archive_sha256": "83a95744ab1c75876542b6fab135fcc176280e0f301a111c1f757fddcec95d2c",
+        "relative": "packages/hexpm/plug_crypto-2.2.0.tar"
+      },
+      {
+        "name": "postgrex",
+        "version": "0.22.4",
+        "inner_sha256": "d271f595dfd25230b6398354e19d17bb5e2d20130fd2d9bdca7e15f125d43552",
+        "archive_sha256": "4aae45a2d60e35b04eea2602440be152fae332901f1fc7a60fc7cb7f0f9a9c5a",
+        "relative": "packages/hexpm/postgrex-0.22.4.tar"
+      },
+      {
+        "name": "ranch",
+        "version": "1.8.1",
+        "inner_sha256": "208169e65292ac5d333d6cdbad49388c1ae198136e4697ae2f474697140f201c",
+        "archive_sha256": "aed58910f4e21deea992a67bf51632b6d60114895eb03bb392bb733064594dd0",
+        "relative": "packages/hexpm/ranch-1.8.1.tar"
+      },
+      {
+        "name": "req",
+        "version": "0.7.3",
+        "inner_sha256": "b141f1b465dabc5fb8ce67bd2f15a85fc80f6c75719910699560e32ce49f62ef",
+        "archive_sha256": "73b303030dccc2b6d023ee5ada380825ab3a7cd3863aead493db09ec420ffdf2",
+        "relative": "packages/hexpm/req-0.7.3.tar"
+      },
+      {
+        "name": "sweet_xml",
+        "version": "0.7.5",
+        "inner_sha256": "803a563113981aaac202a1dbd39771562d0ad31004ddbfc9b5090bdcd5605277",
+        "archive_sha256": "193b28a9b12891cae351d81a0cead165ffe67df1b73fe5866d10629f4faefb12",
+        "relative": "packages/hexpm/sweet_xml-0.7.5.tar"
+      },
+      {
+        "name": "telemetry",
+        "version": "1.4.2",
+        "inner_sha256": "a0cb522801dffb1c49fe6e30561badffc7b6d0e180db1300df759faa22062855",
+        "archive_sha256": "928f6495066506077862c0d1646609eed891a4326bee3126ba54b60af61febb1",
+        "relative": "packages/hexpm/telemetry-1.4.2.tar"
+      },
+      {
+        "name": "tesla",
+        "version": "1.21.2",
+        "inner_sha256": "71b3a8a000802fa82f0b87c22acbca1e8f6a03f23d727e01b66687111681debc",
+        "archive_sha256": "296bbafd1a328533c57e6b0e93078983cf40a827546e58a20464ce75485d5254",
+        "relative": "packages/hexpm/tesla-1.21.2.tar"
+      },
+      {
+        "name": "vix",
+        "version": "0.38.0",
+        "inner_sha256": "77529ee4f6ced339c3d5f90a9eacf306f5b7109d3d1b5e3ef391a984ad404f75",
+        "archive_sha256": "dca58f654922fa678d5df8e028317483d9c0f8acb2e2714076a8468695687aa7",
+        "relative": "packages/hexpm/vix-0.38.0.tar"
+      },
+      {
+        "name": "websock",
+        "version": "0.5.3",
+        "inner_sha256": "2f69a6ebe810328555b6fe5c831a851f485e303a7c8ce6c5f675abeb20ebdadc",
+        "archive_sha256": "6105453d7fac22c712ad66fab1d45abdf049868f253cf719b625151460b8b453",
+        "relative": "packages/hexpm/websock-0.5.3.tar"
+      },
+      {
+        "name": "websock_adapter",
+        "version": "0.6.0",
+        "inner_sha256": "73db5ab8aaefd1a876a97ce3e6afc96562625de69ef17a4e04426e034849d0b8",
+        "archive_sha256": "50021a85bce8f203b086705d9e0c5415e2c7eb05d319111b0428fe71f9934617",
+        "relative": "packages/hexpm/websock_adapter-0.6.0.tar"
+      },
+      {
+        "name": "yamerl",
+        "version": "0.10.0",
+        "inner_sha256": "4ff81fee2f1f6a46f1700c0d880b24d193ddb74bd14ef42cb0bcf46e81ef2f8e",
+        "archive_sha256": "346adb2963f1051dc837a2364e4acf6eb7d80097c0f53cbdc3046ec8ec4b4e6e",
+        "relative": "packages/hexpm/yamerl-0.10.0.tar"
+      },
+      {
+        "name": "yaml_elixir",
+        "version": "2.12.2",
+        "inner_sha256": "9dd1330fb4cd9a36a7b0f502e5b12486eff632792ee4a5f0eba52a4d4ec32c9c",
+        "archive_sha256": "e7c1b10122f973e6558462d51c39026ba0e14afbc6745318e990ea82cfe9e159",
+        "relative": "packages/hexpm/yaml_elixir-2.12.2.tar"
+      }
+    ],
+    "vix": {
+      "path": "/Users/jon/Library/Caches/elixir_make/vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "filename": "vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "sha256": "286faf9fa7b453de87520eac8d65b59b1aeedcc98b32897e8beb7f2772f2a2aa"
+    }
+  },
+  "native": {
+    "vix": {
+      "status": "available",
+      "path": "/Users/jon/Library/Caches/elixir_make/vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "filename": "vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "sha256": "286faf9fa7b453de87520eac8d65b59b1aeedcc98b32897e8beb7f2772f2a2aa"
+    },
+    "lexbor": {
+      "pin": "244b84956a6dc7eec293781d051354f351274c46",
+      "status": "missing",
+      "path": "/Users/jon/.hex/native/lexbor"
+    }
+  },
+  "runtime": {
+    "status": "available",
+    "erlang": "27.3.4.15",
+    "elixir": "1.17.3-otp-27",
+    "verification": "asdf selection and installed metadata; no native or Mix child executed",
+    "metadata": [
+      {
+        "name": "erlang",
+        "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/releases/27/OTP_VERSION",
+        "value": "27.3.4.15",
+        "sha256": "eee643b6b95e2d8c5bc418efd168c3b98aba8321bce262a80291b4391723500f"
+      },
+      {
+        "name": "elixir",
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/VERSION",
+        "value": "1.17.3",
+        "sha256": "ed4dd3b60b045eae70d1d05fd4eee8efc29ea5424aae085342126356c7019526"
+      }
+    ]
+  },
+  "guard_profile": {
+    "profile": "(version 1) (allow default) (deny network*)",
+    "sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2"
+  },
+  "guard_probe": {
+    "schema_version": 1,
+    "plan": "133-119",
+    "status": "available",
+    "reason": "positive_policy_denial_observed",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "host_context": {
+      "platform": "darwin",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "actual_host_requested": true
+    },
+    "current": {
+      "platform": "darwin",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "launcher": "/usr/bin/sandbox-exec",
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "control_exit": 0
+    },
+    "control": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "exit_code": 0,
+      "error": null,
+      "error_message": null,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "stdout_truncated": false,
+      "stderr": "",
+      "stderr_bytes": 0,
+      "stderr_truncated": false
+    },
+    "loopback": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "exit_code": 77,
+      "error": null,
+      "error_message": null,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "stdout_truncated": false,
+      "stderr": "POLICY_DENIAL:EPERM\n",
+      "stderr_bytes": 20,
+      "stderr_truncated": false
+    },
+    "denial_witness": "EPERM",
+    "plan114": {
+      "status": "tuple_mismatch",
+      "compared": [
+        "launcher",
+        "profile",
+        "profile_sha256",
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "missing": [],
+      "mismatches": [
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "context_mismatches": [
+        "cwd"
+      ],
+      "prior_control_exit": 0,
+      "current_control_exit": 0
+    },
+    "plan115": {
+      "status": "present",
+      "recorded_status": "guard_unavailable",
+      "reason": "network_guard_control_failed",
+      "detail": "non-network guard control did not start cleanly (exit 71)",
+      "control_exit_in_detail": 71,
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "platform": "darwin",
+      "actual_host_requested": true,
+      "fields_not_recorded": [
+        "control_argv",
+        "launcher",
+        "executable",
+        "cwd",
+        "control_stderr"
+      ]
+    },
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "ordinary_guard_probe": {
+    "schema_version": 1,
+    "plan": "133-119",
+    "status": "unavailable",
+    "reason": "control_exit_nonzero",
+    "detail": "non-network control exited 71",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "host_context": {
+      "platform": "darwin",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "actual_host_requested": true
+    },
+    "current": {
+      "platform": "darwin",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "launcher": "/usr/bin/sandbox-exec",
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "control_exit": 71
+    },
+    "control": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+      "exit_code": 71,
+      "error": null,
+      "error_message": null,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "stdout_truncated": false,
+      "stderr": "sandbox-exec: sandbox_apply: Operation not permitted\n",
+      "stderr_bytes": 53,
+      "stderr_truncated": false
+    },
+    "loopback": null,
+    "plan114": {
+      "status": "tuple_mismatch",
+      "compared": [
+        "launcher",
+        "profile",
+        "profile_sha256",
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "missing": [],
+      "mismatches": [
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "context_mismatches": [
+        "cwd"
+      ],
+      "prior_control_exit": 0,
+      "current_control_exit": 71
+    },
+    "plan115": {
+      "status": "present",
+      "recorded_status": "guard_unavailable",
+      "reason": "network_guard_control_failed",
+      "detail": "non-network guard control did not start cleanly (exit 71)",
+      "control_exit_in_detail": 71,
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "platform": "darwin",
+      "actual_host_requested": true,
+      "fields_not_recorded": [
+        "control_argv",
+        "launcher",
+        "executable",
+        "cwd",
+        "control_stderr"
+      ]
+    },
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "escalation": {
+    "command": [
+      "node",
+      "scripts/maintainer/phase_133_recovery.mjs",
+      "guard-diagnose",
+      "--actual-host"
+    ],
+    "requested": true,
+    "result": "approved",
+    "exit_code": 0,
+    "scope": "read-only diagnostic only"
+  },
+  "first_unavailable": {
+    "stage": "lexbor",
+    "code": "missing_native_input",
+    "input": "/Users/jon/.hex/native/lexbor"
+  },
+  "child_commands": {
+    "mix": 0,
+    "native": 0,
+    "network_fetch": 0,
+    "install": 0,
+    "qualification": 0,
+    "census": 0,
+    "nightly": 0,
+    "remote": 0
+  },
+  "requirements": {
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "status": "pending"
+  },
+  "requirements_completed": [],
+  "qualification_credit": 0,
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "canonical_nightly": {
+    "path": ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json",
+    "sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"
+  },
+  "next_action": "Require a fresh literal authorize or stop answer for this source, preflight digest and operation tuple before any pinned fetch."
+}

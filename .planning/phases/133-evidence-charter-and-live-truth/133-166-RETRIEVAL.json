@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "plan": "133-166",
+  "status": "not_required",
+  "source": {
+    "sha": "be48c6c2c8b97eef3ea9bd4328be3ffd14f49363",
+    "tree": "1b62c231fe7e96ea8e602d6001ef668e3019307c"
+  },
+  "preflight_sha256": "8e11f4baf0c6b63e30cbe7da556f3b3c477a475dce2df2c6ba51ffe59b78e20b",
+  "supply_sha256": "0160d53c4989e49059a1971443a2ecab530e8c17efcac75f54f6e57cacd7ca5a",
+  "plan155_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+  "plan155_route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "child_commands": {
+    "qualification": 0,
+    "network_fetch": 0,
+    "remote": 0
+  },
+  "report_sha256": "5a99515136ca17bcff8fa3c89eb1f3d5bd5081b9ebea65394d42bc1a6be2b29c"
+}

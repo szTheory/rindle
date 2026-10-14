@@ -1,0 +1,11 @@
+{
+  "command": "PHASE133_TEST_FILTER='fake collector publishes once with an absent _build parent' node scripts/maintainer/phase_133_local_supply.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\nnot ok 1 - fake collector publishes once with an absent _build parent\n  # AssertionError [ERR_ASSERTION]: /Users/jon/.asdf/installs/nodejs/22.14.0/bin/node /private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/phase133-supply-test-0YtKWn/repo/scripts/maintainer/phase_133_local_supply.mjs,collect,--root,/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/phase133-supply-test-0YtKWn/repo,--report,staged.json,--cache,/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/phase133-supply-test-0YtKWn/cache,--native-cache,/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/phase133-supply-test-0YtKWn/native,--lexbor,/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/phase133-supply-test-0YtKWn/lexbor,--target,_build/supply: [phase-133-local-supply] ENOENT: ENOENT: no such file or directory, mkdir '/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/phase133-supply-test-0YtKWn/repo/_build/supply'\n  #  \n  # \n  # 1 !== 0\n  # \n  #     at command (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p106-1791395166349/scripts/maintainer/phase_133_local_supply.test.mjs:81:10)\n  #     at collectorFixture (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p106-1791395166349/scripts/maintainer/phase_133_local_supply.test.mjs:161:3)\n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/agent-p106-1791395166349/scripts/maintainer/phase_133_local_supply.test.mjs:289:5\n1..1\n",
+  "stderr": "",
+  "targetTest": "fake collector publishes once with an absent _build parent",
+  "targetFile": "scripts/maintainer/phase_133_local_supply.test.mjs",
+  "expected": "collector exits 0 and publishes one report when _build is absent",
+  "actual": "collector exits 1 (ENOENT creating _build/supply); assertion 1 !== 0",
+  "semanticAssessment": "The named target executes the fake collector and fails on its exit-code assertion because the parent _build directory is absent; no runtime, archive, fixture, or discovery failure precedes it."
+}

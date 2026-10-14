@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "plan": "133-99",
+  "status": "stop",
+  "mode": "automatic_stop",
+  "reason_code": "evidence_insufficient_no_plan98_doctor_marker",
+  "reason": "The Plan 98 terminal evidence has no call-time Doctor marker or exact ArgumentError stack because no Mix child started; automatic stop is required and no authorization is requested.",
+  "preflight": {
+    "path": ".planning/phases/133-evidence-charter-and-live-truth/133-99-PREFLIGHT.json",
+    "report_sha256": "a191d766edaa80c7d29e66215d6c1f0a10f26c6fb57eb32b221e04286639c7a7",
+    "file_sha256": "e15385bc6b859734c0c49a8b68e5e194be32665443a1431790c8a0d65783558a"
+  },
+  "response": null,
+  "accepted_literal": null,
+  "authorization_prompted": false,
+  "authorized_scope": [],
+  "child_counts": {
+    "native_asset_reads": 0,
+    "network": 0,
+    "mix": 0,
+    "install": 0,
+    "doctor": 0,
+    "local_gates": 0,
+    "qualification": 0,
+    "coverage": 0,
+    "census": 0,
+    "nightly": 0,
+    "issue_mutation": 0
+  },
+  "qualification_credit": 0,
+  "requirements": {
+    "status": "pending",
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ]
+  },
+  "created_at": "2026-10-07T01:59:27.808Z",
+  "report_sha256": "8489756b24f4c903f247a8daea038c3e4b182abc538bfd876755c11e2b60dc8a"
+}

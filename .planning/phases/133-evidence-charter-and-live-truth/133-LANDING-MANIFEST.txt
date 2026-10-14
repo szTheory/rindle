@@ -1,0 +1,38 @@
+# Phase 133 landing manifest (D-133-R4).
+# One repo path per line. The landing branch carries exactly these product files
+# (byte-identical to gsd/phase-133-execution) plus the full .planning/ tree.
+# Excluded: phase_133_* qualification tooling, scripts/maintainer/(test_)?phase*,
+# test/fixtures/phase133/, collect_phase133_49*, AGENTS.md, .tool-versions, prompts/.
+# Checked by scripts/maintainer/check_phase_133_landing_closure.sh.
+.github/actions/setup-elixir/action.yml
+.github/workflows/ci.yml
+.github/workflows/nightly.yml
+.github/workflows/release.yml
+RUNNING.md
+config/ci_required_checks.json
+examples/adoption_demo/docs/adoption-proof-matrix.md
+lib/rindle/domain/media_provider_asset.ex
+scripts/ci/eval_nightly_summary.sh
+scripts/ci/fixtures/fake_nightly_dialyzer_mix.sh
+scripts/ci/manage_nightly_incident.sh
+scripts/ci/run_nightly_dialyzer.sh
+scripts/ci/test_compat_115_26.sh
+scripts/ci/test_nightly_dialyzer.sh
+scripts/ci/test_nightly_incident.sh
+scripts/ci/test_nightly_summary_gate.sh
+scripts/ci/test_verify_nightly_run.sh
+scripts/ci/verify_nightly_run.sh
+scripts/maintainer/check_adoption_proof_matrix.sh
+scripts/maintainer/check_phase_133_landing_closure.sh
+scripts/maintainer/evidence_census.exs
+scripts/maintainer/validate_evidence_census.exs
+scripts/maintainer/validate_live_truth.exs
+scripts/setup_branch_protection.sh
+test/install_smoke/ci_cache_hygiene_test.exs
+test/install_smoke/ci_lane_split_test.exs
+test/install_smoke/evidence_census_test.exs
+test/install_smoke/live_truth_parity_test.exs
+test/install_smoke/nightly_policy_test.exs
+test/install_smoke/support/generated_app_helper.ex
+test/planning_path_hygiene_test.exs
+test/rindle/doctor_thresholds_test.exs

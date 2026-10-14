@@ -1,0 +1,81 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-10-11T20:37:28Z",
+  "phase": "133",
+  "phase_name": "Evidence Charter and Live Truth",
+  "phase_dir": ".planning/phases/133-evidence-charter-and-live-truth",
+  "plan": 170,
+  "task": 1,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "Plan 171 fresh Plan 170 runner and child route",
+      "status": "done",
+      "commit": "4a41544a"
+    },
+    {
+      "id": 2,
+      "name": "Plan 170 reconciliation admission and Plan 123 writer migration",
+      "status": "done",
+      "commit": "449e03cb"
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": 1,
+      "name": "Freeze and independently verify fresh Plan 170 source tuple",
+      "status": "not_started"
+    },
+    {
+      "id": 2,
+      "name": "Reach fresh exact Plan 170 authorization checkpoint",
+      "status": "not_started"
+    },
+    {
+      "id": 3,
+      "name": "At most one authorized Plan 170 qualification and terminal verification",
+      "status": "not_started"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Plan 170 is separately gated; no Plan 170 preflight or qualification receipt exists in this handoff.",
+      "type": "human_action",
+      "workaround": "Resume only after separate Plan 170 authorization; stop at Task 2 until the exact fresh preflight digest is authorized."
+    },
+    {
+      "description": "Plan 168's authorization and source tuple are spent after its Node runtime mismatch halt.",
+      "type": "technical",
+      "workaround": "Use only Plan 170's fresh source tuple and its own exact one-time literal."
+    }
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {
+      "action": "Provide fresh Plan 170 authorization at its exact-literal checkpoint after the new preflight and both independent checks are available.",
+      "context": "Plan 168 authorization does not transfer; human authorization permits one attempt but grants no requirement credit.",
+      "blocking": true
+    }
+  ],
+  "decisions": [
+    {
+      "decision": "Keep Plan 169 and Plans 121\u2013123 blocked until independently verified Plan 170 green evidence.",
+      "rationale": "A first-red or no-attempt Plan 170 result provides no downstream authority.",
+      "phase": "133"
+    },
+    {
+      "decision": "Keep all five requirements Pending, eleven evidence edges unresolved, and qualification credit at zero.",
+      "rationale": "Plan 171 only establishes code/test support and creates no real qualification evidence.",
+      "phase": "133"
+    }
+  ],
+  "uncommitted_files": [
+    " M .planning/phases/133-evidence-charter-and-live-truth/.continue-here.md",
+    "?? .planning/HANDOFF.json",
+    "?? .planning/milestone.lock"
+  ],
+  "next_action": "After separate authorization to begin Plan 170, run $gsd-execute-phase 133 --gaps-only --wave 25 from /Users/jon/projects/rindle/.claude/worktrees/phase133-execution; stop at Plan 170 Task 2 until its exact fresh literal is supplied and verified.",
+  "context_notes": "Plan 171 is complete and committed in the isolated phase133-execution worktree at 63ab2db6 (executor merge 5d58af96). The package checkpoint for locked earmark_parser was cleared using an isolated cache; mix.lock is unchanged. Reconciliation passed 126 tests/0 failures, post-merge compile passed, and automation-first passed. The primary checkout /Users/jon/projects/rindle has a separate divergent Plan 152\u2013155 handoff and local edits; preserve it and continue only in this execution worktree unless the user explicitly asks to reconcile branches."
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "plan": "133-126",
+  "status": "checkout_started",
+  "argv": [
+    "git",
+    "-C",
+    "/Users/jon/.hex/native/lexbor",
+    "checkout",
+    "--detach",
+    "244b84956a6dc7eec293781d051354f351274c46"
+  ],
+  "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p126-1791472562",
+  "destination": "/Users/jon/.hex/native/lexbor",
+  "preflight_sha256": "2ca7e985b46be2efb81e9df8ea442e38f06fdd81cbe8e89c255215756ceccc6a",
+  "attempt": 1
+}
