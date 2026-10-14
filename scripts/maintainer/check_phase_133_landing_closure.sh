@@ -89,19 +89,26 @@ run_check() {
     grep -Fxq -- "${path}" "${work}/manifest" || basename "${path}" >>"${work}/excluded"
   done <"${work}/added"
   sort -u -o "${work}/excluded" "${work}/excluded"
-  local name
+  local name token
   while IFS= read -r path; do
     git -C "${landing}" show "HEAD:${path}" >"${work}/content" 2>/dev/null || continue
     while IFS= read -r name; do
       [[ -n "${name}" ]] || continue
-      if grep -Eq "(^|[^A-Za-z0-9_.-])$(printf '%s' "${name}" | sed 's/[.[\*^$+?(){}|]/\\&/g')([^A-Za-z0-9_-]|$)" "${work}/content"; then
-        fail "landed ${path} references excluded ${name}"
-      fi
+      # A match is excused only when it is part of a full path present on the
+      # landing HEAD (for example a .planning/ ledger sharing an excluded basename).
+      grep -Eo "(^|[^A-Za-z0-9_.-])[A-Za-z0-9_./-]*$(printf '%s' "${name}" | sed 's/[.[\*^$+?(){}|]/\\&/g')([^A-Za-z0-9_-]|$)" "${work}/content" |
+        sed -E 's#^[^A-Za-z0-9_./-]##; s#[^A-Za-z0-9_./-]$##; s#^\./##' >"${work}/hits" || true
+      while IFS= read -r token; do
+        if [[ "${token}" != */* || -z "$(blob_id "${landing}" HEAD "${token}")" ]]; then
+          fail "landed ${path} references excluded ${name}"
+          break
+        fi
+      done <"${work}/hits"
     done <"${work}/excluded"
   done <"${work}/landed"
 
   # 5. Every repo path a kept file references is in the manifest or unchanged from base.
-  local token base_blob
+  local base_blob
   while IFS= read -r path; do
     git -C "${landing}" show "HEAD:${path}" 2>/dev/null |
       grep -Eo '[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)+' | sed 's#^\./##' | sort -u >"${work}/refs" || true
@@ -145,6 +152,10 @@ self_test() {
   printf 'echo protect v2\n' >"${repo}/scripts/setup_branch_protection.sh"
   printf 'bash scripts/setup_branch_protection.sh\ncat lib/a.ex\n# json key phase_133_tool is not a file reference\n' >"${repo}/scripts/ci/kept.sh"
   printf 'console.log(1)\n' >"${repo}/scripts/maintainer/phase_133_tool.mjs"
+  mkdir -p "${repo}/test/fixtures"
+  printf '{}\n' >"${repo}/test/fixtures/ledger.json"
+  printf '{}\n' >"${repo}/.planning/ledger.json"
+  printf 'cat .planning/ledger.json\n' >>"${repo}/scripts/ci/kept.sh"
   printf 'scripts/ci/kept.sh\nscripts/setup_branch_protection.sh\n' >"${repo}/${m}"
   "${g[@]}" -C "${repo}" add -A && "${g[@]}" -C "${repo}" commit -qm source
 
@@ -169,7 +180,7 @@ self_test() {
   commit_landing() { "${g[@]}" -C "${landing}" add -A && "${g[@]}" -C "${landing}" commit -qm landing; }
 
   reset_landing good; commit_landing
-  expect pass "faithful landing passes"
+  expect pass "faithful landing passes (a .planning path sharing an excluded basename is excused)"
 
   reset_landing missing; git -C "${landing}" rm -q --cached scripts/ci/kept.sh; rm "${landing}/scripts/ci/kept.sh"; commit_landing
   expect fail "missing manifest file fails"
