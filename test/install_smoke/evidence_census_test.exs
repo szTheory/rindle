@@ -175,6 +175,38 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "every observation must be assigned to exactly one candidate")
   end
 
+  test "EVID-01: adjacent observations sharing a detector and file stay separate candidates" do
+    fixture = complete_census_fixture!()
+    assert {_output, 0} = run_collector(fixture)
+
+    mutate_ledger_and_recollect!(fixture, fn ledger ->
+      [detector | _] = ledger["detectors"]
+      [observation] = detector["observations"]
+      adjacent = Map.put(observation, "id", "#{observation["id"]}-adjacent")
+
+      candidate = %{
+        "id" => "candidate-adjacent",
+        "observations" => [adjacent["id"]],
+        "disposition" => "fix",
+        "rationale" => "separate root cause at the same detector and file",
+        "evidence" => [detector["command"]],
+        "trigger" => nil
+      }
+
+      ledger
+      |> update_in(["detectors", Access.at(0), "observations"], &(&1 ++ [adjacent]))
+      |> Map.update!("candidates", &(&1 ++ [candidate]))
+      |> then(&Map.put(&1, "candidate_baseline", baseline_for(&1["candidates"])))
+    end)
+
+    assert {_output, 0} = run_validator(fixture)
+    receipt = fixture.receipt |> File.read!() |> Jason.decode!()
+    detector_id = hd(@detector_registry) |> elem(0)
+
+    assert Enum.count(receipt["observations"], &(&1["location"] == "mix.exs" and &1["id"] =~ detector_id)) ==
+             2
+  end
+
   test "EVID-01: candidate identity and disposition mutations fail closed" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)

@@ -355,6 +355,24 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :derived_authority
+  test "TRUTH-08: claims the derived model cannot classify fail instead of passing as prose" do
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+
+    for {claim, message} <- [
+          {%{type: :benchmark, lane: "quality"}, ~r/unclassified claim type: :benchmark/},
+          {%{"type" => "rumor"}, ~r/unclassified claim type: "rumor"/},
+          {%{type: :lane, lane: "nonexistent-lane", severity: "merge-blocking"},
+           ~r/unclassified CI lane: "nonexistent-lane"/},
+          {%{type: :nightly, lane: "nonexistent-nightly", result: "passed", applicable: true},
+           ~r/unclassified Nightly lane: "nonexistent-nightly"/}
+        ] do
+      assert_raise ArgumentError, message, fn ->
+        Rindle.ValidateLiveTruth.validate_claims!(model, [claim])
+      end
+    end
+  end
+
+  @tag :derived_authority
   test "false lane and Nightly applicability claims are rejected from parsed topology" do
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
