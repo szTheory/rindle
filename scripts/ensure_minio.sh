@@ -7,6 +7,12 @@ MINIO_ACCESS_KEY="${RINDLE_MINIO_ACCESS_KEY:-minioadmin}"
 MINIO_SECRET_KEY="${RINDLE_MINIO_SECRET_KEY:-minioadmin}"
 MINIO_RESET_BUCKET="${RINDLE_MINIO_RESET_BUCKET:-}"
 
+# Upstream MinIO no longer publishes container images or download-site
+# binaries. This digest-pinned image provides both the server and the `mc`
+# client.
+MINIO_IMAGE="cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8"
+MINIO_CONTAINER="${RINDLE_MINIO_CONTAINER:-rindle-minio-local}"
+
 healthcheck_url() {
   printf '%s/minio/health/ready' "${MINIO_URL%/}"
 }
@@ -25,15 +31,15 @@ wait_for_minio() {
 }
 
 parse_minio_endpoint() {
-  local scheme hostport remainder
+  local remainder hostport
 
   case "$MINIO_URL" in
     http://*)
-      scheme="http"
+      MINIO_SCHEME="http"
       remainder="${MINIO_URL#http://}"
       ;;
     https://*)
-      scheme="https"
+      MINIO_SCHEME="https"
       remainder="${MINIO_URL#https://}"
       ;;
     *)
@@ -49,7 +55,7 @@ parse_minio_endpoint() {
     MINIO_PORT="${hostport##*:}"
   else
     MINIO_HOST="$hostport"
-    if [ "$scheme" = "https" ]; then
+    if [ "$MINIO_SCHEME" = "https" ]; then
       MINIO_PORT="443"
     else
       MINIO_PORT="80"
@@ -57,55 +63,67 @@ parse_minio_endpoint() {
   fi
 }
 
-platform_triplet() {
-  local os arch
-
-  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-  arch="$(uname -m)"
-
-  case "$arch" in
-    arm64|aarch64)
-      arch="arm64"
-      ;;
-    x86_64)
-      arch="amd64"
-      ;;
-    *)
-      echo "Unsupported architecture for local MinIO bootstrap: $arch" >&2
-      exit 1
-      ;;
-  esac
-
-  case "$os" in
-    darwin|linux)
-      printf '%s-%s' "$os" "$arch"
-      ;;
-    *)
-      echo "Unsupported OS for local MinIO bootstrap: $os" >&2
-      exit 1
-      ;;
+is_local_host() {
+  case "$MINIO_HOST" in
+    localhost|127.0.0.1) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
-ensure_binary() {
-  local target="$1"
-  local url="$2"
+require_docker() {
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "$1 needs either a MinIO \`mc\` client on PATH or Docker to run $MINIO_IMAGE." >&2
+    exit 1
+  fi
+}
 
-  if [ -x "$target" ]; then
+# Prefer a MinIO client already on PATH (CI installs one from MINIO_IMAGE);
+# otherwise run the client from the pinned image.
+resolve_mc() {
+  if command -v mc >/dev/null 2>&1 && mc --version 2>/dev/null | grep -q '^mc version'; then
+    MC_MODE="host"
+    MC_ENDPOINT="$MINIO_URL"
     return 0
   fi
 
-  mkdir -p "$(dirname "$target")"
-  curl -fsSLo "$target" "$url"
-  chmod +x "$target"
+  require_docker "Creating the MinIO bucket"
+  MC_MODE="docker"
+  MC_DOCKER_NET=(--network host)
+  MC_ENDPOINT="$MINIO_URL"
+
+  # Docker Desktop containers reach the host through host.docker.internal.
+  if [ "$(uname -s)" = "Darwin" ] && is_local_host; then
+    MC_DOCKER_NET=()
+    MC_ENDPOINT="${MINIO_SCHEME}://host.docker.internal:${MINIO_PORT}"
+  fi
+}
+
+mc_host_env() {
+  local rest="${MC_ENDPOINT#*://}"
+  printf '%s://%s:%s@%s' "${MC_ENDPOINT%%://*}" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" "${rest%%/*}"
+}
+
+# Runs `mc` against the `local` alias. An optional MC_MOUNT=<host file> is made
+# readable at the same path inside the client container.
+mc_run() {
+  if [ "$MC_MODE" = "host" ]; then
+    MC_HOST_local="$(mc_host_env)" mc "$@"
+  else
+    local mount=()
+    if [ -n "${MC_MOUNT:-}" ]; then
+      mount=(-v "${MC_MOUNT}:${MC_MOUNT}:ro")
+    fi
+    docker run --rm ${MC_DOCKER_NET[@]+"${MC_DOCKER_NET[@]}"} ${mount[@]+"${mount[@]}"} \
+      -e "MC_HOST_local=$(mc_host_env)" --entrypoint mc "$MINIO_IMAGE" "$@"
+  fi
 }
 
 ensure_bucket() {
-  "$MC_BIN" alias set local "$MINIO_URL" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null
-  "$MC_BIN" mb --ignore-existing "local/$MINIO_BUCKET" >/dev/null
+  resolve_mc
+  mc_run mb --ignore-existing "local/$MINIO_BUCKET" >/dev/null
 
   if [ -n "$MINIO_RESET_BUCKET" ]; then
-    "$MC_BIN" rm --recursive --force "local/$MINIO_BUCKET" >/dev/null 2>&1 || true
+    mc_run rm --recursive --force "local/$MINIO_BUCKET" >/dev/null 2>&1 || true
   fi
 
   ensure_bucket_cors
@@ -113,7 +131,7 @@ ensure_bucket() {
 
 ensure_bucket_cors() {
   local cors_file
-  cors_file="$(mktemp "${TMPDIR:-/tmp}/rindle-minio-cors.XXXXXX.json")"
+  cors_file="$(mktemp "${TMPDIR:-/tmp}/rindle-minio-cors.XXXXXX")"
 
   cat >"$cors_file" <<'EOF'
 [
@@ -126,43 +144,27 @@ ensure_bucket_cors() {
 ]
 EOF
 
-  "$MC_BIN" cors set "local/$MINIO_BUCKET" "$cors_file" >/dev/null 2>&1 || true
+  MC_MOUNT="$cors_file" mc_run cors set "local/$MINIO_BUCKET" "$cors_file" >/dev/null 2>&1 || true
   rm -f "$cors_file"
 }
 
-start_embedded_minio() {
-  local state_root pid_file log_file data_dir
+start_container_minio() {
+  require_docker "Starting a local MinIO"
 
-  state_root="${TMPDIR:-/tmp}/rindle-minio"
-  pid_file="$state_root/minio.pid"
-  log_file="$state_root/minio.log"
-  data_dir="$state_root/data"
-
-  mkdir -p "$state_root" "$data_dir"
-
-  if [ -f "$pid_file" ]; then
-    local existing_pid
-    existing_pid="$(cat "$pid_file")"
-    if kill -0 "$existing_pid" >/dev/null 2>&1; then
-      if wait_for_minio 5; then
-        ensure_bucket
-        return 0
-      fi
-    fi
-    rm -f "$pid_file"
+  if docker container inspect "$MINIO_CONTAINER" >/dev/null 2>&1; then
+    docker start "$MINIO_CONTAINER" >/dev/null
+  else
+    docker run -d --name "$MINIO_CONTAINER" \
+      -p "127.0.0.1:${MINIO_PORT}:9000" \
+      -e MINIO_ROOT_USER="$MINIO_ACCESS_KEY" \
+      -e MINIO_ROOT_PASSWORD="$MINIO_SECRET_KEY" \
+      -e MINIO_API_CORS_ALLOW_ORIGIN='*' \
+      "$MINIO_IMAGE" server /data >/dev/null
   fi
-
-  MINIO_ROOT_USER="$MINIO_ACCESS_KEY" \
-    MINIO_ROOT_PASSWORD="$MINIO_SECRET_KEY" \
-    MINIO_API_CORS_ALLOW_ORIGIN='*' \
-    "$MINIO_BIN" server "$data_dir" --address "${MINIO_HOST}:${MINIO_PORT}" \
-    >"$log_file" 2>&1 &
-
-  echo "$!" >"$pid_file"
 
   if ! wait_for_minio 30; then
     echo "Failed to start local MinIO at $MINIO_URL" >&2
-    tail -n 40 "$log_file" >&2 || true
+    docker logs --tail 40 "$MINIO_CONTAINER" >&2 || true
     exit 1
   fi
 
@@ -172,28 +174,13 @@ start_embedded_minio() {
 parse_minio_endpoint
 
 if wait_for_minio 1; then
-  triplet="$(platform_triplet)"
-  tool_root="${TMPDIR:-/tmp}/rindle-minio-tools/$triplet"
-  MC_BIN="${tool_root}/mc"
-  ensure_binary "$MC_BIN" "https://dl.min.io/client/mc/release/${triplet}/mc"
   ensure_bucket
   exit 0
 fi
 
-case "$MINIO_HOST" in
-  localhost|127.0.0.1)
-    ;;
-  *)
-    echo "MinIO is unreachable at $MINIO_URL and auto-bootstrap only supports local endpoints." >&2
-    exit 1
-    ;;
-esac
+if ! is_local_host; then
+  echo "MinIO is unreachable at $MINIO_URL and auto-bootstrap only supports local endpoints." >&2
+  exit 1
+fi
 
-triplet="$(platform_triplet)"
-tool_root="${TMPDIR:-/tmp}/rindle-minio-tools/$triplet"
-MINIO_BIN="${tool_root}/minio"
-MC_BIN="${tool_root}/mc"
-
-ensure_binary "$MINIO_BIN" "https://dl.min.io/server/minio/release/${triplet}/minio"
-ensure_binary "$MC_BIN" "https://dl.min.io/client/mc/release/${triplet}/mc"
-start_embedded_minio
+start_container_minio

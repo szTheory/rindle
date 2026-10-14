@@ -23,7 +23,9 @@ services:
       retries: 15
 
   minio:
-    image: minio/minio:latest
+    # Upstream MinIO no longer publishes container images; this digest-pinned
+    # image ships both the server and the `mc` client.
+    image: cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -35,7 +37,7 @@ services:
     volumes:
       - __APP__-minio:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      test: ["CMD-SHELL", "MC_HOST_local=http://minioadmin:minioadmin@localhost:9000 mc ready --json local >/dev/null"]
       interval: 2s
       timeout: 5s
       retries: 15
