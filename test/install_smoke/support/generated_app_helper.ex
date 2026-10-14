@@ -23,6 +23,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   @directional_migration_version "20260428170300"
   @legacy_rindle_migration_version 20_260_428_110_000
   @generated_command_timeout_ms :timer.minutes(20)
+  @package_receipt_schema "rindle-package-consumer-v2"
+  @output_digest_limit 1_048_576
 
   defdelegate default_install_contract(), to: Contracts
   defdelegate persistence_lifecycle_report_keys(), to: Contracts
@@ -138,7 +140,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      migration_resolution: decode_migration_resolver!(migration_report["resolver"]),
       rindle_migration_path: migration_report["rindle_migration_path"],
       selected_schema_relations: migration_report["selected_schema_relations"] || %{},
       decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
@@ -268,7 +270,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      migration_resolution: decode_migration_resolver!(migration_report["resolver"]),
       rindle_migration_path: migration_report["rindle_migration_path"],
       selected_schema_relations: migration_report["selected_schema_relations"] || %{},
       decoy_schema_relations: migration_report["decoy_schema_relations"] || %{},
@@ -317,8 +319,184 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
         smoke_result.exit_code == 0 and String.contains?(smoke_result.output, "0 failures")
     }
 
+    report =
+      Map.merge(report, %{
+        package_evidence_receipt: package_evidence_receipt!(report, shared_env),
+        package_evidence_context: package_evidence_context(report, shared_env)
+      })
+
     maybe_write_tus_run_hint!(report)
     report
+  end
+
+  @doc false
+  def package_evidence_receipt!(report, execution_env) when is_map(report) do
+    package_root = report.package_root_provenance.path
+    generated_app_root = report.generated_app_root
+    results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
+    commands = package_evidence_commands(generated_app_root)
+    execution_env = normalize_execution_env!(execution_env)
+
+    results = %{
+      "compile" =>
+        generated_app_root
+        |> run_cmd(commands["compile"], execution_env)
+        |> command_result!(),
+      "boot" =>
+        generated_app_root
+        |> run_cmd(commands["boot"], execution_env)
+        |> command_result!(),
+      "smoke_lifecycle" =>
+        generated_app_root
+        |> run_cmd(commands["smoke_lifecycle"], execution_env)
+        |> command_result!()
+    }
+
+    File.mkdir_p!(Path.dirname(results_path))
+    File.write!(results_path, Jason.encode!(results))
+
+    package_tree_sha256 = tree_sha256!(package_root, [])
+
+    %{
+      schema_version: @package_receipt_schema,
+      evidence_type: "maintainer-operated-package-consumer",
+      subject_sha: git_head!(),
+      package_name: Atom.to_string(Mix.Project.config()[:app]),
+      package_version: Mix.Project.config()[:version],
+      package_sha256: file_sha256!(Path.join(package_root, "hex_metadata.config")),
+      unpacked_tree_sha256: package_tree_sha256,
+      generated_app_tree_sha256:
+        tree_sha256!(generated_app_root, [".git", "_build", "deps", "tmp"], [
+          {Path.expand(package_root), "$RINDLE_PACKAGE_ROOT"}
+        ]),
+      dependency_lock_sha256: file_sha256!(Path.join(generated_app_root, "mix.lock")),
+      dependency_source: %{
+        type: "path",
+        package_name: Atom.to_string(Mix.Project.config()[:app]),
+        package_version: Mix.Project.config()[:version],
+        unpacked_tree_sha256: package_tree_sha256
+      },
+      commands: commands,
+      results: results
+    }
+  end
+
+  def package_evidence_receipt!(_report, _execution_env) do
+    raise ArgumentError, "package evidence requires a generated report and execution environment"
+  end
+
+  defp package_evidence_context(report, execution_env) do
+    %{
+      package_root: report.package_root_provenance.path,
+      generated_app_root: report.generated_app_root,
+      results_path:
+        Path.join(report.generated_app_root, "tmp/rindle_package_evidence_results.json"),
+      execution_env: Map.new(execution_env)
+    }
+  end
+
+  defp normalize_execution_env!(execution_env) when is_map(execution_env),
+    do: normalize_execution_env!(Map.to_list(execution_env))
+
+  defp normalize_execution_env!(execution_env) when is_list(execution_env) do
+    if Enum.all?(execution_env, fn
+         {key, value} -> is_binary(key) and is_binary(value)
+         _ -> false
+       end) do
+      execution_env
+    else
+      raise ArgumentError, "package execution environment must contain string pairs"
+    end
+  end
+
+  defp normalize_execution_env!(_execution_env),
+    do: raise(ArgumentError, "package execution environment is required")
+
+  defp package_evidence_commands(generated_app_root) do
+    app_name = generated_app_root |> Path.basename() |> Macro.camelize()
+
+    %{
+      "compile" => ["mix", "compile"],
+      "boot" => boot_argv(app_name),
+      "smoke_lifecycle" => [
+        "mix",
+        "test",
+        "test/rindle_install_smoke_test.exs",
+        "--seed",
+        "0"
+      ]
+    }
+  end
+
+  defp command_result!(%{exit_code: exit_code, output: output})
+       when is_integer(exit_code) and is_binary(output) do
+    bounded = binary_part(output, 0, min(byte_size(output), @output_digest_limit))
+
+    %{
+      "exit_code" => exit_code,
+      "stdout_sha256" => sha256(bounded),
+      "stderr_sha256" => sha256(""),
+      "stderr_merged_into_stdout" => true,
+      "captured_bytes" => byte_size(bounded),
+      "truncated" => byte_size(output) > @output_digest_limit
+    }
+  end
+
+  defp file_sha256!(path), do: path |> File.read!() |> sha256()
+
+  defp tree_sha256!(root, excluded_roots, substitutions \\ []) do
+    root = Path.expand(root)
+
+    entries =
+      root
+      |> Path.join("**/*")
+      |> Path.wildcard(match_dot: true)
+      |> Enum.filter(&File.regular?/1)
+      |> Enum.map(&Path.relative_to(&1, root))
+      |> Enum.reject(fn relative ->
+        first = relative |> Path.split() |> List.first()
+        first in excluded_roots
+      end)
+      |> Enum.sort()
+
+    entries
+    |> Enum.map(fn relative ->
+      content = File.read!(Path.join(root, relative)) |> canonical_generated_app_content(relative)
+
+      content =
+        Enum.reduce(substitutions, content, fn {from, to}, content ->
+          String.replace(content, from, to)
+        end)
+
+      content_digest = sha256(content)
+      relative <> "\0" <> content_digest <> "\n"
+    end)
+    |> IO.iodata_to_binary()
+    |> sha256()
+  end
+
+  defp canonical_generated_app_content(content, relative) do
+    if relative in ["config/dev.exs", "config/test.exs", "config/config.exs"] or
+         String.ends_with?(relative, "_web/endpoint.ex") do
+      content =
+        Regex.replace(~r/(secret_key_base:\s*)"[^"]+"/, content, "\\1\"<generated-secret>\"")
+
+      Regex.replace(~r/(signing_salt:\s*)"[^"]+"/, content, "\\1\"<generated-salt>\"")
+    else
+      content
+    end
+  end
+
+  defp sha256(content),
+    do: :crypto.hash(:sha256, content) |> Base.encode16(case: :lower)
+
+  defp git_head! do
+    case System.cmd("git", ["-C", Workspace.repo_root(), "rev-parse", "HEAD"],
+           stderr_to_stdout: true
+         ) do
+      {sha, 0} -> String.trim(sha)
+      {output, exit_code} -> raise "git subject lookup failed (#{exit_code}): #{output}"
+    end
   end
 
   defp normalize_tus_extensions(raw_extensions) when is_map(raw_extensions) do
@@ -460,7 +638,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
       host_migration_ran?: migration_report["host_migration_ran"] == true,
       host_oban_migration_ran?: migration_report["host_oban_migration_ran"] == true,
       rindle_migration_ran?: migration_report["rindle_migration_ran"] == true,
-      migration_resolution: migration_report["resolver"] |> to_existing_atom_safe(),
+      migration_resolution: decode_migration_resolver!(migration_report["resolver"]),
       rindle_migration_path: migration_report["rindle_migration_path"],
       legacy_rindle_migration_path: legacy_seed["legacy_rindle_migration_path"],
       legacy_migration_cutoff: legacy_seed["legacy_rindle_migration_version"],
@@ -600,8 +778,15 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
     end
   end
 
-  defp to_existing_atom_safe(nil), do: nil
-  defp to_existing_atom_safe(value) when is_binary(value), do: String.to_atom(value)
+  @doc false
+  def decode_migration_resolver!(nil), do: nil
+  def decode_migration_resolver!("host_migrations"), do: :host_migrations
+
+  def decode_migration_resolver!(value) when is_binary(value),
+    do: raise(ArgumentError, "unknown generated migration resolver")
+
+  def decode_migration_resolver!(_value),
+    do: raise(ArgumentError, "generated migration resolver must be a known string")
 
   defp successful_lifecycle?(result),
     do: result.exit_code == 0 and String.contains?(result.output, "0 failures")
@@ -609,18 +794,19 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   defp maybe_write_tus_run_hint!(report), do: SmokeSource.maybe_write_tus_run_hint!(report)
 
   defp boot_app!(root, app_module, env),
-    do:
-      run_cmd!(
-        root,
-        [
-          "mix",
-          "run",
-          "--no-start",
-          "-e",
-          "Application.ensure_all_started(:#{Macro.underscore(app_module)}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{Macro.underscore(app_module)}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
-        ],
-        env
-      )
+    do: run_cmd!(root, boot_argv(app_module), env)
+
+  defp boot_argv(app_module) do
+    app_name = Macro.underscore(app_module)
+
+    [
+      "mix",
+      "run",
+      "--no-start",
+      "-e",
+      "Application.ensure_all_started(:#{app_name}); repo = Application.fetch_env!(:rindle, :repo); oban_repo = Application.fetch_env!(:#{app_name}, Oban)[:repo]; if repo != #{app_module}.Repo or oban_repo != #{app_module}.Repo, do: raise(\"boot wiring invalid\"); IO.puts(\"boot ok\")"
+    ]
+  end
 
   defp write_smoke_test!(root, app_module, profile_mode, network_version) do
     SmokeSource.write!(

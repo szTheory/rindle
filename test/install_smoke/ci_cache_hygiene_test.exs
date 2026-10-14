@@ -124,19 +124,22 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            "PLT restore must not fall back across dependency locks (CACHE-03)"
   end
 
-  test "CACHE-03: the PLT save step is guarded on cache-miss, never if: always()", %{
+  test "CACHE-03: the fresh PLT is saved before exact restore, never if: always()", %{
     nightly: nightly
   } do
-    # Scope to the `Save PLT cache` step block only — `if: always()` legitimately
-    # appears elsewhere (the advisory nightly-summary job), so the refute must not
-    # scan the whole file. The save step itself must carry the cache-miss guard.
+    # Fresh construction is now unconditional evidence. Save it before clearing
+    # the local PLT and restoring that same exact key for the independent restored
+    # analysis; `if: always()` would still permit saving after failed analysis.
     save_step = plt_save_step(nightly)
+    {fresh_position, _} = :binary.match(nightly, "run_nightly_dialyzer.sh fresh")
+    {save_position, _} = :binary.match(nightly, "- name: Save PLT cache")
+    {restore_position, _} = :binary.match(nightly, "- name: Restore exact PLT cache")
 
-    assert save_step =~ "if: steps.plt_cache.outputs.cache-hit != 'true'",
-           "PLT save must be guarded on a cache miss (CACHE-03)"
+    assert fresh_position < save_position and save_position < restore_position,
+           "fresh analysis must precede PLT save, which must precede exact restore (CACHE-03)"
 
     refute save_step =~ "if: always()",
-           "the PLT save step must NOT use `if: always()` — it is cache-miss guarded (CACHE-03)"
+           "the PLT save step must NOT use `if: always()` (CACHE-03)"
   end
 
   # CACHE-05: .tool-versions pins, FFmpeg retirement, version-invariant lint guard.
@@ -188,6 +191,29 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
              "ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-9.0.tar.xz",
              "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0.1-6-g9d4ca21220-linux64-gpl-9.0.tar.xz"
            ]
+  end
+
+  test "CACHE-05: every static FFmpeg install authenticates its release lookup" do
+    for {workflow_name, workflow_path} <- [
+          {"ci.yml", @ci_path},
+          {"nightly.yml", @nightly_path},
+          {"release.yml", @release_path}
+        ] do
+      installer_steps =
+        workflow_path
+        |> YamlElixir.read_from_file!()
+        |> get_in(["jobs"])
+        |> Map.values()
+        |> Enum.flat_map(&Map.get(&1, "steps", []))
+        |> Enum.filter(&(Map.get(&1, "run") == "bash scripts/ci/install_ffmpeg.sh"))
+
+      assert installer_steps != [], "#{workflow_name} must retain its static FFmpeg install"
+
+      assert Enum.all?(installer_steps, fn step ->
+               get_in(step, ["env", "GITHUB_TOKEN"]) == "${{ github.token }}"
+             end),
+             "#{workflow_name} must pass github.token to every static FFmpeg release lookup"
+    end
   end
 
   test "apt package installation is shared, bounded, and retryable across every workflow",
