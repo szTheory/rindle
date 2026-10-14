@@ -569,9 +569,9 @@ check_genesis_preconditions() {
   titled="$(${GH_CLI:-gh} issue list --repo "${GH_REPO}" --state open \
     --search "in:title \"${incident_title}\"" --limit 100 --json number,title,labels)" ||
     fail "open incident title lookup failed"
-  jq -e --arg title "${incident_title}" --arg label "${incident_label}" '
+  jq -e --arg title "${incident_title}" --arg wanted_label "${incident_label}" '
     type == "array" and
-    ([.[] | select(.title == $title and ([.labels[]?.name] | index($label) | not))] | length == 0)
+    ([.[] | select(.title == $title and ([.labels[]?.name] | index($wanted_label) | not))] | length == 0)
   ' >/dev/null <<<"${titled}" || fail "an open \"${incident_title}\" incident lacks the ${incident_label} label"
   inventory "${issues}"
   jq -e --argjson genesis "${genesis_run}" --argjson genesis_attempt "${genesis_attempt}" '
