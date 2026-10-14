@@ -262,7 +262,7 @@ three_overlap_case() {
   temp="$(new_fixture)"
   output="${temp}/output"
   run_manager "${temp}" "${output}" || got=$?
-  b_count="$({ rg -o 'nightly-mutation:update:102:1' "${temp}/state/issues.json" || true; } | wc -l | tr -d ' ')"
+  b_count="$({ grep -o 'nightly-mutation:update:102:1' "${temp}/state/issues.json" || true; } | wc -l | tr -d ' ')"
   state="$(jq -r '.[0].state // "missing"' "${temp}/state/issues.json")"
   effects="$(mutation_effects "${temp}")"
   if [ "${got}" -eq 0 ] && [ "${b_count}" -eq 1 ] && [ "${state}" = CLOSED ] && [ "${effects}" -eq 3 ]; then
@@ -294,7 +294,7 @@ green_no_incident_case() {
   write_artifacts "${temp}/state/artifacts.json" green-only
   run_manager "${temp}" "${output}" || got=$?
   run_manager "${temp}" "${output}" || got=$?
-  if [ "${got}" -eq 0 ] && [ "$(jq length "${temp}/state/issues.json")" -eq 0 ] && ! rg -q 'nightly-mutation:' "${temp}/state/issues.json"; then
+  if [ "${got}" -eq 0 ] && [ "$(jq length "${temp}/state/issues.json")" -eq 0 ] && ! grep -q 'nightly-mutation:' "${temp}/state/issues.json"; then
     record "repeated green with no incident is an unmarked no-op" true ""
   else
     record "repeated green with no incident is an unmarked no-op" false "exit=${got}; $(<"${output}")"
@@ -402,8 +402,8 @@ two_attempts_case() {
   write_event "${temp}/state/events/nightly-incident-verdict-103-2.json" 103 2 green "${sha_b}"
   run_manager "${temp}" "${output}" CURRENT_RUN_ATTEMPT=2 || got=$?
   if [ "${got}" -eq 0 ] && [ "$(mutation_effects "${temp}")" -eq 4 ] && \
-     rg -q 'nightly-mutation:update:103:1' "${temp}/state/issues.json" && \
-     rg -q 'nightly-mutation:close:103:2' "${temp}/state/issues.json"; then
+     grep -q 'nightly-mutation:update:103:1' "${temp}/state/issues.json" && \
+     grep -q 'nightly-mutation:close:103:2' "${temp}/state/issues.json"; then
     record "both scheduled attempts replay as distinct ordered events" true ""
   else
     record "both scheduled attempts replay as distinct ordered events" false "exit=${got}; $(<"${output}")"
@@ -452,7 +452,7 @@ checkpoint_case() {
     expired-pre-epoch)
       run_manager "${temp}" "${output}" || got=$?
       effects="$(mutation_effects "${temp}")"
-      if [ "${got}" -eq 0 ] && [ "${effects}" -eq 3 ] && rg -q 'nightly-mutation:close:103:1' "${temp}/state/issues.json"; then
+      if [ "${got}" -eq 0 ] && [ "${effects}" -eq 3 ] && grep -q 'nightly-mutation:close:103:1' "${temp}/state/issues.json"; then
         record "${name}" true ""
       else
         record "${name}" false "exit=${got} effects=${effects}; $(<"${output}")"
