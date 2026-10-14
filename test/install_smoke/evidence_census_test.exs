@@ -201,10 +201,15 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
 
     assert {_output, 0} = run_validator(fixture)
     receipt = fixture.receipt |> File.read!() |> Jason.decode!()
-    detector_id = hd(@detector_registry) |> elem(0)
+    {detector_id, _dimension, _command, [location | _]} = hd(@detector_registry)
 
-    assert Enum.count(receipt["observations"], &(&1["location"] == "mix.exs" and &1["id"] =~ detector_id)) ==
-             2
+    same_site =
+      Enum.filter(
+        receipt["observations"],
+        &(&1["location"] == location and &1["id"] =~ detector_id)
+      )
+
+    assert length(same_site) == 2
   end
 
   test "EVID-01: candidate identity and disposition mutations fail closed" do
