@@ -1200,9 +1200,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert prose =~
              "Any applicable lane that fails, is cancelled, is unexpected, is missing, or is impermissibly skipped makes Nightly red."
 
-    assert running =~
-             ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json"
-
+    assert prose =~ "exact-subject Nightly evidence receipt"
+    refute running =~ ".planning"
     assert running =~ "scripts/ci/verify_nightly_run.sh verify-receipt"
     refute prose =~ "advisory and never a required PR check"
     refute Regex.match?(~r/Plan \d+.*live acceptance authority/i, prose)

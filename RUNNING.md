@@ -91,8 +91,8 @@ Nightly Dialyzer proves fresh and restored PLT modes independently on the suppor
 or impermissibly skipped gating work is red. For the two live GCS jobs, the bounded upstream-repository
 and required-secrets rule records secret-absent work as not-run rather than passed. Local runs on a
 newer toolchain are diagnostic only. The current supported-cell acceptance authority is the exact-subject
-receipt at `.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json`, authenticated
-against live GitHub run/job/log state and detached local authorities by the repository's
+Nightly evidence receipt committed with the maintainer evidence, authenticated against live GitHub
+run/job/log state and detached local authorities by the repository's
 `bash scripts/ci/verify_nightly_run.sh verify-receipt` contract.
 
 ### Reproducing the coverage step locally (COV-04)
