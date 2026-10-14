@@ -109,6 +109,7 @@ run_check() {
 
   # 5. Every repo path a kept file references is in the manifest or unchanged from base.
   local base_blob
+  # shellcheck disable=SC2094 # The manifest is only read here.
   while IFS= read -r path; do
     git -C "${landing}" show "HEAD:${path}" 2>/dev/null |
       grep -Eo '[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)+' | sed 's#^\./##' | sort -u >"${work}/refs" || true

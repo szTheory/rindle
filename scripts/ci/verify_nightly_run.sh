@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Dispatch and verify one exact-subject diagnostic Nightly run.
+# Dispatch and verify one exact-subject diagnostic Nightly run, or verify one
+# scheduled Nightly run on main read-only (verify-scheduled).
 set -euo pipefail
 
 usage() {
   printf '%s\n' \
     'usage: verify_nightly_run.sh preflight|dispatch-and-record|verify-receipt' \
     '  --repo OWNER/REPO --workflow FILE --ref REMOTE_REF --expected-sha SHA' \
-    '  [--receipt PATH] [--poll-seconds N] [--timeout-seconds N]' >&2
+    '  [--receipt PATH] [--poll-seconds N] [--timeout-seconds N]' \
+    '   or: verify_nightly_run.sh verify-scheduled' \
+    '  --repo OWNER/REPO --workflow FILE --expected-sha SHA --receipt PATH [--run-id ID]' >&2
 }
 
 die() {
@@ -50,6 +53,7 @@ workflow=""
 remote_ref=""
 expected_sha=""
 receipt=""
+run_id_arg=""
 poll_seconds=15
 timeout_seconds=3600
 
@@ -60,6 +64,7 @@ while [ "$#" -gt 0 ]; do
     --ref) remote_ref="${2:-}"; shift 2 ;;
     --expected-sha) expected_sha="${2:-}"; shift 2 ;;
     --receipt) receipt="${2:-}"; shift 2 ;;
+    --run-id) run_id_arg="${2:-}"; shift 2 ;;
     --poll-seconds) poll_seconds="${2:-}"; shift 2 ;;
     --timeout-seconds) timeout_seconds="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
@@ -71,13 +76,16 @@ command -v gh >/dev/null 2>&1 || die "gh is required"
 command -v jq >/dev/null 2>&1 || die "jq is required"
 [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid --repo"
 [[ "$workflow" =~ ^[A-Za-z0-9_.-]+\.ya?ml$ ]] || die "invalid --workflow"
+[ "$mode" != verify-scheduled ] || [ -z "$remote_ref" ] || die "verify-scheduled reads main only; --ref is not accepted"
+[ "$mode" != verify-scheduled ] || remote_ref=main
 [[ "$remote_ref" =~ ^[A-Za-z0-9._/-]+$ ]] || die "invalid --ref"
+[ -z "$run_id_arg" ] || [[ "$run_id_arg" =~ ^[1-9][0-9]{0,19}$ ]] || die "invalid --run-id"
 [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || die "invalid --expected-sha"
 [[ "$poll_seconds" =~ ^[0-9]+$ ]] || die "invalid --poll-seconds"
 [[ "$timeout_seconds" =~ ^[1-9][0-9]*$ ]] || die "invalid --timeout-seconds"
 case "$mode" in
   preflight) ;;
-  dispatch-and-record|verify-receipt) [ -n "$receipt" ] || die "--receipt is required" ;;
+  dispatch-and-record|verify-receipt|verify-scheduled) [ -n "$receipt" ] || die "--receipt is required" ;;
   *) die "unknown mode: $mode" ;;
 esac
 
@@ -523,6 +531,111 @@ compare_exact_local_and_incident_receipt() {
   jq -e --argjson local "$local_authorities" '.local_authorities == $local' "$path" >/dev/null ||
     die "receipt local-authority evidence differs from exact-subject revalidation"
 }
+
+# verify-scheduled: read-only evidence for one completed attempt-1 scheduled
+# Nightly run on main at the expected SHA. It records every job conclusion and
+# the run's immutable incident-verdict artifact, and rejects any disagreement
+# between the artifact's gating-need results and the observed job conclusions.
+gating_need_jobs_json() {
+  printf '%s\n' '{"compat-matrix":"Compat Matrix","dialyzer":"Dialyzer","gcs-soak":"GCS Soak (real bucket)","package-consumer-gcs-live":"Package Consumer GCS Live Proof"}'
+}
+
+verify_scheduled() {
+  local runs candidates count run_id run_json artifact_dir artifact receipt_dir temp_receipt
+  if [ -e "$receipt" ] || [ -L "$receipt" ]; then
+    die "receipt destination already exists"
+  fi
+  runs="$(gh run list --repo "$repo" --workflow "$workflow" --event schedule --branch main \
+    --commit "$expected_sha" --limit 100 \
+    --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,status,url,workflowName)" ||
+    die "scheduled run listing failed"
+  candidates="$(jq -c --arg sha "$expected_sha" --arg pin "$run_id_arg" '
+    [.[] | select(.workflowName == "Nightly" and .event == "schedule" and .headBranch == "main" and
+      .headSha == $sha and .status == "completed" and
+      ($pin == "" or (.databaseId | tostring) == $pin))]
+  ' <<<"$runs")" || die "scheduled run listing was malformed"
+  count="$(jq 'length' <<<"$candidates")"
+  [ "$count" -ge 1 ] || die "no completed scheduled Nightly run on main for ${expected_sha}${run_id_arg:+ with run id ${run_id_arg}}"
+  [ "$count" -eq 1 ] || die "ambiguous scheduled runs for ${expected_sha} ($(jq -r 'map(.databaseId) | join(",")' <<<"$candidates")); pass --run-id"
+  jq -e '.[0].attempt == 1' <<<"$candidates" >/dev/null || die "scheduled run attempt is not 1; reruns do not qualify"
+  run_id="$(jq -r '.[0].databaseId' <<<"$candidates")"
+
+  run_json="$(gh run view "$run_id" --repo "$repo" \
+    --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" ||
+    die "scheduled run detail lookup failed"
+  jq -e --argjson id "$run_id" --arg sha "$expected_sha" '
+    .databaseId == $id and .workflowName == "Nightly" and .event == "schedule" and
+    .headBranch == "main" and .headSha == $sha and .attempt == 1 and .status == "completed" and
+    (.conclusion | type == "string") and (.jobs | type == "array" and length > 0) and
+    all(.jobs[]; .status == "completed" and (.name | type == "string") and (.conclusion | type == "string"))
+  ' <<<"$run_json" >/dev/null || die "scheduled run identity or terminal state differs from the listing"
+
+  artifact_dir="$(mktemp -d "${TMPDIR:-/tmp}/nightly-verdict.XXXXXX")"
+  gh run download "$run_id" --repo "$repo" --name "nightly-incident-verdict-${run_id}-1" --dir "$artifact_dir" >/dev/null 2>&1 || {
+    rm -rf -- "$artifact_dir"
+    die "verdict artifact nightly-incident-verdict-${run_id}-1 is missing"
+  }
+  artifact="$(jq -cS . "${artifact_dir}/nightly-incident-verdict.json" 2>/dev/null)" || {
+    rm -rf -- "$artifact_dir"
+    die "verdict artifact is unreadable"
+  }
+  rm -rf -- "$artifact_dir"
+  jq -e --arg repo "$repo" --argjson id "$run_id" --arg sha "$expected_sha" --argjson needs "$(gating_need_jobs_json)" '
+    .schema == "rindle-nightly-incident-verdict-v1" and .repository == $repo and
+    .workflow_name == "Nightly" and .event == "schedule" and .run_id == $id and .run_attempt == 1 and
+    .sha == $sha and .ref == "refs/heads/main" and
+    (.verdict.verdict | IN("green", "red")) and
+    ([.verdict.jobs[].name] | sort) == ($needs | keys)
+  ' <<<"$artifact" >/dev/null || die "verdict artifact does not belong to scheduled run ${run_id} at ${expected_sha}"
+
+  local need job_prefix observed recorded
+  for need in $(jq -r 'keys[]' <<<"$(gating_need_jobs_json)"); do
+    job_prefix="$(jq -r --arg n "$need" '.[$n]' <<<"$(gating_need_jobs_json)")"
+    observed="$(jq -r --arg p "$job_prefix" '
+      [.jobs[] | select(.name == $p or (.name | startswith($p + " ("))) | .conclusion] as $c |
+      if ($c | length) == 0 then "missing"
+      elif any($c[]; . == "failure") then "failure"
+      elif any($c[]; . == "cancelled") then "cancelled"
+      elif all($c[]; . == "skipped") then "skipped"
+      elif all($c[]; IN("success", "skipped")) then "success"
+      else "unknown" end
+    ' <<<"$run_json")"
+    recorded="$(jq -r --arg n "$need" '.verdict.jobs[] | select(.name == $n) | .result' <<<"$artifact")"
+    [ "$observed" = "$recorded" ] ||
+      die "gating need ${need} result ${recorded} disagrees with job conclusion ${observed}"
+  done
+
+  local summary_conclusion verdict
+  summary_conclusion="$(jq -r '[.jobs[] | select(.name == "Nightly Summary") | .conclusion] | if length == 1 then .[0] else "missing" end' <<<"$run_json")"
+  verdict="$(jq -r '.verdict.verdict' <<<"$artifact")"
+  case "${verdict}:${summary_conclusion}" in
+    green:success|red:failure) ;;
+    *) die "strict verdict ${verdict} disagrees with Nightly Summary conclusion ${summary_conclusion}" ;;
+  esac
+
+  mkdir -p -- "$(dirname -- "$receipt")"
+  receipt_dir="$(cd -- "$(dirname -- "$receipt")" && pwd)"
+  receipt="${receipt_dir}/$(basename -- "$receipt")"
+  temp_receipt="$(mktemp "${receipt_dir}/.nightly-scheduled-receipt.XXXXXX")"
+  jq -nS --arg repository "$repo" --arg workflow "$workflow" \
+    --argjson run "$run_json" --argjson artifact "$artifact" --arg summary "$summary_conclusion" '
+      {schema:"rindle-nightly-scheduled-receipt-v1",repository:$repository,workflow:$workflow,
+       event:$run.event,head_branch:$run.headBranch,head_sha:$run.headSha,run_id:$run.databaseId,
+       run_attempt:$run.attempt,status:$run.status,conclusion:$run.conclusion,created_at:$run.createdAt,
+       url:$run.url,jobs:($run.jobs | map({name,conclusion}) | sort_by(.name, .conclusion)),
+       summary_conclusion:$summary,verdict:$artifact.verdict.verdict,
+       gating_needs:($artifact.verdict.jobs | map({key:.name,value:.result}) | from_entries),
+       verdict_artifact:$artifact}
+    ' >"$temp_receipt" || { rm -f -- "$temp_receipt"; die "receipt rendering failed"; }
+  ln "$temp_receipt" "$receipt" 2>/dev/null || { rm -f -- "$temp_receipt"; die "receipt destination appeared during collection"; }
+  rm -f -- "$temp_receipt"
+  echo "Recorded scheduled Nightly evidence for ${expected_sha} (run ${run_id}, $(jq -r .conclusion <<<"$run_json")) in ${receipt}"
+}
+
+if [ "$mode" = verify-scheduled ]; then
+  verify_scheduled
+  exit 0
+fi
 
 if [ "$mode" = preflight ]; then
   preflight_json

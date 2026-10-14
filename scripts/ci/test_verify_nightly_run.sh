@@ -807,6 +807,99 @@ verify_live_state_case "regenerated census receipt drift fails closed" census_re
 verify_live_state_case "regenerated live-truth model drift fails closed" live_model_changed
 verify_worktree_independence_case
 
+make_scheduled_fake_gh() {
+  local bin_dir="$1"
+  mkdir -p "$bin_dir"
+  awk '/^# BEGIN EMBEDDED SCHEDULED FAKE GH$/ {copy=1; next} /^# END EMBEDDED SCHEDULED FAKE GH$/ {copy=0} copy' "$0" >"${bin_dir}/gh"
+  chmod +x "${bin_dir}/gh"
+}
+
+scheduled_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+run_scheduled() {
+  local temp="$1" state="$2"; shift 2
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_SCHED_STATE="$state" \
+    bash "$collector" verify-scheduled --repo szTheory/rindle --workflow nightly.yml \
+      --expected-sha "$scheduled_sha" "$@"
+}
+
+verify_scheduled_case() {
+  local name="$1" state="$2" want="$3" pattern="${4:-}" temp got=0
+  shift 4 || shift $#
+  temp="$(mktemp -d)"
+  make_scheduled_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  run_scheduled "$temp" "$state" --receipt "${temp}/receipt.json" "$@" >"${temp}/output" 2>&1 || got=$?
+  if [ "$want" = pass ]; then
+    if [ "$got" -eq 0 ] && [ -f "${temp}/receipt.json" ] && { [ -z "$pattern" ] || jq -e "$pattern" "${temp}/receipt.json" >/dev/null; }; then
+      record "$name" true
+    else
+      record "$name" false "expected pass; exit ${got}; $(tail -1 "${temp}/output")"
+    fi
+  else
+    if [ "$got" -ne 0 ] && [ ! -e "${temp}/receipt.json" ] && { [ -z "$pattern" ] || grep -Fq -- "$pattern" "${temp}/output"; }; then
+      record "$name" true
+    else
+      record "$name" false "expected rejection matching '${pattern}'; exit ${got}; $(tail -1 "${temp}/output")"
+    fi
+  fi
+  rm -rf "$temp"
+}
+
+verify_scheduled_reproducible_read_only_case() {
+  local temp got=0
+  temp="$(mktemp -d)"
+  make_scheduled_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  run_scheduled "$temp" success --receipt "${temp}/a.json" >/dev/null 2>&1 || got=$?
+  run_scheduled "$temp" success --receipt "${temp}/b.json" >/dev/null 2>&1 || got=$?
+  if [ "$got" -eq 0 ] && cmp -s "${temp}/a.json" "${temp}/b.json" &&
+     ! grep -Ev '^(run list|run view|run download) ' "${temp}/calls" | grep -q .; then
+    record "verify-scheduled receipt is byte-reproducible and issues only read calls" true
+  else
+    record "verify-scheduled receipt is byte-reproducible and issues only read calls" false \
+      "exit ${got}; calls: $(sort -u "${temp}/calls" | cut -c1-40 | tr '\n' ';')"
+  fi
+  rm -rf "$temp"
+}
+
+verify_scheduled_existing_receipt_case() {
+  local temp got=0
+  temp="$(mktemp -d)"
+  make_scheduled_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  printf 'prior\n' >"${temp}/receipt.json"
+  run_scheduled "$temp" success --receipt "${temp}/receipt.json" >/dev/null 2>&1 || got=$?
+  if [ "$got" -ne 0 ] && [ "$(cat "${temp}/receipt.json")" = prior ]; then
+    record "verify-scheduled refuses an existing receipt destination" true
+  else
+    record "verify-scheduled refuses an existing receipt destination" false "exit ${got}"
+  fi
+  rm -rf "$temp"
+}
+
+verify_scheduled_case "verify-scheduled records a green scheduled run" success pass \
+  '.run_id == 7001 and .run_attempt == 1 and .event == "schedule" and .conclusion == "success" and .summary_conclusion == "success" and .verdict == "green" and .gating_needs == {"compat-matrix":"success","dialyzer":"success","gcs-soak":"skipped","package-consumer-gcs-live":"success"} and .verdict_artifact.run_id == 7001'
+verify_scheduled_case "verify-scheduled records a consistent red scheduled run" failure_consistent pass \
+  '.conclusion == "failure" and .summary_conclusion == "failure" and .verdict == "red" and .gating_needs.dialyzer == "failure" and ([.jobs[] | select(.name == "Dialyzer") | .conclusion] == ["failure"])'
+verify_scheduled_case "verify-scheduled rejects a missing run" no_run fail "no completed scheduled Nightly run"
+verify_scheduled_case "verify-scheduled rejects an incomplete run" incomplete fail "no completed scheduled Nightly run"
+verify_scheduled_case "verify-scheduled rejects a workflow_dispatch run" dispatch_event fail "no completed scheduled Nightly run"
+verify_scheduled_case "verify-scheduled rejects a push run" push_event fail "no completed scheduled Nightly run"
+verify_scheduled_case "verify-scheduled rejects a different head SHA" other_sha fail "no completed scheduled Nightly run"
+verify_scheduled_case "verify-scheduled rejects attempt greater than 1" attempt2 fail "attempt"
+verify_scheduled_case "verify-scheduled rejects a run whose detail contradicts the listing" detail_dispatch fail "run identity"
+verify_scheduled_case "verify-scheduled rejects a missing verdict artifact" missing_artifact fail "verdict artifact"
+verify_scheduled_case "verify-scheduled rejects a verdict artifact for another run" artifact_other_run fail "verdict artifact"
+verify_scheduled_case "verify-scheduled rejects a verdict artifact for another SHA" artifact_other_sha fail "verdict artifact"
+verify_scheduled_case "verify-scheduled rejects a gating need that disagrees with job conclusions" need_disagrees fail "gating need dialyzer"
+verify_scheduled_case "verify-scheduled rejects a verdict that disagrees with Nightly Summary" summary_disagrees fail "Nightly Summary"
+verify_scheduled_case "verify-scheduled rejects ambiguous same-SHA runs without --run-id" ambiguous fail "ambiguous"
+verify_scheduled_case "verify-scheduled selects a pinned run among same-SHA runs" ambiguous pass '.run_id == 7002' --run-id 7002
+verify_scheduled_case "verify-scheduled rejects a pinned run that does not qualify" ambiguous fail "no completed scheduled Nightly run" --run-id 7999
+verify_scheduled_reproducible_read_only_case
+verify_scheduled_existing_receipt_case
+
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
 status=0
@@ -1066,3 +1159,89 @@ maintainer append"
   *) echo "unexpected fake gh call: $*" >&2; exit 43 ;;
 esac
 # END EMBEDDED FAKE GH
+
+# BEGIN EMBEDDED SCHEDULED FAKE GH
+#!/usr/bin/env bash
+# Read-only scheduled Nightly fixture for verify-scheduled.
+set -euo pipefail
+printf '%s\n' "$*" >>"$FAKE_GH_LOG"
+state="${FAKE_SCHED_STATE:-success}"
+sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+event=schedule
+status=completed
+attempt=1
+dialyzer=success
+summary=success
+verdict=green
+need_dialyzer=success
+case "$state" in
+  failure_consistent) dialyzer=failure; summary=failure; verdict=red; need_dialyzer=failure ;;
+  incomplete) status=in_progress ;;
+  dispatch_event) event=workflow_dispatch ;;
+  push_event) event=push ;;
+  other_sha) sha=cccccccccccccccccccccccccccccccccccccccc ;;
+  attempt2) attempt=2 ;;
+  need_disagrees) dialyzer=failure; summary=failure; verdict=red ;;
+  summary_disagrees) summary=failure ;;
+esac
+conclusion=success
+[ "$summary" = success ] || conclusion=failure
+[ "$status" = completed ] || conclusion=""
+
+run_entry() {
+  local id="$1" ev="${2:-$event}"
+  jq -cn --argjson id "$id" --arg sha "$sha" --arg event "$ev" --arg status "$status" \
+    --arg conclusion "$conclusion" --argjson attempt "$attempt" '
+    {attempt:$attempt,conclusion:(if $conclusion == "" then null else $conclusion end),
+     createdAt:"2026-10-15T07:37:25Z",databaseId:$id,event:$event,headBranch:"main",headSha:$sha,
+     status:$status,url:("https://github.com/szTheory/rindle/actions/runs/" + ($id|tostring)),workflowName:"Nightly"}'
+}
+
+case "${1-} ${2-}" in
+  "run list")
+    case "$state" in
+      no_run) printf '[]\n' ;;
+      ambiguous) jq -cn --argjson a "$(run_entry 7001)" --argjson b "$(run_entry 7002)" '[$b, $a]' ;;
+      *) jq -cn --argjson a "$(run_entry 7001)" '[$a]' ;;
+    esac
+    ;;
+  "run view")
+    id="$3"
+    ev="$event"
+    [ "$state" != detail_dispatch ] || ev=workflow_dispatch
+    jq -cn --argjson run "$(run_entry "$id" "$ev")" --arg dialyzer "$dialyzer" --arg summary "$summary" '
+      $run + {jobs:[
+        {databaseId:1,name:"Compat Matrix (1.15, 26)",status:"completed",conclusion:"success"},
+        {databaseId:2,name:"Compat Matrix (1.17, 27)",status:"completed",conclusion:"success"},
+        {databaseId:3,name:"Dialyzer",status:"completed",conclusion:$dialyzer},
+        {databaseId:4,name:"GCS Soak (real bucket)",status:"completed",conclusion:"skipped"},
+        {databaseId:5,name:"Package Consumer GCS Live Proof",status:"completed",conclusion:"success"},
+        {databaseId:6,name:"Nightly Summary",status:"completed",conclusion:$summary},
+        {databaseId:7,name:"Persist Nightly Incident Verdict",status:"completed",conclusion:"success"},
+        {databaseId:8,name:"Nightly Incident Lifecycle",status:"completed",conclusion:"success"}]}'
+    ;;
+  "run download")
+    id="$3"; shift 3
+    dir=""; name=""
+    while [ "$#" -gt 0 ]; do
+      case "$1" in --dir) dir="$2"; shift 2 ;; --name|-n) name="$2"; shift 2 ;; *) shift ;; esac
+    done
+    [ "$state" != missing_artifact ] || { echo "no valid artifacts found to download" >&2; exit 1; }
+    [ "$name" = "nightly-incident-verdict-${id}-1" ] || { echo "no artifact named ${name}" >&2; exit 1; }
+    art_run="$id"; art_sha="$sha"
+    [ "$state" != artifact_other_run ] || art_run=6999
+    [ "$state" != artifact_other_sha ] || art_sha=dddddddddddddddddddddddddddddddddddddddd
+    mkdir -p "$dir"
+    jq -cSn --argjson run_id "$art_run" --arg sha "$art_sha" --arg verdict "$verdict" --arg dialyzer "$need_dialyzer" '
+      {schema:"rindle-nightly-incident-verdict-v1",repository:"szTheory/rindle",workflow_name:"Nightly",
+       workflow_ref:"szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main",event:"schedule",
+       run_id:$run_id,run_attempt:1,sha:$sha,ref:"refs/heads/main",
+       url:("https://github.com/szTheory/rindle/actions/runs/" + ($run_id|tostring)),
+       verdict:{verdict:$verdict,errors:[],jobs:[
+         {name:"compat-matrix",result:"success"},{name:"dialyzer",result:$dialyzer},
+         {name:"gcs-soak",result:"skipped"},{name:"package-consumer-gcs-live",result:"success"}]}}' \
+      >"${dir}/nightly-incident-verdict.json"
+    ;;
+  *) echo "unexpected scheduled fake gh call: $*" >&2; exit 43 ;;
+esac
+# END EMBEDDED SCHEDULED FAKE GH
