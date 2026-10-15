@@ -196,6 +196,14 @@ jobs:
         run: mix deps.audit
         continue-on-error: true
 
+      # SEC-09 (D-134-06): hex.audit reports EEF/OSV advisories that mix deps.audit
+      # misses; it stays advisory so a newly published advisory never reddens
+      # unrelated PRs (closure enforcement is the maintainer validator).
+      - name: Audit Hex advisories (advisory)
+        if: ${{ matrix.lint }}
+        run: mix hex.audit
+        continue-on-error: true
+
       # OBS-02 (additive, observational): surface schedulers_online + a bounded
       # mix compile --profile time dump in the run summary (fenced + tail-bounded
       # to stay under the 1 MiB $GITHUB_STEP_SUMMARY cap).
