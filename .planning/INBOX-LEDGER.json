@@ -437,7 +437,7 @@
       "disposition": "merge",
       "kind": "pr",
       "number": 122,
-      "head_sha": "37164c08bb23de42bcd17e79b794ac806bdb823c",
+      "head_sha": "527e1e59a4958089ac716a24736d0afb4f831db9",
       "risk_group": "req",
       "group_packages": [
         "decimal",
@@ -446,8 +446,12 @@
         "mint",
         "req"
       ],
-      "pending_action": "rebase",
-      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5"
+      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "merge",
