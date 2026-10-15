@@ -513,16 +513,21 @@ git diff "${sha}^" "${sha}" -- mix.lock \
 | A7 | cowlib advisory EEF-CVE-2026-43966 is fixed by cowlib 2.21.0 (OSV lists only a commit) | Advisory table | Would need a bounded exception; confirm by re-running `mix hex.audit` after the bump |
 | A8 | Req 0.7.5 / MuonTrap 2.0.1 will be what Dependabot proposes after rebase | Dispositions | Delta/version in the ledger must be re-read post-rebase, not trusted from this table |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Is the `Adoption Demo E2E` red on main at 6ef86d38 a flake or a regression?**
    - Known: prior three main runs green; failure is a MuonTrap timeout-retry then `ArgumentError`/`DBConnection` closure on a docs-only commit.
    - Unclear: whether a rerun passes.
    - Recommendation: authorized `gh run rerun 38762602374 --failed` as the first remote action; record both runs in the baseline.
+   - **RESOLVED:** the authorized rerun is the first remote action, at the 134-04 Task 1 checkpoint; if the red persists it is a blocking baseline issue diagnosed before any landing (134-04 Task 2).
 2. **Bounded exception vs landing for decimal 3.2.0 (a minor bump in runtime core)?** Recommend landing `decimal` as its own maintainer PR; 3.1.2 is the minimal fix, 3.2.0 is what Dependabot proposed.
+   - **RESOLVED:** decimal lands in its own maintainer lock-only `build(deps):` PR (134-04 queue entry A5), at #112's decimal version if #112 still carries it, else 3.1.2.
 3. **Include the demo lock in the collector?** Recommended (it holds the only unfixed HIGH, bandit), at the cost of a `mix deps.get` per run; the planner may instead record demo findings by reading the demo lock once and keeping them in the ledger with `scope: examples/adoption_demo` and exceptions.
+   - **RESOLVED:** the demo lock is included with `scope: examples/adoption_demo` (134-01 collector), its fixable advisories are resolved by a lock-only refresh (134-05 entry B5), and bandit is a bounded exception with a `hex_version_gte` trigger (134-06).
 4. **Enable Dependabot alerts?** Recommend offering it but expecting no Hex alerts; default to `source_disabled` + rationale.
+   - **RESOLVED:** the enable action is offered at the 134-06 Task 1 checkpoint; the default is `source_disabled` with a ledger rationale.
 5. **Number of landings (about 10) versus the plan fence.** Resolved by compressing into plans that each contain a repeatable "land one group, verify, record" loop driven by `dep_landing_evidence.sh`; the planner should confirm the user accepts the wall-clock cost or authorizes pipelined merges.
+   - **RESOLVED by orchestrator:** serial landings accepted (the user directed "follow your recommendations"); the wall-clock cost is surfaced to the user again at the pre-execution checkpoint. The loop is defined once in 134-04 and iterated by 134-05.
 
 ## Environment Availability
 
