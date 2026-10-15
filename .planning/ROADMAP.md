@@ -649,7 +649,15 @@ Plans:
   3. Every reported advisory records its dependency path, supported-runtime reachability, fix version, and either verified resolution or a bounded exception with an executable expiry trigger.
   4. Each landed dependency risk group is independently attributable and passes supported-toolchain, public-contract, built-package consumer, and relevant twin gates before its remote disposition can close.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 134-01-PLAN.md — Read-only inbox collector (collect_inbox.sh) with fake-gh/mix tripwire harness (wave 1)
+- [ ] 134-02-PLAN.md — dep_landing_evidence.sh, hex.audit advisory step, MuonTrap-major ignore, action-pin test decoupling (wave 1)
+- [ ] 134-03-PLAN.md — Ledger validator, INBOX-LEDGER.json seed, triage pointer, ci-script-tests wiring (wave 2)
+- [ ] 134-04-PLAN.md — Baseline rerun, landing loop, batch A: tooling PR, #113, cowlib, mint, decimal (wave 3)
+- [ ] 134-05-PLAN.md — Batch B: #105, #108, #109, #112, adoption demo lock refresh (wave 4)
+- [ ] 134-06-PLAN.md — #95 close, Dependabot-alerts offer, bandit exception, live closure validation (wave 5)
 
 ### Phase 135: Repository and Code-Craft Consolidation
 
