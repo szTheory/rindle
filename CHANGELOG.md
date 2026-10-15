@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.7](https://github.com/szTheory/rindle/compare/rindle-v0.4.6...rindle-v0.4.7) (2026-10-15)
+
+
+### Bug Fixes
+
+* **133:** nightly Dialyzer PLT policy, fail-closed summary, incident lifecycle and evidence tooling ([ecd4d5a](https://github.com/szTheory/rindle/commit/ecd4d5a091d9cf3a8f0cf686cf35df7f24e1c03a))
+
 ## [0.4.6](https://github.com/szTheory/rindle/compare/rindle-v0.4.5...rindle-v0.4.6) (2026-08-28)
 
 
