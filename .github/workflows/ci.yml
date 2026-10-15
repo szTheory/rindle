@@ -569,6 +569,9 @@ jobs:
       - name: Set up MinIO for the package authority proof
         uses: ./.github/actions/setup-minio
 
+      - name: Install the pinned Phoenix generator for the package authority proof
+        run: bash scripts/ci/ensure_phx_new.sh
+
       - name: Run adoption proof matrix drift gate
         run: bash scripts/maintainer/check_adoption_proof_matrix.sh
 

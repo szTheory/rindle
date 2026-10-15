@@ -74,6 +74,20 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     end
   end
 
+  # The adoption matrix gate runs the :package_authority proof, which generates
+  # a Phoenix app; a cold runner has no phx_new archive unless Proof installs it.
+  test "Proof installs the pinned Phoenix generator before the adoption matrix gate", %{ci: ci} do
+    [_, proof] = String.split(ci, "\n  proof:\n", parts: 2)
+    [proof | _] = String.split(proof, ~r/\n  [a-z][a-z0-9_-]*:\n/, parts: 2)
+
+    installer = :binary.match(proof, "bash scripts/ci/ensure_phx_new.sh")
+    gate = :binary.match(proof, "bash scripts/maintainer/check_adoption_proof_matrix.sh")
+
+    assert installer != :nomatch, "Proof must run scripts/ci/ensure_phx_new.sh"
+    assert gate != :nomatch
+    assert elem(installer, 0) < elem(gate, 0)
+  end
+
   test "CACHE-01: ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
     # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×8 in ci.yml.
     # Both went +1 in Phase 112: the lean `adoption-demo-e2e-smoke` PR lane
