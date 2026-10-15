@@ -21,7 +21,7 @@ created: "2026-10-15"
 | **Framework** | Bash harnesses using fake `gh`, `mix` and `date` on PATH, run in the `ci-script-tests` job. ExUnit covers the config locks (`test/install_smoke/`). |
 | **Config file** | none (the harnesses are self-contained) |
 | **Quick run command** | `bash scripts/ci/test_collect_inbox.sh && bash scripts/ci/test_validate_inbox_ledger.sh` |
-| **Full suite command** | `bash scripts/ci/test_collect_inbox.sh && bash scripts/ci/test_validate_inbox_ledger.sh && bash scripts/ci/test_dep_landing_evidence.sh && mix test test/install_smoke/dependabot_policy_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/ci_observability_test.exs test/install_smoke/ci_lane_split_test.exs` |
+| **Full suite command** | `bash scripts/ci/test_collect_inbox.sh && bash scripts/ci/test_validate_inbox_ledger.sh && bash scripts/ci/test_dep_landing_evidence.sh && mix test test/install_smoke/dependabot_policy_test.exs test/install_smoke/nightly_policy_test.exs test/install_smoke/quality_signal_policy_test.exs test/install_smoke/ci_lane_split_test.exs` |
 | **Estimated runtime** | ~5 s (harnesses) and ~90 s (ExUnit subset) |
 
 ---
@@ -52,7 +52,7 @@ The planner fills in task IDs. These are the requirement-level checks every plan
 | INBOX-02 | Each rejection rule works: missing, duplicate, stale head, stale inventory, terminal mismatch, supersede without successor, defer without trigger, unknown disposition. | harness | `bash scripts/ci/test_validate_inbox_ledger.sh` | A bad fixture exits 0, or the clean fixture exits non-zero | ❌ W0 | ⬜ pending |
 | INBOX-02 | The committed ledger has the right shape. | harness | `bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json` | It exits non-zero | ❌ W0 | ⬜ pending |
 | SEC-09 | Every advisory has a record. `resolved` means the advisory is absent. Exceptions are unexpired and have a valid trigger. | harness | `bash scripts/ci/test_validate_inbox_ledger.sh` | An expired-exception fixture (`INBOX_NOW_EPOCH`) exits 0 | ❌ W0 | ⬜ pending |
-| SEC-09 | `mix hex.audit` is wired into Quality. | ExUnit | `mix test test/install_smoke/ci_observability_test.exs` | The step is absent | ❌ W0 | ⬜ pending |
+| SEC-09 | `mix hex.audit` is wired into Quality. | ExUnit | `mix test test/install_smoke/quality_signal_policy_test.exs` | The step is absent | ❌ W0 | ⬜ pending |
 | DEPS-01 | A landing's lock delta equals its declared group, and the gate map covers the main-only lanes. The twin is `not-applicable`. | harness | `bash scripts/ci/test_dep_landing_evidence.sh` | An extra-package fixture, or a twin reported as passed, exits 0 | ❌ W0 | ⬜ pending |
 | DEPS-01 | MuonTrap major-version updates are ignored. | ExUnit | `mix test test/install_smoke/dependabot_policy_test.exs` | The ignore entry is absent | extend | ⬜ pending |
 | D-134-02/08 | Live code has no phase-dir paths and no pinned action SHAs. | grep | `! grep -rn "\.planning/phases/134" scripts test .github` | Any match | n/a | ⬜ pending |
