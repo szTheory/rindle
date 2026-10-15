@@ -893,7 +893,7 @@ defmodule Rindle.ValidateLiveTruth do
     service_keys =
       if include_test_services,
         do:
-          ~w(RINDLE_MINIO_URL RINDLE_MINIO_BUCKET RINDLE_MINIO_ACCESS_KEY RINDLE_MINIO_SECRET_KEY RINDLE_MINIO_REGION),
+          ~w(PGHOST PGPORT PGUSER PGPASSWORD RINDLE_MINIO_URL RINDLE_MINIO_BUCKET RINDLE_MINIO_ACCESS_KEY RINDLE_MINIO_SECRET_KEY RINDLE_MINIO_REGION),
         else: []
 
     inherited =
