@@ -10,6 +10,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
   @repo_root Path.expand("../..", __DIR__)
   @validator Path.join(@repo_root, "scripts/maintainer/validate_live_truth.exs")
+  # Release-please bumps the version on every release PR; derive it rather than pin it.
+  @current_version Mix.Project.config()[:version]
   @historical_start "<!-- rindle:historical-receipt:start -->"
   @historical_end "<!-- rindle:historical-receipt:end -->"
   @executable_elixir_requirement "~> 1.15"
@@ -37,11 +39,11 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
     assert model.schema_version == 1
-    assert model.version == "0.4.6"
+    assert model.version == @current_version
 
     assert model.version_authorities == %{
-             mix_exs: "0.4.6",
-             release_please_manifest: "0.4.6"
+             mix_exs: @current_version,
+             release_please_manifest: @current_version
            }
 
     assert model.ci.workflow_file == ".github/workflows/ci.yml"
@@ -466,6 +468,24 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert adoption_gate =~ "--only package_authority"
   end
 
+  test "active surfaces stay valid across a release-please patch bump" do
+    model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
+    {:ok, current} = Version.parse(model.version)
+    bumped = %{model | version: to_string(%{current | patch: current.patch + 1})}
+
+    for path <- [
+          ".planning/INBOX-TRIAGE.md",
+          ".planning/JTBD-MAP.md",
+          "RUNNING.md",
+          "examples/adoption_demo/docs/adoption-proof-matrix.md"
+        ] do
+      assert :ok =
+               Rindle.ValidateLiveTruth.validate_claims!(bumped, [
+                 %{path: path, content: File.read!(Path.join(@repo_root, path))}
+               ])
+    end
+  end
+
   @tag :derived_authority
   test "maintainer guidance binds Nightly gates and supported-cell proof to live authorities" do
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
@@ -595,7 +615,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       Rindle.ValidateLiveTruth.verify_package_evidence!(
         evidence.receipt,
         evidence.context
-        |> Map.put(:expected_package_version, "0.4.6")
+        |> Map.put(:expected_package_version, @current_version)
         |> Map.put(:execution_env, %{})
       )
     end
@@ -623,7 +643,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert_raise ArgumentError, ~r/package command failed: compile/, fn ->
       Rindle.ValidateLiveTruth.verify_package_evidence!(
         receipt,
-        Map.put(evidence.context, :expected_package_version, "0.4.6")
+        Map.put(evidence.context, :expected_package_version, @current_version)
       )
     end
   end
@@ -646,7 +666,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       assert_raise ArgumentError, ~r/package command failed: #{expected_stage}/, fn ->
         Rindle.ValidateLiveTruth.verify_package_evidence!(
           receipt,
-          Map.put(evidence.context, :expected_package_version, "0.4.6")
+          Map.put(evidence.context, :expected_package_version, @current_version)
         )
       end
     end
@@ -658,7 +678,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert_raise ArgumentError, ~r/package command result fields mismatch: compile/, fn ->
       Rindle.ValidateLiveTruth.verify_package_evidence!(
         %{evidence.receipt | results: results},
-        Map.put(evidence.context, :expected_package_version, "0.4.6")
+        Map.put(evidence.context, :expected_package_version, @current_version)
       )
     end
   end
@@ -725,7 +745,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert_raise ArgumentError, ~r/duplicate package command evidence/, fn ->
       Rindle.ValidateLiveTruth.verify_package_evidence!(
         duplicate_receipt,
-        Map.put(evidence.context, :expected_package_version, "0.4.6")
+        Map.put(evidence.context, :expected_package_version, @current_version)
       )
     end
 
@@ -737,7 +757,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert_raise ArgumentError, ~r/package command failed: smoke_lifecycle/, fn ->
       Rindle.ValidateLiveTruth.verify_package_evidence!(
         failed_receipt,
-        Map.put(evidence.context, :expected_package_version, "0.4.6")
+        Map.put(evidence.context, :expected_package_version, @current_version)
       )
     end
   end
@@ -1254,8 +1274,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
     File.mkdir_p!(package_root)
     File.mkdir_p!(generated_app_root)
-    File.write!(Path.join(package_root, "mix.exs"), package_mix_source("0.4.6"))
-    File.write!(Path.join(package_root, "hex_metadata.config"), "version=0.4.6")
+    File.write!(Path.join(package_root, "mix.exs"), package_mix_source(@current_version))
+    File.write!(Path.join(package_root, "hex_metadata.config"), "version=#{@current_version}")
 
     File.write!(
       Path.join(generated_app_root, "mix.exs"),
@@ -1281,7 +1301,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       evidence_type: "maintainer-operated-package-consumer",
       subject_sha: git_head!(),
       package_name: "rindle",
-      package_version: "0.4.6",
+      package_version: @current_version,
       package_sha256: test_sha256(File.read!(Path.join(package_root, "hex_metadata.config"))),
       unpacked_tree_sha256: package_tree_sha256,
       generated_app_tree_sha256:
@@ -1292,7 +1312,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       dependency_source: %{
         type: "path",
         package_name: "rindle",
-        package_version: "0.4.6",
+        package_version: @current_version,
         unpacked_tree_sha256: package_tree_sha256
       },
       commands: package_commands(generated_app_root),
@@ -1323,7 +1343,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     results_path = Path.join(generated_app_root, "tmp/rindle_package_evidence_results.json")
 
     write_fixture_file!(package_root, "mix.exs", executable_package_mix_source())
-    write_fixture_file!(package_root, "hex_metadata.config", "version=0.4.6")
+    write_fixture_file!(package_root, "hex_metadata.config", "version=#{@current_version}")
 
     write_fixture_file!(
       generated_app_root,
@@ -1522,7 +1542,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     """
     defmodule Rindle.MixProject do
       use Mix.Project
-      @version "0.4.6"
+      @version #{inspect(@current_version)}
       def project, do: [app: :rindle, version: @version, elixir: #{inspect(@executable_elixir_requirement)}]
       def application, do: []
     end

@@ -1,6 +1,8 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
+<!-- rindle:historical-receipt:start -->
 > **Generated:** 2026-08-28 · **Against:** post-v1.25 demand-gated pause · **current hex** 0.4.6 · **git** `7d5c8cd`
+<!-- rindle:historical-receipt:end -->
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
