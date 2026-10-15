@@ -302,16 +302,16 @@
       "risk_group": "ecto_sql"
     },
     {
-      "disposition": "merge",
-      "group_packages": [
-        "req"
-      ],
-      "head_sha": "a9f6b293281483d0f29441e99e3e9ccf3d299069",
+      "disposition": "supersede",
       "kind": "pr",
       "number": 108,
-      "pending_action": "rebase",
-      "rationale": "optional runtime dep; mint overlap with 109 peels off to a maintainer lock PR",
-      "risk_group": "req"
+      "rationale": "req 0.7.4 bump closed by Dependabot in favor of req 0.7.5",
+      "successor": "#122",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "merge",
@@ -399,6 +399,69 @@
         "state": "closed",
         "state_reason": null
       }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 121,
+      "rationale": "Phase 134 tooling (A1, group none, empty lock delta). Its own main push run 38790714484 was red in the Package Consumer Full tus lane on both attempts. The cause was Bandit 1.13.0, released 2026-10-15T18:36Z and resolved unpinned by the generated smoke app, not #121. No landing record is written because the gates did not pass on its own SHA; the first green main run containing it is 38803539002 (40e9cbf3, after #124).",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 124,
+      "rationale": "incident fix outside the landing queue: thread the post-read_body conn for the Bandit >= 1.13 stale-conn check (tus PATCH + webhook fallback); main run 38803539002 green incl. Package Consumer Full tus",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 125,
+      "rationale": "release-please rindle 0.4.8 cut by the #124 fix: commit (expected; fix: is release-bearing)",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 122,
+      "head_sha": "37164c08bb23de42bcd17e79b794ac806bdb823c",
+      "risk_group": "req",
+      "group_packages": [
+        "decimal",
+        "finch",
+        "hpax",
+        "mint",
+        "req"
+      ],
+      "pending_action": "rebase",
+      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5"
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 123,
+      "head_sha": "998ab8db2356ed4757de6cc6930db40e9ef6c1a9",
+      "risk_group": "image",
+      "group_packages": [
+        "color",
+        "image",
+        "vix"
+      ],
+      "pending_action": "rebase",
+      "rationale": "runtime dep image 0.65 -> 0.72 (vix 0.38 -> 0.42); lands after #122 so its rebased delta shrinks to image/color/vix"
     }
   ],
   "landings": [],
