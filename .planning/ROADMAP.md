@@ -22,7 +22,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 
 ## Phases
 
-- [ ] **Phase 133: Evidence Charter and Live Truth** - Establish immutable evidence authority and restore truthful Nightly, incident, release, and adoption signals.
+- [x] **Phase 133: Evidence Charter and Live Truth** - Establish immutable evidence authority and restore truthful Nightly, incident, release, and adoption signals. (completed 2026-10-15)
 - [ ] **Phase 134: Dependency, Security, and Inbox Disposition** - Give every live advisory and remote item an attributable, evidence-backed disposition.
 - [ ] **Phase 135: Repository and Code-Craft Consolidation** - Remove only proven residue and improve candidate-backed readability under preserved contracts.
 - [ ] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed.
@@ -36,14 +36,16 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 
 Rescope (2026-10-14): Plan 203 halted before authorization, closing no requirement and resolving no edge, so the agreed stop rule applied. Per 133-RESCOPE.md, the bespoke one-shot local qualification route is retired: ten open plans (121–123, 169, 173, 178, 190, 192, 203, 204) are superseded history. GitHub Actions on main is now the only live source, and each requirement closes on its own automated predicate. New Plans 211 (product-only landing branch with scheduled-run verifier and incident genesis rule, edge tests, local green), 212 (authorized PR, green merge-blocking CI, authorized merge) and 213 (read-only scheduled-Nightly verifier, per-requirement closure) run in waves 51–53. All five requirements remain Pending until Plan 213.
 
+Completion (2026-10-15): PR #114 squash-merged as ecd4d5a0 with green main CI (Plan 212). Scheduled Nightly 38699984093 on main 3858267b closed EVID-01..04 and TRUTH-08 by their own automated predicates (Plan 213; 133-213-predicates.sh). Phase verification passed 5/5 (133-VERIFICATION.md). Next: /gsd-plan-phase 134.
+
 **Wave 51 — ready (rescope)**
-- [ ] 133-211-PLAN.md — Build the product-only landing branch from origin/main, prove closure, map the eleven edge rows to tests, and reach full local green; nothing pushed.
+- [x] 133-211-PLAN.md — Build the product-only landing branch from origin/main, prove closure, map the eleven edge rows to tests, and reach full local green; nothing pushed.
 
 **Wave 52 — blocked on Wave 51**
-- [ ] 133-212-PLAN.md — Authorized push/PR, green merge-blocking CI, authorized merge; record the merge SHA.
+- [x] 133-212-PLAN.md — Authorized push/PR, green merge-blocking CI, authorized merge; record the merge SHA.
 
 **Wave 53 — blocked on Wave 52**
-- [ ] 133-213-PLAN.md — Read-only verification of qualifying scheduled Nightly runs, then close each requirement independently by its automated predicate.
+- [x] 133-213-PLAN.md — Read-only verification of qualifying scheduled Nightly runs, then close each requirement independently by its automated predicate.
 
 Execution update (2026-10-14): Wave 46 Plan 202 halted inline at its explicit writer-interface gate. A behavioral RED at the real Plan 123 new_journal/3 boundary shows that a disposable candidate with valid Plan 155/121 and Plan 203 digest fields is rejected after fixture preterminal admission because the unchanged writer requires all six Plan 170 fields. The retained regression proves the historical field set reaches journal reservation and recovers, while the Plan 203 field set creates no journal or terminal promotion and preserves original planning bytes, the five Pending IDs and canonical raw SHA 1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4. Per Plan 202, no undeclared writer edit, legacy aliases, weakened checks or partial production-admission switch was made. Production validator, writer, all Plan 203 helpers/anchors and Plans 121–123/169/203/204 are unchanged. Focused supported-toolchain ExUnit reports 127 tests and one pre-existing active-roadmap parity failure, reproduced from unchanged baseline test/planning bytes; its stale Plan 169 dependency expectation is retained for gap replanning. The new targeted writer regression passes, and the unchanged Plan 203 Node suite passes 40/40 with zero failures/skips. The full ExUnit check is not green. Formatting, automation-first and whitespace pass. Immutable Plan 200 first bytes, all sixteen historical source identities/115 digest checks, older portable proofs, retained stderr/private audit and both shared caches remain unchanged. Configured review ran as scoped inline self-review, with no independent reviewer claim. No subagent/model-routing change, actual Plan 203 source freeze, guard/producer/authorization/qualification or remote action occurred. Tasks completed 0/2; the halted summary records diagnostic evidence only. Five requirements remain Pending, eleven edges unresolved, qualification credit zero. The live index has 178 plans and 172 summaries including halts, six incomplete plans, all blocked, and no ready plan. Plans 203/204 are transitively blocked by halted 202; older blockers on 121–123 and 169 remain. Phase 132 is last complete, 133 incomplete, 134 unstarted; partial-wave phase verification/completion is skipped. Next: $gsd-plan-phase 133 --gaps from /Users/jon/projects/rindle/.claude/worktrees/phase133-execution, continuing inline, to explicitly scope the writer and production admission migration before any qualification source freeze. Replanning must also use the published paired verifier --preparation/--observation CLI and include changed writer bytes in the frozen subject inventory. Preserve inherited dirt and all historical evidence; never run roadmap.update-plan-progress. Earlier updates are historical.
 
@@ -729,7 +731,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Evidence Charter and Live Truth | 159/164 | In Progress |  |
+| 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 0/TBD | Not started | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
