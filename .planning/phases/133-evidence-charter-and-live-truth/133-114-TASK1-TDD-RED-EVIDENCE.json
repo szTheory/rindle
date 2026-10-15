@@ -1,0 +1,10 @@
+{
+  "command": "node --test scripts/maintainer/phase_133_recovery.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: revalidates lock-authenticated native supply after the disposable worktree is deleted\nnot ok 1 - revalidates lock-authenticated native supply after the disposable worktree is deleted\n  ---\n  duration_ms: 169.290083\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p114-retry1-1791407353/scripts/maintainer/phase_133_recovery.test.mjs:134:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'not-implemented'\n    - 'available'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'available'\n  actual: 'not-implemented'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p114-retry1-1791407353/scripts/maintainer/phase_133_recovery.test.mjs:138:12)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 206.797042\n",
+  "targetTest": "revalidates lock-authenticated native supply after the disposable worktree is deleted",
+  "targetFile": "scripts/maintainer/phase_133_recovery.test.mjs",
+  "expected": "staged.status is available after lock-authenticated archives and native bytes are durably copied",
+  "actual": "staged.status was not-implemented",
+  "semanticAssessment": "The named TAP test executed and failed at the planned availability assertion, before any implementation of durable supply staging."
+}

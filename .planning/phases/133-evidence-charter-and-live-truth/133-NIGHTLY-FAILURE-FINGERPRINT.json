@@ -1,0 +1,53 @@
+{
+  "cache_key": {
+    "failure_primary": "plt-v2-Linux-X64-otp27-elixir1.17-6c351141945afd0267660d9e684048ac27092fe07215bcefe3a54f7d4db719ae",
+    "success_primary": "plt-v2-Linux-X64-otp27-elixir1.17-6c351141945afd0267660d9e684048ac27092fe07215bcefe3a54f7d4db719ae"
+  },
+  "collected_at": "2026-09-10T00:18:02Z",
+  "collector": {
+    "commands": [
+      "gh run view 33482708198 --repo szTheory/rindle --json ...",
+      "gh run view 33482708198 --repo szTheory/rindle --job 99775681230 --log",
+      "gh run view 34324448817 --repo szTheory/rindle --json ...",
+      "gh run view 34324448817 --repo szTheory/rindle --job 102378368614 --log"
+    ],
+    "mode": "authenticated-read-only",
+    "raw_logs_stored": false
+  },
+  "failed_source_sha": "45ebde5e1bb851eb6e8a943ef68c52a714684661",
+  "failure_fingerprint": {
+    "class": "old_plt",
+    "exact_marker": "Old PLT file",
+    "observed_line_template": ":dialyzer.run error: Old PLT file <PLT_PATH>"
+  },
+  "failure_run": {
+    "conclusion": "failure",
+    "event": "schedule",
+    "id": 34324448817,
+    "job_id": 102378368614,
+    "number": 101,
+    "plt_cache_hit": true,
+    "url": "https://github.com/szTheory/rindle/actions/runs/34324448817"
+  },
+  "repository": "szTheory/rindle",
+  "resolved_toolchains": {
+    "failure": {
+      "elixir": "v1.17.3-otp-27",
+      "otp": "OTP-27.3.4.17"
+    },
+    "success": {
+      "elixir": "v1.17.3-otp-27",
+      "otp": "OTP-27.3.4.16"
+    }
+  },
+  "schema_version": 1,
+  "success_run": {
+    "conclusion": "success",
+    "event": "schedule",
+    "id": 33482708198,
+    "job_id": 99775681230,
+    "number": 93,
+    "plt_cache_hit": true,
+    "url": "https://github.com/szTheory/rindle/actions/runs/33482708198"
+  }
+}

@@ -1,6 +1,6 @@
 # Rindle — Jobs-To-Be-Done Map & Completeness Frontier
 
-> **Generated:** 2026-08-28 · **Against:** post-v1.25 demand-gated pause · **hex** 0.4.5 · **git** `7d5c8cd`
+> **Generated:** 2026-08-28 · **Against:** post-v1.25 demand-gated pause · **current hex** 0.4.6 · **git** `7d5c8cd`
 
 Internal strategy artifact. Not published to HexDocs. Its job is to answer three questions
 the adopter-facing [`guides/user_flows.md`](../guides/user_flows.md) deliberately doesn't:
@@ -172,6 +172,7 @@ path-to-done thread for multi-milestone sequence and terminal-state criteria.
 
 ## What changed since last generation
 
+<!-- rindle:historical-receipt:start -->
 - **2026-08-28 — post-v1.25 baseline refresh.** Anchor moved from in-progress v1.18 / Hex 0.3.0
   to the post-v1.25 demand-gated pause / Hex 0.4.5 (`7d5c8cd`). Added job **40** for the
   dedicated-by-default Postgres schema and guarded legacy migration path shipped in v1.23.
@@ -229,3 +230,4 @@ path-to-done thread for multi-milestone sequence and terminal-state criteria.
   T0–T2 complete; conclusion = at/just-below feature-complete for mission. Created companion
   `guides/user_flows.md` and registered it (plus the previously-unpublished `storage_gcs.md`)
   in `mix.exs` docs extras.
+<!-- rindle:historical-receipt:end -->

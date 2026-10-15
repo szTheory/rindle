@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "plan": "133-173",
+  "status": "no_attempt",
+  "source": {
+    "sha": "4dfc7e5e8a801d79b71f11fef40010e6afeb1219",
+    "tree": "a8c7f785e697933c6041065e5e6708bb4ca22852"
+  },
+  "reason": "plan173_preparation_digest",
+  "preparation_sha256": "d5edbcae29ea00acf317be8afb283a8263acd82cda12533c9376711f82c3b24a",
+  "authorization_sha256": null,
+  "attempt_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "07d138bd3efef9596b0475627231a63c8e28cb2b6b9f8a73a02013dc0cc429cb"
+}

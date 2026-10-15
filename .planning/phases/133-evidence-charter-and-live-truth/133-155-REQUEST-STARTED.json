@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "plan": "133-155",
+  "status": "started",
+  "route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "authorization_sha256": "d99eda710c2a9d6be9a3ff4f3ca1df59619c7ad937036d4b652a2582cf9b2990",
+  "preflight_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+  "source": {
+    "sha": "d17595d3465956c8edd216e1e04d2bc99dbd9552",
+    "tree": "6ff2ff127bd2ff473e5658eb9a8f966f29c538d4"
+  },
+  "destination": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8",
+  "expected_gets": 29,
+  "completed_gets": 0,
+  "network_request_count": 0,
+  "request_profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+  "controls": {
+    "profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+    "control": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "denied": {
+      "exit_code": 77,
+      "stdout": "",
+      "stderr": "POLICY_DENIAL:EPERM\n"
+    },
+    "denial_witness": "EPERM"
+  },
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "69dbee55219eb9aa09c48f312344d5e496ecdf59a1186eadacb37bd112de3ec1"
+}

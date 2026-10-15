@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_hex_source_preflight",
+  "plan": "133-133",
+  "status": "frozen",
+  "source": {
+    "url": "https://github.com/hexpm/hex.git",
+    "commit": "a43131c26aeca06064959297d737991163f5ac5d",
+    "version": "2.5.1"
+  },
+  "destination": {
+    "path": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d",
+    "absent_at_freeze": true,
+    "no_clobber": true
+  },
+  "clone": {
+    "argv": [
+      "git",
+      "clone",
+      "--no-checkout",
+      "https://github.com/hexpm/hex.git",
+      "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d"
+    ],
+    "maximum_invocations": 1
+  },
+  "verifier": {
+    "repository_head": "d6dadc733ba7dc2fe964b42bdbaa1503b45a5236",
+    "repository_tree": "0ec7a812d9acc8a0b7be342707e1c77cd84b0be5",
+    "blobs": {
+      "scripts/maintainer/phase_133_hex_source.mjs": {
+        "oid": "04ddc27b6c6cd91e23d8e9912b875c11fc6b8f7d",
+        "sha256": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968"
+      },
+      "test/install_smoke/phase_133_hex_source_test.mjs": {
+        "oid": "f50390f7a7f821f7fdc5c58233b4ac339b7eac56",
+        "sha256": "876fba5b56f6edf0d31b0eecd16b95f9f87353ffc80e76e2fb8ad0071a2c3a00"
+      },
+      "mix.lock": {
+        "oid": "af2a1e467fdc60ed4d00edad744e56b430f8c2a9",
+        "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6"
+      }
+    }
+  },
+  "runtime": {
+    "elixir": {
+      "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+      "version": "1.17.3",
+      "sha256": "43dc3fd3babb0feebdafbcbba5700b37e59fad2088c252baac2dff5e2e2917ab"
+    },
+    "erlang": {
+      "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+      "otp": "27",
+      "otp_patch": "27.3.4.15",
+      "sha256": "2e40b559320422aed8e521a43906da5978914104f7556045bc353ec059f16957"
+    }
+  },
+  "lock": {
+    "path": "mix.lock",
+    "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+    "mux_inner_sha256": "3d5f86a173b646f4c675bf7cc817bb010a1fde4fdb3ecfdd56a374a039e8db58",
+    "mux_outer_sha256": "103a8dd092066eae17b0116cac87fbbb9cf60574f88387bf030500503dc64be9",
+    "name": "mux",
+    "version": "3.2.2",
+    "repo": "hexpm"
+  },
+  "history": {
+    "plan131_compatibility_path": ".planning/phases/133-evidence-charter-and-live-truth/133-131-COMPATIBILITY.json",
+    "plan131_report_sha256": "562ed2c538cedcde7c1b15068df362d2ae64b65e987bde64e96c6fcb9546d647",
+    "plan131_file_sha256": "79c43379447a8e959b3820b8844a7d1c1831bd101757121bd88361b335e00be2",
+    "plan131_source": {
+      "files": [
+        {
+          "blob_oid": "5d54b4c9dbc6786a36c30b2b6f4de64edb7e42f1",
+          "path": "scripts/maintainer/phase_133_registry_compat.exs",
+          "sha256": "b211d9512dae13a6362f1c227d50e932a4c176499567b5688f912b9274f35a96"
+        },
+        {
+          "blob_oid": "885501e6e1480c9a4d3a59fb8551dfaa25c06d7a",
+          "path": "test/install_smoke/phase_133_registry_compat_test.exs",
+          "sha256": "7e983335ea06f7db8030afb6be26daa517f1f6f1f53d278c5e8b8f4a07950b90"
+        }
+      ],
+      "sha": "a8f4ce251853f82f4b85fa63b5e9f366587e6cb3",
+      "tree": "eb113248f48914ef7975ce85960e9c3f118a5154"
+    },
+    "plan132_summary_path": ".planning/phases/133-evidence-charter-and-live-truth/133-132-SUMMARY.md",
+    "plan132_summary_sha256": "71e48dc1e29905ff404ce39e4c68318d5b739a134f98fc482c36d02858c73ff0",
+    "plan132_status": "halted",
+    "plan132_network_request_count": 0,
+    "plan132_authorization_count": 0,
+    "canonical_nightly_receipt": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json",
+      "sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"
+    },
+    "barred_sha": "87572a019636ba1367c0c7245ae5cb89d0ea1909",
+    "requirements": {
+      "ids": [
+        "EVID-01",
+        "EVID-02",
+        "EVID-03",
+        "EVID-04",
+        "TRUTH-08"
+      ],
+      "status": "pending"
+    },
+    "unresolved_edge_rows": 11
+  },
+  "authority": {
+    "authorization_required": true,
+    "authorization_report_path": ".planning/phases/133-evidence-charter-and-live-truth/133-133-SOURCE-AUTHORIZATION.json",
+    "prior_lexbor_authorization_accepted": false,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "effects": {
+    "clone_count": 0,
+    "fetch_count": 0,
+    "build_count": 0,
+    "mix_count": 0,
+    "mux_request_count": 0
+  },
+  "preflight_sha256": "fc02f8c84c425109339422d714185542837435cd070bceee6ef1218bf3d3940a"
+}

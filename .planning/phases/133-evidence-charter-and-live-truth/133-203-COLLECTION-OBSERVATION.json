@@ -1,0 +1,749 @@
+{
+  "schema_version": 1,
+  "plan": "133-203",
+  "kind": "collection",
+  "status": "authenticated_zero_credit",
+  "fixture_only": false,
+  "branch": "preparation_only",
+  "nonce": "b6ceef58682e5492b6a590eae5a79ef5b4d07cb8f2bebb6f",
+  "root_identity_sha256": "be977efea5d7f6cbd68030d8ae9c0fae87cef0242efb42a415a795f873324452",
+  "receipt_host_head": "65f29d9279f8acb420c6737142a07fa7ede6c77c",
+  "source": {
+    "sha": "65f29d9279f8acb420c6737142a07fa7ede6c77c",
+    "tree": "a03ddac7830222ab3b335c63b2da8ba0cfb4f694",
+    "files": {
+      ".planning/REQUIREMENTS.md": {
+        "sha256": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+        "blob": "d09493da244e70a50ce00ef9fc370c484aa4be67"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-153-PREFLIGHT.json": {
+        "sha256": "ce12a45616a22719ccef1d10fbbd9e68ec3a970b40dc96de33b4e066b2c1b221",
+        "blob": "087ae84a377fc1807f05994308d7ac0f12b6d11a"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-153-SUPPLY.json": {
+        "sha256": "58f80e85ae8704a3ea3652ff2201d7bcdbe9a1986895cc0cb2f62edd074ceee5",
+        "blob": "51abdf3fbc1e48ea315f81c5da0e0a488b15eab1"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-154-PREFLIGHT.json": {
+        "sha256": "74fb95f020a8a0a451dc9513b5b5006326193f716177bf4800e3b7620f994c28",
+        "blob": "a21bfe3eb33a6ee3bbb5ba0a82b04d0018c9f01b"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-155-AUTHORIZATION.json": {
+        "sha256": "6c43fd5199016f2ddd1448f6602cbf48082d912bdd03b9bfc3adfbb5b35ea149",
+        "blob": "e266df8d7ff470c123a66680e700dc85ea2cc423"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-155-RETRIEVAL.json": {
+        "sha256": "7e7e789ec650f53719789a10d8bcf3822ddb32967e337be48e8a5ea265675bf3",
+        "blob": "d65a041501797c973f9842e3d95727dc30538c90"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-155-ROUTE.json": {
+        "sha256": "632be4d4956cd0b80f1e630bdd301a15bcade5f155d53a0248fb6893b4edc3ad",
+        "blob": "53c740197a68e3a4dff781a7538bc7d510842721"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-155-SUPPLY.json": {
+        "sha256": "0569cfde623c5acef4753d6dc64289e743fc18372dbcbe589387e38eb4e6806e",
+        "blob": "6b095add4cd609e6fe466c0ebe2fabb7c2925d1a"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-170-PREFLIGHT.json": {
+        "sha256": "e857e064700e231746940d99f3c3b44322c1be640432b5eb979f91e51334f8c9",
+        "blob": "18a34bfdd1ae26fc6ba5f301b161250f35e94cf5"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-176-PREPARATION.json": {
+        "sha256": "8d24bc9afd9b3e432671edf4c630835acccae12ad302463b5cecee3e7aa9bc73",
+        "blob": "0e66ab28635af07e5b0e7234dfc1732659209ab4"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-177-OUTCOME.json": {
+        "sha256": "d32f0308cac1ddddda739775c17adc6bfb120055827086a4dab4c57debe251e2",
+        "blob": "950100391492902bef60e958c1bbaffe7e8d0df2"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-178-OUTCOME.json": {
+        "sha256": "97ab3ac0c1549b311b88d0625ad23737ad94e2b6012d9be430fdd9de4b254e26",
+        "blob": "647ca042b65de0943efa81f226a154823c29c567"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-179-PREPARATION.json": {
+        "sha256": "5a9768e9e7ca7f33cc02b9c3554b0ba84e3b4c51c54dc940a47b367e90f18d11",
+        "blob": "e08da4ebaec5b936479af251ae8c2b62e6436e91"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-180-OUTCOME.json": {
+        "sha256": "d5d306cb4eaa5704f6153dbe4fa29dcedcfd2e55cb02f3e628844579b2e35bb6",
+        "blob": "2ec6ebaa346078a0927003b952076a3455772678"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-181-SUMMARY.md": {
+        "sha256": "6df4b6b93b24bea93323750576cb1c3f2a707fefd3519f28ce25c53859da4203",
+        "blob": "bcc0f3ed3897ce4fd1472579c4b6491eea996816"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-182-DIAGNOSTIC.json": {
+        "sha256": "fa21d914e643595eaf07865e796199c315d0548e4874ccbdd92b7ba614588413",
+        "blob": "4f55a0cc93dac733f9d2bf1ec5d0e8fe6a622f8a"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-184-SUMMARY.md": {
+        "sha256": "8c03d299bfd7c7b3dbb35f83fe61d575999601ecae96c33b9779ed2a663bb478",
+        "blob": "0653020da02fcfee541964f7ce45ac6db5e13864"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-186-DIAGNOSTIC.json": {
+        "sha256": "3fd94b169106f2fb783d86677861fa5025b36e256c5239641a15f7a8dae0682e",
+        "blob": "3ac4d6ff0ad49a8eaa496abe7ea2374b29e90ee6"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-187-GUARD-DIAGNOSTIC.json": {
+        "sha256": "42cc6a14dc951a49a2d4175efa34f96c54e573427503237d4622e40307a78967",
+        "blob": "340b630db14bdce888550400a388d88e6c254042"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-188-GUARD-CONTEXT.json": {
+        "sha256": "8b9ab61c7cc9b67c14943d5e96b9cab965e3779966f67b0c8ed6a60b413d0084",
+        "blob": "7b081a268f46cff0cac4e6652c424abfffbd66cb"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-189-GUARD-REVALIDATION.json": {
+        "sha256": "874f09d78251f34f91f44159f7c5d0b742ff017507b8adaf066235527012e277",
+        "blob": "8e18b7d6205906cb0311ab8574f6ad6a1d2bd5e4"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-189-SUMMARY.md": {
+        "sha256": "764a74324cfd4c23a5206731302299c7ae201d8a8d26c8ccf3c9600d73edf4e0",
+        "blob": "e2d2ca2fbf7599efa994b32cdb0236f1b1c0c0f1"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-190-DIAGNOSTIC.json": {
+        "sha256": "23f22ac69f7bfcca15cb84094d32a9ac8b0c24887c0ebfd897678bf23a754d43",
+        "blob": "b6372bb3c093aa718d7a6e5c4d20f271b86d01be"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-190-OUTCOME.json": {
+        "sha256": "3e0074b2b4fe8dad67e8c0cf3c7d5be1072c6a3916861b8a0c93fcb0fdd508ed",
+        "blob": "a45e073e1a639171296e22038698e514ec8fe222"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-192-SUMMARY.md": {
+        "sha256": "efc12bc0975375234a7d5dc37fe4300e99ba1661ddc82a9369fcf280d540721e",
+        "blob": "1f3863c535588fba92e050ecb21f18c8382e43cc"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-193-BRIDGE-FIXTURE.json": {
+        "sha256": "e60626d8e2337f6a512828e3cc0203fcb32120b927056564ddc56b0e096a72f1",
+        "blob": "43d38af89e890e7fabf39b1feefcc8a6114bf14e"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-193-SUMMARY.md": {
+        "sha256": "2544964e4ec7a883240449e7645e91aae0876c4a6d8f811d80351c3483849275",
+        "blob": "7f40781acfa63a811e4530d8cb9b5cb50c7d6790"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-194-DIAGNOSTIC.json": {
+        "sha256": "284bc59b719122416fae3e24f1509e918d7d83157367190db546c6d7531c44b9",
+        "blob": "a49fc2713b0720046aa2e049c4a132b52278afb7"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-194-OUTCOME.json": {
+        "sha256": "12c97b278626161a7771b14fae93870c5b3895150d835054670b4d9fa2fb4a19",
+        "blob": "432eb12ad2e7ecce9548bb243bf23aa5efe0563d"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-194-SUMMARY.md": {
+        "sha256": "4fb8c66e5102405c88b4eaf4d3bcfbacf7bce247519f100d84bbc122d13a84a5",
+        "blob": "0de7e81461f8d5f0f0bfb0488e57601f72654cbb"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-195-CHAIN-FIXTURE.json": {
+        "sha256": "dbd8893ece5541046873d8ca2930e09ceb0cf19aac21edd3df2dfd225c64d7b1",
+        "blob": "7e3a861aca6ba1d5e3178854dcdbdc7fd5a22fcb"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-195-SUMMARY.md": {
+        "sha256": "a8ead45e7e7c6743905097ed4fce0bc0463c8d129915afb3ce8b8a83caa2f54c",
+        "blob": "93a6714a6e62fd700b6a6488d8d666f9d0675449"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-196-DIAGNOSTIC.json": {
+        "sha256": "7de036a05e391b606539b3323e02293c1a508f6d36fd898c833f57fe6a7c0d93",
+        "blob": "b19eca116434e0432dcb3ab5617bbd7ce259da54"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-196-OBSERVATION.json": {
+        "sha256": "3c32cc042aa3d9accbbad47dc8df678ec094e8b7671c77325a0aae9c210cef75",
+        "blob": "6e5af2362abb69cf1beb6142c7d006cdcc205e0f"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-196-OUTCOME.json": {
+        "sha256": "42298d4a1405591732a62c1171e60f9d5ffb831d15b07a44c24172c952e21d05",
+        "blob": "598bd78df9d241100b55c1e6deb935e93a0b658e"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-196-SUMMARY.md": {
+        "sha256": "5d853c4028b18e0d93f82d268870b3f562e38cfb753f99afb68bfc8c1ef35999",
+        "blob": "ed4c7c4e4383d70f060e9524e1c21b4d8a2e2a2d"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-197-SUMMARY.md": {
+        "sha256": "185905a780a28929ff202097275c693738c1ce33dca4c9947ed601bb7a393fa4",
+        "blob": "512c2a2f5d7909511647df573e10505d04144df6"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-198-DIAGNOSTIC.json": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-198-SUMMARY.md": {
+        "sha256": "af312a0aa93d9b4973b29567f93d0f10d19eba492ab86ef0dbaaf25bfcf7c36f",
+        "blob": "6ba8871a780e5013ee28f06a39038ddc62e16141"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-200-DIAGNOSTIC.json": {
+        "sha256": "9f2b1e07ea5f56c44547758e636da13cd40e30d8fcc99e6a691094c54c007993",
+        "blob": "5af2d5781369dd914bc814861467bac8d3de7516"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-200-OBSERVATION.json": {
+        "sha256": "d7a8d6d191518a4218a67c4eeaf5f839b66857e57f3f4e1183ecd3f6bc4491a3",
+        "blob": "fc143b81e5da98a50edc3bbfaf0c336289ac423a"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-200-OUTCOME.json": {
+        "sha256": "602e7a036d210a6891cc87d9c5826c009eb8007ceff1daeeccef9f98f7077d4f",
+        "blob": "307361a50125ddc2d2e18d2b5a10680e980aa4dd"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-200-PREPARATION.json": {
+        "sha256": "022682cdc193faa34249ac6f5f78d3d393a219dc16c5609117459b95b5690bf9",
+        "blob": "bf3f796c54f37f44994da12dc5a1a19a76b9012a"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-200-SUMMARY.md": {
+        "sha256": "0693c7bae500408fd0192aaf5ec9d99977292b43e7fd155ae8476ef1a8e5ba67",
+        "blob": "ddaf54d9de8a64867982c35c7685aa263eed54e3"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-201-SUMMARY.md": {
+        "sha256": "28c477d2e4f435746ffad287af319b29474c18e2fc8c0ad094f5fed4e3758352",
+        "blob": "84129439541b752a6ae8a0201ac84b1a924f6d36"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-202-SUMMARY.md": {
+        "sha256": "ad92074c36c5aaa89da9106bafe46281959a99290b8d4e477af50e198dec1764",
+        "blob": "aafa82fc368b29eb23a56a4bde27059a507b5834"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-205-SUMMARY.md": {
+        "sha256": "3fb0cbdc16b75fe789bc46f41351bde231c6c664c9e4cef9206f4cb3254ea16a",
+        "blob": "f1bbffe87e1c21663d720b0ba0eafd71fb442691"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-206-SUMMARY.md": {
+        "sha256": "3c744385eec648c96a4fd992a3d2c1d6ac3a9fa37bd80cdfd1fc0bb5d293f51f",
+        "blob": "4dcdbbac929457258c634c18fa63d110beeb14a2"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-207-SUMMARY.md": {
+        "sha256": "47ae763bfdeac88edb428caaf10b0ece1accbefc94328273fe1ad92f105f66d3",
+        "blob": "8132547aed69008dccf144696fab72f92c3a9071"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-210-SUMMARY.md": {
+        "sha256": "7e78d77c08de22dd78dec46cb534672d3abf227c37ca63729d785b4b52beac8b",
+        "blob": "9468e545bcd3c93ddfc1c4bad12fb6208a83edc1"
+      },
+      ".tool-versions": {
+        "sha256": "b9be8944df223dfbc8c733e4fd7192f110d2ba8e30c11ef32f1bc29c798b3d38",
+        "blob": "b0a6d58579389b592225011df618f024caeb191a"
+      },
+      "coveralls.json": {
+        "sha256": "553dca02ac26eef95b4db1c32138a4a1844a8de2cc42d91f75bb3fc78b6b7d54",
+        "blob": "4096647d0295108acad1d3dcb38b8493a0e3c251"
+      },
+      "mix.lock": {
+        "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+        "blob": "af2a1e467fdc60ed4d00edad744e56b430f8c2a9"
+      },
+      "scripts/maintainer/phase_133_claude_chain_210.mjs": {
+        "sha256": "a4b7124d9f98ff66d17e7f1b6b119653dfa4f3ba6a8858609e4bb124d0a71d75",
+        "blob": "e0fb9095310050ff06e0e77219dc4792ee372d11"
+      },
+      "scripts/maintainer/phase_133_claude_chain_210.test.mjs": {
+        "sha256": "2743f5fc3b064c2f9e9f433632a0992d438e5a01fd5bc3bcf2f13211df492138",
+        "blob": "b1ae339caf2bc320d6da0b4dde9052091a26af76"
+      },
+      "scripts/maintainer/phase_133_compatibility_bridge_141.mjs": {
+        "sha256": "88dabc35cc50dfc3c602242acc237963cfe4af463b86c877ffc74b2f8cc5f244",
+        "blob": "b400af2e57a1462c5f03a4e6c83f4a122ada6665"
+      },
+      "scripts/maintainer/phase_133_guard_revalidation_189.mjs": {
+        "sha256": "14c9de8c5542ddf04e5b285ca80871df9bc695adca1828ce7889f529c972dd2d",
+        "blob": "e5a4009db6c258eb6e49f9dd6bd685e97d5bede9"
+      },
+      "scripts/maintainer/phase_133_guard_revalidation_189_verify.mjs": {
+        "sha256": "ff1c50e4a29580b50424004651c392e819e37b220a6b92e1ed9f1e8d23ee9d6c",
+        "blob": "ecaa1cdc7efd424566a75dcaf91538e9424af158"
+      },
+      "scripts/maintainer/phase_133_hex_build_138.mjs": {
+        "sha256": "8f0e02efe07cf4910268e79a0a974054cd9a81847a3a6713611f1f9247661ec4",
+        "blob": "f6854254f991613ddf469d906cf60fc702af34d1"
+      },
+      "scripts/maintainer/phase_133_hex_build_140.mjs": {
+        "sha256": "24f23d093c21ccd4b439cab45964727082a0be27badc4896de61e6100dd1c9a5",
+        "blob": "84f9164b45410a157a5ff684dd4e950ed828cdb4"
+      },
+      "scripts/maintainer/phase_133_hex_source.mjs": {
+        "sha256": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968",
+        "blob": "04ddc27b6c6cd91e23d8e9912b875c11fc6b8f7d"
+      },
+      "scripts/maintainer/phase_133_historical_138_139.mjs": {
+        "sha256": "b8262a8088c03ae1c30090d35371068ed2f658db6d17ed80973052ba3f3ab669",
+        "blob": "a05ae82226c20629c120e94d0ba1346ed584bda2"
+      },
+      "scripts/maintainer/phase_133_local_gates_203.sh": {
+        "sha256": "6df4d4bbd8534ef747c1c7a0b29913719e5603774f2c77983fd7402fd177b32d",
+        "blob": "a4e6247868e3fbf0dffc721269f225f2742a7106"
+      },
+      "scripts/maintainer/phase_133_local_supply.mjs": {
+        "sha256": "6dffcbc687e03c29db298d7aedf120f7fc5a2269abd293ed88fab9b32f78336c",
+        "blob": "4a23f6b321ad97bdac9ef9988130a68ef4ddb891"
+      },
+      "scripts/maintainer/phase_133_local_supply_203.mjs": {
+        "sha256": "f9645aab12c509c272e5a29e08bc9d0ed34ff7d7f46691a41e02f2b4a4d39180",
+        "blob": "6f72eb58603e4af98f0d687c8122537cad4efa10"
+      },
+      "scripts/maintainer/phase_133_plan118_commit.exs": {
+        "sha256": "d4039a9100bb582d864a4f3fae54ddde67cddab511c63c6adb44bed8b28fce26",
+        "blob": "33c35ed03d7b7097fc1d5d152a00c126901f77be"
+      },
+      "scripts/maintainer/phase_133_qualification_152.mjs": {
+        "sha256": "3a5af281a6ff7094bd83c7b32f3ab84c93538bd1720b09a690eaefe9432a5f6d",
+        "blob": "008eeac658fe7387b09f44381e4bf08137a27dd7"
+      },
+      "scripts/maintainer/phase_133_qualification_180.mjs": {
+        "sha256": "b275d17d181464b76741c429f195690b939b0985c715bc5c9d648e3addeb162f",
+        "blob": "0f81a9d5901e369e574a132e8140c5585ff4427b"
+      },
+      "scripts/maintainer/phase_133_qualification_203.mjs": {
+        "sha256": "f304cc486d9f1af9f392c42f02e7748df30911a38e6d7467360092181e590956",
+        "blob": "a9c83bada2e9d2906a5cbccec165b59349c0bb7a"
+      },
+      "scripts/maintainer/phase_133_qualification_203.test.mjs": {
+        "sha256": "76c85a8234a3e8e58ea59da43e31788c7225ea0bad5c2ca728c45f024828f01f",
+        "blob": "622ec80c2d0c0fea5a344529f73ceadfef8d3d34"
+      },
+      "scripts/maintainer/phase_133_qualification_203_verify.mjs": {
+        "sha256": "17e108072aa14176e59250f6334a14cc991b0becf0c5c1d352093cf18d8d2351",
+        "blob": "c296e8cf6e67caba20f808449b776109dbbf7c90"
+      },
+      "scripts/maintainer/phase_133_recovery.mjs": {
+        "sha256": "6256668639d9c69cb282d2f5744aa486bf5e6813bca9f357ba70f9e039eeb094",
+        "blob": "b14eff04ffb1ff443cb79b59d7a13c37f2f67ff3"
+      },
+      "scripts/maintainer/phase_133_registry_batch_151.mjs": {
+        "sha256": "4e5561d165982a6182c15d7d8c58905501487bb722c4b7b819d5f7138f7b4bd9",
+        "blob": "b5ef1b830f0e5d5a652645aea3a0139be2e874af"
+      },
+      "scripts/maintainer/phase_133_registry_closure_154.mjs": {
+        "sha256": "58cbb05bc59ae2477708977d86cbb706192b28e1cd45c38fd053339e833c6d27",
+        "blob": "26ec187060a10a66f230c06b6afe88744eb3d81b"
+      },
+      "scripts/maintainer/phase_133_registry_collection_194_verify.mjs": {
+        "sha256": "fb61e2cf739c50602956574e3f4e906936dea8280a61db01dca78e6fc0aad847",
+        "blob": "820a507670f02bcc5862c31b171da576741e1ad7"
+      },
+      "scripts/maintainer/phase_133_registry_collection_196.mjs": {
+        "sha256": "db9aecd75571fdafd540556f08c79dc72ccef6029086670c3d9b90cefef996f7",
+        "blob": "e2c8dd8b5e305e3bdd0f532187c5c1a226392c6d"
+      },
+      "scripts/maintainer/phase_133_registry_collection_196.test.mjs": {
+        "sha256": "21474d7687a2407d3dc1c21c3a9784fb0c506b921fc2356efe2914aff046ca43",
+        "blob": "41bacf74f429c0672eee55e2fb32172b20169965"
+      },
+      "scripts/maintainer/phase_133_registry_collection_196_verify.mjs": {
+        "sha256": "e87690acc39ec5e46edc1a70cc23ec6fc907fb502a75e7ab6686400f13d2f014",
+        "blob": "70ecc235cfbed66d3698be6ca01d470b8837cbad"
+      },
+      "scripts/maintainer/phase_133_registry_collection_196_verify.test.mjs": {
+        "sha256": "dba6f2df92b4424fe508525e70d36cd2b0ecd5518bd28d8e2055589dda536545",
+        "blob": "4350dbace4930d8f0a7b1d7ca599db50ad10252b"
+      },
+      "scripts/maintainer/phase_133_registry_collection_198.mjs": {
+        "sha256": "9d23596e04cb15ffccc56aa6b81624df8c3922e95a6ff404071827e25bbe7d9a",
+        "blob": "160a332d58170807b5a3cd6c6e47cb863699c992"
+      },
+      "scripts/maintainer/phase_133_registry_collection_198.test.mjs": {
+        "sha256": "5d06862dcdda8aeb9ab472c405d01eb94de8007993aee4ce5865eb482cdb0237",
+        "blob": "acd8c3f52e4888891dc0b54591898904981dedfc"
+      },
+      "scripts/maintainer/phase_133_registry_collection_198_verify.mjs": {
+        "sha256": "f4978287f3d9745e4d160b51b34042ebefb60f8330f2d38a27ac164f68c8f0f2",
+        "blob": "641d13f3e0be84929fa84c295c55b521678abb0b"
+      },
+      "scripts/maintainer/phase_133_registry_collection_198_verify.test.mjs": {
+        "sha256": "98a51875c64900094699f042f5168dd267fe31c15ee1b6144b6fdb311e273258",
+        "blob": "fbb9d2a6079f995284ac99cbda49e602e2d89c94"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200.mjs": {
+        "sha256": "d1fe7acfc7842ee9302fe5f6e99c963f654240e000c17954e79cc418215cb1da",
+        "blob": "dabadd3756483425194e050caad514d35da3f5bd"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200.test.mjs": {
+        "sha256": "0affc5099e953ae7e3571a447d6717b63b27a5cbc3188f4f92863ae555c85496",
+        "blob": "15dd4940abab92fd6845db492e22b50e6e418797"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200_verify.mjs": {
+        "sha256": "011057b56803ba73b5aef33749b898dfd9e70490f8caa73e8e84eb5747583326",
+        "blob": "48dae339cb9e28180dfbf817dd9c8426123fb47d"
+      },
+      "scripts/maintainer/phase_133_registry_collection_200_verify.test.mjs": {
+        "sha256": "566635b1394e618fac76507dc57107276ab2d3a68c60e9040d4eecc584870f40",
+        "blob": "46285b62f241fcc42b3bbf141fe76bdc1fcbcb49"
+      },
+      "scripts/maintainer/phase_133_registry_dns_diagnostic.mjs": {
+        "sha256": "edeee2359b3b3863ceb057f704e57e3e2f3722a76c85042634787df91898bacb",
+        "blob": "4b912f0bfddfd0f81ce8c26fa71aac162b1a02ab"
+      },
+      "scripts/maintainer/phase_133_registry_producer_179.mjs": {
+        "sha256": "d7de9650341f523324487a8ffa1254d4bfa9014cc030887da9d031b40eba6df3",
+        "blob": "2f0556a7235d621465c8dd1a75a2526a353ff11b"
+      },
+      "scripts/maintainer/phase_133_registry_supply.mjs": {
+        "sha256": "c8223fcdd3bbe59e6452bb1a67f78ab9c57654c1a354c3ec1c586d77d6a41838",
+        "blob": "8fe48a6057fa0054d2ebbabeeab7cc43dbec2388"
+      },
+      "scripts/maintainer/phase_133_tool_capture_191.mjs": {
+        "sha256": "7e57a03fbfeaa7ad1806dd1f203f457a9d65260a38cbe330b18e886a0128448b",
+        "blob": "bb40508a7aa237db3d055128496a064219b2fb42"
+      },
+      "scripts/maintainer/phase_133_tool_chain_195.mjs": {
+        "sha256": "fe4c6e6a51b1b44a996f1fe2b6d307d7c6a80f7a001b85ba51b13a55304fca22",
+        "blob": "a9b08f9854716ddfb655a8451d0c2818b11cf5a3"
+      },
+      "scripts/maintainer/phase_133_worktree_bridge_193.mjs": {
+        "sha256": "60ada51da95ce2d94f8305c90be857bbeb668cc22754ae4bf007393ce4dff5fa",
+        "blob": "478da784e2246a0fa72964a3e6c1de5082a31507"
+      },
+      "scripts/maintainer/validate_phase_133_reconciliation.exs": {
+        "sha256": "177b3870809538f5e52c77f491b39f281dfb5c1d116603d8ded04726deb7dea2",
+        "blob": "45122c3c9d84b9493f162b057b0e24bc0e2e4eb5"
+      },
+      "test/install_smoke/phase_133_reconciliation_test.exs": {
+        "sha256": "f62fbc2d538879ffbf376e02d9f08561581b9cea4c8c309eff729a1f11f50958",
+        "blob": "170b45afba29df79837ed2c8d50b81c86b64e399"
+      }
+    },
+    "producer_pin": {
+      "path": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "version": "22.14.0",
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "report_raw_sha256": "74fb95f020a8a0a451dc9513b5b5006326193f716177bf4800e3b7620f994c28",
+      "report_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+      "launcher": "/usr/bin/sandbox-exec"
+    },
+    "predecessor": {
+      "source": {
+        "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+        "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+      },
+      "preparation_sha256": "9f5a0fbaed4dcfb94d6daa8c414f0d47e4b5d81119f831597d9f593bde12221b",
+      "raw": {
+        "DIAGNOSTIC": "9f2b1e07ea5f56c44547758e636da13cd40e30d8fcc99e6a691094c54c007993",
+        "PREPARATION": "022682cdc193faa34249ac6f5f78d3d393a219dc16c5609117459b95b5690bf9",
+        "OUTCOME": "602e7a036d210a6891cc87d9c5826c009eb8007ceff1daeeccef9f98f7077d4f",
+        "OBSERVATION": "d7a8d6d191518a4218a67c4eeaf5f839b66857e57f3f4e1183ecd3f6bc4491a3",
+        "SUMMARY": "0693c7bae500408fd0192aaf5ec9d99977292b43e7fd155ae8476ef1a8e5ba67"
+      }
+    },
+    "history": {
+      "status": "verified_history",
+      "checked_source_count": 16,
+      "checked_digest_count": 115,
+      "qualification_credit": 0,
+      "authority_sha256": "12db9ffdad968a915e793c956b4699ae25f9b56251d235ebd981db687cd10cdc"
+    }
+  },
+  "history": {
+    "status": "verified_history",
+    "checked_source_count": 16,
+    "checked_digest_count": 115,
+    "qualification_credit": 0,
+    "authority_sha256": "12db9ffdad968a915e793c956b4699ae25f9b56251d235ebd981db687cd10cdc"
+  },
+  "fresh": {
+    "proof_sha256": "634fe6165d65a22157698404f6fc29e40c52bf72bfe2ca812afbd6f11a5f36b7",
+    "summary_sha256": "e38d283edcc305b946282880ea56daf560f581e1399190aa0d1e56d3a3f5523d",
+    "source_sha": "65f29d9279f8acb420c6737142a07fa7ede6c77c",
+    "source_tree": "a03ddac7830222ab3b335c63b2da8ba0cfb4f694",
+    "root_identity_sha256": "be977efea5d7f6cbd68030d8ae9c0fae87cef0242efb42a415a795f873324452"
+  },
+  "chain": {
+    "status": "verified_chain",
+    "nonce": "b6ceef58682e5492b6a590eae5a79ef5b4d07cb8f2bebb6f",
+    "mode": "production",
+    "budget": "short",
+    "task_id": "bw8szxogj",
+    "exit_code": 0,
+    "pending_polls": 1,
+    "transcript_bytes": 2370,
+    "output_bytes": 280,
+    "output_sha256": "70b4074227b9ce92bbadbc08ad30eadbe255718b6cc464251533247224b5397a",
+    "output_raw": {
+      "bytes": 302,
+      "sha256": "5cbf7fec12dcdf31c8b45eb981e48016981e1828a371a775d6ff35e487d0404e"
+    },
+    "review": {
+      "runtime": "claude-code",
+      "kind": "permission_mode",
+      "machine_verifiable": false
+    },
+    "calls": [
+      {
+        "index": 0,
+        "tool": "Bash",
+        "call_nonce": "7ffb26615c7f13232b69c228daafb758e97f94a2bd8d66d1",
+        "observed": "launched",
+        "request": {
+          "chunks": 1,
+          "bytes": 837,
+          "sha256": "d767aa6686fc28ff02a0409f2270f8507385a8cde87229c9b4c316bb1b027126"
+        },
+        "result": {
+          "chunks": 1,
+          "bytes": 467,
+          "sha256": "1e808642272b96087d6dd2c9e304a516e86b802ca8e41c60e5176ce4a72f3bd2"
+        }
+      },
+      {
+        "index": 1,
+        "tool": "Read",
+        "call_nonce": "54e585b578d986d9748f0de10e8160ea90492f7f27e1686f",
+        "observed": "pending",
+        "request": {
+          "chunks": 1,
+          "bytes": 126,
+          "sha256": "329d94c21f837bbc8c62ad2a624a1f8c2a016b0927e2f7cbac0c3d0744cb92b5"
+        },
+        "result": {
+          "chunks": 1,
+          "bytes": 98,
+          "sha256": "159c97b2d68ac9d16497de799f104d24661675b8df22ab6718429d2b8774265b"
+        }
+      },
+      {
+        "index": 2,
+        "tool": "task-notification",
+        "call_nonce": "2f150fe8bca57dd159f65a87bc21714a03ef50f90e76a2dd",
+        "observed": "notified",
+        "request": {
+          "chunks": 1,
+          "bytes": 51,
+          "sha256": "fbe82691512900b2a1bdb7bfc4f385a09919d436c53e4d1c317e9c6f76a9cb31"
+        },
+        "result": {
+          "chunks": 1,
+          "bytes": 489,
+          "sha256": "51546ccdb9e1646379125306be66f9ccc60cfc40b8556a4e62d49d7a2c5b1fa1"
+        }
+      }
+    ]
+  },
+  "receipts": {
+    "DIAGNOSTIC": {
+      "bytes": 60996,
+      "raw_sha256": "cd9d3c4b9338ebf7970e4c39f6c746c164d56e4358d312cf4c7e6e386f4bd10f",
+      "canonical_sha256": "94ed3a68e92ff42afa26a513344f7c8a2d8545ec982f9d8431e4d6edb5cc55a6",
+      "status": "ready"
+    },
+    "PREPARATION": {
+      "bytes": 258849,
+      "raw_sha256": "7a896861e72115bdf12169ac5ee1075d28072ae634173cce3edcb51ce1b9b325",
+      "canonical_sha256": "a180ed1b938762b04ff9276fa4c1a0b384d2d84821cb29d9df1c9c0e85599542",
+      "status": "ready"
+    }
+  },
+  "runtime": {
+    "pin": {
+      "path": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "version": "22.14.0",
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "report_raw_sha256": "74fb95f020a8a0a451dc9513b5b5006326193f716177bf4800e3b7620f994c28",
+      "report_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+      "launcher": "/usr/bin/sandbox-exec"
+    },
+    "report_verified": true,
+    "inspected": {
+      "exists": true,
+      "physical": true,
+      "regular": true,
+      "symlink": false,
+      "executable": true,
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+    },
+    "version": {
+      "started": true,
+      "status": "observed",
+      "exit_code": 0,
+      "error": null,
+      "stdout_bytes": 9,
+      "stdout_sha256": "7703fd79909af9b17df6395137bee2b07c3f3b27b6e96e18c909f433cce84f19",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "value": "22.14.0"
+    },
+    "pinned_guard": {
+      "status": "passed",
+      "platform": "darwin",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "control": {
+        "started": true,
+        "status": "observed",
+        "exit_code": 0,
+        "error": null,
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "process.exit(0)"
+        ]
+      },
+      "denial": {
+        "started": true,
+        "status": "observed",
+        "exit_code": 77,
+        "error": null,
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderr_bytes": 20,
+        "stderr_sha256": "277d707cbbab0f667cefca45414c4d17740e2e2d89c47d4eabcfa7a67c7fe708",
+        "argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+        ]
+      },
+      "witness": "EPERM",
+      "proof": {
+        "status": "available",
+        "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "profile": "(version 1) (allow default) (deny network*)",
+        "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "launcher": "/usr/bin/sandbox-exec",
+        "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/phase133-execution",
+        "host_context": {
+          "platform": "darwin",
+          "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "actual_host_requested": true,
+          "context": "macOS executor process"
+        },
+        "control_argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "process.exit(0)"
+        ],
+        "control_exit": 0,
+        "denied_child_argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+        ],
+        "denied_child_exit": 77,
+        "denial_witness": "EPERM",
+        "denial_output": "POLICY_DENIAL:EPERM",
+        "probe": "loopback-listen"
+      }
+    }
+  },
+  "parent_guard": {
+    "status": "available",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "launcher": "/usr/bin/sandbox-exec",
+    "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+    "host_context": {
+      "platform": "darwin",
+      "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "actual_host_requested": true,
+      "context": "macOS executor process"
+    },
+    "control_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "process.exit(0)"
+    ],
+    "control_exit": 0,
+    "denied_child_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+    ],
+    "denied_child_exit": 77,
+    "denial_witness": "EPERM",
+    "denial_output": "POLICY_DENIAL:EPERM",
+    "probe": "loopback-listen",
+    "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/phase133-execution"
+  },
+  "private_stderr": {
+    "retained": true,
+    "audit_nonce": "f6dfe7944f988b66df4f6581c6bed08eb4c1b92c",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "private_logs": null,
+  "preparation_sha256": "a180ed1b938762b04ff9276fa4c1a0b384d2d84821cb29d9df1c9c0e85599542",
+  "terminal": null,
+  "collection_observation_sha256": null,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "unresolved_edge_rows": 11,
+  "network_request_count": 0,
+  "remote_mutations": 0,
+  "retry_count": 0
+}

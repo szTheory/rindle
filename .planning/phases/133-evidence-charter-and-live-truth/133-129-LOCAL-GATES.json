@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "subject_sha": "df784b2014259196f149a2d747672ad18217c2f2",
+  "subject_tree": "c95fadc32dcb6907463f28e68f6faa3e81071436",
+  "plan": "133-129",
+  "guard": {
+    "status": "available",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "launcher": "/usr/bin/sandbox-exec",
+    "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+    "host_context": {
+      "platform": "darwin",
+      "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "actual_host_requested": true,
+      "context": "macOS executor process"
+    },
+    "control_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "process.exit(0)"
+    ],
+    "control_exit": 0,
+    "denied_child_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+    ],
+    "denied_child_exit": 77,
+    "denial_witness": "EPERM",
+    "denial_output": "POLICY_DENIAL:EPERM",
+    "probe": "loopback-listen",
+    "worktree_root": "<worktree>"
+  },
+  "offline": {
+    "preflight_report_sha256": "00915080f601b1e207089a9e287c686d8f7230b5325ad3faaf2ec630f2dba75d",
+    "hex_offline": true,
+    "network_profile": "(version 1) (allow default) (deny network*)",
+    "guard_identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "denial_witness": "EPERM",
+    "launcher": "/usr/bin/sandbox-exec"
+  },
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "authority_regression": {
+    "command": "node --test scripts/maintainer/phase_133_plan129_authority.test.mjs",
+    "started": true,
+    "invocations": 1,
+    "exit_code": 0,
+    "effective_exit_code": 0,
+    "test_count": 7,
+    "failure_count": 0,
+    "guard_identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "subject_sha": "df784b2014259196f149a2d747672ad18217c2f2",
+    "subject_tree": "c95fadc32dcb6907463f28e68f6faa3e81071436",
+    "diagnostics": {
+      "lines": [],
+      "original_bytes": 1568,
+      "truncated": false
+    }
+  },
+  "dependencies": {
+    "command": "mix deps.get --check-locked",
+    "exit_code": 1
+  },
+  "jose_preflight": {
+    "command": "mix run --no-start --no-deps-check --no-compile -e <focused JOSE structure and Elixir compile>",
+    "started": false,
+    "exit_code": null,
+    "stage_verified": false,
+    "compilation": "focused-elixir-only"
+  },
+  "ci": {
+    "command": "mix ci",
+    "started": false,
+    "exit_code": null,
+    "test_count": null,
+    "failure_count": null
+  },
+  "coverage": {
+    "command": "mix coveralls.multiple --type local --type json",
+    "started": false,
+    "invocations": 0,
+    "exit_code": null,
+    "test_count": null,
+    "failure_count": null,
+    "total_percent": null,
+    "floor_percent": 69
+  },
+  "diagnostics": {
+    "source_header": {
+      "status": "absent",
+      "file_type": null,
+      "repo_relative_path": "deps/jose/include/jose_jwt.hrl",
+      "symlink_text": null,
+      "resolved_path": null,
+      "target_inside_worktree": false,
+      "lexical_target_path": null,
+      "lexical_target_inside_worktree": null,
+      "target_exists": false,
+      "target_directory_status": "missing",
+      "target_error_code": "ENOENT",
+      "mode": null,
+      "permissions": null,
+      "process_readable": false,
+      "byte_size": null,
+      "sha256": null
+    },
+    "staged_header": {
+      "status": "not_attempted",
+      "file_type": null,
+      "repo_relative_path": "_build/test/lib/jose/include/jose_jwt.hrl",
+      "symlink_text": null,
+      "target_exists": false,
+      "mode": null,
+      "permissions": null,
+      "process_readable": false,
+      "byte_size": null,
+      "sha256": null
+    },
+    "staged_include": {
+      "status": "not_attempted",
+      "file_type": null,
+      "repo_relative_path": "_build/test/lib/jose/include",
+      "symlink_text": null,
+      "target_exists": false,
+      "mode": null,
+      "permissions": null,
+      "process_readable": false,
+      "byte_size": null,
+      "sha256": null
+    },
+    "app_lookup_path": {
+      "status": "not_attempted",
+      "file_type": null,
+      "repo_relative_path": "_build/test/lib/jose",
+      "symlink_text": null,
+      "target_exists": false,
+      "mode": null,
+      "permissions": null,
+      "process_readable": false,
+      "byte_size": null,
+      "sha256": null
+    },
+    "transitions": {
+      "after_preflight": {
+        "source_header": {
+          "status": "not_attempted",
+          "repo_relative_path": "deps/jose/include/jose_jwt.hrl"
+        },
+        "staged_header": {
+          "status": "not_attempted",
+          "repo_relative_path": "_build/test/lib/jose/include/jose_jwt.hrl"
+        },
+        "staged_include": {
+          "status": "not_attempted",
+          "repo_relative_path": "_build/test/lib/jose/include"
+        }
+      },
+      "after_ci": {
+        "source_header": {
+          "status": "not_attempted",
+          "repo_relative_path": "deps/jose/include/jose_jwt.hrl"
+        },
+        "staged_header": {
+          "status": "not_attempted",
+          "repo_relative_path": "_build/test/lib/jose/include/jose_jwt.hrl"
+        },
+        "staged_include": {
+          "status": "not_attempted",
+          "repo_relative_path": "_build/test/lib/jose/include"
+        },
+        "app_lookup_path": {
+          "status": "not_attempted",
+          "file_type": null,
+          "repo_relative_path": "_build/test/lib/jose",
+          "symlink_text": null,
+          "target_exists": false,
+          "mode": null,
+          "permissions": null,
+          "process_readable": false,
+          "byte_size": null,
+          "sha256": null
+        }
+      }
+    },
+    "diagnosis_branch": "dependency-retrieval-or-package",
+    "command_output": {
+      "deps_get": {
+        "lines": [],
+        "original_bytes": 113,
+        "truncated": false
+      },
+      "jose_preflight": {
+        "lines": [],
+        "original_bytes": 0,
+        "truncated": false
+      },
+      "ci": {
+        "lines": [],
+        "original_bytes": 0,
+        "truncated": false
+      },
+      "coverage": {
+        "lines": [],
+        "original_bytes": 0,
+        "truncated": false
+      }
+    }
+  },
+  "terminal": {
+    "status": "qualification_halted",
+    "attempts": 1,
+    "node_child_starts": 1,
+    "diagnostic_mix_child_starts": 0,
+    "direct_mix_child_invocations": 1,
+    "mix_child_starts": 1,
+    "first_red": {
+      "stage": "dependencies",
+      "command": "mix deps.get --check-locked",
+      "exit_code": 1,
+      "effective_exit_code": 1
+    },
+    "stages": {
+      "authority_regression": {
+        "command": "node --test scripts/maintainer/phase_133_plan129_authority.test.mjs",
+        "started": true,
+        "invocations": 1,
+        "exit_code": 0,
+        "effective_exit_code": 0,
+        "test_count": 7,
+        "failure_count": 0,
+        "guard_identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "subject_sha": "df784b2014259196f149a2d747672ad18217c2f2",
+        "subject_tree": "c95fadc32dcb6907463f28e68f6faa3e81071436",
+        "diagnostics": {
+          "lines": [],
+          "original_bytes": 1568,
+          "truncated": false
+        }
+      },
+      "dependencies": {
+        "started": true,
+        "invocations": 1,
+        "command": "mix deps.get --check-locked",
+        "exit_code": 1,
+        "effective_exit_code": 1
+      },
+      "jose_preflight": {
+        "started": false,
+        "invocations": 0,
+        "command": "mix run --no-start --no-deps-check --no-compile -e <focused JOSE structure and Elixir compile>",
+        "exit_code": null,
+        "effective_exit_code": null
+      },
+      "ci": {
+        "started": false,
+        "invocations": 0,
+        "command": "mix ci",
+        "exit_code": null,
+        "effective_exit_code": null
+      },
+      "coverage": {
+        "started": false,
+        "invocations": 0,
+        "command": "mix coveralls.multiple --type local --type json",
+        "exit_code": null,
+        "effective_exit_code": null
+      }
+    }
+  },
+  "report_sha256": "2d2118150cc118290a67f62b1c312156dbaf28a3ddc85651dea71f2c4a907063"
+}

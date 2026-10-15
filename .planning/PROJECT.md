@@ -1,6 +1,73 @@
 # Rindle
 
-## Current State: v1.25 Maintainer Craft & Feedback Velocity — shipped 2026-08-27
+## Current Milestone: v1.26 Pre-Adopter Readiness & Quality Consolidation
+
+**Goal:** Make Rindle demonstrably clean, elegant, reproducible, resilient, and ready for its first
+real adopter through an evidence-led quality pass and a maintainer-operated synthetic adopter twin.
+
+**Target features:**
+- Produce a current-head quality census across correctness, maintainability, security, performance,
+  reliability, compatibility, testing, documentation, accessibility, packaging, CI/CD, release
+  engineering, and repository hygiene; disposition every candidate as fix, retain, or defer with
+  executable evidence.
+- Restore trustworthy live project state by resolving the recurring Nightly Dialyzer failure,
+  reconciling release/planning truth, and explicitly triaging every open issue and pull request.
+- Improve code and comment craft without aesthetic churn: prefer self-describing names and cohesive
+  owners, preserve comments that explain present-tense invariants and failure semantics, and remove
+  planning-era narration, mojibake, duplicate prose, and mechanically proven repository residue.
+- Ratchet only measured quality debt: the reviewed complexity baseline, Dialyzer suppressions,
+  coverage gaps, brittle implementation-literal tests, workflow truth, deterministic tool inputs,
+  timeouts, and contributor bootstrap/reproduction paths.
+- Extend the existing Cohort, canonical-adopter, and generated-package proof into a deterministic
+  failure-and-recovery digital twin that consumes the built package, exercises real job behavior,
+  and emits machine-readable lifecycle, retry, residue, cleanup, and readiness receipts.
+- Close from a clean checkout with supported-toolchain, package, docs, CI, Nightly, remote-inbox,
+  release-train, and clean-worktree evidence while preserving the accepted PR feedback envelope.
+
+**Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
+comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
+delete historical planning or generated assets without consumer/provenance proof. Preserve public API,
+schema/migration, telemetry, error vocabulary, release coupling, and supported behavior unless the
+digital twin exposes a correctness defect that receives an explicit scoped decision. The twin is
+maintainer-operated synthetic evidence and does not satisfy the named independent Phoenix pilot gate
+for 1.0.
+
+**Automation-first operating principle:** Default to closing requirements with executable tests,
+integration/E2E/smoke/seam probes, evidence collectors, and CI gates. Shift recurring, deterministic
+checks into CI when their maintenance and runtime cost is justified by repeat value; provide a pinned,
+reproducible local environment when it materially improves diagnosis or contributor experience.
+Minimize human handoffs to credentials, irreversible actions, and decisions that genuinely require
+human authority. A human checkpoint never substitutes for automated acceptance evidence. When a gate
+fails, capture the exact failure, reproduce it in the narrowest useful environment, fix the cause,
+and add a regression check before resuming downstream plans. For external APIs, prefer an
+authenticated connector available to the agent over copying credentials from a developer shell.
+Check API reachability and authentication separately, and call a failure rate limiting only when the
+response provides rate-limit evidence; never ask a user to paste a token into chat or a repository.
+
+**Starting signals:** Five consecutive scheduled Nightly runs fail in Dialyzer on the current immutable
+`main` SHA; two issues and six Dependabot pull requests are open; release and adoption documentation
+contains automation-truth drift; live surfaces retain planning-era provenance; and the current Cohort
+proof does not execute several claimed interruption, retry, or browser/provider paths.
+
+## Standing Milestone Posture — 2026-09-26
+
+The active v1.26 roadmap is the near-term plan; do not start a second milestone before Phases 133–139
+close. Afterward, return to the demand-gated pause unless a named adopter, concrete support or
+reliability issue, compliance need, or release-train signal justifies new work. The independent
+Phoenix pilot remains a real-adopter requirement; the synthetic twin cannot satisfy it.
+
+Use user-goal evidence to review README and onboarding quality: help Phoenix teams find their media
+job, understand the supported path, and reach first success, with accurate setup, upgrade, operations,
+and scope guidance. Admin/operator UI is deferred until the current readiness work is done and
+evidence shows the existing API, diagnostics, and documentation have reached diminishing returns for
+a concrete operator job. This is a candidate filter, not approval for new scope.
+
+At milestone close, aim for a reviewable PR merged to green `main`, current adopter documentation,
+triaged remote work, and no stale branches or worktrees. Release through the existing Release Please
+train when the landed change and versioning policy warrant it; keep the result releasable without
+forcing a package version. The companion prompt is `prompts/rindle-milestone-roadmap-posture.txt`.
+
+## Previous Milestone: v1.25 Maintainer Craft & Feedback Velocity — shipped 2026-08-27
 
 **Goal:** Make Rindle's non-Admin codebase feel deliberately handwritten and easy to navigate while
 shortening trustworthy pull-request feedback through measured, behavior-preserving changes.
@@ -29,18 +96,6 @@ curated complexity baseline fell from 35 to 31, exact coverage is 82.1343%, prov
 mixed operations tests have cohesive owners, and required CI roots now start independently behind the
 unchanged `CI Summary` gate. The final comparable ten-run PR receipt passed CI-14 at 453 seconds median
 and 481 seconds p95. The audit passed 6/6 phases, 11/11 integration links, and 6/6 end-to-end flows.
-
-## Next Milestone Goals
-
-No milestone is authorized. The post-v1.25 assessment's bounded reliability repair shipped in Rindle
-0.4.5: `PurgeStorage` now preserves durable asset rows across real storage-deletion failures, returns
-errors for Oban retry, and treats authoritative absence as idempotent success without widening the
-public API or purge scope.
-
-Remain in the demand-gated pause unless a concrete adopter, compliance, reliability, or release-train
-signal supplies an approved work item. LIFE-06 and STREAM-10 remain signal-gated candidates, not an
-active roadmap. A 1.0 graduation milestone requires a named non-maintainer Phoenix pilot and executable
-adoption evidence before Rindle freezes its public contract.
 
 ## Previous Milestone: v1.24 Core Clarity & Quality Ratchet — shipped 2026-08-23
 
@@ -483,10 +538,19 @@ To keep this posture durable across GSD workflows:
 
 ### Active
 
-No milestone is active. The repository returns to the demand-gated pause: do not invent a feature or
-maintenance milestone without a concrete adopter, compliance, reliability, or release-train signal.
+- [ ] Enumerate the complete current quality surface and close every candidate with an evidence-backed
+  fix, retain, or defer disposition; no aesthetic-only churn.
+- [ ] Restore trustworthy Nightly, release, adoption-proof, repository-hygiene, and remote-inbox truth.
+- [ ] Make live code, tests, scripts, workflows, and comments present-tense, self-describing, cohesive,
+  and free of mechanically proven planning/artifact residue.
+- [ ] Ratchet measured complexity, type, coverage, determinism, bootstrap, and CI/CD debt without
+  weakening public or release contracts.
+- [ ] Prove the built package through a deterministic Cohort-centered failure-and-recovery digital twin
+  with machine-readable receipts and no skipped-as-green scenarios.
+- [ ] Close v1.26 from a clean checkout and clean worktree with green supported-toolchain, package,
+  documentation, CI, Nightly, release-train, and remote-triage evidence.
 
-**Demand-gated for next feature milestone:**
+**Still demand-gated outside v1.26:**
 
 - **LIFE-06** — force-delete for still-shared assets (compliance/legal ticket required)
 - **STREAM-10** — second streaming provider (named adopter + provider choice required)
@@ -914,4 +978,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-08-28 after publishing Rindle 0.4.5 and resuming the demand-gated pause.*
+*Last updated: 2026-09-09 after authorizing v1.26 Pre-Adopter Readiness & Quality Consolidation.*

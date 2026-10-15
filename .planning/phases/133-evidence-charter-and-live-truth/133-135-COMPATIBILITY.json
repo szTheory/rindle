@@ -1,0 +1,600 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_hex_build_compatibility",
+  "plan": "133-135",
+  "status": "halted",
+  "compatible": false,
+  "preflight_sha256": "57ffe57fcdc4cf22d4b2908ae3a69ca8c7d7529eb192b1a80ff4a91d61e68354",
+  "authorization_sha256": "d4fae55a25734d6ebc7307e866e33a41b094ad10a607de6dc0bf487cdb9e801f",
+  "started_sha256": "c30171bb612a43b9f99bf6704724af6e7202555cdec0b40eb1655283a503987c",
+  "children": [
+    {
+      "stage": "build",
+      "cwd": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/source",
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/mix",
+        "compile",
+        "--no-deps-check"
+      ],
+      "exit_code": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Compiling 1 file (.xrl)\nCompiling 28 files (.erl)\nCompiling 83 files (.ex)\nGenerated hex app\n",
+      "stderr": "",
+      "stdout_sha256": "467e3257c840c830822da26f55df4f810187efbf04731db1304b8b26f54661be",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "proof-write",
+      "cwd": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135",
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-pa",
+        "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p135/_build/lib/hex/ebin",
+        "/Users/jon/projects/rindle/.claude/worktrees/agent-p135-wave3/scripts/maintainer/phase_133_registry_compat.exs",
+        "proof-write",
+        "--preflight",
+        "/Users/jon/projects/rindle/.claude/worktrees/agent-p135-wave3/.planning/phases/133-evidence-charter-and-live-truth/133-135-BUILD-PREFLIGHT.json"
+      ],
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "",
+      "stderr": "** (EXIT from #PID<0.92.0>) an exception was raised:\n    ** (MatchError) no match of right hand side value: :undefined\n        (hex 2.5.1) lib/hex/state.ex:402: Hex.State.ssl_version/0\n        (hex 2.5.1) lib/hex/state.ex:198: Hex.State.init/1\n        (elixir 1.17.3) lib/agent/server.ex:8: Agent.Server.init/1\n        (stdlib 6.2.2.4) gen_server.erl:2229: :gen_server.init_it/2\n        (stdlib 6.2.2.4) gen_server.erl:2184: :gen_server.init_it/6\n        (stdlib 6.2.2.4) proc_lib.erl:329: :proc_lib.init_p_do_apply/3\n\n",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "62551c9d869ece7ddab581056d3b890b4dde8dfb5cbe5ef23e369083eeb30020"
+    }
+  ],
+  "beam_files": [
+    {
+      "relative": "Elixir.Hex.API.Auth.beam",
+      "sha256": "51eae0b3d872deb94250ee5ac1426961ceea7ecfa01c18afbc3d2e44805c7139"
+    },
+    {
+      "relative": "Elixir.Hex.API.Client.beam",
+      "sha256": "c7354cc065b16de797c03af579ebd5454397a6597fe0928d935cc95a14da0142"
+    },
+    {
+      "relative": "Elixir.Hex.API.Key.Organization.beam",
+      "sha256": "c144bc3617f8cd2ca13f61967124492fd2cb94cb0ce21bf1fc9edd43e8456957"
+    },
+    {
+      "relative": "Elixir.Hex.API.Key.beam",
+      "sha256": "0271997bfcc2fc012eef6572fc3a2a24a4e77d5034e756427753e6594247408f"
+    },
+    {
+      "relative": "Elixir.Hex.API.OAuth.beam",
+      "sha256": "4db6d7789890ea0501ac2bc2f66de2bfb9f622124585fa3de41be32c89b70e1f"
+    },
+    {
+      "relative": "Elixir.Hex.API.Package.Owner.beam",
+      "sha256": "e09ccb4f2cdaa43e9dc002059eebdb69373c4f78c1c09434e0666577d81b5d02"
+    },
+    {
+      "relative": "Elixir.Hex.API.Package.beam",
+      "sha256": "d5d222bb117c337d44e91bb46346e1cf16a4cbfde5beadb1e8fee4ff9bfebd33"
+    },
+    {
+      "relative": "Elixir.Hex.API.Release.beam",
+      "sha256": "7945d67f938cd7d056e9ca1c587a38c9fb228a3e96165578618ffd97ba670215"
+    },
+    {
+      "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+      "sha256": "d50ef5905b29879f2d851aad93a3b8cd27cf41a4ca735be340bce5350c85568a"
+    },
+    {
+      "relative": "Elixir.Hex.API.ShortURL.beam",
+      "sha256": "4acf3e9a66a658e5e36a223c15445dc1b8f4324566b556f9575b9f1d8cd2f8fb"
+    },
+    {
+      "relative": "Elixir.Hex.API.User.beam",
+      "sha256": "209a3699a184ea917a22d9073dc47ee7c3d338dd647eadd2ac3fd455d2898b0a"
+    },
+    {
+      "relative": "Elixir.Hex.Application.beam",
+      "sha256": "8ae9e34280bb4ab2efaf4de7af94caf302d976e75d022ad8e28663222198e56a"
+    },
+    {
+      "relative": "Elixir.Hex.Auth.beam",
+      "sha256": "0efff18b8e0772569c1034ccad0a171e1cbe285b120a0e3f387b72a5d449c6a4"
+    },
+    {
+      "relative": "Elixir.Hex.Config.beam",
+      "sha256": "6a6d3b49ea77530132def384b73e8c737961e7654a6f3116e536fe3892d9463c"
+    },
+    {
+      "relative": "Elixir.Hex.Cooldown.beam",
+      "sha256": "195082ffbd2acf09f6a96c0e776acff32098732d4210b04341cc73322e4e898a"
+    },
+    {
+      "relative": "Elixir.Hex.HTTP.Certs.beam",
+      "sha256": "073fc77de6eae3d6d73852f425baa66210c0ab63d81a7c7e8b2c4dab12527042"
+    },
+    {
+      "relative": "Elixir.Hex.HTTP.SSL.beam",
+      "sha256": "56aabb1fd36ad7c41ab994a6ac165d41b8c5d7d530060ceaf44f5fc7b4a9a456"
+    },
+    {
+      "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+      "sha256": "a72e8b57d0068533b6f9bd5bdac3897e49023e06b5afcc77877c97469eff3f26"
+    },
+    {
+      "relative": "Elixir.Hex.HTTP.beam",
+      "sha256": "6de2ba971c5997d17b6f846f7e37d6ef2f73e1efe8803d02c2c39b828bf7d7c3"
+    },
+    {
+      "relative": "Elixir.Hex.Ignores.beam",
+      "sha256": "4a7ad78f4661e65cba5e5ad7fe0dc8bbdf8e61d5d25062898abfa6a4072a821b"
+    },
+    {
+      "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+      "sha256": "9e8a150158a0c9a21b1bf85a19328fe43de91ce3c5750053e31f7b0b2009d9cc"
+    },
+    {
+      "relative": "Elixir.Hex.Mix.beam",
+      "sha256": "1816011368e73a1f1611b668724efd4c2d7eb78736335687695c258ea593c2ba"
+    },
+    {
+      "relative": "Elixir.Hex.Netrc.Cache.beam",
+      "sha256": "548ce640485b8e22de6a102f858fdc45845ad374562e47939ca3636acb183401"
+    },
+    {
+      "relative": "Elixir.Hex.Netrc.Parser.beam",
+      "sha256": "09f457d46035cff0a2ddc584faf222c16f94eabf329f69960fc3805dac944872"
+    },
+    {
+      "relative": "Elixir.Hex.Netrc.beam",
+      "sha256": "4d550bf683d6300dad8414e72a4c6ef495b1f9b77a3a0c4d9b420fe76e6bd55c"
+    },
+    {
+      "relative": "Elixir.Hex.OAuth.beam",
+      "sha256": "97a6e6454059504d08c58725bef6bbc3f52022bb305e29e65898b112da282c06"
+    },
+    {
+      "relative": "Elixir.Hex.Package.beam",
+      "sha256": "ae80f938631bdac928e7be1a79bf80202a7f1823217b38536446dd1c32c23fe9"
+    },
+    {
+      "relative": "Elixir.Hex.Parallel.beam",
+      "sha256": "4d7053481e77c8f3cbe885fc434ce32dcc4c5117c5a600a47ef89ec4745c2e54"
+    },
+    {
+      "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+      "sha256": "d1b7b7a0c2d2d6189c16479e63d3a6e9741dea264b6ae20cc383f6e4229d8038"
+    },
+    {
+      "relative": "Elixir.Hex.Policy.Filter.beam",
+      "sha256": "2f761edcedabe0504be6e3f36958d66dac4430e0d47c6aacc287f41601818b1a"
+    },
+    {
+      "relative": "Elixir.Hex.Policy.beam",
+      "sha256": "1d257be392e1b007b191d5c328ea93741580fda79e8afa6d2eb2e45ee8e19bcc"
+    },
+    {
+      "relative": "Elixir.Hex.Registry.Cooldown.beam",
+      "sha256": "8b1daf2f06cc89599aa40885351d3e01b74a2ce63a30f6ef17b93ba24d3ea87f"
+    },
+    {
+      "relative": "Elixir.Hex.Registry.Policy.beam",
+      "sha256": "2f4881aeb40cfb7a25d364a0d0e4fa92c675b3c95e2a0fb7471b7f40ee24e53d"
+    },
+    {
+      "relative": "Elixir.Hex.Registry.Server.beam",
+      "sha256": "fe062d7e1a8f0994e7a6dc8554b36243240fac87063133a44eca92db3c7ddffc"
+    },
+    {
+      "relative": "Elixir.Hex.RemoteConverger.beam",
+      "sha256": "81788598a36fcedb03d68826723fad1506a18cbb68cc07abc3f262e829271d8f"
+    },
+    {
+      "relative": "Elixir.Hex.Repo.beam",
+      "sha256": "02f393b66dff70cc2a9ba92d7384b3a3c1007c65ce0f32e4a8d8398783c976a9"
+    },
+    {
+      "relative": "Elixir.Hex.SCM.beam",
+      "sha256": "cb2288a9c541906a141032303be57dbf392ac49cc1bfad3a8ecbcb8f7c99ff1c"
+    },
+    {
+      "relative": "Elixir.Hex.Server.beam",
+      "sha256": "b0849d881302be919cd12a190ccf042e57a43086eb9f68dc202c7d53a69deaa6"
+    },
+    {
+      "relative": "Elixir.Hex.Shell.Process.beam",
+      "sha256": "6efbe1b8b49596078287c9a4756a2968ce3ddd40b4a38be4db3524934708665e"
+    },
+    {
+      "relative": "Elixir.Hex.Shell.beam",
+      "sha256": "8f2f15f9657f8676b9a6afb393b7c87855bbef6460d311140550dcd2fa804799"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Assignment.beam",
+      "sha256": "a6c91375a6784f1a0926a8adc28dd1742b83bda683213f86133a37ce753f530b"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+      "sha256": "eccc9668cf95723ba26acf474913f7b0a419fce905d6bba45bbfbdc98064b14e"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+      "sha256": "9c88b48f142ba24fecab68bf05b84ab15f6a0a7991c02ee25af864b0c5b193e8"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+      "sha256": "32f09c0f0bcc4e4116318d3aae99c44cb1c95b6f439c82f083809b9aa46fe292"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+      "sha256": "a226e536a13f7f52d86daa4154984822293107d0ea3ac902e5b1a70dc23ed91a"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraint.beam",
+      "sha256": "ca1b08df5fa9564a54ee4037eca7013be0a9b6a1a4ed86ef265ffca4ecbbf6bb"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+      "sha256": "442a6f3b78a99c5bd615ebeb50b795fbac975b9f6541e1d500a55e8f719b4a86"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+      "sha256": "9af598c2672ea1217b20025783e315ade99414b69fcae923afbca36114cc2b8b"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+      "sha256": "095f34fb194096d02d77c9bdce35b645fe85dd2a20719329007c4ef14c4805d5"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+      "sha256": "4b4171c7f56d9ce8974d0a9a96191e0d987ec242dc2f812cb920da815afc732a"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+      "sha256": "ae39fedbfa424ec7c1e41ca00c102648fd53c1c066cef9edeee83d5915c21ab6"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+      "sha256": "c3c4d078c7a7e568ebb94c5830a7e4a0b62d0f221bf9aabd444cc0bae2248088"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Failure.beam",
+      "sha256": "9f36751410ccc4427f98dd8971fdc55fded24088fc92666f54e9df4c09947568"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+      "sha256": "55ef69bfc4fe42e0e64508ebe62edb2c7f084526e92b25b368930c335d8dafa3"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.PackageLister.beam",
+      "sha256": "460d3b69d032cb9eebd71e37e1224be769dd861bea0f2cc1da40be1fbac524a6"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.PackageRange.beam",
+      "sha256": "af9da46c364b28dab56be2d825c13366c40ca464f6fd0781250be5bc700559c2"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+      "sha256": "c39c907e5916eb97d78e79d96ec37d8160bf2fe33b286467e233be0cce406453"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Registry.beam",
+      "sha256": "bd08fd97629cbb08b4b4e77f951dd97263b3590c9d8c26ae5f48cb78936747fd"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+      "sha256": "0d5dd8a9e1dc714336f551eacc4449a1fe59f87be64648ae88790a9bb34b2f8d"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Requirement.beam",
+      "sha256": "ba200d1f090ee04bc158ab4f7f00054c3f563ea8913dcc5ed5064decd8018610"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Solver.beam",
+      "sha256": "8885802f2e89bebb2f88842763f2474e5ba5261cb5fd826cf3b98369ff6fb388"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Term.beam",
+      "sha256": "e5fba84fce19e94c367ad78a0ba1bf8d3e1d60519c03924785e4ca2ef00a075c"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.Util.beam",
+      "sha256": "e0c36bfd5760c4505816fc71a090ccb6d7c03af5c5558c468bf34aa83b86ab6d"
+    },
+    {
+      "relative": "Elixir.Hex.Solver.beam",
+      "sha256": "679faab1fe09d3b05b2f84ed25fd23cd45fbbb4c0404cfa9db3b49b111e0e93c"
+    },
+    {
+      "relative": "Elixir.Hex.Sponsor.beam",
+      "sha256": "e110655a31633bafba7ac4164e0be42a4422135b8b5c632ca7a51ce1e1a9b436"
+    },
+    {
+      "relative": "Elixir.Hex.State.beam",
+      "sha256": "a3d160f600396c7bb6a239e61558af9b31efbbade5dd7d0845fd38f07a5f3fbe"
+    },
+    {
+      "relative": "Elixir.Hex.Stdlib.beam",
+      "sha256": "ff61d150aa4f948bc97e6fcf6bb48c5a920a84123907038b19d963637084ac98"
+    },
+    {
+      "relative": "Elixir.Hex.Tar.beam",
+      "sha256": "9895f5724925201d21f6af1894d4631bba8e62db89fd0401ae920e2dda137a1c"
+    },
+    {
+      "relative": "Elixir.Hex.UpdateChecker.beam",
+      "sha256": "ef14584006fbc8f2448f1cac22e8c5c692cb7c3e88b60a7248f9eaa7f6fd15c8"
+    },
+    {
+      "relative": "Elixir.Hex.Utils.beam",
+      "sha256": "a6337f522984aab29f242bf03f3efa48c7e539ae3290b98c04e853a94fbc76a3"
+    },
+    {
+      "relative": "Elixir.Hex.beam",
+      "sha256": "dd5c8af9592841aa096ea388260d979bf6ac8d0104f1426d585d26387e3df061"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+      "sha256": "570d767782323896c205c4d31735e0cabd78c6df30b9f152881127c2ba76a99d"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+      "sha256": "4387b95c6c056f4f7f56136fef1bd6cabbf5ee73819839404d7e2d89bff3821e"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+      "sha256": "54a2ad1187c03ddcfb793af3990729e57167a8f3e4147615cba81c9fd57b99a6"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+      "sha256": "e8bef868b9f237eeae01acb0885003581fbc3b2050a00894b8c718c28c338d27"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+      "sha256": "f8e2fc062ba5e87cf419ad515a830c0ed914484a1b2a7933637174e01b51b9cd"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+      "sha256": "6f391fe7dc335f4893b50b0112f64eefeda1b35f3c1d6d11586ec8f755293513"
+    },
+    {
+      "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+      "sha256": "a1b82adf8867389eefe515997e78fcfda891c476dc3e3e7238dfa0333a6e1f33"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+      "sha256": "bfb066bcd6cde74bec06dd50c94cb2429f43326c10fc24a24f83c06481de99a9"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+      "sha256": "3294d54c8f429dcba4ce27616d4b559d439d6f14a6b4352eac4536f7b00d67c7"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+      "sha256": "dd2d77990cb4f9f9ed6dd92af42ff53aafbf3961f0b63896ba904e1fdbd4fce0"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+      "sha256": "254fa28288f65430a9fdb40b5a4c64aed65012bbed643ab799331373291a1c4e"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+      "sha256": "5c6e35a805fd8609a4b2e1b58be846eb4d82103bff5070864ac7d1ed1897d22f"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+      "sha256": "a2acb9ca5856271a2c999dd4a24d3f9cdb65359f68cc20df44b3457c99af0c16"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+      "sha256": "72afcbe71667cbcc3ef53d313bcae17e42f63a98b72594dbea2d3140ab4fb261"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+      "sha256": "2c108aafa0fdf43bb63ae59c4b16c5ac409a792efed525dfeee55d6020924f5a"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+      "sha256": "372b171608bee3026bf0d868437ea017413d24e5948f4befa88c9139316a2b75"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+      "sha256": "813b9df33652f5d77b7ffea6f1dad4c71c37704f8c5559d874054812ef7fd237"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+      "sha256": "6e48d5f1f0702d7904e9b7707466f5ee1099f98828bd571c31bc377257f8b5a9"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+      "sha256": "64ea3f5e03865650a98d4992f8473b05a31f554cfd2b04d82cd7be04cc666a3a"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+      "sha256": "9be955ceb61137da7bb0210fbcbd01eea4f73f440f349d5f9ec104b592ded577"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+      "sha256": "211e3688e603f92d459ef06181a40dcd0641732b44e9acdb576933f5e7d8a31b"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+      "sha256": "a5f8ec1d1702a7d9ce300723413116b47e9fb478d39d7e0118ad67b4a4aca4af"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+      "sha256": "283a4c5656cecc32199cb3af70860afae4b3ef0a6d4c48665ae13e55fd103177"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+      "sha256": "be00a13796fe524fc195a56076fc6dca99bd59d11d368be1689cd3999ef9c52a"
+    },
+    {
+      "relative": "Elixir.Mix.Tasks.Hex.beam",
+      "sha256": "307f8302baa7b0a2efbd217c340a229b70665418aefbef02e3e93ed87ab2c755"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+      "sha256": "009c93153f5f71e5e5f7d35a2e40bd081ad2d8ed62e2390dbb5d5a8fdd822e35"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+      "sha256": "3809ddeb4d41f91d007a6824ac20822e3df3ed64f150a164f2f41bd65a06391d"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+      "sha256": "29c3fef2d8accd42e10f8c38ade3d6c83e1c519ed1f7507c8ea6668e8365bc2e"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+      "sha256": "762a2d23c31434d1104d220d03f202588dc3516c88e24fad18d65af1e32d7c7a"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+      "sha256": "19d0e8f3edac2bebc51aabb305174889fb82fe233a7d276000fc66eb376e1230"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+      "sha256": "841fe6b8f73a7432d28ea013e65dd96f0bcabaaafa9f08b733ee9a7a66a7bfa9"
+    },
+    {
+      "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+      "sha256": "79dff7b1d7a7ec8ba67adf546399ac8bbbd5cee737d5f363c6c2ad579b26c87f"
+    },
+    {
+      "relative": "hex.app",
+      "sha256": "da6b5facbc718fcfc8c9377aa550cda491893a3d7f32fde3dc8fb32474871d56"
+    },
+    {
+      "relative": "mix_hex_advisory.beam",
+      "sha256": "5284665c4111f7aef20e0e02ee0163a0e2433b02236aba6746c83a2b5d11b279"
+    },
+    {
+      "relative": "mix_hex_api.beam",
+      "sha256": "0cb43483f27b281a6963763310c0f128986731d28986b9dc156073917e29bce0"
+    },
+    {
+      "relative": "mix_hex_api_auth.beam",
+      "sha256": "2dd9f6e4c996e5672d4ecc812d29c2a4a92232b87047fb5ad45ec7f828338bce"
+    },
+    {
+      "relative": "mix_hex_api_key.beam",
+      "sha256": "9e106670fc27da18d280618dea93040fd291c37c2b0a6b79060d71a033c7202a"
+    },
+    {
+      "relative": "mix_hex_api_oauth.beam",
+      "sha256": "5de6df6e2c76ba31a80cd3647701a3162de0211d87dc4a43862b5d9fbf588069"
+    },
+    {
+      "relative": "mix_hex_api_organization.beam",
+      "sha256": "9f09d49ef2bbf5280a7220d357038614e1c6c1a98e3586afc8e4b42395bb61d0"
+    },
+    {
+      "relative": "mix_hex_api_organization_member.beam",
+      "sha256": "b551c2156dda9f7daa7d6dfd23dcb271fd6833ea574377a58bba254615669a68"
+    },
+    {
+      "relative": "mix_hex_api_package.beam",
+      "sha256": "f496447c8444e55a8a7c7409def1f366b78c5958e137c6d66371d716b1773b27"
+    },
+    {
+      "relative": "mix_hex_api_package_owner.beam",
+      "sha256": "d22dcc4381838b3f8c6efef2f5d5750ba8dc565b10f357f9074af5771aec4073"
+    },
+    {
+      "relative": "mix_hex_api_release.beam",
+      "sha256": "3972097cef494973d34bd76d76bb617fafa7430bd10917c243d37d840f14f55e"
+    },
+    {
+      "relative": "mix_hex_api_short_url.beam",
+      "sha256": "3988b964d5484e2836907f4aa057b025dcd3607d89a8e94c267f8cab1806603d"
+    },
+    {
+      "relative": "mix_hex_api_user.beam",
+      "sha256": "5c546c12ae9201b0378a10bad66da07e104e798337d2a04e217688569abb0313"
+    },
+    {
+      "relative": "mix_hex_cli_auth.beam",
+      "sha256": "77466beb3bbe2cdb4fa2543ba8ec043f609bcc3dbc85f0041ff53033775ca435"
+    },
+    {
+      "relative": "mix_hex_core.beam",
+      "sha256": "48ec0ebf771c7ad427018b234a30b31d8ce6ea16f0e848940d840fc47efec205"
+    },
+    {
+      "relative": "mix_hex_erl_tar.beam",
+      "sha256": "479cce6d3d1374c97f769df8911e748aa198b5192658d4af4346b0daaeaecd7b"
+    },
+    {
+      "relative": "mix_hex_http.beam",
+      "sha256": "7d2cc7b3b53567a661e2609567ceea7d926fe767ac338272ae3bd5ac4cb32977"
+    },
+    {
+      "relative": "mix_hex_http_httpc.beam",
+      "sha256": "002efcd675e4ee0b28f0a5229216d36284c972a4ddc209e52dd06be64777a460"
+    },
+    {
+      "relative": "mix_hex_licenses.beam",
+      "sha256": "629e1cb30ba5f53a29d6c941cb7bf02679c4bd9d5c92ead8a6480b9ce6334816"
+    },
+    {
+      "relative": "mix_hex_pb_names.beam",
+      "sha256": "2d26f1289c4a343d2f0472620b8d2300dc82500ee0d7b0d1dcf16c03bfef60e1"
+    },
+    {
+      "relative": "mix_hex_pb_package.beam",
+      "sha256": "3f142cfe39a5d7c8f22df3680d57a426e13dbe61f823b6b987cf15e34979c77b"
+    },
+    {
+      "relative": "mix_hex_pb_policy.beam",
+      "sha256": "a3b8d7a11a624a193040a00d9fe088b63635195ce8bc094c089d992fe74b4224"
+    },
+    {
+      "relative": "mix_hex_pb_signed.beam",
+      "sha256": "34ee1f119ef0460f0b0e6424c78fbe587a3465dc462f198d51701a89dd6732c9"
+    },
+    {
+      "relative": "mix_hex_pb_versions.beam",
+      "sha256": "5034d38bf3068a8c8339985d2daf2d64a64d3ffae39baac31729dbdadfe4163c"
+    },
+    {
+      "relative": "mix_hex_registry.beam",
+      "sha256": "9da1cff87e9934fbc722bf13011009fa3f4d96f30aee3df58692336e21be06d7"
+    },
+    {
+      "relative": "mix_hex_repo.beam",
+      "sha256": "02a00234cb7f78429730a7a463bdb8e5fc48bcd52a305f0776949894764e64b6"
+    },
+    {
+      "relative": "mix_hex_safe_binary_to_term.beam",
+      "sha256": "5bf66ed2b860e5e214bf780b6aad88193bd574cab3d254b77946d3d518bb9696"
+    },
+    {
+      "relative": "mix_hex_tarball.beam",
+      "sha256": "c7b91e52749f8d1d913eff23db6fb9cba3cc5f499ad6d19700f86dd658eadf55"
+    },
+    {
+      "relative": "mix_safe_erl_term.beam",
+      "sha256": "fd78273f95a53028c12de03b6ae9b025988cba0961f227051dd5fb2352bf77ef"
+    }
+  ],
+  "proofs": [],
+  "stop_reason": {
+    "stage": "proof-write",
+    "detail": "proof-write child failed"
+  },
+  "mux_request_count": 0,
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements": {
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "status": "pending"
+  },
+  "unresolved_edge_rows": 11,
+  "report_sha256": "6bbaf39c52adaafff1cf1567174cb36d1bab2d27e81a5877de9a882f7715e808"
+}

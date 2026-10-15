@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "plan": "133-187",
+  "classification": "sandbox_controls_failed",
+  "source": {
+    "sha": "f12d9e937489a387b9a45048d1ea3db4b31bd337",
+    "tree": "18b58300bc94446b93b275dcc0d2bb226de71a02",
+    "origin": "committed",
+    "chars": 33387,
+    "code_sha256": "b76ac28e89778b3936f0751ada03356639de6f10d55786590e80b6481cdab8db"
+  },
+  "parents": {
+    "plan186_source_sha": "4ce61c58a6186fd4c83d4959b6cf383ef28316e9",
+    "plan186_source_tree": "55d2c78339978b83f568f814e3d70bebd708f13c",
+    "plan186_diagnostic_raw_sha256": "3fd94b169106f2fb783d86677861fa5025b36e256c5239641a15f7a8dae0682e",
+    "plan186_diagnostic_report_sha256": "fb1b8840668701304909c62643649e26d4ed3d554545ca0fab050a91117b6d11",
+    "plan186_summary_sha256": "0c10c0b4f4366b0835ccb99e20ef99ebf944b7182ba09e0f134e5740ce9ecb4f"
+  },
+  "runtime": {
+    "platform": "darwin",
+    "node_executable_sha256": "4bf6a3eae3f992debd66e6c418438b5c608bcde575cf8aefa90858f36c37de7f",
+    "node_version": "20.18.1",
+    "root_sha256": "1e7592befd22ea81f93379c8c6258b28c01b888da2b8c0b0042d778db6d15f52"
+  },
+  "launcher_sha256": "41a9a3021907ff35b9b229250aa002843916fb46b6f141dbcc21fdecafa1020b",
+  "launcher_error": null,
+  "exact_profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+  "permissive_profile_sha256": "c3f48dc83eca4ac705acbf9094416e239dda782b96cab885e8f7151c653474b3",
+  "controls": {
+    "unsandboxed": {
+      "role": "unsandboxed_node",
+      "status": "passed",
+      "exit_code": 0,
+      "error_code": null,
+      "profile_sha256": null,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "truncated": false
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "truncated": false
+      }
+    },
+    "exact_profile": {
+      "role": "exact_profile",
+      "status": "failed",
+      "exit_code": 71,
+      "error_code": null,
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "truncated": false
+      },
+      "stderr": {
+        "bytes": 53,
+        "sha256": "d34a4e4359a4dc36526cf5b363da32f7b7594a3a09eea17cbdfd6425b052d93e",
+        "truncated": false
+      }
+    },
+    "permissive_profile": {
+      "role": "permissive_profile",
+      "status": "failed",
+      "exit_code": 71,
+      "error_code": null,
+      "profile_sha256": "c3f48dc83eca4ac705acbf9094416e239dda782b96cab885e8f7151c653474b3",
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "truncated": false
+      },
+      "stderr": {
+        "bytes": 53,
+        "sha256": "d34a4e4359a4dc36526cf5b363da32f7b7594a3a09eea17cbdfd6425b052d93e",
+        "truncated": false
+      }
+    }
+  },
+  "local_loopback_witness": {
+    "attempted": false,
+    "status": "not_attempted",
+    "exit_code": null,
+    "error_code": null,
+    "witness": null
+  },
+  "observation_provenance": "actual-host",
+  "actual_host_requested": true,
+  "observation_nonce": "da24213d-0a18-4799-8ad7-1abf6f5b65c4",
+  "effects": {
+    "producer_invocations": 0,
+    "producer_children": 0,
+    "authorization": 0,
+    "attempt_markers": 0,
+    "qualification_children": 0,
+    "external_network_requests": 0,
+    "remote_requests": 0,
+    "remote_mutations": 0,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "observation_chain_sha256": "db4c1799bb950a7e6a5d39814b57ef32ec8d5d71762bdb3a5f93117152fe3c75",
+  "report_sha256": "dd70bea45362e123d456f93f33c77a3282ab59bb83ffa24dc01002c2518dbea0"
+}

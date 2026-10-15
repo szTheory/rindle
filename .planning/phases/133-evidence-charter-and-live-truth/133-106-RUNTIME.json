@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "plan": "133-106",
+  "kind": "runtime-observation",
+  "source": {
+    "sha": "cfd5eed0e8589687bab6ff2ea437fabae1ce70e6",
+    "tree": "1244ae3562add40a751c9f7644edc44cc8ce60ca",
+    "helper_sha256": "f99732f694b16686947b365f115ad67aa04815ae8c6ef2ac83065a318e13e6b2"
+  },
+  "status": "available",
+  "runtime": {
+    "status": "available",
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15",
+    "nif": "2.17",
+    "target": "aarch64-apple-darwin",
+    "installs": {
+      "erlang": "/Users/jon/.asdf/installs/erlang/27.3.4.15",
+      "elixir": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27"
+    },
+    "executables": {
+      "elixir": {
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "sha256": "43dc3fd3babb0feebdafbcbba5700b37e59fad2088c252baac2dff5e2e2917ab"
+      },
+      "erl": {
+        "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+        "sha256": "2e40b559320422aed8e521a43906da5978914104f7556045bc353ec059f16957"
+      },
+      "mix": {
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/mix",
+        "sha256": "e532d1674db8c27b1a00edeb659cd57ab78e90d6aa60dac1eb4414c5a9029225"
+      }
+    },
+    "otp_version_file": {
+      "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/releases/27/OTP_VERSION",
+      "sha256": "eee643b6b95e2d8c5bc418efd168c3b98aba8321bce262a80291b4391723500f"
+    },
+    "beam": {
+      "otp": "27",
+      "root": "/Users/jon/.asdf/installs/erlang/27.3.4.15"
+    },
+    "mix_version": "Erlang/OTP 27 [erts-15.2.7.11] [source] [64-bit] [smp:18:18] [ds:18:18:10] [async-threads:1] [jit]\n\nMix 1.17.3 (compiled with Erlang/OTP 27)",
+    "env": {
+      "ASDF_ERLANG_VERSION": "27.3.4.15",
+      "ASDF_ELIXIR_VERSION": "1.17.3-otp-27",
+      "HEX_OFFLINE": "1",
+      "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.asdf/installs/nodejs/22.14.0/bin:/Users/jon/.asdf/installs/nodejs/22.14.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/jon/.unity/bin:/Users/jon/.local/bin:/Users/jon/.local/bin:/Users/jon/.asdf/installs/python/2.7.18/bin:/Users/jon/.asdf/shims:/opt/homebrew/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/usr/local/go/bin:/bin"
+    }
+  },
+  "first_unavailable": null,
+  "probe_commands": [
+    {
+      "argv": [
+        "asdf",
+        "current",
+        "erlang"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "current",
+        "elixir"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "where",
+        "erlang",
+        "27.3.4.15"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "where",
+        "elixir",
+        "1.17.3-otp-27"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "which",
+        "elixir"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "which",
+        "erl"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "which",
+        "mix"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+        "-noshell",
+        "-eval",
+        "io:format(\"~s|~s\", [erlang:system_info(otp_release), code:root_dir()]), halt()."
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-e",
+        "IO.write(Enum.join([System.version(), to_string(:erlang.system_info(:otp_release)), to_string(:erlang.system_info(:nif_version)), to_string(:erlang.system_info(:system_architecture))], \"|\"))"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/mix",
+        "--version"
+      ],
+      "exit_code": 0,
+      "error": null
+    }
+  ],
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "348cb1be50e2fee32f744d73df3e8ae1dfe03944422424a0845480e95ea8b977"
+}

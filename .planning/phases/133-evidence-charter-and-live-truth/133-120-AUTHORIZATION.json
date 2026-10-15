@@ -1,0 +1,130 @@
+{
+  "plan": "133-120",
+  "answer": "stop",
+  "preflight_sha256": "ff6931e71dd67ab6dac309efb3b2ac20e2273aedf6d79d6f2b1d3dabafff695d",
+  "source": {
+    "sha": "28115bc7f14e831e0923828e6eaff034694e3c8c",
+    "tree": "4dc6d30a807b6be157d8fb037c8f52617f9a5d05",
+    "lock_sha256": "08f35ae39d131fa767141e1961f6c5c58ca63f3368e69bc9b79d550f4fcc1d49"
+  },
+  "operation": {
+    "url": "https://github.com/lexbor/lexbor.git",
+    "commit": "244b84956a6dc7eec293781d051354f351274c46",
+    "destination": "/Users/jon/.hex/native/lexbor"
+  },
+  "attempt": 1,
+  "remote_action_count": 0,
+  "checkpoint": {
+    "type": "decision",
+    "gate": "blocking-human",
+    "displayed_plan": "133-120",
+    "displayed_preflight_sha256": "ff6931e71dd67ab6dac309efb3b2ac20e2273aedf6d79d6f2b1d3dabafff695d",
+    "displayed_source_sha": "28115bc7f14e831e0923828e6eaff034694e3c8c",
+    "displayed_source_tree": "4dc6d30a807b6be157d8fb037c8f52617f9a5d05",
+    "displayed_url": "https://github.com/lexbor/lexbor.git",
+    "displayed_commit": "244b84956a6dc7eec293781d051354f351274c46",
+    "displayed_destination": "/Users/jon/.hex/native/lexbor",
+    "response_text": "hows it going? i guess stopp the attempt? get us back on track...",
+    "selected_option": "stop",
+    "response_context": "The user explicitly requested stopping the attempt and getting back on track. This response is recorded verbatim and applies to the displayed Plan 133-120 digest only."
+  },
+  "fetch_outcome": {
+    "invocation_count": 0,
+    "status": "stopped_before_fetch",
+    "reason": "user_stop",
+    "git_clone_started": false,
+    "authenticated_commit": null,
+    "authenticated_tree": null,
+    "files_sha256": null,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "guard_status": "unavailable",
+  "guard_stop_conditions": [
+    {
+      "stage": "network_guard",
+      "reason": "control_exit_nonzero",
+      "detail": "non-network control exited 71",
+      "control_exit": 71
+    }
+  ],
+  "child_commands": {
+    "mix": 0,
+    "native": 0,
+    "network_fetch": 0,
+    "install": 0,
+    "qualification": 0,
+    "census": 0,
+    "nightly": 0,
+    "remote": 0
+  },
+  "requirements": {
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "status": "pending"
+  },
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "qualification_credit": 0,
+  "requirements_completed": []
+}

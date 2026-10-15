@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "plan": "133-100",
+  "status": "halted",
+  "terminal_stage": "upstream_plan99_halted",
+  "reason_code": "upstream_plan99_halted",
+  "reason": "Plan 99 is terminally halted at evidence_insufficient because Plan 98 captured no call-time Doctor marker or exact ArgumentError stack. Plan 100 therefore creates no census receipts and grants no requirement credit.",
+  "source": {
+    "upstream_plan": "133-99",
+    "sha": "2f918ffed9ebd7dc9930216d2e4f2bfaae54c39b",
+    "tree": "6cd2b1781aa41d5770e267527c6e36942002fae8",
+    "branch": "worktree-agent-p133-99-1791337224545",
+    "preflight": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-99-PREFLIGHT.json",
+      "status": "halted",
+      "reason_code": "plan98_doctor_marker_absent",
+      "report_sha256": "a191d766edaa80c7d29e66215d6c1f0a10f26c6fb57eb32b221e04286639c7a7",
+      "file_sha256": "e15385bc6b859734c0c49a8b68e5e194be32665443a1431790c8a0d65783558a"
+    },
+    "decision": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-99-DECISION.json",
+      "status": "stop",
+      "report_sha256": "8489756b24f4c903f247a8daea038c3e4b182abc538bfd876755c11e2b60dc8a",
+      "file_sha256": "6c8b6a8d3ffd2be40f24ff343611f1dc229d53775e0658cce1fef3d02e1c8f2c"
+    },
+    "summary": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-99-SUMMARY.md",
+      "status": "halted",
+      "file_sha256": "5bd8758371a586a0d6698c61f229d6a1512b4e29940f203f892df535b323b092"
+    },
+    "local_gates": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-99-LOCAL-GATES.json",
+      "present": false,
+      "sha256": null,
+      "reason": "Not produced because Plan 99 halted before local gate qualification."
+    }
+  },
+  "first_red": {
+    "stage": "133-99",
+    "reason_code": "plan98_doctor_marker_absent",
+    "reason": "Plan 98 ended upstream at native_route_unavailable. Its Doctor marker is absent because no Mix child started, so there is no exact call-time ArgumentError or stack frame that can justify a repair. Stop automatically without requesting authorization.",
+    "source_sha": "2f918ffed9ebd7dc9930216d2e4f2bfaae54c39b",
+    "source_tree": "6cd2b1781aa41d5770e267527c6e36942002fae8",
+    "command": null,
+    "exit_code": null
+  },
+  "plan100_commands": {
+    "attempted": [],
+    "exit_codes": [],
+    "not_run_reason": "The upstream Plan 99 preflight is halted; collector, validator, byte comparison, and census test commands are not authorized or applicable on this branch."
+  },
+  "receipts": {
+    "census_a": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-100-CENSUS-A.json",
+      "present": false,
+      "sha256": null
+    },
+    "census_b": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-100-CENSUS-B.json",
+      "present": false,
+      "sha256": null
+    }
+  },
+  "prior_receipt_sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements": {
+    "status": "pending",
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ]
+  },
+  "created_at": "2026-10-07T02:24:18Z"
+}

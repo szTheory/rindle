@@ -1,0 +1,10 @@
+{
+  "command": "PHASE133_TEST_FILTER=\"nested non-JSON values cannot enter a source-bound report digest\" node scripts/maintainer/phase_133_local_supply.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\nnot ok 1 - nested non-JSON values cannot enter a source-bound report digest\n  # AssertionError [ERR_ASSERTION]: Missing expected exception.\n  #     at tests.map.runtimeFixture.erlang.erlang (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p174-1791765795/scripts/maintainer/phase_133_local_supply.test.mjs:627:12)\n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p174-1791765795/scripts/maintainer/phase_133_local_supply.test.mjs:654:5\n1..1\n",
+  "targetTest": "nested non-JSON values cannot enter a source-bound report digest",
+  "targetFile": "scripts/maintainer/phase_133_local_supply.test.mjs",
+  "expected": "The target assertion rejects nested undefined report data with report_serialization after reproducing Plan 173 immutable digest mismatch.",
+  "actual": "TAP version 13\nnot ok 1 - nested non-JSON values cannot enter a source-bound report digest\n  # AssertionError [ERR_ASSERTION]: Missing expected exception.\n  #     at tests.map.runtimeFixture.erlang.erlang (file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p174-1791765795/scripts/maintainer/phase_133_local_supply.test.mjs:627:12)\n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/.claude/worktrees/agent-p174-1791765795/scripts/maintainer/phase_133_local_supply.test.mjs:654:5\n1..1\n",
+  "semanticAssessment": "The TAP target executed and failed on the intended Missing expected exception assertion. The immutable Plan 173 preparation source tuple matches its recorded summary/outcome; its stored digest d5edbcae29ea00acf317be8afb283a8263acd82cda12533c9376711f82c3b24a differs from recomputation b3709d335d9d639c31f6ec98436044fd4563000941ab6b692b31bfb6a42f9bf3. The production-shaped nested undefined guard is the failing planned behavior."
+}

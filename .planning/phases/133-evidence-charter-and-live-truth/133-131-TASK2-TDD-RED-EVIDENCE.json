@@ -1,0 +1,10 @@
+{
+  "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 elixir test/install_smoke/phase_133_registry_compat_test.exs",
+  "exitCode": 1,
+  "output": "TAP version 13\n1..1\nnot ok 1 - produces a zero-credit stop when no provenance-identified OTP 27 Hex source is available\n# assertion failed: compatibility runner is missing at /Users/jon/projects/rindle/.claude/worktrees/agent-p131-1791482955/scripts/maintainer/phase_133_registry_compat.exs\n",
+  "targetTest": "produces a zero-credit stop when no provenance-identified OTP 27 Hex source is available",
+  "targetFile": "test/install_smoke/phase_133_registry_compat_test.exs",
+  "expected": "A local compatibility runner emits a verified zero-credit missing-input report without network, Mix, installation, or qualification activity.",
+  "actual": "The planned compatibility runner file does not exist.",
+  "semanticAssessment": "The TAP target executed and failed on the explicit assertion that the planned offline compatibility runner exists. Elixir startup and target discovery succeeded; no Hex runtime probe or Mix child ran."
+}

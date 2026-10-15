@@ -74,8 +74,22 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     end
   end
 
+  # The adoption matrix gate runs the :package_authority proof, which generates
+  # a Phoenix app; a cold runner has no phx_new archive unless Proof installs it.
+  test "Proof installs the pinned Phoenix generator before the adoption matrix gate", %{ci: ci} do
+    [_, proof] = String.split(ci, "\n  proof:\n", parts: 2)
+    [proof | _] = String.split(proof, ~r/\n  [a-z][a-z0-9_-]*:\n/, parts: 2)
+
+    installer = :binary.match(proof, "bash scripts/ci/ensure_phx_new.sh")
+    gate = :binary.match(proof, "bash scripts/maintainer/check_adoption_proof_matrix.sh")
+
+    assert installer != :nomatch, "Proof must run scripts/ci/ensure_phx_new.sh"
+    assert gate != :nomatch
+    assert elem(installer, 0) < elem(gate, 0)
+  end
+
   test "CACHE-01: ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
-    # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×7 in ci.yml.
+    # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×8 in ci.yml.
     # Both went +1 in Phase 112: the lean `adoption-demo-e2e-smoke` PR lane
     # (clone of `adoption-demo-e2e`) adopts BOTH composites too — composite
     # reuse is the desired hygiene, so the lock tracks the new live counts.
@@ -84,8 +98,8 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert count(ci, "uses: ./.github/actions/setup-elixir") == 11,
            "ci.yml must adopt the setup-elixir composite 11× (single source of truth, CACHE-01)"
 
-    assert count(ci, "uses: ./.github/actions/setup-minio") == 7,
-           "ci.yml must adopt the setup-minio composite 7× (single source of truth, CACHE-01)"
+    assert count(ci, "uses: ./.github/actions/setup-minio") == 8,
+           "ci.yml must adopt the setup-minio composite 8× (single source of truth, CACHE-01)"
   end
 
   test "CACHE-01: release.yml adopts the setup-minio composite twice", %{release: release} do
@@ -146,19 +160,22 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            "PLT restore must not fall back across dependency locks (CACHE-03)"
   end
 
-  test "CACHE-03: the PLT save step is guarded on cache-miss, never if: always()", %{
+  test "CACHE-03: the fresh PLT is saved before exact restore, never if: always()", %{
     nightly: nightly
   } do
-    # Scope to the `Save PLT cache` step block only — `if: always()` legitimately
-    # appears elsewhere (the advisory nightly-summary job), so the refute must not
-    # scan the whole file. The save step itself must carry the cache-miss guard.
+    # Fresh construction is now unconditional evidence. Save it before clearing
+    # the local PLT and restoring that same exact key for the independent restored
+    # analysis; `if: always()` would still permit saving after failed analysis.
     save_step = plt_save_step(nightly)
+    {fresh_position, _} = :binary.match(nightly, "run_nightly_dialyzer.sh fresh")
+    {save_position, _} = :binary.match(nightly, "- name: Save PLT cache")
+    {restore_position, _} = :binary.match(nightly, "- name: Restore exact PLT cache")
 
-    assert save_step =~ "if: steps.plt_cache.outputs.cache-hit != 'true'",
-           "PLT save must be guarded on a cache miss (CACHE-03)"
+    assert fresh_position < save_position and save_position < restore_position,
+           "fresh analysis must precede PLT save, which must precede exact restore (CACHE-03)"
 
     refute save_step =~ "if: always()",
-           "the PLT save step must NOT use `if: always()` — it is cache-miss guarded (CACHE-03)"
+           "the PLT save step must NOT use `if: always()` (CACHE-03)"
   end
 
   # CACHE-05: .tool-versions pins, FFmpeg retirement, version-invariant lint guard.
@@ -212,6 +229,29 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            ]
   end
 
+  test "CACHE-05: every static FFmpeg install authenticates its release lookup" do
+    for {workflow_name, workflow_path} <- [
+          {"ci.yml", @ci_path},
+          {"nightly.yml", @nightly_path},
+          {"release.yml", @release_path}
+        ] do
+      installer_steps =
+        workflow_path
+        |> YamlElixir.read_from_file!()
+        |> get_in(["jobs"])
+        |> Map.values()
+        |> Enum.flat_map(&Map.get(&1, "steps", []))
+        |> Enum.filter(&(Map.get(&1, "run") == "bash scripts/ci/install_ffmpeg.sh"))
+
+      assert installer_steps != [], "#{workflow_name} must retain its static FFmpeg install"
+
+      assert Enum.all?(installer_steps, fn step ->
+               get_in(step, ["env", "GITHUB_TOKEN"]) == "${{ github.token }}"
+             end),
+             "#{workflow_name} must pass github.token to every static FFmpeg release lookup"
+    end
+  end
+
   test "apt package installation is shared, bounded, and retryable across every workflow",
        %{
          ci: ci,
@@ -221,7 +261,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
        } do
     workflows = ci <> nightly <> release
 
-    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 18
+    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 19
     refute workflows =~ "apt-get install -y libvips-dev"
     refute workflows =~ "apt-get install -y ffmpeg"
     assert workflows =~ "install_apt_packages.sh ffmpeg"

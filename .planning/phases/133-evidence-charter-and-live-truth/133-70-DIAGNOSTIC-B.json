@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_doctor_diagnostic",
+  "status": "not_reproduced",
+  "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+  "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc",
+  "worktree_id": "a7654222663f4a6cf9ffdb5d31eec3830f4284d8b41c5f9ffeee9ae23c5406c7",
+  "toolchain": {
+    "elixir": "1.17.3",
+    "otp": "27"
+  },
+  "remote_action": "none",
+  "qualification": "diagnostic_only",
+  "commands": [
+    {
+      "name": "deps_get",
+      "command": "mix deps.get",
+      "exit_code": 0,
+      "terminal_summary": null,
+      "output": {
+        "lines": [],
+        "original_bytes": 6214,
+        "sha256": "542be8587fc6cae023097840e9fc9c656d8a34bda585f7a449ca0091be2fa4eb",
+        "truncated": true
+      }
+    },
+    {
+      "name": "focused_test",
+      "command": "mix test test/rindle/doctor_thresholds_test.exs --trace",
+      "exit_code": 0,
+      "terminal_summary": {
+        "doctest_count": null,
+        "test_count": 2,
+        "failure_count": 0
+      },
+      "output": {
+        "lines": [
+          "2 tests, 0 failures"
+        ],
+        "original_bytes": 7424,
+        "sha256": "fa82f5e7f12eb354e4ddab8a682aebbadd5798a038e9bc5ae54d9a77811b0777",
+        "truncated": true
+      }
+    },
+    {
+      "name": "full_test",
+      "command": "mix test --trace",
+      "exit_code": 2,
+      "terminal_summary": {
+        "doctest_count": 3,
+        "test_count": 1710,
+        "failure_count": 1
+      },
+      "output": {
+        "lines": [
+          "  * test marks failed variants degraded and cleans temp roots on handled failure [L#136]\r  * test marks failed variants degraded and cleans temp roots on handled failure (7.1ms) [L#136]",
+          "  * test runtime_doctor/1 projects runtime failures and migration failures into bounded diagnostic data [L#263]\r  * test runtime_doctor/1 projects runtime failures and migration failures into bounded diagnostic data (14.6ms) [L#263]",
+          "12:00:19.734 [warning] rindle.provider_asset.transition_failed",
+          "12:00:19.734 [warning] rindle.provider_asset.transition_failed",
+          "  * test probe/1 propagates ffprobe failures for invalid input [L#60]\r  * test probe/1 propagates ffprobe failures for invalid input (18.3ms) [L#60]",
+          "12:00:19.844 [warning] rindle.upload_maintenance.object_delete_failed",
+          "12:00:19.846 [warning] rindle.upload_maintenance.multipart_abort_failed",
+          "  * test cleanup_orphans/1 live run deletes DB row when storage reports object already not found [L#181]\r  * test cleanup_orphans/1 live run deletes DB row when storage reports object already not found (0.9ms) [L#181]",
+          "  * test cleanup_orphans/1 live run deletes expired multipart rows when remote abort reports not found [L#265]\r  * test cleanup_orphans/1 live run deletes expired multipart rows when remote abort reports not found (0.9ms) [L#265]",
+          "  * test invalid profile options raise at compile time [L#20]\r  * test invalid profile options raise at compile time (0.5ms) [L#20]",
+          "  * test Branch 5: authorizer integration (CR-01 regression) authorizer rejection on :ready row returns {:error, :forbidden} and emits no telemetry [L#525]\r  * test Branch 5: authorizer integration (CR-01 regression) authorizer rejection on :ready row returns {:error, :forbidden} and emits no telemetry (5.1ms) [L#525]",
+          "  * test Branch 5: config drift between row and profile (WR-04) row playback_policy differs from streaming_config returns :provider_sync_failed and emits drift telemetry [L#361]\r  * test Branch 5: config drift between row and profile (WR-04) row playback_policy differs from streaming_config returns :provider_sync_failed and emits drift telemetry (2.0ms) [L#361]",
+          "  * test Branch 4: row state = errored returns :provider_sync_failed (no telemetry) [L#228]\r  * test Branch 4: row state = errored returns :provider_sync_failed (no telemetry) (1.1ms) [L#228]",
+          "  * test Branch 5: config drift between row and profile (WR-04) row ingest_mode differs from streaming_config returns :provider_sync_failed and emits drift telemetry [L#399]\r  * test Branch 5: config drift between row and profile (WR-04) row ingest_mode differs from streaming_config returns :provider_sync_failed and emits drift telemetry (1.1ms) [L#399]",
+          "  * test restarts the entire sequence once after an invalid run [L#70]\r  * test restarts the entire sequence once after an invalid run (2730.4ms) [L#70]",
+          "  * test refuses a persisted failed state without changing its evidence [L#93]\r  * test refuses a persisted failed state without changing its evidence (198.7ms) [L#93]",
+          "  * test parse_and_sanitize/1 returns error on invalid JSON [L#47]\r  * test parse_and_sanitize/1 returns error on invalid JSON (0.2ms) [L#47]",
+          "  * test probe/1 handles ffprobe failure on invalid file [L#13]\r  * test probe/1 handles ffprobe failure on invalid file (37.8ms) [L#13]",
+          "  * test tampered action events and lifecycle actions render validation errors [L#343]\r  * test tampered action events and lifecycle actions render validation errors (4.4ms) [L#343]",
+          "  * test backfill_metadata/1 — failures handles filter by profile [L#182]\r  * test backfill_metadata/1 — failures handles filter by profile (24.4ms) [L#182]",
+          "  * test backfill_metadata/1 — failures counts analyzer failures and continues [L#147]",
+          "12:01:00.395 [warning] rindle.metadata_backfill.asset_failed",
+          "12:01:00.396 [warning] rindle.metadata_backfill.asset_failed",
+          "\r  * test backfill_metadata/1 — failures counts analyzer failures and continues (1.8ms) [L#147]",
+          "  * test backfill_metadata/1 — failures returns {:ok, report} with all failures counted when everything fails [L#168]",
+          "12:01:00.398 [warning] rindle.metadata_backfill.asset_failed",
+          "\r  * test backfill_metadata/1 — failures returns {:ok, report} with all failures counted when everything fails (1.2ms) [L#168]",
+          "  * test backfill_metadata/1 — failures counts storage download failures and continues [L#121]",
+          "12:01:00.406 [warning] rindle.metadata_backfill.asset_failed",
+          "\r  * test backfill_metadata/1 — failures counts storage download failures and continues (2.5ms) [L#121]",
+          "12:01:00.991 [warning] rindle.upload_maintenance.tus_abort_failed",
+          "  * test tus DELETE-time abort-failure recovery a re-abort that still fails keeps the row aborted with the marker intact (re-selectable next cron, no new permanent orphan) [L#296]\r  * test tus DELETE-time abort-failure recovery a re-abort that still fails keeps the row aborted with the marker intact (re-selectable next cron, no new permanent orphan) (2.5ms) [L#296]",
+          "12:01:00.994 [warning] rindle.upload_session.transition_failed",
+          "12:01:00.994 [warning] rindle.upload_maintenance.session_expiry_invalid_transition",
+          "  * test tus DELETE-time abort-failure recovery re-aborts a marked tus session and settles it without an invalid FSM transition [L#242]\r  * test tus DELETE-time abort-failure recovery re-aborts a marked tus session and settles it without an invalid FSM transition (2.4ms) [L#242]",
+          "  * test tus DELETE-time abort-failure recovery does NOT re-select a clean aborted tus session whose abort succeeded (failure_reason nil) — keys on the marker, not state==aborted [L#320]\r  * test tus DELETE-time abort-failure recovery does NOT re-select a clean aborted tus session whose abort succeeded (failure_reason nil) — keys on the marker, not state==aborted (1.3ms) [L#320]",
+          "  * test tus DELETE-time abort-failure recovery treats a re-abort returning not_found as idempotent success and settles the row [L#273]\r  * test tus DELETE-time abort-failure recovery treats a re-abort returning not_found as idempotent success and settles the row (1.5ms) [L#273]",
+          "  * test process/3 compatibility seam compatibility wrapper delegates normalization failures through the AV boundary [L#99]\r  * test process/3 compatibility seam compatibility wrapper delegates normalization failures through the AV boundary (0.3ms) [L#99]",
+          "  * test cancel_direct_upload/1 maps 5xx to :provider_sync_failed [L#48]\r  * test cancel_direct_upload/1 maps 5xx to :provider_sync_failed (0.3ms) [L#48]",
+          "3 doctests, 1710 tests, 1 failure, 87 excluded, 4 skipped"
+        ],
+        "original_bytes": 371701,
+        "sha256": "cb7635029ca2634f931159b80a17d36f01f0619b15aeb4f57dcb7b01efe44c0a",
+        "truncated": true
+      }
+    }
+  ],
+  "terminal_summary": {
+    "doctest_count": 3,
+    "test_count": 1710,
+    "failure_count": 1
+  },
+  "failure": null
+}

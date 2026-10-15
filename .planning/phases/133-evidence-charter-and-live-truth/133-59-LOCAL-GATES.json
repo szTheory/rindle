@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "subject_sha": "8e56d85c4339be69ecff482c7ee9c5611c20dc3d",
+  "dependencies": {
+    "command": "mix deps.get",
+    "exit_code": 0
+  },
+  "ci": {
+    "command": "mix ci",
+    "started": true,
+    "exit_code": 1,
+    "test_count": null,
+    "failure_excerpt": "== Compilation error in file lib/jose/jwt.ex ==\n** (RuntimeError) error parsing file /var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-phase133-gates.RnytQW/worktree/_build/test/lib/jose/include/jose_jwt.hrl, got: {:error, :enoent}\n    (elixir 1.17.3) lib/record/extractor.ex:84: Record.Extractor.read_file/2\n    (elixir 1.17.3) lib/record/extractor.ex:50: Record.Extractor.extract_record/2\n    lib/jose/jwt.ex:41: (module)\n    lib/jose/jwt.ex:3: (file)\ncould not compile dependency :jose, \"mix compile\" failed. Errors may have been logged above.",
+    "output_capture": "exact error excerpt emitted in the runner's final-60-line diagnostic; full captured mix log was removed by runner cleanup"
+  },
+  "coverage": {
+    "command": "mix coveralls.multiple --type local --type json",
+    "started": false,
+    "invocations": 0,
+    "exit_code": null,
+    "test_count": null,
+    "total_percent": null,
+    "floor_percent": 69
+  },
+  "runner_message": "[phase-133-local-gates] mix ci exited 1; coverage was not started"
+}

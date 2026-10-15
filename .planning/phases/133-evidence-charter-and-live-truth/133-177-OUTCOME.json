@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "plan": "133-177",
+  "status": "no_attempt",
+  "source": {
+    "sha": "3fc1aeaf2151a05dcb7f1b7cc45d891e262d2bc2",
+    "tree": "b977d73e84c9e46ff7e68d9e8d9328fbec8dd029"
+  },
+  "reason": "plan177_git",
+  "preparation_sha256": "2e60a609bd7381dae561b5e8f28c6b86c76c6d513d33b9314ee13926ae5f4a34",
+  "authorization_sha256": null,
+  "attempt_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "0c32f4b2bce99f9e43a47a3b8ce2095a2de9e9830f93cd591d2f7911f8525755"
+}

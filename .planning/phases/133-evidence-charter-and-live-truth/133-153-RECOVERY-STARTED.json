@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "plan": "133-153",
+  "source": {
+    "sha": "0c7a7404df470daf3c9df92bb096fe960ea19def",
+    "tree": "f0112bb87f7d3a127d3983e0afe40b7b34031661",
+    "files": {
+      ".planning/REQUIREMENTS.md": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-152-RESTART-RECOVERY.json": "f143a0e76668e1e05fd8ae3426107e0458f137f1d8b67ccb6a8867f80409d33d",
+      ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+      ".tool-versions": "b9be8944df223dfbc8c733e4fd7192f110d2ba8e30c11ef32f1bc29c798b3d38",
+      "mix.lock": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+      "scripts/maintainer/phase_133_compatibility_bridge_141.mjs": "88dabc35cc50dfc3c602242acc237963cfe4af463b86c877ffc74b2f8cc5f244",
+      "scripts/maintainer/phase_133_durable_inputs_153.mjs": "b12879724380bafd4b0a75fe328871be94c8d57b7acc545726ee04956f696cf4",
+      "scripts/maintainer/phase_133_durable_inputs_153.test.mjs": "7d386bbefe7036bf5dfa07626441801b114affa8d66040a70e1fb81dd458a066",
+      "scripts/maintainer/phase_133_hex_build_138.mjs": "8f0e02efe07cf4910268e79a0a974054cd9a81847a3a6713611f1f9247661ec4",
+      "scripts/maintainer/phase_133_hex_build_140.mjs": "24f23d093c21ccd4b439cab45964727082a0be27badc4896de61e6100dd1c9a5",
+      "scripts/maintainer/phase_133_hex_source.mjs": "9feac1136518749477a707b6d5b5871d20d590baccc728d4c8ca50afd7fb8968",
+      "scripts/maintainer/phase_133_historical_138_139.mjs": "b8262a8088c03ae1c30090d35371068ed2f658db6d17ed80973052ba3f3ab669",
+      "scripts/maintainer/phase_133_local_supply.mjs": "7e40c9db61ddecbdd44ee5d654a1d1f9079acac1037f575c05d05920528923c8",
+      "scripts/maintainer/phase_133_qualification_152.mjs": "f04acf9636c1dd4365c87325f42c3a13c382b264941725d9fb06caf848b00974",
+      "scripts/maintainer/phase_133_recovery.mjs": "6256668639d9c69cb282d2f5744aa486bf5e6813bca9f357ba70f9e039eeb094",
+      "scripts/maintainer/phase_133_registry_batch_151.mjs": "4e5561d165982a6182c15d7d8c58905501487bb722c4b7b819d5f7138f7b4bd9",
+      "scripts/maintainer/phase_133_registry_dns_diagnostic.mjs": "edeee2359b3b3863ceb057f704e57e3e2f3722a76c85042634787df91898bacb",
+      "scripts/maintainer/phase_133_registry_supply.mjs": "c8223fcdd3bbe59e6452bb1a67f78ab9c57654c1a354c3ec1c586d77d6a41838"
+    }
+  },
+  "preflight_sha256": "b8c5f4ee99030d8c8832a3254e3707e5b5255555d158aa81fca9ae09a6d7a42c",
+  "invocations": 1,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "0241221a760c4b3356963166f6595aec18e1c1641c80ea5ad88741ed33c0eccd"
+}

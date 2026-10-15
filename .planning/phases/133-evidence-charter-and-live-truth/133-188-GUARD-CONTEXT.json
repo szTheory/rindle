@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "plan": "133-188",
+  "classification": "prerequisite_ready",
+  "observation_provenance": "actual-host",
+  "actual_host_requested": true,
+  "fixture_only": false,
+  "observation_nonce": "54edbe87-fefc-427f-a012-a69aff4755e2",
+  "source": {
+    "commit": "423fc86aa909fbd2bae6acfbaf3e64bad1b8d07f",
+    "tree": "744ae0e3f0be05085d25bfba4b73e254f09b0024",
+    "origin": "committed",
+    "blobs_sha256": "ebd914748e1aa47ace7977336a0d69d548bc1560bf5b476a063239eaa04d62be",
+    "files": {
+      "scripts/maintainer/phase_133_guard_context_188.mjs": "a2e472418a6bd4fa1c77d92eea6d455522556f67d0d98641cb0259e5d7b50492",
+      "scripts/maintainer/phase_133_guard_context_188.test.mjs": "eedb6be1cdc9bcff893dadeea734c12a9a1fd92a2a919d9c1c09cdc820bffa2b"
+    }
+  },
+  "parent": {
+    "plan": "133-187",
+    "raw_sha256": "42cc6a14dc951a49a2d4175efa34f96c54e573427503237d4622e40307a78967",
+    "canonical_sha256": "dd70bea45362e123d456f93f33c77a3282ab59bb83ffa24dc01002c2518dbea0",
+    "summary_sha256": "486c53d6b595aa24e735e6b51277bd0c040f0304398f3203685f22562198c468",
+    "source_sha": "f12d9e937489a387b9a45048d1ea3db4b31bd337",
+    "source_tree": "18b58300bc94446b93b275dcc0d2bb226de71a02",
+    "source_code_sha256": "b76ac28e89778b3936f0751ada03356639de6f10d55786590e80b6481cdab8db"
+  },
+  "runtime": {
+    "platform": "darwin",
+    "node_version": "20.18.1",
+    "node_executable_sha256": "4bf6a3eae3f992debd66e6c418438b5c608bcde575cf8aefa90858f36c37de7f",
+    "launcher_sha256": "41a9a3021907ff35b9b229250aa002843916fb46b6f141dbcc21fdecafa1020b",
+    "root_sha256": "173058abc43cb7d31a632e8cc8cb86f767738b4ffe7625134caba1434fd98aa2"
+  },
+  "guard": {
+    "status": "available",
+    "reason": null,
+    "proof_verified": true,
+    "proof_rejection": null,
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "control_exit": 0,
+    "denied_child_exit": 77,
+    "denial_witness": "EPERM",
+    "control_stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "truncated": false
+    },
+    "control_stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "truncated": false
+    },
+    "denial_output": {
+      "bytes": 19,
+      "sha256": "5eeaff049c0fde3904a3023a5d3bacf2eb7ab2605765259c6fde1b196267005a",
+      "truncated": false
+    }
+  },
+  "effects": {
+    "producer_invocations": 0,
+    "producer_children": 0,
+    "authorization": 0,
+    "attempt_markers": 0,
+    "qualification_children": 0,
+    "local_loopback_attempts": 1,
+    "external_network_requests": 0,
+    "remote_requests": 0,
+    "remote_mutations": 0,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "report_sha256": "09e383bda38ace94c8fc4c2e03383ce89e45b996f00c3293cd97ab3ed4fd0fe7"
+}

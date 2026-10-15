@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_ci_forensics",
+  "status": "complete",
+  "verdict": "cause_unresolved",
+  "qualification": "diagnostic_only",
+  "remote_action": "none",
+  "canonical_receipt": {
+    "path": ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json",
+    "sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+    "expected_sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"
+  },
+  "sources": [
+    {
+      "role": "plan69_local_gates",
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-69-LOCAL-GATES.json",
+      "sha256": "edc8be2f5911c28df7e4f344450407544e3455e70179dc97eeb1dc7626cc324b",
+      "subject_sha": "4784d47e873c324910e5081d356d7772206cd15e",
+      "subject_tree": "50b330563a90ca8b519ca2ee99d49c67dc456068"
+    },
+    {
+      "role": "plan69_summary",
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-69-SUMMARY.md",
+      "sha256": "18fb5252a55a7d704d9d3d60c5bae2a0e3b91e433ffd5a3a534aafe3c79810af",
+      "subject_sha": "4784d47e873c324910e5081d356d7772206cd15e",
+      "subject_tree": "50b330563a90ca8b519ca2ee99d49c67dc456068"
+    },
+    {
+      "role": "plan70_diagnostic_a",
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-70-DIAGNOSTIC-A.json",
+      "sha256": "4159dbec512a61dd076342d95431ad46a1df80ffc3008b3251c6bf7e9a526b51",
+      "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+      "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc"
+    },
+    {
+      "role": "plan70_diagnostic_b",
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-70-DIAGNOSTIC-B.json",
+      "sha256": "f88bbf04286a8e6587791c3694ba2150c1de08995b9a38210402204952210aa7",
+      "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+      "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc"
+    },
+    {
+      "role": "plan70_summary",
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-70-SUMMARY.md",
+      "sha256": "efc6a400043f66b9bfccdc866852684de131f673ffae3adf231e309523ef52a4",
+      "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+      "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc"
+    }
+  ],
+  "plan69": {
+    "subject_sha": "4784d47e873c324910e5081d356d7772206cd15e",
+    "subject_tree": "50b330563a90ca8b519ca2ee99d49c67dc456068",
+    "toolchain": {
+      "elixir": "unknown",
+      "otp": "unknown"
+    },
+    "dependencies": {
+      "command": "mix deps.get",
+      "exit_code": 0
+    },
+    "preflight": {
+      "command": "mix run --no-start --no-deps-check --no-compile -e <focused JOSE structure and Elixir compile>",
+      "started": true,
+      "exit_code": 0,
+      "stage_verified": true
+    },
+    "build_paths": {
+      "app_lookup": "<worktree>/_build/test/lib/jose",
+      "source_header": "deps/jose/include/jose_jwt.hrl",
+      "staged_header": "_build/test/lib/jose/include/jose_jwt.hrl"
+    },
+    "ci_exit_code": 2,
+    "nested": {
+      "doctest_count": null,
+      "test_count": 97,
+      "failure_count": 0
+    },
+    "terminal": {
+      "doctest_count": 3,
+      "test_count": 1710,
+      "failure_count": 1
+    },
+    "ci": {
+      "command": "mix ci",
+      "exit_code": 2,
+      "reported_counters": {
+        "test_count": 97,
+        "failure_count": 0
+      },
+      "nested_summaries": [
+        {
+          "doctest_count": null,
+          "test_count": 97,
+          "failure_count": 0
+        }
+      ],
+      "terminal_summary": {
+        "doctest_count": 3,
+        "test_count": 1710,
+        "failure_count": 1
+      },
+      "terminal_evidence_lines": [
+        "97 tests, 0 failures",
+        "3 doctests, 1710 tests, 1 failure, 87 excluded, 2 invalid, 4 skipped"
+      ],
+      "doctor_setup_marker_present": true,
+      "exception_class": null,
+      "message": null,
+      "stack_frames": [],
+      "fingerprint": null,
+      "raw_output_bytes": 45454,
+      "raw_output_sha256": null
+    },
+    "interpretation": "The terminal full-suite result is 1710 tests/1 failure; the earlier nested 97/0 line is not terminal. Plan 69 records a Doctor setup_all marker, but its bounded report has no exception class, message, or stack, so the cause is unresolved."
+  },
+  "plan70": {
+    "a": {
+      "report_sha256": "4159dbec512a61dd076342d95431ad46a1df80ffc3008b3251c6bf7e9a526b51",
+      "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+      "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc",
+      "worktree_id": "fbbd797045f915293ac217ab054940c86dd4e167fdc25c46a6c50e6287e2fddb",
+      "toolchain": {
+        "elixir": "1.17.3",
+        "otp": "27"
+      },
+      "dependencies": {
+        "command": "mix deps.get",
+        "exit_code": 0
+      },
+      "preflight": {
+        "command": "unknown",
+        "exit_code": null,
+        "stage_verified": null
+      },
+      "build_paths": "unknown",
+      "focused": {
+        "command": "mix test test/rindle/doctor_thresholds_test.exs --trace",
+        "exit_code": 0,
+        "test_count": 2,
+        "failure_count": 0
+      },
+      "full_test": {
+        "command": "mix test --trace",
+        "exit_code": 1,
+        "terminal_summary": null,
+        "terminal_summary_status": "missing",
+        "doctor_fingerprint": null
+      }
+    },
+    "b": {
+      "report_sha256": "f88bbf04286a8e6587791c3694ba2150c1de08995b9a38210402204952210aa7",
+      "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+      "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc",
+      "worktree_id": "a7654222663f4a6cf9ffdb5d31eec3830f4284d8b41c5f9ffeee9ae23c5406c7",
+      "toolchain": {
+        "elixir": "1.17.3",
+        "otp": "27"
+      },
+      "dependencies": {
+        "command": "mix deps.get",
+        "exit_code": 0
+      },
+      "preflight": {
+        "command": "unknown",
+        "exit_code": null,
+        "stage_verified": null
+      },
+      "build_paths": "unknown",
+      "focused": {
+        "command": "mix test test/rindle/doctor_thresholds_test.exs --trace",
+        "exit_code": 0,
+        "test_count": 2,
+        "failure_count": 0
+      },
+      "full_test": {
+        "command": "mix test --trace",
+        "exit_code": 2,
+        "terminal_summary": {
+          "doctest_count": 3,
+          "test_count": 1710,
+          "failure_count": 1
+        },
+        "terminal_summary_status": "present",
+        "doctor_fingerprint": null
+      }
+    },
+    "interpretation": "Both focused Doctor runs passed 2/0. A has no terminal full-suite summary; B ended at 1710/1. Neither report has a Doctor setup fingerprint; neither reproduces Plan 69's failure."
+  },
+  "unknowns": [
+    "Plan 69 resolved Elixir patch and OTP patch are not recorded in its machine report.",
+    "Plan 70 has no recorded JOSE preflight or resolved build-path facts; these remain unknown."
+  ],
+  "next_evidence_gate": "Require two independent fresh mix ci reports on one clean exact subject with the same complete Doctor setup_all exception class, normalized message, and relevant stack frames before a separately planned causal regression or repair.",
+  "requirements_completed": []
+}

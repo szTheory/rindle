@@ -1,0 +1,1927 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_preflight_active",
+  "status": "observed",
+  "qualification": "diagnostic_only",
+  "remote_action": "none",
+  "subject_sha": "f461b46433187a469b9525f6cdfb7933b3a364d9",
+  "subject_tree": "9c066d02e411c7ccef6953773742aef77a4406c0",
+  "worktree_id": "ad2a87fa-128f-4be8-98c6-7a791297ea2e",
+  "worktree": {
+    "detached": true,
+    "clean_start": true,
+    "initial_clean": true,
+    "final_clean": false,
+    "exact_subject": true,
+    "toolchain": {
+      "erlang": "27.3.4.15",
+      "elixir": "1.17.3",
+      "otp": "27"
+    }
+  },
+  "committed_blobs": {
+    "scripts/maintainer/phase_133_preflight_differential.sh": "9cba2c74411c349f254b21a8e9ebe461e1e6930e",
+    "scripts/maintainer/test_phase_133_preflight_differential.sh": "2e225d6f9755a60c74a6eef0b0e81a6ee0efad93"
+  },
+  "toolchain": {
+    "erlang": "27.3.4.15",
+    "elixir": "1.17.3",
+    "otp": "27"
+  },
+  "mix_process_environment": {
+    "mix_env": "test",
+    "mix_build_root": {
+      "classification": "worktree",
+      "path": "_build"
+    },
+    "mix_build_path": "unset",
+    "mix_deps_path": {
+      "classification": "worktree",
+      "path": "deps"
+    },
+    "hex_home": {
+      "classification": "worktree",
+      "path": ".hex"
+    }
+  },
+  "mix_dependency": {
+    "status": "resolved",
+    "source": {
+      "classification": "worktree",
+      "path": "deps/jose"
+    },
+    "app": {
+      "classification": "worktree",
+      "path": "_build/test/lib/jose"
+    },
+    "configured_build_path": {
+      "classification": "unobserved",
+      "path": null
+    },
+    "build_path": {
+      "classification": "worktree",
+      "path": "_build"
+    },
+    "app_name": "jose",
+    "build_per_environment": true,
+    "build_embedded": false,
+    "environment": {
+      "mix_env": "prod",
+      "mix_build_root": {
+        "classification": "worktree",
+        "path": "_build"
+      },
+      "mix_build_path": "unset",
+      "mix_deps_path": {
+        "classification": "worktree",
+        "path": "deps"
+      },
+      "hex_home": {
+        "classification": "worktree",
+        "path": ".hex"
+      }
+    }
+  },
+  "commands": [
+    {
+      "name": "initial_deps_get",
+      "command": "mix deps.get",
+      "started": true,
+      "exit_code": 0,
+      "signal": null,
+      "output": {
+        "sha256": "531d2594efac9239a9ec51d8dbe51c619aa9e9e1ea2e33efd17e3954587e4ccc",
+        "original_bytes": 5991,
+        "sanitized_lines": [
+          "    aka: CVE-2026-82728, GHSA-g83f-2j6r-q6m4",
+          "    Unbounded HTTP/1 status-line and chunk-extension buffering in Mint causes memory-exhaustion DoS",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-82728",
+          "  mix_audit 2.1.5",
+          "  mox 1.2.0",
+          "  muontrap 1.7.0",
+          "  mux 3.2.2",
+          "  nimble_options 1.1.1",
+          "  nimble_ownership 1.0.2",
+          "  nimble_parsec 1.4.2",
+          "  nimble_pool 1.1.0",
+          "  oban 2.21.1",
+          "  phoenix 1.8.12",
+          "  phoenix_html 4.3.0",
+          "  phoenix_live_view 1.2.10",
+          "  phoenix_pubsub 2.2.0",
+          "  phoenix_template 1.0.4",
+          "  plug 1.20.3",
+          "  plug_cowboy 2.9.0",
+          "  plug_crypto 2.2.0",
+          "  postgrex 0.22.4",
+          "  ranch 1.8.1",
+          "  req 0.7.3",
+          "  sweet_xml 0.7.5",
+          "  telemetry 1.4.2",
+          "  tesla 1.21.2",
+          "  vix 0.38.0",
+          "  websock 0.5.3",
+          "  websock_adapter 0.6.0",
+          "  yamerl 0.10.0",
+          "  yaml_elixir 2.12.2",
+          "* Getting ecto_sql (Hex package)",
+          "* Getting postgrex (Hex package)",
+          "* Getting jason (Hex package)",
+          "* Getting muontrap (Hex package)",
+          "* Getting oban (Hex package)",
+          "* Getting image (Hex package)",
+          "* Getting phoenix_live_view (Hex package)",
+          "* Getting mux (Hex package)",
+          "* Getting jose (Hex package)",
+          "* Getting goth (Hex package)",
+          "* Getting finch (Hex package)",
+          "* Getting gcs_signed_url (Hex package)",
+          "* Getting nimble_options (Hex package)",
+          "* Getting ex_marcel (Hex package)",
+          "* Getting ex_aws (Hex package)",
+          "* Getting ex_aws_s3 (Hex package)",
+          "* Getting req (Hex package)",
+          "* Getting telemetry (Hex package)",
+          "* Getting plug (Hex package)",
+          "* Getting lazy_html (Hex package)",
+          "* Getting junit_formatter (Hex package)",
+          "* Getting mox (Hex package)",
+          "* Getting bypass (Hex package)",
+          "* Getting ex_machina (Hex package)",
+          "* Getting credo (Hex package)",
+          "* Getting dialyxir (Hex package)",
+          "* Getting doctor (Hex package)",
+          "* Getting mix_audit (Hex package)",
+          "* Getting yaml_elixir (Hex package)",
+          "* Getting excoveralls (Hex package)",
+          "* Getting ex_doc (Hex package)",
+          "* Getting earmark_parser (Hex package)",
+          "* Getting makeup_elixir (Hex package)",
+          "* Getting makeup_erlang (Hex package)",
+          "* Getting makeup (Hex package)",
+          "* Getting nimble_parsec (Hex package)",
+          "* Getting yamerl (Hex package)",
+          "* Getting decimal (Hex package)",
+          "* Getting erlex (Hex package)",
+          "* Getting bunt (Hex package)",
+          "* Getting file_system (Hex package)",
+          "* Getting plug_cowboy (Hex package)",
+          "* Getting ranch (Hex package)",
+          "* Getting cowboy (Hex package)",
+          "* Getting cowboy_telemetry (Hex package)",
+          "* Getting cowlib (Hex package)",
+          "* Getting nimble_ownership (Hex package)",
+          "* Getting cc_precompiler (Hex package)",
+          "* Getting elixir_make (Hex package)",
+          "* Getting fine (Hex package)",
+          "* Getting mime (Hex package)",
+          "* Getting plug_crypto (Hex package)",
+          "* Getting mint (Hex package)",
+          "* Getting nimble_pool (Hex package)",
+          "* Getting hpax (Hex package)",
+          "* Getting tesla (Hex package)",
+          "* Getting phoenix (Hex package)",
+          "* Getting phoenix_html (Hex package)",
+          "* Getting phoenix_template (Hex package)",
+          "* Getting phoenix_pubsub (Hex package)",
+          "* Getting websock_adapter (Hex package)",
+          "* Getting websock (Hex package)",
+          "* Getting color (Hex package)",
+          "* Getting sweet_xml (Hex package)",
+          "* Getting vix (Hex package)",
+          "* Getting db_connection (Hex package)",
+          "* Getting ecto (Hex package)",
+          "Found packages with security advisories, see above for details",
+          "You have added/upgraded packages you could sponsor, run `mix hex.sponsor` to learn more"
+        ]
+      }
+    },
+    {
+      "name": "active_preflight",
+      "command": "mix run --no-start --no-deps-check --no-compile -e <Plan 72 active JOSE preflight>",
+      "started": true,
+      "exit_code": 0,
+      "signal": null,
+      "output": {
+        "sha256": "1684861f23c31dfd67295fb111115349babae357fd37cb6b369cc474d5afb467",
+        "original_bytes": 78283,
+        "sanitized_lines": [
+          "     └─ lib/jose/jwk.ex:767:15: JOSE.JWK.box_encrypt_ecdh_es/3",
+          "     warning: :jose_jwk.box_encrypt_ecdh_es/4 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 783 │     :jose_jwk.box_encrypt_ecdh_es(plain_text, jwe, v_static_public_key, u_ephemeral_secret_key)",
+          "     │               ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:783:15: JOSE.JWK.box_encrypt_ecdh_es/4",
+          "     warning: :jose_jwk.box_decrypt_ecdh_ss/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 792 │     case :jose_jwk.box_decrypt_ecdh_ss(encrypted, v_static_secret_key) do",
+          "     │                    ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:792:20: JOSE.JWK.box_decrypt_ecdh_ss/2",
+          "     warning: :jose_jwk.box_encrypt_ecdh_ss/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 863 │     {encrypted, u_static_secret_key} = :jose_jwk.box_encrypt_ecdh_ss(plain_text, v_static_public_key)",
+          "     │                                                  ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:863:50: JOSE.JWK.box_encrypt_ecdh_ss/2",
+          "     warning: :jose_jwk.box_encrypt_ecdh_ss/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 873 │     :jose_jwk.box_encrypt_ecdh_ss(plain_text, v_static_public_key, u_static_secret_key)",
+          "     │               ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:873:15: JOSE.JWK.box_encrypt_ecdh_ss/3",
+          "     warning: :jose_jwk.box_encrypt_ecdh_ss/4 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 889 │     :jose_jwk.box_encrypt_ecdh_ss(plain_text, jwe, v_static_public_key, u_static_secret_key)",
+          "     │               ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:889:15: JOSE.JWK.box_encrypt_ecdh_ss/4",
+          "     warning: :jose_jwk.generate_key/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 911 │   def generate_key(parameters), do: :jose_jwk.generate_key(parameters) |> from_record()",
+          "     │                                               ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:911:47: JOSE.JWK.generate_key/1",
+          "     warning: :jose_jwk.merge/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 918 │   def merge(left, right), do: :jose_jwk.merge(left, right) |> from_record()",
+          "     │                                         ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:918:41: JOSE.JWK.merge/2",
+          "     warning: :jose_jwk.shared_secret/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 925 │   def shared_secret(your_jwk, my_jwk), do: :jose_jwk.shared_secret(your_jwk, my_jwk)",
+          "     │                                                      ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:925:54: JOSE.JWK.shared_secret/2",
+          "     warning: :jose_jwk.sign/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 944 │     :jose_jwk.sign(plain_text, keys)",
+          "     │               ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:944:15: JOSE.JWK.sign/2",
+          "     └─ lib/jose/jwk.ex:947:44: JOSE.JWK.sign/2",
+          "     warning: :jose_jwk.sign/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "     │",
+          " 979 │     :jose_jwk.sign(plain_text, signers, keys)",
+          "     │               ~",
+          "     │",
+          "     └─ lib/jose/jwk.ex:979:15: JOSE.JWK.sign/3",
+          "     └─ lib/jose/jwk.ex:994:15: JOSE.JWK.sign/3",
+          "     └─ lib/jose/jwk.ex:997:49: JOSE.JWK.sign/3",
+          "      warning: :jose_jwk.signer/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      │",
+          " 1004 │   def signer(jwk), do: :jose_jwk.signer(jwk)",
+          "      │                                  ~",
+          "      │",
+          "      └─ lib/jose/jwk.ex:1004:34: JOSE.JWK.signer/1",
+          "      warning: :jose_jwk.thumbprint/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      │",
+          " 1011 │   def thumbprint(jwk), do: :jose_jwk.thumbprint(jwk)",
+          "      │                                      ~",
+          "      │",
+          "      └─ lib/jose/jwk.ex:1011:38: JOSE.JWK.thumbprint/1",
+          "      warning: :jose_jwk.thumbprint/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      │",
+          " 1033 │   def thumbprint(digest_type, jwk), do: :jose_jwk.thumbprint(digest_type, jwk)",
+          "      │                                                   ~",
+          "      │",
+          "      └─ lib/jose/jwk.ex:1033:51: JOSE.JWK.thumbprint/2",
+          "      warning: :jose_jwk.verifier/1 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      │",
+          " 1040 │   def verifier(jwk), do: :jose_jwk.verifier(jwk)",
+          "      │                                    ~",
+          "      │",
+          "      └─ lib/jose/jwk.ex:1040:36: JOSE.JWK.verifier/1",
+          "      warning: :jose_jwk.verify/2 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      │",
+          " 1064 │       case :jose_jwk.verify(signed, jwk) do",
+          "      │                      ~",
+          "      │",
+          "      └─ lib/jose/jwk.ex:1064:22: JOSE.JWK.verify/2",
+          "      warning: :jose_jwk.verify_strict/3 is undefined (module :jose_jwk is not available or is yet to be defined)",
+          "      │",
+          " 1112 │       case :jose_jwk.verify_strict(signed, allow, jwk) do",
+          "      │                      ~",
+          "      │",
+          "      └─ lib/jose/jwk.ex:1112:22: JOSE.JWK.verify_strict/3"
+        ]
+      }
+    },
+    {
+      "name": "deps_get_check_locked",
+      "command": "mix deps.get --check-locked",
+      "started": true,
+      "exit_code": 0,
+      "signal": null,
+      "output": {
+        "sha256": "08c15603999905edb7f6777d5e23b113ce89365f828080f57a140eabbae6db13",
+        "original_bytes": 3697,
+        "sanitized_lines": [
+          "    Link Header Directive Smuggling via Unescaped target/rel/Attribute Keys in cow_link:link/1",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-43971",
+          "    EEF-CVE-2026-43966 (MEDIUM)",
+          "    aka: CVE-2026-43966, GHSA-w4f7-4cxr-rv3c",
+          "    HTTP Response Splitting via Non-VCHAR Bytes in cow_http_struct_hd:escape_string/2",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-43966",
+          "    EEF-CVE-2026-43969 (LOW)",
+          "    aka: CVE-2026-43969, GHSA-g2wm-735q-3f56",
+          "    Cookie Request Header Injection via Unvalidated Encoder in cow_cookie:cookie/1",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-43969",
+          "  credo 1.7.18",
+          "  db_connection 2.10.2",
+          "  decimal 3.1.1",
+          "  dialyxir 1.4.7",
+          "  doctor 0.23.0",
+          "  earmark_parser 1.4.44",
+          "  ecto 3.13.6",
+          "  ecto_sql 3.13.5",
+          "  elixir_make 0.10.0",
+          "  erlex 0.2.8",
+          "  ex_aws 2.6.1",
+          "  ex_aws_s3 2.5.9",
+          "  ex_doc 0.40.3",
+          "  ex_machina 2.8.0",
+          "  ex_marcel 0.2.0",
+          "  excoveralls 0.18.5",
+          "  file_system 1.1.1",
+          "  finch 0.23.0",
+          "  fine 0.1.6",
+          "  gcs_signed_url 0.6.0",
+          "  goth 1.4.5",
+          "  hpax 1.0.4",
+          "  image 0.65.0",
+          "  jason 1.4.5",
+          "  jose 1.11.12",
+          "  junit_formatter 3.4.0",
+          "  lazy_html 0.1.12 VULNERABLE!",
+          "    EEF-CVE-2026-92106 (LOW)",
+          "    aka: CVE-2026-92106, GHSA-8rqp-v692-v82q",
+          "    lazy_html serializes SVG and MathML style and script text unescaped, allowing mutation XSS",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-92106",
+          "  makeup 1.2.1",
+          "  makeup_elixir 1.0.1",
+          "  makeup_erlang 1.1.0",
+          "  mime 2.0.7",
+          "  mint 1.9.3 VULNERABLE!",
+          "    EEF-CVE-2026-82729 (MEDIUM)",
+          "    aka: CVE-2026-82729, GHSA-7p8w-j234-7qc8",
+          "    Quadratic chunk-size parsing in Mint.HTTP1.Parse allows CPU-exhaustion DoS",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-82729",
+          "    EEF-CVE-2026-82672 (MEDIUM)",
+          "    aka: CVE-2026-82672, GHSA-rj5m-69wp-cxq9",
+          "    Unvalidated chunk-size line tail in Mint HTTP/1 client enables response smuggling against strict intermediaries on pooled connections",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-82672",
+          "    EEF-CVE-2026-91043 (HIGH)",
+          "    aka: CVE-2026-91043, GHSA-9x8p-qrf4-jq7g",
+          "    HPACK-indexed cookie fields in Mint HTTP/2 responses bypass max_header_list_size and exhaust client memory",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-91043",
+          "    EEF-CVE-2026-92103 (MEDIUM)",
+          "    aka: CVE-2026-92103, GHSA-q95c-ccq6-j5j6",
+          "    Mint HTTP/2 client buffers oversized frames up to 16 MiB before enforcing max_frame_size",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-92103",
+          "    EEF-CVE-2026-94194 (MEDIUM)",
+          "    aka: CVE-2026-94194, GHSA-gvrc-75rc-7gj9",
+          "    Mint HTTP/1 client applies chunked framing when chunked is not the final transfer coding, enabling response smuggling through intermediaries",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-94194",
+          "    EEF-CVE-2026-82728 (HIGH)",
+          "    aka: CVE-2026-82728, GHSA-g83f-2j6r-q6m4",
+          "    Unbounded HTTP/1 status-line and chunk-extension buffering in Mint causes memory-exhaustion DoS",
+          "    https://osv.dev/vulnerability/EEF-CVE-2026-82728",
+          "  mix_audit 2.1.5",
+          "  mox 1.2.0",
+          "  muontrap 1.7.0",
+          "  mux 3.2.2",
+          "  nimble_options 1.1.1",
+          "  nimble_ownership 1.0.2",
+          "  nimble_parsec 1.4.2",
+          "  nimble_pool 1.1.0",
+          "  oban 2.21.1",
+          "  phoenix 1.8.12",
+          "  phoenix_html 4.3.0",
+          "  phoenix_live_view 1.2.10",
+          "  phoenix_pubsub 2.2.0",
+          "  phoenix_template 1.0.4",
+          "  plug 1.20.3",
+          "  plug_cowboy 2.9.0",
+          "  plug_crypto 2.2.0",
+          "  postgrex 0.22.4",
+          "  ranch 1.8.1",
+          "  req 0.7.3",
+          "  sweet_xml 0.7.5",
+          "  telemetry 1.4.2",
+          "  tesla 1.21.2",
+          "  vix 0.38.0",
+          "  websock 0.5.3",
+          "  websock_adapter 0.6.0",
+          "  yamerl 0.10.0",
+          "  yaml_elixir 2.12.2",
+          "Found packages with security advisories, see above for details",
+          "All dependencies are up to date"
+        ]
+      }
+    },
+    {
+      "name": "deps_unlock_check_unused",
+      "command": "mix deps.unlock --check-unused",
+      "started": true,
+      "exit_code": 0,
+      "signal": null,
+      "output": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "original_bytes": 0,
+        "sanitized_lines": []
+      }
+    },
+    {
+      "name": "compile_warnings_as_errors",
+      "command": "mix compile --warnings-as-errors",
+      "started": true,
+      "exit_code": 0,
+      "signal": null,
+      "output": {
+        "sha256": "87f35ac97fe528b45b6f76086e75179cc557de9f059b471b431937fd44d28357",
+        "original_bytes": 6842,
+        "sanitized_lines": [
+          "    └─ lib/gcs_signed_url/client.ex:57:32: GcsSignedUrl.Client.load_from_file/1",
+          "Generated gcs_signed_url app",
+          "==> elixir_make",
+          "Compiling 8 files (.ex)",
+          "Generated elixir_make app",
+          "==> muontrap",
+          " CC muontrap.o",
+          " LD muontrap",
+          "Compiling 5 files (.ex)",
+          "Generated muontrap app",
+          "==> cc_precompiler",
+          "Compiling 3 files (.ex)",
+          "Generated cc_precompiler app",
+          "==> lazy_html",
+          "Compiling 3 files (.ex)",
+          "Generated lazy_html app",
+          "==> vix",
+          "Compiling 28 files (.ex)",
+          "Generated vix app",
+          "==> websock",
+          "Compiling 1 file (.ex)",
+          "Generated websock app",
+          "==> sweet_xml",
+          "Compiling 2 files (.ex)",
+          "Generated sweet_xml app",
+          "==> image",
+          "Compiling 69 files (.ex)",
+          "Generated image app",
+          "==> ex_aws",
+          "Compiling 29 files (.ex)",
+          "Generated ex_aws app",
+          "==> ex_aws_s3",
+          "Compiling 7 files (.ex)",
+          "Generated ex_aws_s3 app",
+          "==> nimble_ownership",
+          "Compiling 2 files (.ex)",
+          "Generated nimble_ownership app",
+          "==> mox",
+          "Compiling 2 files (.ex)",
+          "Generated mox app",
+          "==> tesla",
+          "Compiling 57 files (.ex)",
+          "Generated tesla app",
+          "==> mux",
+          "Compiling 27 files (.ex)",
+          "warning: `use Tesla.Builder` and `use Tesla` in Mux.Tesla are soft-deprecated. It will be removed in future major version in favor of",
+          "Runtime Configuration instead. Please share your feedback at https://github.com/elixir-tesla/tesla/discussions/732",
+          "If you can turn off this warning, add the following to your config.exs:",
+          "```elixir",
+          "config :tesla, disable_deprecated_builder_warning: true",
+          "```",
+          "  (tesla 1.21.2) lib/tesla/builder.ex:12: Tesla.Builder.\"MACRO-__using__\"/2",
+          "  (elixir 1.17.3) src/elixir_dispatch.erl:261: :elixir_dispatch.expand_macro_fun/7",
+          "  (elixir 1.17.3) src/elixir_dispatch.erl:156: :elixir_dispatch.dispatch_require/7",
+          "  (elixir 1.17.3) src/elixir_expand.erl:570: :elixir_expand.expand_block/5",
+          "  (elixir 1.17.3) src/elixir_expand.erl:46: :elixir_expand.expand/3",
+          "  (elixir 1.17.3) src/elixir_dispatch.erl:275: :elixir_dispatch.expand_quoted/7",
+          "Generated mux app",
+          "===> Analyzing applications...",
+          "===> Compiling cowlib",
+          "===> Analyzing applications...",
+          "===> Compiling cowboy",
+          "===> Analyzing applications...",
+          "===> Compiling cowboy_telemetry",
+          "==> plug_cowboy",
+          "Compiling 5 files (.ex)",
+          "Generated plug_cowboy app",
+          "==> bypass",
+          "Compiling 5 files (.ex)",
+          "    warning: Application.get_env/3 is discouraged in the module body, use Application.compile_env/3 instead",
+          "    │",
+          "  6 │   if Application.get_env(:bypass, :enable_debug_log, false) do",
+          "    │                  ~",
+          "    │",
+          "    └─ lib/bypass/utils.ex:6:18: Bypass.Utils (module)",
+          "Generated bypass app",
+          "==> websock_adapter",
+          "Compiling 4 files (.ex)",
+          "Generated websock_adapter app",
+          "==> phoenix",
+          "Compiling 74 files (.ex)",
+          "     warning: this check/guard will always yield the same result",
+          "     │",
+          " 301 │     if @requires_consolidation && config[:consolidate_protocols] do",
+          "     │     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+          "     │",
+          "     └─ lib/phoenix/code_reloader/server.ex:301",
+          "     warning: this check/guard will always yield the same result",
+          "     │",
+          " 414 │       @requires_consolidation && status == :ok && config[:consolidate_protocols] ->",
+          "     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+          "     │",
+          "     └─ lib/phoenix/code_reloader/server.ex:414",
+          "Generated phoenix app",
+          "==> phoenix_live_view",
+          "Compiling 55 files (.ex)",
+          "Generated phoenix_live_view app",
+          "==> rindle",
+          "Compiling 150 files (.ex)",
+          "Generated rindle app"
+        ]
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "name": "before_initial_deps_get",
+      "command": "not_run",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        },
+        "staged_include": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        },
+        "staged_header": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        }
+      }
+    },
+    {
+      "name": "after_initial_deps_get",
+      "command": "mix deps.get",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        },
+        "staged_header": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        }
+      }
+    },
+    {
+      "name": "before_active_preflight",
+      "command": "mix run --no-start --no-deps-check --no-compile -e <Plan 72 active JOSE preflight>",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        },
+        "staged_header": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        }
+      }
+    },
+    {
+      "name": "build_structure_before",
+      "call": "build_structure",
+      "phase": "before",
+      "command": "active JOSE preflight call",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        },
+        "staged_header": {
+          "type": "absent",
+          "exists": false,
+          "mode": null,
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "real_target": {
+            "classification": "missing",
+            "path": null
+          },
+          "readable": false,
+          "sha256": null,
+          "target_match": "none"
+        }
+      }
+    },
+    {
+      "name": "build_structure_after",
+      "call": "build_structure",
+      "phase": "after",
+      "command": "active JOSE preflight call",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "prepend_ebin_path_before",
+      "call": "prepend_ebin_path",
+      "phase": "before",
+      "command": "active JOSE preflight call",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "prepend_ebin_path_after",
+      "call": "prepend_ebin_path",
+      "phase": "after",
+      "command": "active JOSE preflight call",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "record_extract_jose_jwt_before",
+      "call": "record_extract_jose_jwt",
+      "phase": "before",
+      "command": "active JOSE preflight call",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "record_extract_jose_jwt_after",
+      "call": "record_extract_jose_jwt",
+      "phase": "after",
+      "command": "active JOSE preflight call",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "reenable_compile_elixir_before",
+      "call": "reenable_compile_elixir",
+      "phase": "before",
+      "command": "active JOSE preflight call",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "reenable_compile_elixir_after",
+      "call": "reenable_compile_elixir",
+      "phase": "after",
+      "command": "active JOSE preflight call",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "compile_elixir_before",
+      "call": "compile_elixir",
+      "phase": "before",
+      "command": "active JOSE preflight call",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "compile_elixir_after",
+      "call": "compile_elixir",
+      "phase": "after",
+      "command": "active JOSE preflight call",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "after_active_preflight",
+      "command": "mix run --no-start --no-deps-check --no-compile -e <Plan 72 active JOSE preflight>",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "deps_get_check_locked_before",
+      "command": "mix deps.get --check-locked",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "after_deps_get_check_locked",
+      "command": "mix deps.get --check-locked",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "deps_unlock_check_unused_before",
+      "command": "mix deps.unlock --check-unused",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "after_deps_unlock_check_unused",
+      "command": "mix deps.unlock --check-unused",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "compile_warnings_as_errors_before",
+      "command": "mix compile --warnings-as-errors",
+      "exit_code": null,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    },
+    {
+      "name": "after_compile_warnings_as_errors",
+      "command": "mix compile --warnings-as-errors",
+      "exit_code": 0,
+      "paths": {
+        "source_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        },
+        "staged_include": {
+          "type": "symlink",
+          "exists": true,
+          "mode": "0700",
+          "link_category": "relative_worktree",
+          "link_target_identity": {
+            "category": "relative_worktree",
+            "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+          },
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include"
+          },
+          "readable": true,
+          "sha256": null,
+          "target_match": "mix_jose_source_include"
+        },
+        "staged_header": {
+          "type": "file",
+          "exists": true,
+          "mode": "0644",
+          "link_category": "not_symlink",
+          "link_target_identity": null,
+          "lexical_target": {
+            "classification": "worktree",
+            "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+          },
+          "real_target": {
+            "classification": "worktree",
+            "path": "deps/jose/include/jose_jwt.hrl"
+          },
+          "readable": true,
+          "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+          "target_match": "not_symlink"
+        }
+      }
+    }
+  ],
+  "first_changed_boundary": null,
+  "cause": "unresolved",
+  "cause_evidence": null,
+  "missing_observation": "no readable-local-to-absent-or-dangling transition observed",
+  "source_staged_digest_relation": "equal",
+  "contrast": {
+    "plan73_preflight": "provenance_only",
+    "called_build_structure": false,
+    "called_compile_elixir": false
+  },
+  "historical_sha256": {
+    ".planning/phases/133-evidence-charter-and-live-truth/133-69-DIAGNOSTIC-FOLLOWUP.json": {
+      "status": "present",
+      "sha256": "879bee601a682a355e91441b6a1357138781604d806f75fcc5b38631b961a3d3"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-72-FORENSIC.json": {
+      "status": "present",
+      "sha256": "93d3521243a22eaa13157b6d3f0e6af75c86bbc8f6f42eee73892369aae6b682"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-72-DIAGNOSTIC-A.json": {
+      "status": "present",
+      "sha256": "569fb28ce9b02b018c81e3ceaf1b6e32a0248b2b50df1d585d7879866f3b387c"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-72-DIAGNOSTIC-B.json": {
+      "status": "present",
+      "sha256": "9ad5caa277c2c6a7dae638ddd1ded850bbe69b6fe02f392c9d00c7478b9e179e"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-73-DIAGNOSTIC-A.json": {
+      "status": "present",
+      "sha256": "23d6f37d864299bee5bbe73b844de36edd7244cb05e85f3411bb551c900c8fc5"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-73-DIAGNOSTIC-B.json": {
+      "status": "present",
+      "sha256": "f19e2d0f2900949afffe8d4f786aec074ced0a5b470cff12d6a3ee4df2169894"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-73-SUMMARY.md": {
+      "status": "present",
+      "sha256": "867645a324485a0fde4f6400be371a61de29021b0debd25aa0e2a5f06ed975cf"
+    }
+  },
+  "historical_comparison": {
+    "plan69_followup": {
+      "subject_sha": "8c77d23212fb3c9703202a41d15b1781058b9cfc",
+      "subject_tree": "e1b711c7b51c70467e631c2643454cda68da91f3",
+      "first_failure": "compile_warnings_as_errors",
+      "diagnosis_branch": "staging-path-mismatch-at-after_compile_warnings_as_errors",
+      "staged_include_after_prefix": "not_attempted"
+    },
+    "plan72_report_a": {
+      "subject_sha": "60ccc124c0b42bf8f2ee47456e6cfec839d6c299",
+      "subject_tree": "cdb14d310c706ed42ea8c57a87c8311c6110adb9",
+      "jose_preflight_exit": 0,
+      "mix_ci_exit": 1,
+      "terminal_summary_status": "unobserved",
+      "staged_path_observation": "legacy command-level report; no per-call path snapshots"
+    },
+    "plan72_report_b": {
+      "subject_sha": "60ccc124c0b42bf8f2ee47456e6cfec839d6c299",
+      "subject_tree": "cdb14d310c706ed42ea8c57a87c8311c6110adb9",
+      "jose_preflight_exit": 0,
+      "mix_ci_exit": 1,
+      "terminal_summary_status": "unobserved",
+      "staged_path_observation": "legacy command-level report; no per-call path snapshots"
+    },
+    "plan73_passive_preflight": {
+      "subject_sha": "ebe994d09affa06b34d472b93ec37a797b2460de",
+      "subject_tree": "b90401707fde08bbccd185493e5625e11f23de46",
+      "cause": "unresolved",
+      "mix_env": "prod",
+      "staged_include_after_preflight": "missing",
+      "called_build_structure": false,
+      "called_compile_elixir": false
+    },
+    "plan73_ci": {
+      "subject_sha": "ebe994d09affa06b34d472b93ec37a797b2460de",
+      "subject_tree": "b90401707fde08bbccd185493e5625e11f23de46",
+      "exit_code": 1,
+      "terminal_summary_status": "missing",
+      "doctor_failure_present": true
+    }
+  },
+  "canonical_receipt_sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+  "lock_sha256_before": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+  "lock_sha256_after": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+  "raw_logs_removed_after_publication": true,
+  "integrity_sha256": "9125aad375d5984c5a701b267a860e29bd4961a0b20bdd335574350e27b6ab1c"
+}

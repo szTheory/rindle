@@ -1,0 +1,735 @@
+{
+  "schema_version": 1,
+  "plan": "133-130",
+  "status": "halted",
+  "source": {
+    "sha": "f15cbef6da6eb8ba41fcab8320228b10842fd4b6",
+    "tree": "fe93a3db87a25c3fa9d5439e294806894a8645c4",
+    "files": [
+      {
+        "path": "scripts/maintainer/phase_133_registry_supply.mjs",
+        "blob_oid": "3eb0758c4f04c51c2b208ea037cf447308b19a05",
+        "sha256": "e11dc2f4e5b54618c38bd9367f9596115795c071f622e9eaf843f3b65c8f4a41"
+      },
+      {
+        "path": "test/install_smoke/phase_133_registry_supply_test.mjs",
+        "blob_oid": "54634f72f16ac8589583b62406d26d816fb9fac0",
+        "sha256": "c5dcc3084e1f2d4da30863740d11119a665e1c9b70e89d99d6d93183ff112d10"
+      }
+    ]
+  },
+  "lock": {
+    "name": "mux",
+    "version": "3.2.2",
+    "repo": "hexpm",
+    "inner_sha256": "3d5f86a173b646f4c675bf7cc817bb010a1fde4fdb3ecfdd56a374a039e8db58",
+    "outer_sha256": "103a8dd092066eae17b0116cac87fbbb9cf60574f88387bf030500503dc64be9",
+    "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+    "blob_oid": "af2a1e467fdc60ed4d00edad744e56b430f8c2a9"
+  },
+  "hex": {
+    "version": "2.5.1",
+    "path": "/Users/jon/.mix/archives/hex-2.5.1/hex-2.5.1/ebin",
+    "files": [
+      {
+        "relative": "Elixir.Hex.API.Auth.beam",
+        "sha256": "c6b90b924cf7b2ea3c25dabd6cfd61a52a7ad59538d7c8995ec4b4cfb79e9366"
+      },
+      {
+        "relative": "Elixir.Hex.API.Client.beam",
+        "sha256": "c2843cadd146ec46ee20089326ac7b8011f8eeb7e7d9cee793a00713adb54e7e"
+      },
+      {
+        "relative": "Elixir.Hex.API.Key.Organization.beam",
+        "sha256": "4f6638dd06e907317753690455f0587930dd7f71f6b0ddab41e52ca2c9341db3"
+      },
+      {
+        "relative": "Elixir.Hex.API.Key.beam",
+        "sha256": "8d29e3a204d01813a1e4c47655c9b14b5cddccb5ab41179574a8c30bb7941d4e"
+      },
+      {
+        "relative": "Elixir.Hex.API.OAuth.beam",
+        "sha256": "88f7611ac834a6be0240b9a21fec90072e6a8657cdb847297257cf7ce885a5da"
+      },
+      {
+        "relative": "Elixir.Hex.API.Package.Owner.beam",
+        "sha256": "5efed330147c38aae68c56db20dd24eda9522361e4708ed1c142b78ca2671d13"
+      },
+      {
+        "relative": "Elixir.Hex.API.Package.beam",
+        "sha256": "a751b730ba7513e1ea81b987ae14119df144c514897bbc1ac1d31e1db8857b3a"
+      },
+      {
+        "relative": "Elixir.Hex.API.Release.beam",
+        "sha256": "2d9a1bb9e9b2c06625f2f2a15d11e160ff93877dcd32de85aff5a1fe188dca7a"
+      },
+      {
+        "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+        "sha256": "0c0e5ccada6a1ee682f620ad78ed6fef8919b2febabd492283e6e3f42b0585e4"
+      },
+      {
+        "relative": "Elixir.Hex.API.ShortURL.beam",
+        "sha256": "cf91b8c535246047ee9e792387c4ff190ad35c8819c16d0a52b124ebaac31e20"
+      },
+      {
+        "relative": "Elixir.Hex.API.User.beam",
+        "sha256": "1dbb6dfda861dace06f9df22c3d3db7a45fd52962386b31467c342fbad2ac97f"
+      },
+      {
+        "relative": "Elixir.Hex.Application.beam",
+        "sha256": "b30110ed9c9ab10d8694e634a09dc7fa7349868bc8a6ee25a92607e4439708c7"
+      },
+      {
+        "relative": "Elixir.Hex.Auth.beam",
+        "sha256": "1132bbaa5a5d3b63a364959d2ff57fa4769bbd51d023bc1f8264a026affbf42d"
+      },
+      {
+        "relative": "Elixir.Hex.Config.beam",
+        "sha256": "4659b391d25108b8b6fa4acd6f3c29ca8a424f10108adbd95a5194823623318b"
+      },
+      {
+        "relative": "Elixir.Hex.Cooldown.beam",
+        "sha256": "a9fe5c96606720504ccc759f0edede7e34266512da3dc01e16595856c1298ec7"
+      },
+      {
+        "relative": "Elixir.Hex.HTTP.Certs.beam",
+        "sha256": "1d22b0d73bc0508e202705e72dd282c58907479ff8489ba6738982f2c9b83bea"
+      },
+      {
+        "relative": "Elixir.Hex.HTTP.SSL.beam",
+        "sha256": "cf16889c205496f4e345c47f064526e2907ba073058879cc969cf9c3ba583bdb"
+      },
+      {
+        "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+        "sha256": "24b61be651a8fdb9786bea2afc4e26325af5283b56928b56e15cb149695bb619"
+      },
+      {
+        "relative": "Elixir.Hex.HTTP.beam",
+        "sha256": "ae846ee111a84a1b7db6a10ac8b5ec7fb67e1a5f256750500729b08cde8aa9c9"
+      },
+      {
+        "relative": "Elixir.Hex.Ignores.beam",
+        "sha256": "88bbc6d251f4abbb3e5ad536c262f573cb7fca4296c19e73064a8685ddab9bd6"
+      },
+      {
+        "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+        "sha256": "3813ffa6b4bc2127796d436bacdeb09e8f1e42680339648b6fdac6aa023a7ede"
+      },
+      {
+        "relative": "Elixir.Hex.Mix.beam",
+        "sha256": "aff3e2ca834e11151c95f48d84f690b2f39568008ac791a8a9f33cfdaa8778f8"
+      },
+      {
+        "relative": "Elixir.Hex.Netrc.Cache.beam",
+        "sha256": "4521f2260638cb283bf63fd516c92edb1a0d33e9545950a7fa18873dd948bd1d"
+      },
+      {
+        "relative": "Elixir.Hex.Netrc.Parser.beam",
+        "sha256": "285f896503d684ef55ccabeb4ee80c0a52018e039f12886b4b2ea0924e0d4c0e"
+      },
+      {
+        "relative": "Elixir.Hex.Netrc.beam",
+        "sha256": "aa6b71718c03a4fa08d069aeed35093744b434b4917cf06d0c9d157e7410575f"
+      },
+      {
+        "relative": "Elixir.Hex.OAuth.beam",
+        "sha256": "be3324bc4d1cd3043ec7ba9ba42b28f793f40666e3c2dcb0fb5fbbf694c202ae"
+      },
+      {
+        "relative": "Elixir.Hex.Package.beam",
+        "sha256": "84e3f1427c223d9aa2254dcfa2630e2aa29eddba8a527ca3172048aa0eb44955"
+      },
+      {
+        "relative": "Elixir.Hex.Parallel.beam",
+        "sha256": "fa528b77754a1b258cd33c5ec40b734b2e356dc36248a3f5a3e29687cc0e8081"
+      },
+      {
+        "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+        "sha256": "0be5e264184176ae82e9d41c7c61102375fab04a699374e72a6b9d449bf93390"
+      },
+      {
+        "relative": "Elixir.Hex.Policy.Filter.beam",
+        "sha256": "337dd7abd5f3cb518fce6cdf5c0e5286d484ab1e93c8b0e05a0a5f59e93647c5"
+      },
+      {
+        "relative": "Elixir.Hex.Policy.beam",
+        "sha256": "929518139df3171d5e5870c88f1959f54b41e4f7803f2e2b0af3015cedac911f"
+      },
+      {
+        "relative": "Elixir.Hex.Registry.Cooldown.beam",
+        "sha256": "ca31d7f3caca4a0361d7859444aa91f2adeed2d1131f191d8c3d09733839a11f"
+      },
+      {
+        "relative": "Elixir.Hex.Registry.Policy.beam",
+        "sha256": "f4eac9ceb32b4f7c9b0fd696022de9e0ba0a8e283862a21b7b6f9d618cbb49ed"
+      },
+      {
+        "relative": "Elixir.Hex.Registry.Server.beam",
+        "sha256": "d4d65891331d5c791cfcf0fb59e6d7306022f87997c5515fe1240de449a98e97"
+      },
+      {
+        "relative": "Elixir.Hex.RemoteConverger.beam",
+        "sha256": "6ac89ab51cc61c703cf2d18de65371191dd24a2494a4a0d74690b14a448f7a36"
+      },
+      {
+        "relative": "Elixir.Hex.Repo.beam",
+        "sha256": "66b8d29ad93f07afad5dd876f956636743f73fac50a8160d2e774680c595aed5"
+      },
+      {
+        "relative": "Elixir.Hex.SCM.beam",
+        "sha256": "aad183f9064ab4c6d07b0932d9b96e5ff954f3da30d81d8723f9b3c817e36f07"
+      },
+      {
+        "relative": "Elixir.Hex.Server.beam",
+        "sha256": "c2415b8ab806594e623c370ce1e7a45976df0ddbb28ee781ef186046a73f1aea"
+      },
+      {
+        "relative": "Elixir.Hex.Shell.Process.beam",
+        "sha256": "136cf016e0e4dc184ffcfeccd0dd385422be46115f1e371b03b228c9ffd45fa4"
+      },
+      {
+        "relative": "Elixir.Hex.Shell.beam",
+        "sha256": "846a7ecb791857444773e4a7260cfd4a14b6c4933718d2f27d86bf6cdf2399ff"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Assignment.beam",
+        "sha256": "7e3818a4a845aa5a3d9cf2348f6e2daa6bae2ffa8e3b54fae9b638120b5a5612"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+        "sha256": "700026d683cb231ea35bc95b7f09d7a66e0161417079c358314ab1ca9513e1b3"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+        "sha256": "b7b865b4f8bdd6beea127e919dd4fb66fa63bf4b93ba490d7852c34134828441"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+        "sha256": "98ee0bdb77f0a2b91c132f2e9395b2f9ef6ed647e0017b599817599fb33735e3"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+        "sha256": "ecca1d22cfd54bb19d611b13598385cc6997d28476e5fb42919e39fa3fdfc2cf"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraint.beam",
+        "sha256": "9e15ab2908ac39da3592be19e6d6f75f0c476ddd9e24869f94b28e058e2b4b56"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+        "sha256": "9fe5fc967e8c89f6db8813064fbc1b1a2deb56f42b956f8d134782c59200df7e"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+        "sha256": "43cdf0e48f1301c1e29348105af5e867e017865cfc53c78b74f7486d74c89936"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+        "sha256": "b49d3c0a3ad24215e5de4a1a01a9d509964c0174071794dba47e8f4a05690435"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+        "sha256": "1b29ee6e89f5fdf03f0141117837efcc138c0e312f79fa63a5c5345f9878d757"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+        "sha256": "aa231e6e688c186a1d71550b99507b33420aedd10dc5afdf39094332afe85cf7"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+        "sha256": "8d374e3cf60a61642da19561a8267e277916072249cdff032dfd247e08916be1"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Failure.beam",
+        "sha256": "68f2c6fb6c961958992acbb0f1cb08173ccbd8ae41dc6d2b84e2351401775031"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+        "sha256": "14b6133eeee5fcaa2b8292a81cbf023ee71c20f6d28a9d8bd0c7871b332577f2"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.PackageLister.beam",
+        "sha256": "99926007206d50a8771146c3a4de6f170ffe369a52523046b65f99c74f500d23"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.PackageRange.beam",
+        "sha256": "5d26fa03a7bddbd318f9e0086ae016f893cf3443fdfaad6cc7b1a4647822735e"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+        "sha256": "30747b313ebc5a806f8fc57993e17870734a22a0eba806d2b8772148f6eaac0e"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Registry.beam",
+        "sha256": "a89e093fcbd910d03ab35c275f1b873359a889ed772c831f317af551892372cc"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+        "sha256": "f934342ad3c969f51f6651403194e675e2b584f1cec86d5da81686e24e4efb32"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Requirement.beam",
+        "sha256": "69136f111e4c5cf7dd32b72c5bc2ceac1e3e3d6b259aff5c5dde9f8bdff26754"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Solver.beam",
+        "sha256": "de9c9223b90762c0bcf85ef537c4616e51bed1add69704d9e5345f8b80ff14c8"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Term.beam",
+        "sha256": "9ee5bd6b07949bf96b4454f1f4f57efdcc3a90cd8377bd89130036b4a2ec7fd5"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.Util.beam",
+        "sha256": "7892c7b4e7908ec12a77896b33dbeb73dee1e3324a45db1506f55522552b79c0"
+      },
+      {
+        "relative": "Elixir.Hex.Solver.beam",
+        "sha256": "817f020e1fba5c4dadcbc6fe8b4fefc437f2048eae44280ab8588159cdd34f6d"
+      },
+      {
+        "relative": "Elixir.Hex.Sponsor.beam",
+        "sha256": "6f4040e85dde2ad3798afcac4bbe42ed5cf236913bafaf5d7351e187e6136aab"
+      },
+      {
+        "relative": "Elixir.Hex.State.beam",
+        "sha256": "7ee5734f85679f50248dc6ff807f5c6159c4060872b5b0f38faf4defb6ad2156"
+      },
+      {
+        "relative": "Elixir.Hex.Stdlib.beam",
+        "sha256": "e01ace99529e33561f2d1e00ad85b738e334858cceb08ac4a791cee8368c9827"
+      },
+      {
+        "relative": "Elixir.Hex.Tar.beam",
+        "sha256": "8eb465922f5c4d406baa1345e770c2d84386da8d07017d2e5fa1673064141854"
+      },
+      {
+        "relative": "Elixir.Hex.UpdateChecker.beam",
+        "sha256": "e4164f715cb8aade2f23e21fe4af4c8e20799387b1bb42d748c5b0a2b6fbb914"
+      },
+      {
+        "relative": "Elixir.Hex.Utils.beam",
+        "sha256": "98225f3796c3fd90c6ca44b0fce221f6b760ac604a0bae8c1d4fdd3d956dd202"
+      },
+      {
+        "relative": "Elixir.Hex.beam",
+        "sha256": "f0bdda9a6108790ceaae53914e504856b39ee3ebed747ef8f815aa2bcbce7a66"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+        "sha256": "9eb6dfe2366bc3d7252869c30e81a4557a39438eb30d9523386859319743f506"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+        "sha256": "55d6beca934084a2ee14629b569f0167bc6f0f671280f533df746594470d2694"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+        "sha256": "be6c509126f4b875ab2690a04d3e658f2d296e0e7900f0ae80dc1c6b0d8473c6"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+        "sha256": "06ba7f013a86dc0fcb9936c96195138634bd5382ad4c2fa588a5eb84ccc656d2"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+        "sha256": "45555dc7606ee16a17ca72e3cf0588e225414a3be2a404a57ddc41a55276b7c3"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+        "sha256": "bdec9d7549fc8d9e18589de22fb92f42951165f780ebd4935bb3655069f0ea40"
+      },
+      {
+        "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+        "sha256": "eb86cc8d7c7a347c8947f18984e905f7d16c56f8c94e383b7a780c9a5877bb9c"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+        "sha256": "bf57230ff8deb22f34149a1eb245359189ed8607b10423c0381272c070995b20"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+        "sha256": "24ad94e7cd6faa2f9382e4ef99d7a56ac54d7d4d9491a6a4b8a59066d746c217"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+        "sha256": "d05fe1644e1b5273671c5241e5c2fdbf2b81212b608534791cbe57ebfe032f6a"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+        "sha256": "957d124d655ed18fcb0ca6c90cb1ea5ace2b8cd7ccb7e9913f0426807d50ee38"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+        "sha256": "6d27b5dad6c4d268e49ee37091df8294caabb2dd747baf588eee917e71b9167c"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+        "sha256": "6a1059b2d27b4ae4cc224f3d06fd0f70d13822629a669a2c3a0c0d39db738119"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+        "sha256": "c8d5559569b92eea51515d96c9e81682fdc9af03f7d865365fac06aeb3b7eed9"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+        "sha256": "c673da65449a8901b94b0fb56421469016c7f38833a52fd3402a3c97e5e055ca"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+        "sha256": "9d00cff57e9d7a03f2ae7a0f3f8cac360e3a4bff370f7c29892598840b8e5568"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+        "sha256": "6024f419c86009d475f74cd0f02febfd004280fc26015604e7052c11d4134ac0"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+        "sha256": "39996dfb21d39a72ec60521494620d2f1e3b3e5b7231942830fc9587db508742"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+        "sha256": "b5e6b2394c13f08ed3843f790b640ca489d164d4927af49a55473dd232e47275"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+        "sha256": "583c6831b45048d331272d3d89016fc0cdfc308a7c01825d1ff29a2fca9722ef"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+        "sha256": "6e7eba02e80770bf47cd68ffd41207d7773b00cac6203be2713bc034231981bd"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+        "sha256": "76669d64d3ccffd8c48238f680754e1d805e0f78962c88b0ab384afc19fd4ca8"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+        "sha256": "29ca8834287b7e10692c35c9ed2b5636df1464121d954b7aaf17b1aad9a1483c"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+        "sha256": "23e4303c484d0041e2b1085ac35eb1a7298ed5ae67577c705a277dd7452781b5"
+      },
+      {
+        "relative": "Elixir.Mix.Tasks.Hex.beam",
+        "sha256": "126e60298ebb788bd3f465c5d4677c8aa40f70eada67411f68afd9955fc76757"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+        "sha256": "97ac8999e8b8c3e2b6df35363315367a27706958bc05fd243873e14bcb03fa39"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+        "sha256": "f1d02a2a6563f5ca26434ea34efeefad328e4f49232588f9181988602a27f967"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+        "sha256": "c0a92451cda016b48198ab00c2b1756958519273a7c0e198fcbbcd960113c97e"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+        "sha256": "e9b96b4fda32dd9de663e0f5d2bd53134a7f41ee899098f747a9eaa44d7846dc"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+        "sha256": "a03f0e1dd878d6253e5f437edf838fff038bd77f1d7329069c8f5ac8d9e998ac"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+        "sha256": "1ad2a69dab707dea48cd2094d9ab8b53cbeef589cb11c64a4c423dd5904f7447"
+      },
+      {
+        "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+        "sha256": "7370ecfb6f409965e8ba5f08b0db1df80778d05c0f672b7c8b21f58ebc095edc"
+      },
+      {
+        "relative": "hex.app",
+        "sha256": "7971f51314eed64f7fbaa6710306ba8a0f7b7ac8a53068e24d0f8732a001cb83"
+      },
+      {
+        "relative": "mix_hex_advisory.beam",
+        "sha256": "0bf9311bbda53f90f6530f720c6e7641d1eb31c4288e0b6b9e17e161efac7863"
+      },
+      {
+        "relative": "mix_hex_api.beam",
+        "sha256": "510ceda619e0a04dfb6522f34a58a805b8c23fecb28c58e3f92602bf356b69d2"
+      },
+      {
+        "relative": "mix_hex_api_auth.beam",
+        "sha256": "56e3d15f17d3adebd7018d05625f845e5ea312c41aa8cdf566ad2319cd7c075f"
+      },
+      {
+        "relative": "mix_hex_api_key.beam",
+        "sha256": "9b21d98ce7511f9e8993ca866440aed6241fccde4d668652ff064122a4f5294a"
+      },
+      {
+        "relative": "mix_hex_api_oauth.beam",
+        "sha256": "edf8b5916712fe3e92cef0e7ccdbdb4299eddf2aef97ff3ee50e51071273f5fb"
+      },
+      {
+        "relative": "mix_hex_api_organization.beam",
+        "sha256": "d4146e1f70e8c89d018bca9965ee363258141473c72106d12dbc12a8ede2b801"
+      },
+      {
+        "relative": "mix_hex_api_organization_member.beam",
+        "sha256": "fed54a8c8e2fc682d28f7b30ae925c5e2bb563b9fd51ddb4ac6a503de248fc20"
+      },
+      {
+        "relative": "mix_hex_api_package.beam",
+        "sha256": "cb68400e52668ef71056b02f3ad24f1ed27add983a2dd88c64870675dfc5b938"
+      },
+      {
+        "relative": "mix_hex_api_package_owner.beam",
+        "sha256": "cf2082b5d6c48f4765c14d559a50917eeab9f436d215e48d4d931ee3892d121a"
+      },
+      {
+        "relative": "mix_hex_api_release.beam",
+        "sha256": "f2238af0df526cda1852c72ded341ee37ec4fd8e65fc90d726ea7a713a4b137c"
+      },
+      {
+        "relative": "mix_hex_api_short_url.beam",
+        "sha256": "6ef5a00f808c06c57928e24e1f37fd7fa92ac981012f5696824b3fb81048ab15"
+      },
+      {
+        "relative": "mix_hex_api_user.beam",
+        "sha256": "6f0ae3f32f5db7dc21526de668e0fafaa38bf17d5ee2b9980694d6e22dde5d51"
+      },
+      {
+        "relative": "mix_hex_cli_auth.beam",
+        "sha256": "42e7fc56b9d3893662d42b5d67b6ff799eed002e77fe46167c9f5604360eadd7"
+      },
+      {
+        "relative": "mix_hex_core.beam",
+        "sha256": "c36a8c2d1d928c19bb4463d601b5404e072d72aba4f574a97c6654136f8ee72d"
+      },
+      {
+        "relative": "mix_hex_erl_tar.beam",
+        "sha256": "dbdeacac6b9bedc1b5c7b1b14bf91f967d0911f05b3747335470d33b2d836b91"
+      },
+      {
+        "relative": "mix_hex_http.beam",
+        "sha256": "6ea153406362a3dba434b25a42f70632dc6a4ae3f8cf4098737bf44cbfd849d4"
+      },
+      {
+        "relative": "mix_hex_http_httpc.beam",
+        "sha256": "a3f1f3190785cb0e3cd3b707d76c147ce8638ac6f573d132f9031229d35031d7"
+      },
+      {
+        "relative": "mix_hex_licenses.beam",
+        "sha256": "40e266427c8848e0b7cf74376c0f87bd168f471db3c2b384472bcf33a959a84f"
+      },
+      {
+        "relative": "mix_hex_pb_names.beam",
+        "sha256": "701925a4f2d9ef709cf2fa97dd4975a789589417cad3f7596d945fdf7cb4c304"
+      },
+      {
+        "relative": "mix_hex_pb_package.beam",
+        "sha256": "a696fedad617be22f694919990307c334610f6a8dd2f13857350da963729f107"
+      },
+      {
+        "relative": "mix_hex_pb_policy.beam",
+        "sha256": "2335cdd8ec17f1523feda8f8133e43690b9b17d8bd582edca0fc723d8845d5d4"
+      },
+      {
+        "relative": "mix_hex_pb_signed.beam",
+        "sha256": "6ce839583ff30b5f96e6a5b3158677d71ddea34ac85f77fc657a87b45366be54"
+      },
+      {
+        "relative": "mix_hex_pb_versions.beam",
+        "sha256": "312c124b57cf36476509d22b16a69bebf4d3306b97f4b86edf9c62dc93052fc5"
+      },
+      {
+        "relative": "mix_hex_registry.beam",
+        "sha256": "fa45dc0def487fe996d01cac8b8fcd4d8ca1dd9d869d2cc133d9dccad1c8dccb"
+      },
+      {
+        "relative": "mix_hex_repo.beam",
+        "sha256": "448bb2cd785d65aa18180eaf69fc957037d6573996aadfe3e3cd67d8e78eba53"
+      },
+      {
+        "relative": "mix_hex_safe_binary_to_term.beam",
+        "sha256": "613d646dad9b242b82314c35147ed6f665b3934d1ff8643870d697a869738b92"
+      },
+      {
+        "relative": "mix_hex_tarball.beam",
+        "sha256": "252077c9ef52cebd00d6e4ad6acef29286d372382077682070b8d012e74ba53d"
+      },
+      {
+        "relative": "mix_safe_erl_term.beam",
+        "sha256": "0df619dda3df05fdf4a4b8d6086cffdfc3693a7ffbff5e5eab7b0f015a77b743"
+      }
+    ],
+    "installation_sha256": "727ad8ff0d6ec5dcca50c41ab2c05317eb3a9d67fd990ea007446454f68299c4",
+    "registry_server_sha256": "d4d65891331d5c791cfcf0fb59e6d7306022f87997c5515fe1240de449a98e97",
+    "repo_client_sha256": "448bb2cd785d65aa18180eaf69fc957037d6573996aadfe3e3cd67d8e78eba53",
+    "registry_codec_sha256": "fa45dc0def487fe996d01cac8b8fcd4d8ca1dd9d869d2cc133d9dccad1c8dccb",
+    "core_config_sha256": "c36a8c2d1d928c19bb4463d601b5404e072d72aba4f574a97c6654136f8ee72d"
+  },
+  "registry_contract": {
+    "inspection": "read-only BEAM inspection of the installed Hex 2.5.1 modules; the pinned OTP 27 runtime probe could not load Hex.Registry.Server",
+    "repo_defaults": {
+      "name": "hexpm",
+      "url": "https://repo.hex.pm",
+      "verify": true,
+      "verify_origin": true,
+      "source_module": "mix_hex_core.default_config/0"
+    },
+    "package_record": {
+      "api": "mix_hex_repo.get_package/2",
+      "route": "/packages/<package>",
+      "signed_decoder": "mix_hex_registry.decode_and_verify_signed"
+    },
+    "cache": {
+      "destination_api": "Hex.Registry.Server.path/0",
+      "write_api": "Hex.Registry.Server.write_result/4",
+      "persistence_api": "Hex.Registry.Server.persist/2",
+      "keys": {
+        "versions": [
+          "versions",
+          "hexpm",
+          "mux"
+        ],
+        "timestamp": [
+          "timestamp",
+          "hexpm",
+          "mux"
+        ],
+        "etag": [
+          "registry_etag",
+          "hexpm",
+          "mux"
+        ]
+      }
+    },
+    "module_sha256": {
+      "registry_server": "d4d65891331d5c791cfcf0fb59e6d7306022f87997c5515fe1240de449a98e97",
+      "repo_client": "448bb2cd785d65aa18180eaf69fc957037d6573996aadfe3e3cd67d8e78eba53",
+      "registry_codec": "fa45dc0def487fe996d01cac8b8fcd4d8ca1dd9d869d2cc133d9dccad1c8dccb",
+      "core_config": "c36a8c2d1d928c19bb4463d601b5404e072d72aba4f574a97c6654136f8ee72d"
+    }
+  },
+  "supported_runtime": {
+    "elixir": {
+      "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+      "sha256": "43dc3fd3babb0feebdafbcbba5700b37e59fad2088c252baac2dff5e2e2917ab"
+    },
+    "erl": {
+      "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+      "sha256": "2e40b559320422aed8e521a43906da5978914104f7556045bc353ec059f16957"
+    },
+    "elixir_version": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15"
+  },
+  "runtime_probe": {
+    "status": "unavailable",
+    "code": "hex_registry_server_unloadable",
+    "evidence": "HEX_REGISTRY_SERVER_UNAVAILABLE",
+    "argv": [
+      "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+      "-pa",
+      "/Users/jon/.mix/archives/hex-2.5.1/hex-2.5.1/ebin",
+      "-e",
+      "case Code.ensure_loaded(Hex.Registry.Server) do {:module, Hex.Registry.Server} -> repo = Code.ensure_loaded?(:mix_hex_repo); api = function_exported?(Hex.Registry.Server, :versions, 2) and function_exported?(Hex.Registry.Server, :persist, 0) and repo and function_exported?(:mix_hex_repo, :get_package, 2); if api, do: (IO.write(\"HEX_REGISTRY_SERVER_READY\"); System.halt(0)), else: (IO.write(\"HEX_REGISTRY_SERVER_API_MISSING\"); System.halt(78)); _ -> IO.write(\"HEX_REGISTRY_SERVER_UNAVAILABLE\"); System.halt(78) end"
+    ],
+    "exit_code": 78,
+    "signal": null,
+    "network_requests": 0,
+    "mix_invocations": 0
+  },
+  "runtime": {
+    "status": "unavailable",
+    "code": "hex_registry_server_unloadable",
+    "evidence": "HEX_REGISTRY_SERVER_UNAVAILABLE"
+  },
+  "archive": {
+    "path": "/Users/jon/.hex/packages/hexpm/mux-3.2.2.tar",
+    "bytes": 27648,
+    "sha256": "103a8dd092066eae17b0116cac87fbbb9cf60574f88387bf030500503dc64be9",
+    "mode": 420
+  },
+  "cache": {
+    "path": "/Users/jon/.hex/cache.ets",
+    "bytes": 2366922,
+    "sha256": "0f4f54217bcdafd992f9ed6bdc518a72d11f497a07a7586b19f1a35b45f66951",
+    "mode": 420,
+    "destination": "/Users/jon/.hex/cache.ets"
+  },
+  "plan126_supply": {
+    "path": ".planning/phases/133-evidence-charter-and-live-truth/133-126-SUPPLY.json",
+    "file_sha256": "9441e4cb9882287c563d861f118cfe4747c08592c45018cf2c7320440d3a8924",
+    "report_sha256": "a89bbf89ce4b5ef464055a201e47cbd76f2aabeedd6234751fb1a2a03f2d3c67",
+    "source_sha": "7b680feb1874f9a098b3343943e2876ca889f87d",
+    "source_tree": "6a6f269f2b436ff8ae4efbb5c12f1d125390aa75",
+    "mux_archive_sha256": "103a8dd092066eae17b0116cac87fbbb9cf60574f88387bf030500503dc64be9"
+  },
+  "plan128_diagnostic": {
+    "path": ".planning/phases/133-evidence-charter-and-live-truth/133-128-DIAGNOSTIC.json",
+    "file_sha256": "3733b502c20d08835d383b6f22992f256a261d6f7358e4a09089d8ec26acdbc9",
+    "report_sha256": "a1aeca83fd4a961d4636773c2fa7428693f2da488ca6a9a91d716a39c7395cdb",
+    "exact_error": "** (Mix) Hex is running in offline mode and the registry entry for package mux is not cached locally"
+  },
+  "request": {
+    "method": "GET",
+    "candidate_url": "https://repo.hex.pm/packages/mux",
+    "repo": "hexpm",
+    "package": "mux",
+    "version": "3.2.2",
+    "cache_destination": "/Users/jon/.hex/cache.ets",
+    "cache_key": [
+      "versions",
+      "hexpm",
+      "mux"
+    ],
+    "cache_keys": {
+      "versions": [
+        "versions",
+        "hexpm",
+        "mux"
+      ],
+      "timestamp": [
+        "timestamp",
+        "hexpm",
+        "mux"
+      ],
+      "etag": [
+        "registry_etag",
+        "hexpm",
+        "mux"
+      ]
+    },
+    "argv": null,
+    "finalized": false
+  },
+  "stop_reason": {
+    "code": "hex_registry_server_unloadable",
+    "detail": "Read-only inspection identifies the installed Hex package-record route, signature decoder, cache destination and cache keys, but Hex.Registry.Server cannot be loaded by the pinned project runtime. Supported-runtime authenticated cache staging therefore cannot be established; no request is authorized.",
+    "evidence": "HEX_REGISTRY_SERVER_UNAVAILABLE"
+  },
+  "authorization_eligible": false,
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements": {
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "status": "pending"
+  },
+  "requirements_completed": [],
+  "child_commands": {
+    "mix": 0,
+    "network_fetch": 0,
+    "install": 0,
+    "qualification": 0,
+    "census": 0,
+    "nightly": 0,
+    "remote": 0,
+    "read_only_runtime_probe": 1
+  },
+  "report_sha256": "7b90732cd17d31561c637aa906da89ab28974f5b85c0fd31b2fa87915c1b82af"
+}

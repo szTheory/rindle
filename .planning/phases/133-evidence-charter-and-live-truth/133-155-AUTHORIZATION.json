@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "plan": "133-155",
+  "decision": "authorize",
+  "literal_answer": "Authorize Plan 155 registry closure once: a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "preflight_sha256": "298a9d83826485607962db6f59281a2cb1e9e8ead4c257c253c369bfad857505",
+  "source": {
+    "sha": "d17595d3465956c8edd216e1e04d2bc99dbd9552",
+    "tree": "6ff2ff127bd2ff473e5658eb9a8f966f29c538d4"
+  },
+  "edge_sha256": "b7accea2b673f3bdc6991a1a570a69720b4da0559eebc19083cb2bdcf8482be5",
+  "missing_names": [
+    "bandit",
+    "brotli",
+    "castore",
+    "configparser_ex",
+    "ecto_sqlite3",
+    "evision",
+    "exla",
+    "fuse",
+    "gun",
+    "hackney",
+    "ibrowse",
+    "igniter",
+    "jsx",
+    "kino",
+    "makeup_c",
+    "makeup_html",
+    "msgpax",
+    "myxql",
+    "nimble_csv",
+    "nx",
+    "nx_image",
+    "opentelemetry_semantic_conventions",
+    "phoenix_view",
+    "poison",
+    "rustler",
+    "scholar",
+    "table",
+    "tds",
+    "xav"
+  ],
+  "urls": [
+    {
+      "name": "bandit",
+      "url": "https://repo.hex.pm/packages/bandit"
+    },
+    {
+      "name": "brotli",
+      "url": "https://repo.hex.pm/packages/brotli"
+    },
+    {
+      "name": "castore",
+      "url": "https://repo.hex.pm/packages/castore"
+    },
+    {
+      "name": "configparser_ex",
+      "url": "https://repo.hex.pm/packages/configparser_ex"
+    },
+    {
+      "name": "ecto_sqlite3",
+      "url": "https://repo.hex.pm/packages/ecto_sqlite3"
+    },
+    {
+      "name": "evision",
+      "url": "https://repo.hex.pm/packages/evision"
+    },
+    {
+      "name": "exla",
+      "url": "https://repo.hex.pm/packages/exla"
+    },
+    {
+      "name": "fuse",
+      "url": "https://repo.hex.pm/packages/fuse"
+    },
+    {
+      "name": "gun",
+      "url": "https://repo.hex.pm/packages/gun"
+    },
+    {
+      "name": "hackney",
+      "url": "https://repo.hex.pm/packages/hackney"
+    },
+    {
+      "name": "ibrowse",
+      "url": "https://repo.hex.pm/packages/ibrowse"
+    },
+    {
+      "name": "igniter",
+      "url": "https://repo.hex.pm/packages/igniter"
+    },
+    {
+      "name": "jsx",
+      "url": "https://repo.hex.pm/packages/jsx"
+    },
+    {
+      "name": "kino",
+      "url": "https://repo.hex.pm/packages/kino"
+    },
+    {
+      "name": "makeup_c",
+      "url": "https://repo.hex.pm/packages/makeup_c"
+    },
+    {
+      "name": "makeup_html",
+      "url": "https://repo.hex.pm/packages/makeup_html"
+    },
+    {
+      "name": "msgpax",
+      "url": "https://repo.hex.pm/packages/msgpax"
+    },
+    {
+      "name": "myxql",
+      "url": "https://repo.hex.pm/packages/myxql"
+    },
+    {
+      "name": "nimble_csv",
+      "url": "https://repo.hex.pm/packages/nimble_csv"
+    },
+    {
+      "name": "nx",
+      "url": "https://repo.hex.pm/packages/nx"
+    },
+    {
+      "name": "nx_image",
+      "url": "https://repo.hex.pm/packages/nx_image"
+    },
+    {
+      "name": "opentelemetry_semantic_conventions",
+      "url": "https://repo.hex.pm/packages/opentelemetry_semantic_conventions"
+    },
+    {
+      "name": "phoenix_view",
+      "url": "https://repo.hex.pm/packages/phoenix_view"
+    },
+    {
+      "name": "poison",
+      "url": "https://repo.hex.pm/packages/poison"
+    },
+    {
+      "name": "rustler",
+      "url": "https://repo.hex.pm/packages/rustler"
+    },
+    {
+      "name": "scholar",
+      "url": "https://repo.hex.pm/packages/scholar"
+    },
+    {
+      "name": "table",
+      "url": "https://repo.hex.pm/packages/table"
+    },
+    {
+      "name": "tds",
+      "url": "https://repo.hex.pm/packages/tds"
+    },
+    {
+      "name": "xav",
+      "url": "https://repo.hex.pm/packages/xav"
+    }
+  ],
+  "maximum_gets": 29,
+  "destination": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-154-d17595d3465956c8",
+  "request_profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\")) (allow network-outbound (remote unix-socket (path \"/private/var/run/mDNSResponder\")))",
+  "runtime": {
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15",
+    "elixir_executable": {
+      "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+      "sha256": "43dc3fd3babb0feebdafbcbba5700b37e59fad2088c252baac2dff5e2e2917ab"
+    },
+    "hex_version": "2.5.1",
+    "hex_ebin": "/Users/jon/projects/rindle/.claude/inputs/phase133/registry-153-0c7a7404df470daf/hex-build/lib/hex/ebin",
+    "hex_files_sha256": "047cbadc6df3648f1ab7417919f58b27ce123cd087ab4c84a362f6ab15ee9599"
+  },
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "report_sha256": "d99eda710c2a9d6be9a3ff4f3ca1df59619c7ad937036d4b652a2582cf9b2990"
+}

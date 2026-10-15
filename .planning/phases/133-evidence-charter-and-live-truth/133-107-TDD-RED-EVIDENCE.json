@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-reporter=tap scripts/maintainer/test_phase_133_105_outcome.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: fully rehashed forged halt has diagnostic-only authority\nnot ok 1 - fully rehashed forged halt has diagnostic-only authority\n  ---\n  duration_ms: 1.970875\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p107-1791397201296/scripts/maintainer/test_phase_133_105_outcome.mjs:176:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + undefined\n    - 'diagnostic_only'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'diagnostic_only'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p107-1791397201296/scripts/maintainer/test_phase_133_105_outcome.mjs:197:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 268.68575\n",
+  "targetTest": "fully rehashed forged halt has diagnostic-only authority",
+  "targetFile": "scripts/maintainer/test_phase_133_105_outcome.mjs",
+  "expected": "diagnostic_only authority and no authoritative consumption",
+  "actual": "The fully rehashed report passed consistency; authority was undefined.",
+  "semanticAssessment": "The target executed and failed the diagnostic_only assertion after consistency verification accepted the forged child starts and exit. No fixture, import, syntax, or unrelated failure occurred."
+}

@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "plan": "133-179",
+  "status": "preparation_only",
+  "source": {
+    "sha": "bff5a8fa1bd27836ef5781a1791f4427f0378019",
+    "tree": "82c2da84baa239b601152bf6f92aefdf18919665"
+  },
+  "diagnostic_sha256": "9b3244cd1a51b09cf9e807fd1b69d016d4a5bb0441a9278be95ce3c9917b5bac",
+  "preparation_sha256": "576404d2f58ddf12c679356c530c34b1679851b7248d2f6b28147d3febdf9d27",
+  "producer_invocations": 1,
+  "authorization_sha256": null,
+  "attempt_count": 0,
+  "network_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "published": {
+    "diagnostic": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-179-DIAGNOSTIC.json",
+      "sha256": "9b3244cd1a51b09cf9e807fd1b69d016d4a5bb0441a9278be95ce3c9917b5bac"
+    },
+    "preparation": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/133-179-PREPARATION.json",
+      "sha256": "5a9768e9e7ca7f33cc02b9c3554b0ba84e3b4c51c54dc940a47b367e90f18d11"
+    }
+  },
+  "report_sha256": "26d46b5920535b14ab945df0d93429a64d3a64bbca9cb58abf487051b8fc6cb6"
+}

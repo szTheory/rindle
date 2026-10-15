@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-name-pattern='Plan 143 fresh copied checkout archives the frozen source before publication' test/install_smoke/phase_133_registry_supply_test.mjs",
+  "exitCode": 1,
+  "targetTest": "Plan 143 fresh copied checkout archives the frozen source before publication",
+  "targetFile": "test/install_smoke/phase_133_registry_supply_test.mjs",
+  "output": "TAP version 13\n# Subtest: Plan 143 fresh copied checkout archives the frozen source before publication\nnot ok 1 - Plan 143 fresh copied checkout archives the frozen source before publication\n  ---\n  duration_ms: 2521.420583\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p133-144-20261009205514/test/install_smoke/phase_133_registry_supply_test.mjs:166:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    copied Plan 143 fixture must archive its frozen source SHA\n    + actual - expected\n    \n    + '9005aab0a075b5b29db666efe7bdcd2fd26b1541'\n    - '38a615d26808d716772bd0b6de48088a45c718b4'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: '38a615d26808d716772bd0b6de48088a45c718b4'\n  actual: '9005aab0a075b5b29db666efe7bdcd2fd26b1541'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p133-144-20261009205514/test/install_smoke/phase_133_registry_supply_test.mjs:170:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2565.560041\n",
+  "expected": "The copied checkout parent is frozen source SHA 38a615d26808d716772bd0b6de48088a45c718b4 and contains no Plan 143 one-shot artifacts.",
+  "actual": "The copied checkout parent is publication HEAD 9005aab0a075b5b29db666efe7bdcd2fd26b1541; the target equality assertion fails.",
+  "semantic_assessment": "Named target fails ERR_ASSERTION on source equality; discovery and setup succeed."
+}

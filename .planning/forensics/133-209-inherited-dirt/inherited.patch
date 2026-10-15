@@ -1,0 +1,575 @@
+diff --git a/.planning/ROADMAP.md b/.planning/ROADMAP.md
+index 27d080b1400bbe6075f8c93a1ab7f9801233868d..b64d54bce5f49da7e3cefdaebf4167f068248986 100644
+--- a/.planning/ROADMAP.md
++++ b/.planning/ROADMAP.md
+@@ -152,9 +152,7 @@ Planning update (2026-10-13): Plans 193 and 194 passed independent gap-plan revi
+   3. Nightly aggregation fails for failed, cancelled, unexpected, or impermissibly skipped gating states, and automated incident tests prove one exact-run-bound issue opens or updates on failure and closes only after qualifying scheduled recovery.
+   4. Executable parity checks derive release, planning, support, and adoption-proof claims from authoritative state and reject every unmarked version, lane-severity, or package-proof contradiction.
+ 
+-**Current planning update (2026-10-12)**: Plans 183–184 passed independent review. Only Plan 183 is ready in effective wave 32; Plan 184 follows in wave 33. Plan 182 is immutable untrusted first-red history. Plan 169 remains blocked on independently green qualification, and Plans 121–123 remain blocked. All five requirements remain Pending, eleven edges unresolved, zero qualification credit. Earlier route descriptions are historical.
+-
+-**Plans**: Plan 155 remains complete authenticated 96-name supply. Plans 166, 168, 170, and 177 are immutable zero-credit history; Plan 167 repaired detached staging and terminal publication, and Plan 171 committed Plan 170's code and reconciliation support. Plan 170's one authorized runner invocation stopped at `report_recomputed_mismatch` before an attempt marker, and its authorization is spent. Plan 172 completed bounded supply-mismatch diagnostics and proved the actual escalated host-guard context in effective Wave 25. Plans 173–175 are immutable preauthorization halts; Plan 176 repaired the undefined-Hex serialization failure and completed one independently verified zero-request preparation from source `ab9422b328e5cb28f9e67c317da433ab0d939bf7` / tree `ee0a985922efc7b3ab0dafd45f77829b1d5d28ba`, with receipt digest `812dcbb593e1af2079a60b84a43aad005d8011d1f8226fb4db39d4ab9591bf50`. Plan 177 completed through verified no-attempt before authorization because the isolated executor could not write the shared `.git/worktrees`; its source and literal are terminal. Plan 178 is independently plan-verified and is the only runnable plan, in effective Wave 28. It tests a fresh private temporary Git clone before any new authorization. The live index has 152 plans, 147 complete and five incomplete: Plans 121–123 and 169 remain blocked, while Plan 178 is ready. All five requirements remain Pending, all eleven evidence edges unresolved, and qualification credit zero. The live phase-plan index is authoritative for current status.
++**Plans**: Plan 155 remains complete authenticated 96-name supply. Plan 171 committed Plan 170's runner and reconciliation support. Plans 166, 168, 170, and 177–182 are immutable zero-qualification-credit history; Plan 180's one invocation ended at verified first red `plan180_registry_exit`, while Plan 182's sole producer invocation halted at a raw/canonical diagnostic digest mismatch. Plan 182's source is consumed and its diagnostic untrusted. Plans 183–184 repair the publication check and collect one fresh-source offline preparation result in separate waves, without qualification. Plans 121–123 and 169 remain blocked. All five requirements remain Pending, all eleven evidence edges unresolved, and qualification credit zero.
+ 
+ Plans:
+ - [x] 133-154-PLAN.md
+@@ -241,7 +239,7 @@ Plans:
+ 
+ **Recovery DAG Wave 23** *(terminal Plan 168 history; no replay)*
+ 
+-- [x] 133-168-PLAN.md — Its one authorized invocation failed before a marker on the Node-runtime mismatch. The repaired implementation requires a distinct plan and fresh authority; zero requirement credit.
++- [x] 133-168-PLAN.md — HALTED before an attempt marker on the Node-runtime mismatch; its source and authorization are terminal, with zero qualification credit. Any successor needs a distinct source and fresh authority.
+ 
+ **Recovery DAG Wave 24** *(code-only Plan 171 route after the committed runtime repair)*
+ 
+@@ -251,7 +249,6 @@ Plans:
+ 
+ - [x] 133-170-PLAN.md — HALTED after the one exact authorization was consumed: `report_recomputed_mismatch` before an attempt marker; the halted verifier fails closed on the missing marker. Zero qualification credit; do not replay.
+ - [x] 133-172-PLAN.md — Complete: bounded mismatch paths and live escalated actual-process guard proof; zero qualification credit.
+-- [ ] 133-173-PLAN.md — Effective Wave 26 after Plan 172: fresh Plan-specific source, supply and guard checks, exact digest-only authorization, and at most one independently verified local qualification result.
+ 
+ **Recovery DAG Wave 26** *(Plan 176 preauthorization is complete; no runnable plan remains in this indexed wave)*
+ 
+@@ -260,15 +257,31 @@ Plans:
+ - [x] 133-175-PLAN.md — HALTED before preparation publication because the aggregate included undefined `$.hex`; its source tuple is spent.
+ - [x] 133-176-PLAN.md — Complete: one fresh-source, zero-request preparation independently verified from actual bytes; zero qualification credit.
+ 
+-- [ ] 133-169-PLAN.md — BLOCKED because Plan 170 halted before a verified green terminal receipt; do not rebind Plans 121–123 from spent authority.
++- [ ] 133-169-PLAN.md — BLOCKED because Plan 170 halted before a verified green terminal receipt; scheduling after Plan 184 does not turn preparation into qualification or permit rebind.
+ 
+ **Recovery DAG Wave 27** *(Plan 177 completed through a verified no-attempt outcome; no runnable plan remains)*
+ 
+ - [x] 133-177-PLAN.md — Completed a fresh source-bound preparation and verified no-attempt outcome. The immediate detached-worktree permission check was denied before an authorization receipt or attempt marker; do not retry this source. A fresh successor plan must address the executor permission constraint before requesting new authorization.
+ 
+-**Recovery DAG Wave 28** *(Plan 178 is ready after Plan 177's verified no-attempt; no authority transfers)*
++**Recovery DAG Wave 28** *(Plan 178 is terminal no-attempt; a fresh successor plan must diagnose the registry-producer exit)*
++
++- [x] 133-178-PLAN.md — Complete: the one offline registry-producer invocation exited 1 (`plan178_registry_exit`); a verified no-attempt outcome was recorded with zero qualification credit.
++
++**Recovery DAG Wave 29** *(Plan 179 completed a verified preparation only; no runnable plan remains)*
++
++- [x] 133-179-PLAN.md — Complete: exactly one private offline producer invocation returned ready; its source-bound preparation-only outcome independently verifies zero authorization, attempts, requests, requirement closure, edge resolution, and qualification credit.
++
++**Recovery DAG Wave 30** *(Plan 180 is immutable first-red history; no retry or authority transfer)*
++
++- [x] 133-180-PLAN.md — Complete: the one offline producer invocation ended at verified first red `plan180_registry_exit`; no preparation, authorization, attempt, request, or credit was created.
++
++**Recovery DAG Wave 31** *(Plan 181 closed the ineligible checkpoint; no answer was requested)*
++
++- [x] 133-181-PLAN.md — Complete: independently verified Plan 180's terminal no-attempt evidence, absent preparation and zero-effect counters; all five requirements remain Pending and eleven edges unresolved.
++
++**Recovery DAG Wave 32** *(Plan 182 is terminal halted history; its source must not be retried)*
+ 
+-- [ ] 133-178-PLAN.md — Replace the shared `.git/worktrees` write with a private temporary clone, verify one fresh offline preparation, then pause for a new exact authorization before at most one guarded local qualification attempt.
++- [x] 133-182-PLAN.md — HALTED after one producer invocation: the diagnostic raw file hash failed the canonical report-digest check. The untrusted diagnostic is preserved; no preparation, outcome, authorization, qualification attempt, request, or credit was created. Plan a fresh-source digest repair.
+ 
+ **Recovery DAG Wave 32 continuation** *(Plan 183 reads Plan 182 as terminal history; Plan 181 is its completed dependency)*
+ 
+@@ -727,4 +740,4 @@ Plans:
+ | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
+ 
+ ---
+-*Last updated: 2026-10-12 after Plan 178 passed independent plan review. Phase 133 remains active; Plan 177 is terminal no-attempt history, and Plan 178 is ready in effective Wave 28. All five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero. Next: `$gsd-execute-phase 133 --gaps-only --wave 28`.*
++*Last updated: 2026-10-12 after Plan 182's halted evidence was reconciled and merged. Phase 133 remains active; Phase 132 is the last completed phase. The live index has 152 summaries among 156 plans; Plans 121–123 and 169 remain blocked. All five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero. Next: `$gsd-plan-phase 133 --gaps` for a fresh-source repair.*
+diff --git a/.planning/STATE.md b/.planning/STATE.md
+index a09f1b033579ebdb8dc2074e6e08dbef3e8b10fa..e757f56c46ca73df3d3071c864da57146edd20c6 100644
+--- a/.planning/STATE.md
++++ b/.planning/STATE.md
+@@ -92,7 +92,7 @@ Execution update (2026-10-12): Wave 32 Plan 183 completed through the negotiated
+ 
+ Planning update (2026-10-12): Plans 183–184 passed independent review with no blockers or warnings. Plan 183 alone is ready in effective wave 32; Plan 184 follows in wave 33. Plan 169 remains blocked by halted Plan 170; preparation cannot activate downstream acceptance. The live index has 158 plans and 152 summaries. All five requirements remain Pending, eleven edge assumptions unresolved, and qualification credit zero. Execute from this checkout with `$gsd-execute-phase 133 --gaps-only --wave 32`. Earlier position and progress paragraphs are historical.
+ 
+-Plan 177 completed through a verified no-attempt outcome on frozen source `3fc1aeaf2151a05dcb7f1b7cc45d891e262d2bc2` / tree `b977d73e84c9e46ff7e68d9e8d9328fbec8dd029`, with preparation digest `2e60a609bd7381dae561b5e8f28c6b86c76c6d513d33b9314ee13926ae5f4a34`. Its exact user literal arrived, but the immediate recheck could not create a detached worktree under shared `.git/worktrees`; no authorization receipt, attempt marker, or qualification run exists. Do not retry Plan 177 or reuse its literal. Plan 178 now has independent plan approval and is the only runnable plan. Its fresh route uses private temporary Git metadata while retaining the network-denial guard; no preparation or execution has started. The live index has 152 plans, 147 complete, and five incomplete: Plans 121–123 and 169 remain blocked; Plan 178 is ready in effective Wave 28. Phase 132 remains the last completed phase; Phase 133 is active. Next: `$gsd-execute-phase 133 --gaps-only --wave 28`.
++Plans 177–181 are immutable terminal history; do not reuse their sources or authorizations. Plan 179 produced verified preparation-only evidence; Plan 180's single invocation ended at the verified first red `plan180_registry_exit`; Plan 181 confirmed the missing preparation made that authorization checkpoint ineligible. Plan 182's single producer invocation exited 1 after publishing a diagnostic whose raw file hash did not match the canonical report digest; the diagnostic is preserved as untrusted history, with no preparation, outcome, authorization, or qualification attempt. The live index has 156 plans and 152 summaries; Plans 121–123 and 169 remain blocked. All five requirements remain Pending, all eleven evidence edges unresolved, and qualification credit zero. Phase 132 remains the last completed phase; Phase 133 is active. Next: `$gsd-plan-phase 133 --gaps` for a fresh-source repair.
+ 
+ Phase 132 is the last completed phase; Phase 133 remains In Progress. Plan 169 and Plans 121–123 remain blocked. All five requirements are Pending, all eleven evidence edges unresolved, and qualification credit is zero. Plan 177's source is terminal and must not be retried. Earlier Plan 170 and Plan 172 paragraphs below are historical; the live phase-plan index is authoritative.
+ 
+@@ -104,10 +104,10 @@ Active requirements close through executable tests, probes, or evidence collecto
+ 
+ ## Progress and History
+ 
+-Executor index after Plan 136 closeout: 150 physical plan files, 26 superseded legacy plans, 124 active plans and 120 summaries; this is historical. The current live index has 152 plans and 147 summaries, with five incomplete route plans (121, 122, 123, 169, 178); Plan 178 is the only runnable plan. Plan 121 remains blocked pending refreshed successor authority even though older Plan 12 history shares its filename prefix. The phase execution branch contains the merged Plan 177 work and independently checked Plan 178; unrelated primary-checkout edits remain untouched.
++Executor index after Plan 136 closeout: 150 physical plan files, 26 superseded legacy plans, 124 active plans and 120 summaries; this is historical. The current live index has 156 plans and 152 summaries, with four blocked route plans (121, 122, 123, 169); no plan is currently runnable. Plan 121 remains blocked pending refreshed successor authority even though older Plan 12 history shares its filename prefix. The phase execution branch contains merged Plans 177–182; unrelated primary-checkout edits remain untouched.
+ 
+-Phase 133 effective route: Plans 166, 168, 170, and 177 are terminal zero-credit history; Plan 177's exact source and authorization are not reusable. Plan 178 is the sole runnable successor in effective Wave 28 and is ready to test private temporary Git metadata before any new authorization. Plan 169 and Plans 121–123 remain blocked pending independent green evidence and authority rebinds. All five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero. Phase 134 is not started.
+-Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-truth/.continue-here.md`. Next: `$gsd-execute-phase 133 --gaps-only --wave 28`.
++Phase 133 effective route: Plans 166, 168, 170, and 177–182 are terminal zero-qualification-credit history. Plan 182's one diagnostic is untrusted because its post-publication raw/canonical digest check failed; its source must not be retried. Plans 121–123 and 169 remain blocked, and no plan is ready. All five requirements remain Pending and eleven evidence edges unresolved. Phase 134 is not started. Next: `$gsd-plan-phase 133 --gaps` to plan a fresh-source diagnostic publication repair.
++Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-truth/.continue-here.md`.
+ 
+ ## Performance Metrics
+ 
+diff --git a/.planning/phases/133-evidence-charter-and-live-truth/.continue-here.md b/.planning/phases/133-evidence-charter-and-live-truth/.continue-here.md
+index 603223203f5c053d453273c426a2d7f36f8564cd..fd2283bc15c7fc48f20882c9ea0e92edf4dc5816 100644
+--- a/.planning/phases/133-evidence-charter-and-live-truth/.continue-here.md
++++ b/.planning/phases/133-evidence-charter-and-live-truth/.continue-here.md
+@@ -151,15 +151,21 @@ Continue in `/Users/jon/projects/rindle/.claude/worktrees/phase133-execution`. P
+ Continue in `/Users/jon/projects/rindle/.claude/worktrees/phase133-execution`. Plan 183 is the sole ready plan in wave 32; run `$gsd-execute-phase 133 --gaps-only --wave 32` through the negotiated isolated executor. Plan 184 follows in wave 33 for at most one fresh-source offline preparation collection. Both passed independent review and command probes; decision coverage is 17/17 and automation-first passed. Plan 182 remains immutable untrusted first-red history. Plan 169 and Plans 121–123 remain blocked; all five requirements remain Pending, eleven edges unresolved, zero qualification credit. Any later qualification requires its own reviewed fresh plan and authorization. Preserve all unrelated dirt; do not run `roadmap.update-plan-progress`. Older handoffs below are historical.
+ 
+ 
+-## Current Handoff Override — After Plan 178 Planning (2026-10-12)
++## Current Handoff Override — Plan 182 Terminal Halt (2026-10-12)
+ 
+-This update supersedes the prior Plan 177 override and older status below. Phase 132 remains the last completed phase; Phase 133 is active and incomplete. Plan 177 ended with a verified no-attempt after its immediate detached-worktree recheck could not write shared `.git/worktrees`; it has no authorization receipt or attempt marker, and its source and literal are terminal. Do not retry Plan 177 or reuse its digest.
++Plan 181 completed in Wave 31 and merged from its manifest-scoped worktree. It independently verified Plan 180's terminal no-attempt receipt (source `12ad861d1b9908fc1a052af77a78cdd3c4e5d87b`, tree `3727dc2c352295ae2f7f5841bce8809d7613e3e7`, digest `cd71a77896a65479fc98391f6a39dd2ae9dd32bda913c6729b0960f302fa4fcb`) and confirmed the missing preparation made the former authorization checkpoint ineligible. No answer was requested, no authorization or attempt occurred, all five requirements remain Pending, eleven edges remain unresolved, and qualification credit is zero. The summary, both receipt verifiers, and automation-first contract passed.
+ 
+-Plan 178 passed independent plan verification with no blockers or warnings. It is the only runnable plan in effective Wave 28, depends on completed Plan 177, and uses a private temporary Git clone to avoid the shared-metadata permission failure while retaining exact source and network-denial checks. Plan 178 has not been executed; no fresh preparation, authorization, or qualification attempt exists.
++Plan 182 is reconciled and merged from its manifest-scoped worktree. Its sole producer invocation on source `1dc48288d62c725d74e33626f927b71e61f25d62` / tree `f726e14553e838543e3c0bddb6772f11f87e7a4d` exited 1. The runner published a diagnostic, then halted because its post-publication check compared the raw JSON file hash with the canonical report digest; preserve that diagnostic as untrusted history, with no preparation or outcome, and never retry this source. No authorization, qualification attempt, network request, requirement completion, edge resolution, or qualification credit occurred. The original executor log records the 9-test suite passing and the automation-first contract passed after merge; a current-sandbox rerun could not reproduce three guard-proof-dependent tests (`guard_proof_unavailable`). Wave 29 is already complete: Plans 179 and 41 both have summaries. The live index has 156 plans and 152 summaries; Plans 121–123 and 169 remain blocked, with no runnable plan. Phase 132 is the last completed phase; Phase 133 remains active. Next command: `$gsd-plan-phase 133 --gaps` to plan a fresh-source diagnostic digest repair. Preserve unrelated edits and do not run `roadmap.update-plan-progress`.
+ 
+-Next command: `$gsd-execute-phase 133 --gaps-only --wave 28`. Plan 178 will create a fresh source and preparation. If its checks pass, it requires a new exact Plan 178 authorization; if they fail, it must preserve a verified no-attempt outcome. No prior literal transfers.
++## Historical Handoff — After Plan 178 Verified No-Attempt (2026-10-12)
+ 
+-The pre-existing `133-VERIFICATION.md` edits remain preserved and do not represent Phase 133 completion. Do not run `roadmap.update-plan-progress`; a prior writer caused numeric-prefix collisions. The live GSD phase-plan index is authoritative.
++This update supersedes the older status below. Phase 132 remains the last completed phase; Phase 133 is active and incomplete. Plan 177 ended with a verified no-attempt after its immediate detached-worktree recheck could not write shared `.git/worktrees`; its source and authorization are terminal. Do not retry Plan 177 or reuse its digest.
++
++Plan 178 completed through a verified no-attempt. Its one offline registry-producer invocation exited 1 (`plan178_registry_exit`) before publishing a preparation; no authorization or qualification attempt exists. The Plan 178 source is terminal and must not be retried. Its outcome preserves zero qualification credit and all five Pending requirements.
++
++The live phase-plan index reports 152 plans, 148 summaries, four incomplete plans (121–123 and 169), and no runnable plan. Next command: `$gsd-plan-phase 133 --gaps` to create a fresh successor plan targeting the registry-producer failure. Do not carry forward Plan 177's authorization literal; it cannot authorize any later plan.
++
++The pre-existing `133-VERIFICATION.md` edits remain preserved and do not represent Phase 133 completion. The roadmap's blocked-plan checkboxes were restored to match the live phase-plan index. Do not run `roadmap.update-plan-progress`; a prior writer caused numeric-prefix collisions. The live GSD phase-plan index is authoritative.
+ 
+ ---
+ 
+diff --git a/.planning/phases/133-evidence-charter-and-live-truth/133-VERIFICATION.md b/.planning/phases/133-evidence-charter-and-live-truth/133-VERIFICATION.md
+index 4fafad0638eb5313853ad58dcdd5bdf7a5ec199f..76b4720300b148780a2a5c32330efa6f4653af64 100644
+--- a/.planning/phases/133-evidence-charter-and-live-truth/133-VERIFICATION.md
++++ b/.planning/phases/133-evidence-charter-and-live-truth/133-VERIFICATION.md
+@@ -441,6 +441,36 @@ Plan 170's exact authorization and single runner invocation remain spent. Its mi
+ 
+ Next command: `$gsd-execute-phase 133 --gaps-only --wave 25`.
+ 
++## Current Execution Update — Plan 173 (2026-10-11)
++
++Plan 173 added its source-bound qualification runner and passed all 20 focused tests plus the 23-test local-supply suite. Its actual-byte preparation verifier rejected the collected serialized digest: stored `d5edbcae29ea00acf317be8afb283a8263acd82cda12533c9376711f82c3b24a`, independently recomputed `b3709d335d9d639c31f6ec98436044fd4563000941ab6b692b31bfb6a42f9bf3`. The runner wrote and independently verified `133-173-OUTCOME.json` as `no_attempt` with zero attempts, no authorization, zero requirement credit, and no completed requirements. Qualification and remote children did not run.
++
++Do not reuse Plan 173's rejected preparation tuple or authorize a qualification from it. Repair the aggregate digest serialization in a distinct source tuple, verify the serialized bytes and all preauthorization checks, and only then present that successor's exact one-shot authorization literal. Plans 121–123 and 169 remain incomplete; all five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero.
++
++Next command: `$gsd-plan-phase 133 --gaps` to add a reviewed successor repair plan. This execution update records a plan-level verifier failure and is not a Phase 133 re-verification.
++
++## Current Execution Gap — Plan 174 (2026-10-11)
++
++Plan 174 committed the JSON-safe aggregate digest repair, its Plan 173 immutability checks, a preauthorization-only collector, and actual-byte/tamper regressions. The focused tests and automation-first contract passed. Its single fresh collection command then exited 1 before publishing `133-174-PREPARATION.json`: the runner checked `manifest.registry_inventory.required_names_count`, but the 96-name count is under `manifest.registry_supply`; `registry_inventory` separately reports the 67 locked-package count. The Plan 174 source tuple `d523bca290ffbc712e30ed9ec83b0a4b77f44fcc` / `5e7813fefcd8092223f6fce3534d5de51ec7fec4` is terminal and must not be retried. No preparation, authorization, attempt marker, outcome, or local-gates receipt exists; no registry HTTP request or qualification credit resulted.
++
++Plan 174 remains an immutable halted record. A distinct successor must test the actual manifest binding, correct the inventory lookup, and use its own committed source tuple and no-clobber preparation path for fresh actual-byte preauthorization. It must expose no authorization or qualification-run command; any later qualification requires its own reviewed plan and a new exact user literal. Plans 121–123 remain blocked behind halted Plan 166; all five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero.
++
++This is a plan-level preparation failure, not a Phase 133 re-verification. Next command: `$gsd-plan-phase 133 --gaps`.
++
++## Current Execution Gap — Plan 175 (2026-10-11)
++
++Plan 175 fixed the 96-name/67-package manifest binding and passed the focused local-supply, Plan 175, and unchanged Plan 174 regressions. Its single clean-source `collect-preflight --plan 133-175` attempt used source `fa860cd76dbe8a96dc2b725395bc4b1218f2a1af` / tree `bceed8da9e43e00d095c204f4becd4d4658696f2` and stopped before publication with `report_serialization: $.hex: undefined is not JSON serializable`. The wrapper referenced nonexistent `manifest.hex`; the collector stores this value at `manifest.locations.hex`. The source tuple is terminal and must not be retried.
++
++The terminal summary is `133-175-SUMMARY.md` (reconciled in commit `6bdb4390`). No Plan 175 preparation, authorization, attempt marker, outcome, local-gates, remote child, or qualification credit exists. No active requirement or evidence edge closed: all five requirements remain Pending, eleven edges unresolved, and qualification credit zero. Plans 121–123 remain blocked behind halted Plan 166.
++
++This is a plan-level preparation failure, not a Phase 133 re-verification. Next command: `$gsd-plan-phase 133 --gaps` for a reviewed, fresh-source serializer repair that authenticates Plan 175 history and rejects its spent tuple.
++
++## Current Plan-Level Update — Plan 176 (2026-10-12)
++
++Plan 176 repaired the Plan 175 aggregate's undefined top-level Hex field and passed the production-shaped prepublication regression. From clean committed source `ab9422b328e5cb28f9e67c317da433ab0d939bf7` / tree `ee0a985922efc7b3ab0dafd45f77829b1d5d28ba`, its only `collect-preflight --plan 133-176` invocation published `133-176-PREPARATION.json` with digest `812dcbb593e1af2079a60b84a43aad005d8011d1f8226fb4db39d4ab9591bf50`. Both `verify-preflight` and `verify-prerequisites` passed against the published bytes, confirming the signed 96-name supply, 67 locked packages, detached Plan 154 preflight, and actual-process guard. All three commands reported zero registry HTTP requests and zero qualification credit. No authorization, attempt, local-gates, remote-child, requirement, or edge-credit artifact was created.
++
++This update records Plan 176 only; Phase 133 has not been re-verified. Phase 132 remains the last completed phase. The live index has 150 plans and 147 summaries; Plans 121–123 are the only incomplete plans and are blocked by halted Plan 166, with no runnable plan in Wave 26. All five requirements remain Pending and eleven evidence edges unresolved. Next command: `$gsd-plan-phase 133 --gaps` to plan a runnable successor that does not depend on halted Plan 166 and treats Plan 176 only as preauthorization evidence.
++
+ ## Planning Update — Plan 187 Guard-Control Discriminator (2026-10-12)
+ 
+ Planning update (2026-10-12): Plan 187 passed independent checking after one revision, with zero blockers and zero warnings. It is the sole ready gap plan in wave 35, depending on completed Plan 186. Its two tasks build a bounded guard-control discriminator, then capture one actual-host observation with required production provenance and deterministic summary-bound verification. It compares unsandboxed Node, the exact deny profile and a permissive diagnostic profile; a permissive success never proves denial and an ambiguous cause remains inconclusive. No producer retry or qualification is planned. Plan 186 remains immutable verified blocked-preflight history with a spent source; no replay or replacement receipt is allowed. The live index has 161 plans and 156 summaries including halts; Plans 121–123 remain blocked by halted 166 and Plan 169 by halted 170 and 184. All five requirements remain Pending, eleven evidence edges unresolved and qualification credit zero. Decision coverage passed 17/17 and post-planning coverage 22/22; these are plan coverage checks, not acceptance. Phase 132 remains last complete, Phase 133 incomplete, Phase 134 unstarted. Next: $gsd-execute-phase 133 --gaps-only --wave 35 from this execution checkout through negotiated isolation. Earlier position paragraphs are historical. This update records plan readiness only and does not reverify Phase 133.
+diff --git a/.planning/state.json b/.planning/state.json
+index abb08bd9b6d8081f07d77fddbb513384614b28a1..38c9f5f2b7d826f28e7101f84200e86cec2a6309 100644
+--- a/.planning/state.json
++++ b/.planning/state.json
+@@ -1,7 +1,7 @@
+ {
+   "contract": "1.0.0",
+   "flavor": "core",
+-  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
++  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
+   "phases": [
+     {
+       "number": "133",
+@@ -40,9 +40,9 @@
+     }
+   ],
+   "next": {
+-    "command": "/gsd:plan-phase 133 --gaps",
+-    "label": "Plan fresh adapter environment/capture repair",
+-    "reason": "Plan192 is terminal before reservation; no ready gap plan remains; require separately reviewed distinct-source successor."
++    "command": "/gsd:verify-work",
++    "label": "Re-verify work",
++    "reason": "Recent verification failed — re-verify or debug"
+   },
+-  "updated_at": "2026-10-13T15:46:48.277425+00:00"
++  "updated_at": "2026-10-13T16:07:17.653Z"
+ }
+diff --git a/scripts/maintainer/phase_133_registry_compat_139.exs b/scripts/maintainer/phase_133_registry_compat_139.exs
+index f8dae98316337745bfc3f57c0241b773f2a7a0ac..26b41587e186952c1218511f739b9307ddfe4911 100644
+--- a/scripts/maintainer/phase_133_registry_compat_139.exs
++++ b/scripts/maintainer/phase_133_registry_compat_139.exs
+@@ -152,9 +152,13 @@ defmodule Phase133RegistryCompat139 do
+   def main(_), do: raise("usage: phase_133_registry_compat_139.exs proof-write|proof-read --preflight FIXED_PLAN_140_PATH")
+ end
+ 
+-if System.argv() != [] do
++cli_args = System.argv()
++library_only = System.get_env("RINDLE_PHASE_133_REGISTRY_COMPAT_139_LIBRARY_ONLY") == "1"
++explicit_cli = match?([stage, "--preflight", _path] when stage in ["proof-write", "proof-read"], cli_args)
++
++if cli_args != [] and (not library_only or explicit_cli) do
+   try do
+-    Phase133RegistryCompat139.main(System.argv())
++    Phase133RegistryCompat139.main(cli_args)
+   rescue
+     error ->
+       IO.puts(:stderr, "[phase-133-registry-compat-139] #{Exception.message(error)}")
+diff --git a/test/install_smoke/phase_133_registry_compat_138_test.exs b/test/install_smoke/phase_133_registry_compat_138_test.exs
+index 04c580743144c56a460f58605a60dd1ad45158dd..6ef6e9188a4c0dfee7548d812a21088e5563f1c9 100644
+--- a/test/install_smoke/phase_133_registry_compat_138_test.exs
++++ b/test/install_smoke/phase_133_registry_compat_138_test.exs
+@@ -1,18 +1,25 @@
+ #!/usr/bin/env elixir
+ 
+-target = "starts SSL and captures its version before starting Hex.State"
+-script = Path.expand("../../scripts/maintainer/phase_133_registry_compat_138.exs", __DIR__)
+-source = if File.regular?(script), do: File.read!(script), else: ""
+-
+ defmodule Phase133RegistryCompat138Test do
+-  def run do
+-    target = "starts SSL and captures its version before starting Hex.State"
+-    script = Path.expand("../../scripts/maintainer/phase_133_registry_compat_138.exs", __DIR__)
+-    source = if File.regular?(script), do: File.read!(script), else: ""
++  defp script_path do
++    Path.expand("../../scripts/maintainer/phase_133_registry_compat_138.exs", __DIR__)
++  end
++
++  defp script_source(script) do
++    if File.regular?(script), do: File.read!(script), else: ""
++  end
++
++  defp starts_ssl_before_hex?(source) do
+     ssl_start = Regex.run(~r/Application\.ensure_all_started\(:ssl\)/, source, return: :index)
+     state_start = Regex.run(~r/start_hex_state!\(\)/, source, return: :index)
+-    ordering = ssl_start != nil and state_start != nil and elem(hd(state_start), 0) > elem(hd(ssl_start), 0)
+ 
++    case {ssl_start, state_start} do
++      {[{ssl_index, _}], [{state_index, _}]} -> state_index > ssl_index
++      _ -> false
++    end
++  end
++
++  defp probe(script) do
+     probe = """
+     defmodule Hex.State do
+       def start_link([]) do
+@@ -28,18 +35,41 @@ defmodule Phase133RegistryCompat138Test do
+     {:ok, version} = :application.get_key(:ssl, :vsn)
+     IO.puts("SSL_BOOTSTRAP " <> to_string(version))
+     """
+-    {output, status} = System.cmd("elixir", ["-e", probe], env: [{"ASDF_ERLANG_VERSION", "27.3.4.15"}, {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"}], stderr_to_stdout: true)
+-    passed = ordering and status == 0 and String.contains?(output, "SSL_BOOTSTRAP ")
+ 
+-    IO.puts("TAP version 13")
+-    IO.puts("1..2")
+-    if ordering, do: IO.puts("ok 1 - #{target}"), else: IO.puts("not ok 1 - #{target}")
+-    if status == 0 and String.contains?(output, "SSL_BOOTSTRAP ") do
++    System.cmd("elixir", ["-e", probe],
++      env: [{"ASDF_ERLANG_VERSION", "27.3.4.15"}, {"ASDF_ELIXIR_VERSION", "1.17.3-otp-27"}],
++      stderr_to_stdout: true
++    )
++  end
++
++  defp probe_passed?(status, output) do
++    status == 0 and String.contains?(output, "SSL_BOOTSTRAP ")
++  end
++
++  defp print_ordering_result(target, true), do: IO.puts("ok 1 - #{target}")
++  defp print_ordering_result(target, false), do: IO.puts("not ok 1 - #{target}")
++
++  defp print_probe_result(status, output) do
++    if probe_passed?(status, output) do
+       IO.puts("ok 2 - isolated process observes SSL version before Hex.State.start_link")
+     else
+       IO.puts("not ok 2 - isolated process observes SSL version before Hex.State.start_link")
+       IO.puts("# #{String.replace(output, "\n", " ")}")
+     end
++  end
++
++  def run do
++    target = "starts SSL and captures its version before starting Hex.State"
++    script = script_path()
++    ordering = script |> script_source() |> starts_ssl_before_hex?()
++    {output, status} = probe(script)
++    passed = ordering and probe_passed?(status, output)
++
++    IO.puts("TAP version 13")
++    IO.puts("1..2")
++    print_ordering_result(target, ordering)
++    print_probe_result(status, output)
++
+     if passed, do: :ok, else: System.halt(1)
+   end
+ end
+diff --git a/test/install_smoke/phase_133_registry_compat_139_test.exs b/test/install_smoke/phase_133_registry_compat_139_test.exs
+index 51ce7480f29b85ab769dd187e7069118ed87186b..004be21a610bd1c635197fa46692df5eb06ae3cd 100644
+--- a/test/install_smoke/phase_133_registry_compat_139_test.exs
++++ b/test/install_smoke/phase_133_registry_compat_139_test.exs
+@@ -13,12 +13,10 @@ defmodule Phase133RegistryCompat139Test do
+     # its decoded-null assertion failure rather than a missing-module error.
+     module =
+       if File.regular?(script) do
+-        Code.require_file(script)
++        require_script(script)
+         Phase133RegistryCompat139
+       else
+-        Code.require_file(
+-          Path.join(@root, "scripts/maintainer/phase_133_registry_compat_138.exs")
+-        )
++        require_script(Path.join(@root, "scripts/maintainer/phase_133_registry_compat_138.exs"))
+ 
+         Phase133RegistryCompat138
+       end
+@@ -170,6 +168,22 @@ defmodule Phase133RegistryCompat139Test do
+     assert sha256(canonical) == expected["digest"]
+   end
+ 
++  defp require_script(script) do
++    library_only_env = "RINDLE_PHASE_133_REGISTRY_COMPAT_139_LIBRARY_ONLY"
++    previous_value = System.get_env(library_only_env)
++
++    try do
++      System.put_env(library_only_env, "1")
++      Code.require_file(script)
++    after
++      if previous_value do
++        System.put_env(library_only_env, previous_value)
++      else
++        System.delete_env(library_only_env)
++      end
++    end
++  end
++
+   defp sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
+   defp json_nulls(nil), do: :null
+   defp json_nulls(value) when is_list(value), do: Enum.map(value, &json_nulls/1)
+diff --git a/test/install_smoke/phase_133_registry_compat_test.exs b/test/install_smoke/phase_133_registry_compat_test.exs
+index 994890d2944d65a863be7ae7f2392a0a5c0a6c4f..4d982632ad1cb2280da1d09e90dd220fd9247c07 100644
+--- a/test/install_smoke/phase_133_registry_compat_test.exs
++++ b/test/install_smoke/phase_133_registry_compat_test.exs
+@@ -1,5 +1,7 @@
+ compat_script = Path.expand("../../scripts/maintainer/phase_133_registry_compat.exs", __DIR__)
+-target = "produces a zero-credit stop when no provenance-identified OTP 27 Hex source is available"
++
++target =
++  "produces a zero-credit stop when no provenance-identified OTP 27 Hex source is available"
+ 
+ unless File.regular?(compat_script) do
+   IO.puts("TAP version 13")
+@@ -9,7 +11,14 @@ unless File.regular?(compat_script) do
+   System.halt(1)
+ end
+ 
+-Code.require_file(compat_script)
++original_argv = System.argv()
++
++try do
++  System.argv([])
++  Code.require_file(compat_script)
++after
++  System.argv(original_argv)
++end
+ 
+ defmodule Phase133RegistryCompatTest do
+   alias Phase133RegistryCompat, as: Compat
+@@ -70,30 +79,57 @@ defmodule Phase133RegistryCompatTest do
+   end
+ 
+   def run do
+-    target = "produces a zero-credit stop when no provenance-identified OTP 27 Hex source is available"
++    target =
++      "produces a zero-credit stop when no provenance-identified OTP 27 Hex source is available"
++
+     results = [
+-      run("Plan 135 uses exported persistence and rejects mismatched fixture origin or lock", fn ->
+-        assert_true({:persist, 0} in Compat.build_cache_api())
+-        assert_true(not Enum.any?(Compat.build_cache_api(), fn {name, _arity} -> name in [:path, :write_result] end))
+-        lock = %{"inner_sha256" => String.duplicate("a", 64), "outer_sha256" => String.duplicate("b", 64)}
+-        release = %{version: "3.2.2", inner_checksum: Base.decode16!(lock["inner_sha256"], case: :lower),
+-                    outer_checksum: Base.decode16!(lock["outer_sha256"], case: :lower)}
+-        record = %{repository: "hexpm", name: "mux", releases: [release]}
+-        assert_true(Compat.verify_fixture_projection!(record, lock) == release)
+-        for changed <- [%{record | repository: "other"}, %{record | name: "other"},
+-                        %{record | releases: []}, %{record | releases: [release, release]},
+-                        %{record | releases: [%{release | inner_checksum: <<0>>}]},
+-                        %{record | releases: [%{release | outer_checksum: <<0>>}]}] do
+-          rejected = try do
+-            Compat.verify_fixture_projection!(changed, lock)
+-            false
+-          rescue
+-            _ -> true
++      run(
++        "Plan 135 uses exported persistence and rejects mismatched fixture origin or lock",
++        fn ->
++          assert_true({:persist, 0} in Compat.build_cache_api())
++
++          assert_true(
++            not Enum.any?(Compat.build_cache_api(), fn {name, _arity} ->
++              name in [:path, :write_result]
++            end)
++          )
++
++          lock = %{
++            "inner_sha256" => String.duplicate("a", 64),
++            "outer_sha256" => String.duplicate("b", 64)
++          }
++
++          release = %{
++            version: "3.2.2",
++            inner_checksum: Base.decode16!(lock["inner_sha256"], case: :lower),
++            outer_checksum: Base.decode16!(lock["outer_sha256"], case: :lower)
++          }
++
++          record = %{repository: "hexpm", name: "mux", releases: [release]}
++          assert_true(Compat.verify_fixture_projection!(record, lock) == release)
++
++          for changed <- [
++                %{record | repository: "other"},
++                %{record | name: "other"},
++                %{record | releases: []},
++                %{record | releases: [release, release]},
++                %{record | releases: [%{release | inner_checksum: <<0>>}]},
++                %{record | releases: [%{release | outer_checksum: <<0>>}]}
++              ] do
++            rejected =
++              try do
++                Compat.verify_fixture_projection!(changed, lock)
++                false
++              rescue
++                _ -> true
++              end
++
++            assert_true(rejected)
+           end
+-          assert_true(rejected)
++
++          :ok
+         end
+-        :ok
+-      end),
++      ),
+       run(target, fn ->
+         output = Compat.finalize_report(report())
+         {:ok, _} = Compat.verify_report(output)
+@@ -102,17 +138,20 @@ defmodule Phase133RegistryCompatTest do
+         assert_true(output["qualification_credit"] == 0)
+         :ok
+       end),
+-      run("requires every supported-runtime authentication and cache check before compatibility", fn ->
+-        checks = Compat.required_checks() |> Map.new(&{&1, "pass"})
+-        assert_true(Compat.compatibility_verdict?(checks))
++      run(
++        "requires every supported-runtime authentication and cache check before compatibility",
++        fn ->
++          checks = Compat.required_checks() |> Map.new(&{&1, "pass"})
++          assert_true(Compat.compatibility_verdict?(checks))
+ 
+-        Enum.each(Compat.required_checks(), fn check ->
+-          assert_true(not Compat.compatibility_verdict?(Map.put(checks, check, "not_run")))
+-        end)
++          Enum.each(Compat.required_checks(), fn check ->
++            assert_true(not Compat.compatibility_verdict?(Map.put(checks, check, "not_run")))
++          end)
+ 
+-        assert_true(not Compat.compatibility_verdict?(Map.delete(checks, "repo_origin")))
+-        :ok
+-      end),
++          assert_true(not Compat.compatibility_verdict?(Map.delete(checks, "repo_origin")))
++          :ok
++        end
++      ),
+       run("rejects a compatibility report whose digest was changed", fn ->
+         output = Compat.finalize_report(report())
+         tampered = Map.put(output, "missing_input", %{"code" => "different"})
+@@ -124,6 +163,7 @@ defmodule Phase133RegistryCompatTest do
+         directory = Path.expand("tmp/phase-133-compat-#{System.unique_integer([:positive])}")
+         File.mkdir_p!(directory)
+         target_path = Path.join(directory, "compatibility.json")
++
+         try do
+           :ok = Compat.publish_no_clobber(target_path, output)
+           first = File.read!(target_path)
+@@ -135,15 +175,19 @@ defmodule Phase133RegistryCompatTest do
+         after
+           File.rm_rf!(directory)
+         end
++
+         :ok
+       end)
+     ]
+ 
+     IO.puts("TAP version 13")
+     IO.puts("1..#{length(results)}")
++
+     Enum.with_index(results, 1)
+     |> Enum.each(fn
+-      {{:ok, name}, index} -> IO.puts("ok #{index} - #{name}")
++      {{:ok, name}, index} ->
++        IO.puts("ok #{index} - #{name}")
++
+       {{:fail, name, detail}, index} ->
+         IO.puts("not ok #{index} - #{name}")
+         IO.puts("# #{String.replace(detail, "\n", " ")}")
+diff --git a/test/planning_path_hygiene_test.exs b/test/planning_path_hygiene_test.exs
+index 522492b588680bdfc927d45843e13cd707a3c6bb..d36c9178c54104a1e1f0994caa50576bab7d11e6 100644
+--- a/test/planning_path_hygiene_test.exs
++++ b/test/planning_path_hygiene_test.exs
+@@ -1,12 +1,14 @@
+ defmodule Rindle.PlanningPathHygieneTest do
+   @moduledoc """
+   Phase 111 (Regression Locks) LOCK-05 regression lock: NO test under `test/`
+-  may read an internal planning-doc path at runtime.
++  may read a live repository planning-doc path at runtime.
+ 
+   Internal planning directories move when a milestone is archived (gsd-cleanup
+   relocates them under `milestones/<ver>-phases/`). A test that hard-codes a
+-  read of such a path (the `install_smoke archive path coupling` footgun)
+-  silently breaks the merge-blocking `quality` lane for a non-shipped reason.
++  read rooted at the repository (the `install_smoke archive path coupling`
++  footgun) silently breaks the merge-blocking `quality` lane for a non-shipped
++  reason. Disposable fixture roots may contain planning artifacts so tests can
++  verify byte-preserving behavior without coupling to the live planning tree.
+   This lock globs the whole `test/**/*.exs` tree and fails if any file reads a
+   planning path via `File.read!`, `File.exists?`, or `Path.expand`.
+ 
+@@ -46,7 +48,7 @@ defmodule Rindle.PlanningPathHygieneTest do
+     {:ok, files: files}
+   end
+ 
+-  test "no test/**/*.exs file reads an internal planning path at runtime (LOCK-05)", %{
++  test "no test/**/*.exs file reads a live repository planning path at runtime (LOCK-05)", %{
+     files: files
+   } do
+     offenders =
+@@ -58,7 +60,7 @@ defmodule Rindle.PlanningPathHygieneTest do
+         |> File.read!()
+         |> String.split("\n")
+         |> Enum.with_index(1)
+-        |> Enum.filter(fn {line, _n} -> Regex.match?(@planning_read_regex, line) end)
++        |> Enum.filter(fn {line, _n} -> planning_path_read?(line) end)
+         |> Enum.map(fn {line, n} -> "#{relpath}:#{n}: #{String.trim(line)}" end)
+       end)
+       |> Enum.sort()
+@@ -66,6 +68,19 @@ defmodule Rindle.PlanningPathHygieneTest do
+     assert offenders == [], failure_message(offenders)
+   end
+ 
++  test "LOCK-05 distinguishes repository paths from disposable fixture roots" do
++    requirements_path = @planning_dir_token <> "/REQUIREMENTS.md"
++    repository_read = "File." <> "read!(Path.join(repo_root, \"" <> requirements_path <> "\"))"
++    fixture_read = "File." <> "read!(Path.join(fixture.root, \"" <> requirements_path <> "\"))"
++
++    assert planning_path_read?(repository_read)
++    refute planning_path_read?(fixture_read)
++  end
++
++  defp planning_path_read?(line) do
++    Regex.match?(@planning_read_regex, line) and not String.contains?(line, "fixture.root")
++  end
++
+   defp failure_message([]), do: "no planning-path-coupling offenders"
+ 
+   defp failure_message(offenders) do

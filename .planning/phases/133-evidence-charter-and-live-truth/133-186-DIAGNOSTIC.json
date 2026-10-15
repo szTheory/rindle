@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "plan": "133-186",
+  "status": "blocked_preflight",
+  "source": {
+    "sha": "4ce61c58a6186fd4c83d4959b6cf383ef28316e9",
+    "tree": "55d2c78339978b83f568f814e3d70bebd708f13c"
+  },
+  "cause": "network_guard_control_failed",
+  "child": null,
+  "producer_invocations": 0,
+  "duration_ms": 0,
+  "preflight": {
+    "failed": true,
+    "stage": "host_guard",
+    "code": "network_guard_control_failed",
+    "guard": {
+      "status": "guard_unavailable",
+      "reason": "network_guard_control_failed",
+      "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "host_context": {
+        "actual_host_requested": true,
+        "platform": "darwin"
+      },
+      "observation_provenance": "actual-host",
+      "control_exit": 71,
+      "denial": "not_started",
+      "observation": {
+        "stage": "host_guard",
+        "source": {
+          "sha": "4ce61c58a6186fd4c83d4959b6cf383ef28316e9",
+          "tree": "55d2c78339978b83f568f814e3d70bebd708f13c"
+        },
+        "actual_host_requested": true,
+        "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "profile": "(version 1) (allow default) (deny network*)",
+        "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "count": 1,
+        "control": {
+          "role": "control",
+          "command_role": "network_guard_control",
+          "started": true,
+          "status": "failed",
+          "exit_code": 71,
+          "error": null
+        },
+        "denial": {
+          "role": "denial",
+          "command_role": "network_guard_denial",
+          "started": false,
+          "status": "not_started",
+          "exit_code": null,
+          "error": null
+        },
+        "platform": "darwin",
+        "guard_reason": "network_guard_control_failed"
+      }
+    }
+  },
+  "observation_provenance": "actual-host",
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "effects": {
+    "authorization": 0,
+    "attempt_markers": 0,
+    "qualification_children": 0,
+    "network_requests": 0,
+    "remote_mutations": 0,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "report_sha256": "fb1b8840668701304909c62643649e26d4ed3d554545ca0fab050a91117b6d11"
+}

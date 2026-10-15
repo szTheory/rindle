@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_hex_source_authorization",
+  "decision": "authorize",
+  "literal_answer": "authorize",
+  "user_answer_text": "Authorize exactly this clone",
+  "source_url": "https://github.com/hexpm/hex.git",
+  "source_commit": "a43131c26aeca06064959297d737991163f5ac5d",
+  "destination": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d",
+  "preflight_sha256": "fc02f8c84c425109339422d714185542837435cd070bceee6ef1218bf3d3940a",
+  "clone_argv": [
+    "git",
+    "clone",
+    "--no-checkout",
+    "https://github.com/hexpm/hex.git",
+    "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d"
+  ],
+  "destination_absent": true,
+  "clone_count": 0,
+  "mux_request_count": 0,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "recorded_at": "2026-10-08T23:03:08.755Z"
+}

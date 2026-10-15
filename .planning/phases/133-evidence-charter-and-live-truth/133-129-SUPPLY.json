@@ -1,0 +1,1555 @@
+{
+  "schema_version": 2,
+  "plan": "133-129",
+  "source": {
+    "sha": "df784b2014259196f149a2d747672ad18217c2f2",
+    "tree": "c95fadc32dcb6907463f28e68f6faa3e81071436",
+    "blobs": {
+      "scripts/maintainer/phase_133_local_supply.mjs": {
+        "oid": "81c6e5b16ab3bdfbadd96387c8f6ede4dd42e9db",
+        "sha256": "c07e9391b4ec243a49b283dfa4465dd7497a921cce9d3ceca89f8c4a60eecfa8"
+      },
+      "scripts/maintainer/phase_133_local_gates.sh": {
+        "oid": "603781ec8e5adb8d4db7ca7bece3aef8452440ce",
+        "sha256": "511bb67875cc19dbc91af4760029344ec3e136913d211db9972aeb21dad013bf"
+      },
+      "mix.lock": {
+        "oid": "af2a1e467fdc60ed4d00edad744e56b430f8c2a9",
+        "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6"
+      },
+      ".tool-versions": {
+        "oid": "b0a6d58579389b592225011df618f024caeb191a",
+        "sha256": "b9be8944df223dfbc8c733e4fd7192f110d2ba8e30c11ef32f1bc29c798b3d38"
+      },
+      ".planning/REQUIREMENTS.md": {
+        "oid": "d09493da244e70a50ce00ef9fc370c484aa4be67",
+        "sha256": "3bf6c931adc7d5201b3fac4574afc406793f486a4be00191d5cf7414bd306883"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-97-NATIVE-ROUTE.json": {
+        "oid": "8dd198b47c584793cb1915ac7fc56ff61a71ace7",
+        "sha256": "b5a37b7f4dae38f5720699c99c79d4651f9b0d667e81457c7d02054d2fb2a287"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-97-SUMMARY.md": {
+        "oid": "5cac56884e3b23fa281c1115a169216b5c635bd4",
+        "sha256": "66e3c1d7e7540e04f027919723dc9e812a9e1e11660dd00c03fe68158626d9ca"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-98-DIAGNOSTIC.json": {
+        "oid": "34adb306fe81b657610758a03efed76152d10228",
+        "sha256": "ac6f174b7b75a9eb26801db0e267d045e751f8c903e5511b7db70ad16be67908"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-98-SUMMARY.md": {
+        "oid": "80aaf4a2e5a9371124a8de99b06b89538089ab71",
+        "sha256": "f81e922e2e82b50f184603b0b3fd703a118c2cd664b92902b0e9c98af51b9884"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-99-PREFLIGHT.json": {
+        "oid": "f0156b556ca2ebe6e9a45d13f9b13e230b4a879c",
+        "sha256": "e15385bc6b859734c0c49a8b68e5e194be32665443a1431790c8a0d65783558a"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-99-SUMMARY.md": {
+        "oid": "d1a4b02d9672530ee3a89b7a9792f606a542b4d0",
+        "sha256": "5bd8758371a586a0d6698c61f229d6a1512b4e29940f203f892df535b323b092"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-100-PREFLIGHT.json": {
+        "oid": "c6fd6d05de0811c7668a074a98393fa3176531fc",
+        "sha256": "71c2278890c46a3a1328981c88382ee21eaba371d6d1cd7c1f14f9a9b6a8cc1d"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-100-SUMMARY.md": {
+        "oid": "d98b6a75e559315c43e879088185d17c138abf50",
+        "sha256": "5f4b27f8a3df7627c827f5f7040fb6a5721fe8a012e2880deac7539239c96b3f"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-104-PREFLIGHT.json": {
+        "oid": "c83eea2e3abfd82bc2d101c761db1778eb4de7d9",
+        "sha256": "60e87af4e2bc7c8f3a27849c3e5a475bc324a780645bcbe7dcf8041ef31a6969"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-104-SUMMARY.md": {
+        "oid": "23a6eb23dc459c0a06a808e18be4289c7ba9539d",
+        "sha256": "3a9678ed6eda3eb2c228902062a38287ff46adec099c7ab22c0e157dfa8d7c4b"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-EVIDENCE.json": {
+        "oid": "f7d5d6f981e9119751ea460e657fc3241f5b896f",
+        "sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-128-DIAGNOSTIC.json": {
+        "oid": "80b770b8a74281ede68ba0fe28640c0ed07ac6ec",
+        "sha256": "3733b502c20d08835d383b6f22992f256a261d6f7358e4a09089d8ec26acdbc9"
+      },
+      ".planning/phases/133-evidence-charter-and-live-truth/133-128-SUMMARY.md": {
+        "oid": "1b7e0bb666f38c6196a20fe5d115ebc3ebe78dc5",
+        "sha256": "272181d0d431390b03ad82004dd23e7a5a852169b478f70d6d1e042d01fe1035"
+      }
+    }
+  },
+  "locations": {
+    "cache": "/private/tmp/rindle-phase133-129-inputs-i6VG4d/hex",
+    "native_cache": "/private/tmp/rindle-phase133-129-inputs-i6VG4d/native",
+    "lexbor": "/private/tmp/rindle-phase133-129-inputs-i6VG4d/lexbor",
+    "registry_cache": {
+      "path": "/private/tmp/rindle-phase133-mux-150-cache-ad8fc01e51610def/cache.ets",
+      "sha256": "270d5e3cc4c4c6321b3ee0d09efdd4fa7abcf99988cb2c381199f0ed5b5bb320"
+    },
+    "hex": {
+      "ebin": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+      "files": [
+        {
+          "relative": "Elixir.Hex.API.Auth.beam",
+          "sha256": "bde6f7f0f31ba7d9f2c39c445ad6adfcab0feb2c2f8982a3d83791bee93dc29c"
+        },
+        {
+          "relative": "Elixir.Hex.API.Client.beam",
+          "sha256": "76db4bd3b9eec40f8b3cef2240748fcd83c927ec2f2435f147717e2b3ccd9373"
+        },
+        {
+          "relative": "Elixir.Hex.API.Key.Organization.beam",
+          "sha256": "df4afe8f0347a4ae35a05bce0abbc87abc50d6ce03e055d09396aca57b3de391"
+        },
+        {
+          "relative": "Elixir.Hex.API.Key.beam",
+          "sha256": "601db0e1439f46b7235deef6a93d2f075d4b611e519f2505adf3a2411b11b536"
+        },
+        {
+          "relative": "Elixir.Hex.API.OAuth.beam",
+          "sha256": "ad0b77133bb6d60b1469a7083e6bfc5477eb43c3a5a19c27402c4e1a41f4cd96"
+        },
+        {
+          "relative": "Elixir.Hex.API.Package.Owner.beam",
+          "sha256": "7b6abf03a75e9108ad9f826fcf3c25969cb656c75d697cea48d5c131df601a36"
+        },
+        {
+          "relative": "Elixir.Hex.API.Package.beam",
+          "sha256": "941ee7e8e8d87d4173f0d6fad7bf6be42d015fed646801e74fdc206b44215087"
+        },
+        {
+          "relative": "Elixir.Hex.API.Release.beam",
+          "sha256": "bff2457bef7d93cae734f0b7eac2daa7a348857d11145130aa89e6de6314a77a"
+        },
+        {
+          "relative": "Elixir.Hex.API.ReleaseDocs.beam",
+          "sha256": "8feaf97d115ea35901f718792fe26022842aa5390118f0d1def7e477e70c2aa7"
+        },
+        {
+          "relative": "Elixir.Hex.API.ShortURL.beam",
+          "sha256": "c4bef65c7108263c67604923eae7cfc82bb51cc5acad281149f1f5a028e788ae"
+        },
+        {
+          "relative": "Elixir.Hex.API.User.beam",
+          "sha256": "836079def21b7fbc7c3726c5b2c7b62d0edddd8cf2045d64a3b3d40bc5faf406"
+        },
+        {
+          "relative": "Elixir.Hex.Application.beam",
+          "sha256": "3a79776755387a54b7f9afe99c1e9729cec5db7aa8bdd873956b12d96567bc5f"
+        },
+        {
+          "relative": "Elixir.Hex.Auth.beam",
+          "sha256": "243bf09812f0d53408d4a0fab87ea8c40fdabdfa6ccee8d4c5d186d4d0a59449"
+        },
+        {
+          "relative": "Elixir.Hex.Config.beam",
+          "sha256": "d9fdf63738a14dd42ee0e7852424b801390ed64f94d69683f9d74f476ab09b6c"
+        },
+        {
+          "relative": "Elixir.Hex.Cooldown.beam",
+          "sha256": "c9742716732257a62f5bd8b6d2fea4274689ddeca7d04313243d58fa4cf0fe4f"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.Certs.beam",
+          "sha256": "4487da9ccaaf9d0c88160e2ea4e61c6c60a8f37f8da5752156173a5514202dd5"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.SSL.beam",
+          "sha256": "6bd2d2b6aaff36256245ea42008f1d70fca83bc4e000e6934ffd2a154c35d132"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.VerifyHostname.beam",
+          "sha256": "d62c74639bd13fb4993a64754288f5646853eb56fb8adbb7a721e705c3dc224a"
+        },
+        {
+          "relative": "Elixir.Hex.HTTP.beam",
+          "sha256": "103ea3d1182d4a2b099cd94393bd62317b7c043d2e3912847bdd7bb3bb99710e"
+        },
+        {
+          "relative": "Elixir.Hex.Ignores.beam",
+          "sha256": "daaa96c5087fb8fedfcef54de1d7fdd14a9e1bf6c0e102fc6820cebbd4f40f3f"
+        },
+        {
+          "relative": "Elixir.Hex.Mix.TaskDescription.beam",
+          "sha256": "850581d9bcc488d2c15db5fbd3133f768bbd0d95287e34bae1cdc890ecfbbb3d"
+        },
+        {
+          "relative": "Elixir.Hex.Mix.beam",
+          "sha256": "4ce5b0482796e6705d3af2a4c0d322c6951630c0d37fdcce084e62afc8c89fde"
+        },
+        {
+          "relative": "Elixir.Hex.Netrc.Cache.beam",
+          "sha256": "4565b65fe549a39790f1d04ca4a2b9d880b49234c7d6d4143e688d64422eeb97"
+        },
+        {
+          "relative": "Elixir.Hex.Netrc.Parser.beam",
+          "sha256": "343545e6b3094045b12b75f95bbb1cf91273044aa95d50acbdcad1e939d06424"
+        },
+        {
+          "relative": "Elixir.Hex.Netrc.beam",
+          "sha256": "0d733fdf48a94544537937cc7d78245134d99afb73da34525fad0252114a5735"
+        },
+        {
+          "relative": "Elixir.Hex.OAuth.beam",
+          "sha256": "10067a236d7d7f349bb773140cf9a1a3caef340fe9eb2072bf2e4887b7129784"
+        },
+        {
+          "relative": "Elixir.Hex.Package.beam",
+          "sha256": "5b2639db463a636a5662cb2822828574571030c86e6c958b5894cd49189d05c7"
+        },
+        {
+          "relative": "Elixir.Hex.Parallel.beam",
+          "sha256": "a9de049c8eb20396171680a8bcf29667d8fc6fbbca44edcedfd46f35f2b1e791"
+        },
+        {
+          "relative": "Elixir.Hex.Policy.Diagnostics.beam",
+          "sha256": "c137b6f1e73e73707da9795ab055b8d8f2c77169d1fe29582b205425a59efd94"
+        },
+        {
+          "relative": "Elixir.Hex.Policy.Filter.beam",
+          "sha256": "3967e69b6514dd7e7668dc8b0ed305bbb41fc85051b55f0518ea36556cda370d"
+        },
+        {
+          "relative": "Elixir.Hex.Policy.beam",
+          "sha256": "5cb63ddddc958c364afe8fc7aa1ecebbb03699f75323d38495ec587d42057b25"
+        },
+        {
+          "relative": "Elixir.Hex.Registry.Cooldown.beam",
+          "sha256": "cfcc0535110b1681a42a3868902806a3b865a4c565b4752fa0e14e795757f49c"
+        },
+        {
+          "relative": "Elixir.Hex.Registry.Policy.beam",
+          "sha256": "799cec6f613a6cc164f1e330fb8c58ee54b8c9de821fd68f71bca7108126b173"
+        },
+        {
+          "relative": "Elixir.Hex.Registry.Server.beam",
+          "sha256": "cd33995b395596589a073b74a89a88950162553aed8cdd821593d7d42fa12b67"
+        },
+        {
+          "relative": "Elixir.Hex.RemoteConverger.beam",
+          "sha256": "75fb4e5d32db5be2f43e143cbfbc3dd0cba4a59b15955e4a701a53206e147461"
+        },
+        {
+          "relative": "Elixir.Hex.Repo.beam",
+          "sha256": "751193d1cb5de765fa1fb6d7481916b305b7c1878154715aa888e218cbc279eb"
+        },
+        {
+          "relative": "Elixir.Hex.SCM.beam",
+          "sha256": "fe8cbf3ec5ae4af63e1f5e72280ea16890e3375fe7cf5f72b40912ea9d67d0bf"
+        },
+        {
+          "relative": "Elixir.Hex.Server.beam",
+          "sha256": "93aa6d5127d8c9015396e4c03ddab1355f38e74939d857def654712047a39559"
+        },
+        {
+          "relative": "Elixir.Hex.Shell.Process.beam",
+          "sha256": "bca5589782935d97ae368568e0d87f44deb581d71670578e8a27f4e6995f63d1"
+        },
+        {
+          "relative": "Elixir.Hex.Shell.beam",
+          "sha256": "1cbb45557f3377a16ab612e20fab3a47335d42f9010fba888507b33191d385ce"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Assignment.beam",
+          "sha256": "8d0963298a87e5f4d2268d1c0aeb83477036f4d58fd4139dd20d91cb43be3f4d"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "da329613d86c8af3aca9371972ac424322319e74522783e287dcd34d4be3c844"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Range.beam",
+          "sha256": "532360c306ef6f5a38a112867ec0dcc31ce4d3155c681a67b0ddca72d6a69dc2"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Hex.Solver.Constraints.Union.beam",
+          "sha256": "73f8e86a7080757407091312da8434e09192b151958f8826bd7206de1b99890b"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.Version.beam",
+          "sha256": "aeb849dbce9b8048a223beede34ebedea184b90ff6c0c1b2305dd9d3ae035b9e"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraint.beam",
+          "sha256": "6e334ea196a56231dd3ca9a4352de0f792b183aee1e27f82c8edec1d0de4f5b6"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "a41cf2521916daf7aa16818781b36231d5c9ee8e42ae13ba6f885b8c224be017"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Impl.beam",
+          "sha256": "bfc95be1a1b1714b18cbd2661dfee036441d202b9a40e60aac19c67aad9e2f84"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Range.beam",
+          "sha256": "27634709bcfd5a8b5ba1e688c015ca31db1781d9c38675e021cf1ffb7d55379c"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Union.beam",
+          "sha256": "1a2c3960f59ad634fe475bcf30ff94e3bc93926d612dc6d388702da3951d47eb"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Util.beam",
+          "sha256": "7ac91583ab532ddf30c0f39ee77d7d602a4d71a03c7a9393fce2dd333f14c4ba"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Constraints.Version.beam",
+          "sha256": "92a0d466e233cf80da3eec9168f69a882535a3d3fccdd144961b7e25974abace"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Failure.beam",
+          "sha256": "55622a181e9cfc9aa12df063dfffa245227573c2e1abae0c4192f10b5e97ffd4"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Incompatibility.beam",
+          "sha256": "cb12e6b47d71d208710f0b68d07da1f6a230441163a026a40205ea7653ad29bc"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.PackageLister.beam",
+          "sha256": "00daf958e302a02e014bf36575c14b41974341c5b1b611496b28fb27a7c1dae2"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.PackageRange.beam",
+          "sha256": "f01541d50efa2a6350a0024ba4642354a241b5ea536de7aec9d3eff26f05d427"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.PartialSolution.beam",
+          "sha256": "527810b3d07891ff1a69b2f85ebb6b9b2723a5493056a83d2de82a12d56aa9ae"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Registry.beam",
+          "sha256": "8a9b73056231ae327b5e0239fb0a070fd7d93c364a86dc2677962c2b959ecf25"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Requirement.Parser.beam",
+          "sha256": "9cd865279731cebf7eebfc381cc69752e8da63d16ddb519c8a23ebc102c12331"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Requirement.beam",
+          "sha256": "e213852cbfd539c2b9dbdec31222af035ad74bcea76146c7a8896579811cb379"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Solver.beam",
+          "sha256": "d33ea40543a43a181da900532e1c87d3d7e6a2eda2c1dc0bfac31057d7f3d0a2"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Term.beam",
+          "sha256": "ccf82f11bf601052690b1fd724b48f2fdddb04423ff1b6f23783f92562c31d6c"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.Util.beam",
+          "sha256": "d7e9ba040e4aac36053db136801241017ceae0e6debb89807ef968c1a564d58c"
+        },
+        {
+          "relative": "Elixir.Hex.Solver.beam",
+          "sha256": "a6088b2cf520b27e6fe721a4e816b6e948531e28c2f2364fa519c1bfcfed6c3a"
+        },
+        {
+          "relative": "Elixir.Hex.Sponsor.beam",
+          "sha256": "d4e11ac89b7fd918ed314eed648678120152ebc106799f62bd177a73da24950a"
+        },
+        {
+          "relative": "Elixir.Hex.State.beam",
+          "sha256": "01222ffc968a305b6664c93719ebd7e36014372ca28a995240d27c72aaa839c3"
+        },
+        {
+          "relative": "Elixir.Hex.Stdlib.beam",
+          "sha256": "a8a4571c5e16c4f3aaa5a76a08063b4816f7523fbf5da18ead9d2589cfd6101b"
+        },
+        {
+          "relative": "Elixir.Hex.Tar.beam",
+          "sha256": "d077ee297f3eebd70ee4a00975e8bdffa7d8d51e389bc388ca724d63d98af61b"
+        },
+        {
+          "relative": "Elixir.Hex.UpdateChecker.beam",
+          "sha256": "97a9c1122c7278ba4566ddb725790ce35452301b2c1e7ac056d4b90e84671d24"
+        },
+        {
+          "relative": "Elixir.Hex.Utils.beam",
+          "sha256": "e079173fe7751c9842b7ced96543e885064291c1f9b5e49b9c6a17e7ebf1ff02"
+        },
+        {
+          "relative": "Elixir.Hex.beam",
+          "sha256": "2d1ffa22983984938017106eb3baadb5c4594c59742ddf00059ff5bf3d0ec9b9"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Assignment.beam",
+          "sha256": "647dfb702229d6cef3ee440782c8296eed04ffe075a8f9205e83dad89060b36d"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "b6dd7700d8fb516f44aff05a06801cc1f98bdb716684b8aec84c97e7df333fd1"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Constraints.Range.beam",
+          "sha256": "45b28d45d06ae16bce785a04fb07b017fe1b14f36c69e9079323429b7adaae44"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Constraints.Union.beam",
+          "sha256": "48abfed364c9c4417c6bc915d32a83c4c8a5e5d2f9f7713ce540b6c1e4a76088"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Incompatibility.beam",
+          "sha256": "bcd21f50f4f1ca630f78a3ba2de09f0d445eb09864d7cfeee77adb332ae956ef"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.PackageRange.beam",
+          "sha256": "3a547053e44a0aa8f982c22435f06834d6562a6413e305cd406c70311a7b0eec"
+        },
+        {
+          "relative": "Elixir.Inspect.Hex.Solver.Term.beam",
+          "sha256": "ec8c1ce47621a8281ae938702bd206f807e9fdac8f25bd248bfb040e1fcd5758"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Audit.beam",
+          "sha256": "c393881c579f606c30b3be134a6b7874530e3da61bb02e494b57eff3722b3376"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Build.beam",
+          "sha256": "e56dd6b482e2cab72c90fd16c23132b880f499ae34bcdbfee16529bcc9961ccc"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Config.beam",
+          "sha256": "3dc0a7278eafde11ff39fc0232fb1c7d8f69b70acff0476c35dc781b3c1082ce"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Docs.beam",
+          "sha256": "bfe036ef8f4916fc2fa34683086f2da023f7361fee7d6f4ead3ec36b9261a199"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Info.beam",
+          "sha256": "725091f53e0a939c8385e305758be0f71e80eafb51893392bed6d6f747a7a4ef"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Organization.beam",
+          "sha256": "26eda5155d843363ce7474a384589f624b150b99a9e4e82370ce2998a3f5b346"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Outdated.beam",
+          "sha256": "f95c28b0407c891829889e8ce755e109423af2e5d0cb5a15eb52c8249db825e8"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Owner.beam",
+          "sha256": "ca6d8b6057bc8091b027245a7d9ca9c066ed2866c16ff0a51b7fd90e1073a546"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Package.beam",
+          "sha256": "91a704b072eb81762a118845eaf93f509ef7e17e1dbbd46a62b8aff4882eb6c6"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Policy.beam",
+          "sha256": "7ab141065580f8d053b75af82db2a60ee74c8e3f7c1c3326ddfe408e38d66ef2"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Publish.beam",
+          "sha256": "a681244de25fe939d0e40c8019d52aafe907b2d2a1aa4ae3145b38e948ee0780"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Registry.beam",
+          "sha256": "3afadd3ed4ed2252d7cedfcd2855a2358e65206b626270401955bf36cf71bcfd"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Repo.beam",
+          "sha256": "ac250bbea7909cb5e8007b7b3224c8df877e2832daa487db78021d31fc78e541"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Retire.beam",
+          "sha256": "c36309cff658d632ae527d4fbf13664d1123dedcc08100450d78283103bbc9ff"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Search.beam",
+          "sha256": "030d28016df1c9d959352c669ef0dc039f4ab34b95f6d4effd325f5f43084e04"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.Sponsor.beam",
+          "sha256": "6ae60e0fabed5710bd8cc42059f1d495ac3349e5141802a567681685317c4e44"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.User.beam",
+          "sha256": "1c95811720cc17290a1a32fa94017f311d9229e6e091126fa08c57f9572bf692"
+        },
+        {
+          "relative": "Elixir.Mix.Tasks.Hex.beam",
+          "sha256": "8a78fc870d4a233a0ce7b9716ab65d0a110e009f01b945211d2d418bd7524d5f"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Assignment.beam",
+          "sha256": "56b09e0fb6d937bb754cbfa0297e9dfc6ab0a6f19a1f258b146d56c28dbf5d05"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Empty.beam",
+          "sha256": "e3216eb58260ae3ef02017a37c727e77c0a67bb4f6bb0c87721513f77664ec36"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Range.beam",
+          "sha256": "1d6645c093ec12507b52c23484dbce932d0647b97ebe1b0cf219b1b12e2f0efb"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Constraints.Union.beam",
+          "sha256": "e02c8465191583ba3e04a60a7912062b9c4872a32859782f74c9b159ca56ec61"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Incompatibility.beam",
+          "sha256": "d10af9a4af8aae1ce75cea0a7afece2ad668a27d00072a02dbe9bf792854fc58"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.PackageRange.beam",
+          "sha256": "89bc0d2e49672bb507d3d64287930b25c2b2167e3437fc60caf82f776867f738"
+        },
+        {
+          "relative": "Elixir.String.Chars.Hex.Solver.Term.beam",
+          "sha256": "9e5d1eb7081bc0919214c5269c719fd2b0c77975ae01fa67a18131c3c5e075d9"
+        },
+        {
+          "relative": "hex.app",
+          "sha256": "a075e7a2b06bb6aa6c7093aaf9d2555224b290e75c4b2e7cd5b51c44ab6a9a57"
+        },
+        {
+          "relative": "mix_hex_advisory.beam",
+          "sha256": "8aa5c7f5a8c50ee4d69cc7251f9153d8ad838147f8bf1ac965d8264f854ec7d4"
+        },
+        {
+          "relative": "mix_hex_api.beam",
+          "sha256": "7a5c53239edf5a91b6c02d9cd3a2209b33375ac9cdaa1ed500c45076683b2345"
+        },
+        {
+          "relative": "mix_hex_api_auth.beam",
+          "sha256": "f79fb918b3ccf81816a7c5a5c81798fdbc5feb72069d70eb93dd6de96fcd0d75"
+        },
+        {
+          "relative": "mix_hex_api_key.beam",
+          "sha256": "bf2fe4a462532c37ab1e0c62f7f21a8c2a6450e4170c94171779c247108e615c"
+        },
+        {
+          "relative": "mix_hex_api_oauth.beam",
+          "sha256": "c73b8bb380d93b8303f5c6fc1a7dd306065ae2b6d75fc27048716e54fee02664"
+        },
+        {
+          "relative": "mix_hex_api_organization.beam",
+          "sha256": "5371d3eaede0649ca8cb4184c4c316ddd0f73fb34179dd7d0910dab326d0e1b7"
+        },
+        {
+          "relative": "mix_hex_api_organization_member.beam",
+          "sha256": "fd2cc44d561ef97b0df96bf30c3c3e862af7a35673d93abb318fc26df1dd55e7"
+        },
+        {
+          "relative": "mix_hex_api_package.beam",
+          "sha256": "91cef1cd62cdc01e0455e87afb16c1443f8e096876db93201b1d46ec7492fa0e"
+        },
+        {
+          "relative": "mix_hex_api_package_owner.beam",
+          "sha256": "ab303bd5170dcbf61cafcc9fe35a908753ccb1450f516e06e61899b36bf37312"
+        },
+        {
+          "relative": "mix_hex_api_release.beam",
+          "sha256": "37b561e61f96d9fb031f54676a2b06e17ecc065c74250ca4566917ecefdda334"
+        },
+        {
+          "relative": "mix_hex_api_short_url.beam",
+          "sha256": "e925aa272e3f0578ef6dce0494e3b5c000d9efb83b74bf3db00dd878f5f7d46c"
+        },
+        {
+          "relative": "mix_hex_api_user.beam",
+          "sha256": "00d1740c7ba8b23cb6b374c3ca1ecd8303e2f3f1260af1d3260856bce1d39561"
+        },
+        {
+          "relative": "mix_hex_cli_auth.beam",
+          "sha256": "566d7b411bb1358eed6e5ac74d27f07e67b57c8fde279bf23d54fb5bab893fff"
+        },
+        {
+          "relative": "mix_hex_core.beam",
+          "sha256": "294b5a73218085321feb211505bd0ccc8b49a5883ca523f70c04e759a046f440"
+        },
+        {
+          "relative": "mix_hex_erl_tar.beam",
+          "sha256": "fcd9cbdf89ec9931cf9b91cdd0ce66720a335aca54565b28d7813cbfc2d3fd2f"
+        },
+        {
+          "relative": "mix_hex_http.beam",
+          "sha256": "a20e29f3b233e8811394b90d54b4e646b6ced7b0663b326d900f4fa7a11dad65"
+        },
+        {
+          "relative": "mix_hex_http_httpc.beam",
+          "sha256": "4f6f90e7a5bab15fa584d2d4e5790544b5254382a56bf3694829ee6de48f9f5f"
+        },
+        {
+          "relative": "mix_hex_licenses.beam",
+          "sha256": "f6b30127be3ecae65b1b89cb1d756ef2473ab65b3fb55f41cd6cb6744af80db6"
+        },
+        {
+          "relative": "mix_hex_pb_names.beam",
+          "sha256": "b32a62335108501fda4f17e0bd52e8e75acd88210231001c65d5e64484b5ccf3"
+        },
+        {
+          "relative": "mix_hex_pb_package.beam",
+          "sha256": "f0957b4c6a8131c853f6aa9325fc116562e6b539f40ef9a585cebaddf396872e"
+        },
+        {
+          "relative": "mix_hex_pb_policy.beam",
+          "sha256": "d87d7c4ccf71d0585d5eba55a3faff07596bf820543c7390c71065cfa9e9b71c"
+        },
+        {
+          "relative": "mix_hex_pb_signed.beam",
+          "sha256": "241457907cb95c9df4f7890a71d330fa784f791fc2670ec724f2c1d1a366bee1"
+        },
+        {
+          "relative": "mix_hex_pb_versions.beam",
+          "sha256": "93b211a8d28311f6d1a094df27a617852a8657d8825830e7f5349b51ce55d97c"
+        },
+        {
+          "relative": "mix_hex_registry.beam",
+          "sha256": "c8c8a1ee1bfb36575b7a62b8335a46f61a3e77b596df21dc90a4c86b2b1aa61c"
+        },
+        {
+          "relative": "mix_hex_repo.beam",
+          "sha256": "cb7c7fe56386e9acd9556d46849080aafe5c13f5c82a75f082978d82af7a3c2b"
+        },
+        {
+          "relative": "mix_hex_safe_binary_to_term.beam",
+          "sha256": "574570fb96a20e31f4679241e80ca4cda58645f86bde4f0bc4b4f6afc102a993"
+        },
+        {
+          "relative": "mix_hex_tarball.beam",
+          "sha256": "57c544ed288ebe415b58b2414046bfad73208fb7444a631d489aa094a07a0240"
+        },
+        {
+          "relative": "mix_safe_erl_term.beam",
+          "sha256": "48c4a478147ad9f8919496fd8d8a8f78e8874adb034f2285326794fe2b23339c"
+        }
+      ]
+    }
+  },
+  "status": "available",
+  "first_unavailable": null,
+  "runtime": {
+    "status": "available",
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15",
+    "nif": "2.17",
+    "target": "aarch64-apple-darwin",
+    "installs": {
+      "erlang": "/Users/jon/.asdf/installs/erlang/27.3.4.15",
+      "elixir": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27"
+    },
+    "executables": {
+      "elixir": {
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "sha256": "43dc3fd3babb0feebdafbcbba5700b37e59fad2088c252baac2dff5e2e2917ab"
+      },
+      "erl": {
+        "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+        "sha256": "2e40b559320422aed8e521a43906da5978914104f7556045bc353ec059f16957"
+      },
+      "mix": {
+        "path": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/mix",
+        "sha256": "e532d1674db8c27b1a00edeb659cd57ab78e90d6aa60dac1eb4414c5a9029225"
+      }
+    },
+    "otp_version_file": {
+      "path": "/Users/jon/.asdf/installs/erlang/27.3.4.15/releases/27/OTP_VERSION",
+      "sha256": "eee643b6b95e2d8c5bc418efd168c3b98aba8321bce262a80291b4391723500f"
+    },
+    "beam": {
+      "otp": "27",
+      "root": "/Users/jon/.asdf/installs/erlang/27.3.4.15"
+    },
+    "env": {
+      "ASDF_ERLANG_VERSION": "27.3.4.15",
+      "ASDF_ELIXIR_VERSION": "1.17.3-otp-27",
+      "HEX_OFFLINE": "1",
+      "PATH": "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.local/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Applications/Little Snitch.app/Contents/Components:/usr/local/go/bin:/Users/jon/.codex/packages/app-server-daemon/releases/0.162.1-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0x1iZ5u:/Users/jon/.codex/tmp/arg0/codex-arg0qHIBN6:/Users/jon/.codex/packages/app-server-daemon/releases/0.162.0-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0O976rK:/Users/jon/.codex/packages/app-server-daemon/releases/0.161.0-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0N8genT:/Users/jon/.codex/packages/app-server-daemon/releases/0.160.1-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg05oMGTk:/Users/jon/.codex/packages/app-server-daemon/releases/0.160.0-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0iszrln:/Users/jon/.codex/packages/app-server-daemon/releases/0.159.3-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg08JCyzs:/Users/jon/.codex/packages/app-server-daemon/releases/0.159.2-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0eQ1wla:/Users/jon/.codex/packages/app-server-daemon/releases/0.159.1-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg083WNtm:/Users/jon/.codex/packages/app-server-daemon/releases/0.159.0-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0SBSp7x:/Users/jon/.codex/packages/app-server-daemon/releases/0.158.0-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0glIBHF:/Users/jon/.codex/packages/app-server-daemon/releases/0.157.1-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg0pNRNq2:/Users/jon/.codex/packages/app-server-daemon/releases/0.157.0-aarch64-apple-darwin/codex-path:/Users/jon/.codex/tmp/arg0/codex-arg09G2ROk:/Users/jon/.asdf/installs/nodejs/22.14.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path:/Users/jon/.asdf/installs/nodejs/22.14.0/bin:/Users/jon/.unity/bin:/Users/jon/.local/bin:/Users/jon/.asdf/installs/python/2.7.18/bin:/Users/jon/.asdf/shims:/opt/homebrew/bin:/Users/jon/Library/Application Support/JetBrains/Toolbox/scripts"
+    }
+  },
+  "network_guard": {
+    "status": "available",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "launcher": "/usr/bin/sandbox-exec",
+    "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+    "host_context": {
+      "platform": "darwin",
+      "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node"
+    },
+    "control_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "process.exit(0)"
+    ],
+    "control_exit": 0,
+    "denied_child_argv": [
+      "/usr/bin/sandbox-exec",
+      "-p",
+      "(version 1) (allow default) (deny network*)",
+      "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+      "-e",
+      "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+    ],
+    "denied_child_exit": 77,
+    "denial_witness": "EPERM",
+    "denial_output": "POLICY_DENIAL:EPERM",
+    "probe": "loopback-listen"
+  },
+  "guard_identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+  "packages": [
+    {
+      "name": "bunt",
+      "version": "1.0.0",
+      "inner_sha256": "081c2c665f086849e6d57900292b3a161727ab40431219529f13c4ddcf3e7a44",
+      "archive_sha256": "dc5f86aa08a5f6fa6b8096f0735c4e76d54ae5c9fa2c143e5a1fc7c1cd9bb6b5",
+      "relative": "packages/hexpm/bunt-1.0.0.tar",
+      "bytes": 12800,
+      "status": "available"
+    },
+    {
+      "name": "bypass",
+      "version": "2.1.0",
+      "inner_sha256": "909782781bf8e20ee86a9cabde36b259d44af8b9f38756173e8f5e2e1fabb9b1",
+      "archive_sha256": "d9b5df8fa5b7a6efa08384e9bbecfe4ce61c77d28a4282f79e02f1ef78d96b80",
+      "relative": "packages/hexpm/bypass-2.1.0.tar",
+      "bytes": 15872,
+      "status": "available"
+    },
+    {
+      "name": "cc_precompiler",
+      "version": "0.1.11",
+      "inner_sha256": "8c844d0b9fb98a3edea067f94f616b3f6b29b959b6b3bf25fee94ffe34364768",
+      "archive_sha256": "3427232caf0835f94680e5bcf082408a70b48ad68a5f5c0b02a3bea9f3a075b9",
+      "relative": "packages/hexpm/cc_precompiler-0.1.11.tar",
+      "bytes": 23040,
+      "status": "available"
+    },
+    {
+      "name": "color",
+      "version": "0.12.0",
+      "inner_sha256": "f59f9bb6452a460760d44116ec0c1cf86f9d7707c8756c01f83c6d8fe042ae67",
+      "archive_sha256": "1e17768919dad0bd44f48d0daf294d24bdd5a615bbfe0b4e01a51312203bd294",
+      "relative": "packages/hexpm/color-0.12.0.tar",
+      "bytes": 187904,
+      "status": "available"
+    },
+    {
+      "name": "cowboy",
+      "version": "2.18.0",
+      "inner_sha256": "bff388eb4d6356cb3f88c26e65b515976bf04b401b805d31550c3e60eba8fe18",
+      "archive_sha256": "62d0b26abcf455054972b0da242389c69d5982ce5914afb8c344517f667b9600",
+      "relative": "packages/hexpm/cowboy-2.18.0.tar",
+      "bytes": 165888,
+      "status": "available"
+    },
+    {
+      "name": "cowboy_telemetry",
+      "version": "0.4.0",
+      "inner_sha256": "f239f68b588efa7707abce16a84d0d2acf3a0f50571f8bb7f56a15865aae820c",
+      "archive_sha256": "7d98bac1ee4565d31b62d59f8823dfd8356a169e7fcbb83831b8a5397404c9de",
+      "relative": "packages/hexpm/cowboy_telemetry-0.4.0.tar",
+      "bytes": 11776,
+      "status": "available"
+    },
+    {
+      "name": "cowlib",
+      "version": "2.19.0",
+      "inner_sha256": "c9d11c9d035472e27a740c9f327786c61ed209269b4be0260d59d3ec07b8949f",
+      "archive_sha256": "6dc66e3135b229193ea4dcb14294e79520c923d391315c9c962ef0b4bea72356",
+      "relative": "packages/hexpm/cowlib-2.19.0.tar",
+      "bytes": 218624,
+      "status": "available"
+    },
+    {
+      "name": "credo",
+      "version": "1.7.18",
+      "inner_sha256": "5c5596bf7aedf9c8c227f13272ac499fe8eae6237bd326f2f07dfc173786f042",
+      "archive_sha256": "a189d164685fd945809e862fe76a7420c4398fa288d76257662aecb909d6b3e5",
+      "relative": "packages/hexpm/credo-1.7.18.tar",
+      "bytes": 198144,
+      "status": "available"
+    },
+    {
+      "name": "db_connection",
+      "version": "2.10.2",
+      "inner_sha256": "ae391e803a5adff104da913c2fc1c0c14a37f8b10001dcef568796e1fb7bf95c",
+      "archive_sha256": "510b14482330f1af6490a2fa0efd8d4f1435d1529b165647df22ac0f2df0fa93",
+      "relative": "packages/hexpm/db_connection-2.10.2.tar",
+      "bytes": 45568,
+      "status": "available"
+    },
+    {
+      "name": "decimal",
+      "version": "3.1.1",
+      "inner_sha256": "430d87b04011ce6cbd4fd205be758311a81f87d552d40904abd00f015935b1d0",
+      "archive_sha256": "c5f25f2ced74a0587d03e6023f595db8e924c9d3922c8c8ffd9edfc4498cf1f6",
+      "relative": "packages/hexpm/decimal-3.1.1.tar",
+      "bytes": 34304,
+      "status": "available"
+    },
+    {
+      "name": "dialyxir",
+      "version": "1.4.7",
+      "inner_sha256": "dda948fcee52962e4b6c5b4b16b2d8fa7d50d8645bbae8b8685c3f9ecb7f5f4d",
+      "archive_sha256": "b34527202e6eb8cee198efec110996c25c5898f43a4094df157f8d28f27d9efe",
+      "relative": "packages/hexpm/dialyxir-1.4.7.tar",
+      "bytes": 44032,
+      "status": "available"
+    },
+    {
+      "name": "doctor",
+      "version": "0.23.0",
+      "inner_sha256": "f4c2e51f9d50e3a31500e61483aa3e051559891c5b1b14560e74dc7046852412",
+      "archive_sha256": "b8eb63380fa14d9aced609671600359b1fd057da167339c5031b683eb2bac973",
+      "relative": "packages/hexpm/doctor-0.23.0.tar",
+      "bytes": 26112,
+      "status": "available"
+    },
+    {
+      "name": "earmark_parser",
+      "version": "1.4.44",
+      "inner_sha256": "f20830dd6b5c77afe2b063777ddbbff09f9759396500cdbe7523efd58d7a339c",
+      "archive_sha256": "4778ac752b4701a5599215f7030989c989ffdc4f6df457c5f36938cc2d2a2750",
+      "relative": "packages/hexpm/earmark_parser-1.4.44.tar",
+      "bytes": 64000,
+      "status": "available"
+    },
+    {
+      "name": "ecto",
+      "version": "3.13.6",
+      "inner_sha256": "352135b474f91d1ab99a1b502171d207e9db60421c9e3d0ecab4c7ab96b24d14",
+      "archive_sha256": "8afa059bc16cd2c94739ec0a11e3e5df69d828125119109bef35f20a21a76af2",
+      "relative": "packages/hexpm/ecto-3.13.6.tar",
+      "bytes": 316928,
+      "status": "available"
+    },
+    {
+      "name": "ecto_sql",
+      "version": "3.13.5",
+      "inner_sha256": "2f8282b2ad97bf0f0d3217ea0a6fff320ead9e2f8770f810141189d182dc304e",
+      "archive_sha256": "aa36751f4e6a2b56ae79efb0e088042e010ff4935fc8684e74c23b1f49e25fdc",
+      "relative": "packages/hexpm/ecto_sql-3.13.5.tar",
+      "bytes": 139776,
+      "status": "available"
+    },
+    {
+      "name": "elixir_make",
+      "version": "0.10.0",
+      "inner_sha256": "16577e2583a79bb79237bbff349619ef5d80afffc07eac6e4faf0d00e2ddaf7d",
+      "archive_sha256": "dc1f09fb7fa68866b886abd5f0f3c83553b1a19a52359a899e92af1bb3b31982",
+      "relative": "packages/hexpm/elixir_make-0.10.0.tar",
+      "bytes": 19456,
+      "status": "available"
+    },
+    {
+      "name": "erlex",
+      "version": "0.2.8",
+      "inner_sha256": "cd8116f20f3c0afe376d1e8d1f0ae2452337729f68be016ea544a72f767d9c12",
+      "archive_sha256": "9d66ff9fedf69e49dc3fd12831e12a8a37b76f8651dd21cd45fcf5561a8a7590",
+      "relative": "packages/hexpm/erlex-0.2.8.tar",
+      "bytes": 13824,
+      "status": "available"
+    },
+    {
+      "name": "ex_aws",
+      "version": "2.6.1",
+      "inner_sha256": "194582c7b09455de8a5ab18a0182e6dd937d53df82be2e63c619d01bddaccdfa",
+      "archive_sha256": "67842a08c90a1d9a09dbe4ac05754175c7ca253abe4912987c759395d4bd9d26",
+      "relative": "packages/hexpm/ex_aws-2.6.1.tar",
+      "bytes": 46080,
+      "status": "available"
+    },
+    {
+      "name": "ex_aws_s3",
+      "version": "2.5.9",
+      "inner_sha256": "862b7792f2e60d7010e2920d79964e3fab289bc0fd951b0ba8457a3f7f9d1199",
+      "archive_sha256": "a480d2bb2da64610014021629800e1e9457ca5e4a62f6775bffd963360c2bf90",
+      "relative": "packages/hexpm/ex_aws_s3-2.5.9.tar",
+      "bytes": 29696,
+      "status": "available"
+    },
+    {
+      "name": "ex_doc",
+      "version": "0.40.3",
+      "inner_sha256": "4a972ffe64bc07dc605af487e98fc19b72a4185f55ca031b94c0552d6071c1d9",
+      "archive_sha256": "2756e357742fecd9749b489b85d67c9ce99c465f2e75728d9e6dc8d704b973de",
+      "relative": "packages/hexpm/ex_doc-0.40.3.tar",
+      "bytes": 297984,
+      "status": "available"
+    },
+    {
+      "name": "ex_machina",
+      "version": "2.8.0",
+      "inner_sha256": "a0e847b5712065055ec3255840e2c78ef9366634d62390839d4880483be38abe",
+      "archive_sha256": "79fe1a9c64c0c1c1fab6c4fa5d871682cb90de5885320c187d117004627a7729",
+      "relative": "packages/hexpm/ex_machina-2.8.0.tar",
+      "bytes": 24576,
+      "status": "available"
+    },
+    {
+      "name": "ex_marcel",
+      "version": "0.2.0",
+      "inner_sha256": "0aae641f4144ff9d3c37f36dc62e1ee94c4a4e8d34683be8321f9c2c7e459ada",
+      "archive_sha256": "fecf90bfe1cb4097d58ac7d444249afc9e8a314413f82cfb29a8a758ec65fcd5",
+      "relative": "packages/hexpm/ex_marcel-0.2.0.tar",
+      "bytes": 107520,
+      "status": "available"
+    },
+    {
+      "name": "excoveralls",
+      "version": "0.18.5",
+      "inner_sha256": "e229d0a65982613332ec30f07940038fe451a2e5b29bce2a5022165f0c9b157e",
+      "archive_sha256": "523fe8a15603f86d64852aab2abe8ddbd78e68579c8525ae765facc5eae01562",
+      "relative": "packages/hexpm/excoveralls-0.18.5.tar",
+      "bytes": 51200,
+      "status": "available"
+    },
+    {
+      "name": "file_system",
+      "version": "1.1.1",
+      "inner_sha256": "31864f4685b0148f25bd3fbef2b1228457c0c89024ad67f7a81a3ffbc0bbad3a",
+      "archive_sha256": "7a15ff97dfe526aeefb090a7a9d3d03aa907e100e262a0f8f7746b78f8f87a5d",
+      "relative": "packages/hexpm/file_system-1.1.1.tar",
+      "bytes": 25088,
+      "status": "available"
+    },
+    {
+      "name": "finch",
+      "version": "0.23.0",
+      "inner_sha256": "e3f9287ac25a8832f848b144c2b57346aac65b205e2e0629a52adfe6507fd837",
+      "archive_sha256": "80e58d3f936f57e3fdf404f83a3642897ae6d9fb642934e46da4d8fe761b99d5",
+      "relative": "packages/hexpm/finch-0.23.0.tar",
+      "bytes": 50688,
+      "status": "available"
+    },
+    {
+      "name": "fine",
+      "version": "0.1.6",
+      "inner_sha256": "4bf7151493443c454aac9f2fa2f34f5fefd0346a83fb5586a016c4a135c63247",
+      "archive_sha256": "5638eb4495488e885ebec167fa57973e5c35e1a50c344eb7666c90ec1c4e3b12",
+      "relative": "packages/hexpm/fine-0.1.6.tar",
+      "bytes": 29184,
+      "status": "available"
+    },
+    {
+      "name": "gcs_signed_url",
+      "version": "0.6.0",
+      "inner_sha256": "94d8d708f913e2fb60560c04a50252ba90c178665dc49a47e6e44c03e2e9a110",
+      "archive_sha256": "5ad5e4e0de832d774636e12c642a8fedd376522544697934fc06a7ddeeb805aa",
+      "relative": "packages/hexpm/gcs_signed_url-0.6.0.tar",
+      "bytes": 15872,
+      "status": "available"
+    },
+    {
+      "name": "goth",
+      "version": "1.4.5",
+      "inner_sha256": "ee37f96e3519bdecd603f20e7f10c758287088b6d77c0147cd5ee68cf224aade",
+      "archive_sha256": "0fc2dce5bd710651ed179053d0300ce3a5d36afbdde11e500d57f05f398d5ed5",
+      "relative": "packages/hexpm/goth-1.4.5.tar",
+      "bytes": 21504,
+      "status": "available"
+    },
+    {
+      "name": "hpax",
+      "version": "1.0.4",
+      "inner_sha256": "777de5d433b0fbdc7c418159c8055910faa8047ffdb3d6b31098d2a46cd7685c",
+      "archive_sha256": "afc7cb142ebcc2d01ce7816190b98ce5dd49e799111b24249f3443d730f377ca",
+      "relative": "packages/hexpm/hpax-1.0.4.tar",
+      "bytes": 21504,
+      "status": "available"
+    },
+    {
+      "name": "image",
+      "version": "0.65.0",
+      "inner_sha256": "44908233a1a0dcdbb6ae873ec09fd9ae533d1840d300d8b0b1b186d586b935e6",
+      "archive_sha256": "d2060e08d0f42564f49de1ea97a82a5d237f9ac91edb141dece51f1238dd8b4a",
+      "relative": "packages/hexpm/image-0.65.0.tar",
+      "bytes": 360448,
+      "status": "available"
+    },
+    {
+      "name": "jason",
+      "version": "1.4.5",
+      "inner_sha256": "2e3a008590b0b8d7388c20293e9dcc9cf3e5d642fd2a114e4cbbb52e595d940a",
+      "archive_sha256": "b0c823996102bcd0239b3c2444eb00409b72f6a140c1950bc8b457d836b30684",
+      "relative": "packages/hexpm/jason-1.4.5.tar",
+      "bytes": 26112,
+      "status": "available"
+    },
+    {
+      "name": "jose",
+      "version": "1.11.12",
+      "inner_sha256": "06e62b467b61d3726cbc19e9b5489f7549c37993de846dfb3ee8259f9ed208b3",
+      "archive_sha256": "31e92b653e9210b696765cdd885437457de1add2a9011d92f8cf63e4641bab7b",
+      "relative": "packages/hexpm/jose-1.11.12.tar",
+      "bytes": 194048,
+      "status": "available"
+    },
+    {
+      "name": "junit_formatter",
+      "version": "3.4.0",
+      "inner_sha256": "d0e8db6c34dab6d3c4154c3b46b21540db1109ae709d6cf99ba7e7a2ce4b1ac2",
+      "archive_sha256": "bb36e2ae83f1ced6ab931c4ce51dd3dbef1ef61bb4932412e173b0cfa259dacd",
+      "relative": "packages/hexpm/junit_formatter-3.4.0.tar",
+      "bytes": 16896,
+      "status": "available"
+    },
+    {
+      "name": "lazy_html",
+      "version": "0.1.12",
+      "inner_sha256": "31a55ee622918fce988c94b06232227b42daa64e4eab14ac32081d0f3fd8db6f",
+      "archive_sha256": "8a0da594776caee58782c6f93b2abaa5bdb809daf8d43351a561f7de9dc2e2a8",
+      "relative": "packages/hexpm/lazy_html-0.1.12.tar",
+      "bytes": 26624,
+      "status": "available"
+    },
+    {
+      "name": "makeup",
+      "version": "1.2.1",
+      "inner_sha256": "e90ac1c65589ef354378def3ba19d401e739ee7ee06fb47f94c687016e3713d1",
+      "archive_sha256": "d36484867b0bae0fea568d10131197a4c2e47056a6fbe84922bf6ba71c8d17ce",
+      "relative": "packages/hexpm/makeup-1.2.1.tar",
+      "bytes": 31744,
+      "status": "available"
+    },
+    {
+      "name": "makeup_elixir",
+      "version": "1.0.1",
+      "inner_sha256": "e928a4f984e795e41e3abd27bfc09f51db16ab8ba1aebdba2b3a575437efafc2",
+      "archive_sha256": "7284900d412a3e5cfd97fdaed4f5ed389b8f2b4cb49efc0eb3bd10e2febf9507",
+      "relative": "packages/hexpm/makeup_elixir-1.0.1.tar",
+      "bytes": 30720,
+      "status": "available"
+    },
+    {
+      "name": "makeup_erlang",
+      "version": "1.1.0",
+      "inner_sha256": "835f7e60792e08824cda445639555d7bf1bbbddb1b60b306e33cb6f6db24dc74",
+      "archive_sha256": "1cd6780fb1dd1a03979abaed0fe82712b0625118fd5257d3ebbf73f960c73c3c",
+      "relative": "packages/hexpm/makeup_erlang-1.1.0.tar",
+      "bytes": 15360,
+      "status": "available"
+    },
+    {
+      "name": "mime",
+      "version": "2.0.7",
+      "inner_sha256": "b8d739037be7cd402aee1ba0306edfdef982687ee7e9859bee6198c1e7e2f128",
+      "archive_sha256": "6171188e399ee16023ffc5b76ce445eb6d9672e2e241d2df6050f3c771e80ccd",
+      "relative": "packages/hexpm/mime-2.0.7.tar",
+      "bytes": 9216,
+      "status": "available"
+    },
+    {
+      "name": "mint",
+      "version": "1.9.3",
+      "inner_sha256": "3337184d69179695c7a9f1714d92c11e629d36c8c037a21cf490131d3d150554",
+      "archive_sha256": "5f7c9342480c069dbbc4eeac3490303c9e01870ff01a7f1d29b6107054fc1e74",
+      "relative": "packages/hexpm/mint-1.9.3.tar",
+      "bytes": 84480,
+      "status": "available"
+    },
+    {
+      "name": "mix_audit",
+      "version": "2.1.5",
+      "inner_sha256": "c0f77cee6b4ef9d97e37772359a187a166c7a1e0e08b50edf5bf6959dfe5a016",
+      "archive_sha256": "87f9298e21da32f697af535475860dc1d3617a010e0b418d2ec6142bc8b42d69",
+      "relative": "packages/hexpm/mix_audit-2.1.5.tar",
+      "bytes": 14336,
+      "status": "available"
+    },
+    {
+      "name": "mox",
+      "version": "1.2.0",
+      "inner_sha256": "a2cd96b4b80a3883e3100a221e8adc1b98e4c3a332a8fc434c39526babafd5b3",
+      "archive_sha256": "c7b92b3cc69ee24a7eeeaf944cd7be22013c52fcb580c1f33f50845ec821089a",
+      "relative": "packages/hexpm/mox-1.2.0.tar",
+      "bytes": 17920,
+      "status": "available"
+    },
+    {
+      "name": "muontrap",
+      "version": "1.7.0",
+      "inner_sha256": "ff6eda43839194dc342b81e02e764fd75389a8ab166318548f3aaec374846600",
+      "archive_sha256": "7bd4a90ae008bf6a25554aa13497b2c05dfa1fcc34be5bdcb8fb4dec9b3422e3",
+      "relative": "packages/hexpm/muontrap-1.7.0.tar",
+      "bytes": 40448,
+      "status": "available"
+    },
+    {
+      "name": "mux",
+      "version": "3.2.2",
+      "inner_sha256": "3d5f86a173b646f4c675bf7cc817bb010a1fde4fdb3ecfdd56a374a039e8db58",
+      "archive_sha256": "103a8dd092066eae17b0116cac87fbbb9cf60574f88387bf030500503dc64be9",
+      "relative": "packages/hexpm/mux-3.2.2.tar",
+      "bytes": 27648,
+      "status": "available"
+    },
+    {
+      "name": "nimble_options",
+      "version": "1.1.1",
+      "inner_sha256": "e3a492d54d85fc3fd7c5baf411d9d2852922f66e69476317787a7b2bb000a61b",
+      "archive_sha256": "821b2470ca9442c4b6984882fe9bb0389371b8ddec4d45a9504f00a66f650b44",
+      "relative": "packages/hexpm/nimble_options-1.1.1.tar",
+      "bytes": 23040,
+      "status": "available"
+    },
+    {
+      "name": "nimble_ownership",
+      "version": "1.0.2",
+      "inner_sha256": "fa8a6f2d8c592ad4d79b2ca617473c6aefd5869abfa02563a77682038bf916cf",
+      "archive_sha256": "098af64e1f6f8609c6672127cfe9e9590a5d3fcdd82bc17a377b8692fd81a879",
+      "relative": "packages/hexpm/nimble_ownership-1.0.2.tar",
+      "bytes": 14336,
+      "status": "available"
+    },
+    {
+      "name": "nimble_parsec",
+      "version": "1.4.2",
+      "inner_sha256": "8efba0122db06df95bfaa78f791344a89352ba04baedd3849593bfce4d0dc1c6",
+      "archive_sha256": "4b21398942dda052b403bbe1da991ccd03a053668d147d53fb8c4e0efe09c973",
+      "relative": "packages/hexpm/nimble_parsec-1.4.2.tar",
+      "bytes": 33280,
+      "status": "available"
+    },
+    {
+      "name": "nimble_pool",
+      "version": "1.1.0",
+      "inner_sha256": "bf9c29fbdcba3564a8b800d1eeb5a3c58f36e1e11d7b7fb2e084a643f645f06b",
+      "archive_sha256": "af2e4e6b34197db81f7aad230c1118eac993acc0dae6bc83bac0126d4ae0813a",
+      "relative": "packages/hexpm/nimble_pool-1.1.0.tar",
+      "bytes": 18432,
+      "status": "available"
+    },
+    {
+      "name": "oban",
+      "version": "2.21.1",
+      "inner_sha256": "4b6af7b901ef9baca09e239b5a991ef2fa429cf5a13799bc429a131d610ff692",
+      "archive_sha256": "8162a160924cf4a25905fed2a9242e7787d88e320e3b5b0dcf324eb17c51c4e6",
+      "relative": "packages/hexpm/oban-2.21.1.tar",
+      "bytes": 110592,
+      "status": "available"
+    },
+    {
+      "name": "phoenix",
+      "version": "1.8.12",
+      "inner_sha256": "97409880ebdb4be1de1f2e4f5928d47bf0f4f23af7a5c257b4d597a36fe72845",
+      "archive_sha256": "e33bebd0d207a398952a3778e935040c7848ac677d038a1b3b0d9acb9b831537",
+      "relative": "packages/hexpm/phoenix-1.8.12.tar",
+      "bytes": 427520,
+      "status": "available"
+    },
+    {
+      "name": "phoenix_html",
+      "version": "4.3.0",
+      "inner_sha256": "d3577a5df4b6954cd7890c84d955c470b5310bb49647f0a114a6eeecc850f7ad",
+      "archive_sha256": "3eaa290a78bab0f075f791a46a981bbe769d94bc776869f4f3063a14f30497ad",
+      "relative": "packages/hexpm/phoenix_html-4.3.0.tar",
+      "bytes": 24064,
+      "status": "available"
+    },
+    {
+      "name": "phoenix_live_view",
+      "version": "1.2.10",
+      "inner_sha256": "eb4958045f71d4962373e9ed5967b592375a9dafc73f52997f3996759998a39d",
+      "archive_sha256": "bcf9d64846b770bc64b1a58dc40af406d80eb61b6e516f7aea4cc8cc15e0a1d9",
+      "relative": "packages/hexpm/phoenix_live_view-1.2.10.tar",
+      "bytes": 864768,
+      "status": "available"
+    },
+    {
+      "name": "phoenix_pubsub",
+      "version": "2.2.0",
+      "inner_sha256": "ff3a5616e1bed6804de7773b92cbccfc0b0f473faf1f63d7daf1206c7aeaaa6f",
+      "archive_sha256": "adc313a5bf7136039f63cfd9668fde73bba0765e0614cba80c06ac9460ff3e96",
+      "relative": "packages/hexpm/phoenix_pubsub-2.2.0.tar",
+      "bytes": 29696,
+      "status": "available"
+    },
+    {
+      "name": "phoenix_template",
+      "version": "1.0.4",
+      "inner_sha256": "e2092c132f3b5e5b2d49c96695342eb36d0ed514c5b252a77048d5969330d639",
+      "archive_sha256": "2c0c81f0e5c6753faf5cca2f229c9709919aba34fab866d3bc05060c9c444206",
+      "relative": "packages/hexpm/phoenix_template-1.0.4.tar",
+      "bytes": 12288,
+      "status": "available"
+    },
+    {
+      "name": "plug",
+      "version": "1.20.3",
+      "inner_sha256": "56c480c633ec2ce10140e236e15233bf576e1d323887d7c96711bd02ab5160db",
+      "archive_sha256": "be266aee1b8536ef6409d58cf39a3121319f0ec47cfa1b24024485aa0e76ad76",
+      "relative": "packages/hexpm/plug-1.20.3.tar",
+      "bytes": 157184,
+      "status": "available"
+    },
+    {
+      "name": "plug_cowboy",
+      "version": "2.9.0",
+      "inner_sha256": "87e21e0d9054ced99c36d128f49e3ea2cd8b745fffb97de50bff99706087af4f",
+      "archive_sha256": "2002bafba4f3a45b55a58e68d70211b153a7ed18d37edb1ceb6e96e7a92c422e",
+      "relative": "packages/hexpm/plug_cowboy-2.9.0.tar",
+      "bytes": 17920,
+      "status": "available"
+    },
+    {
+      "name": "plug_crypto",
+      "version": "2.2.0",
+      "inner_sha256": "144014737daaf485407f5ed77daeaad74d651b216a28c87543f8cc7043f8efc8",
+      "archive_sha256": "83a95744ab1c75876542b6fab135fcc176280e0f301a111c1f757fddcec95d2c",
+      "relative": "packages/hexpm/plug_crypto-2.2.0.tar",
+      "bytes": 14848,
+      "status": "available"
+    },
+    {
+      "name": "postgrex",
+      "version": "0.22.4",
+      "inner_sha256": "d271f595dfd25230b6398354e19d17bb5e2d20130fd2d9bdca7e15f125d43552",
+      "archive_sha256": "4aae45a2d60e35b04eea2602440be152fae332901f1fc7a60fc7cb7f0f9a9c5a",
+      "relative": "packages/hexpm/postgrex-0.22.4.tar",
+      "bytes": 101888,
+      "status": "available"
+    },
+    {
+      "name": "ranch",
+      "version": "1.8.1",
+      "inner_sha256": "208169e65292ac5d333d6cdbad49388c1ae198136e4697ae2f474697140f201c",
+      "archive_sha256": "aed58910f4e21deea992a67bf51632b6d60114895eb03bb392bb733064594dd0",
+      "relative": "packages/hexpm/ranch-1.8.1.tar",
+      "bytes": 67584,
+      "status": "available"
+    },
+    {
+      "name": "req",
+      "version": "0.7.3",
+      "inner_sha256": "b141f1b465dabc5fb8ce67bd2f15a85fc80f6c75719910699560e32ce49f62ef",
+      "archive_sha256": "73b303030dccc2b6d023ee5ada380825ab3a7cd3863aead493db09ec420ffdf2",
+      "relative": "packages/hexpm/req-0.7.3.tar",
+      "bytes": 94208,
+      "status": "available"
+    },
+    {
+      "name": "sweet_xml",
+      "version": "0.7.5",
+      "inner_sha256": "803a563113981aaac202a1dbd39771562d0ad31004ddbfc9b5090bdcd5605277",
+      "archive_sha256": "193b28a9b12891cae351d81a0cead165ffe67df1b73fe5866d10629f4faefb12",
+      "relative": "packages/hexpm/sweet_xml-0.7.5.tar",
+      "bytes": 19968,
+      "status": "available"
+    },
+    {
+      "name": "telemetry",
+      "version": "1.4.2",
+      "inner_sha256": "a0cb522801dffb1c49fe6e30561badffc7b6d0e180db1300df759faa22062855",
+      "archive_sha256": "928f6495066506077862c0d1646609eed891a4326bee3126ba54b60af61febb1",
+      "relative": "packages/hexpm/telemetry-1.4.2.tar",
+      "bytes": 21504,
+      "status": "available"
+    },
+    {
+      "name": "tesla",
+      "version": "1.21.2",
+      "inner_sha256": "71b3a8a000802fa82f0b87c22acbca1e8f6a03f23d727e01b66687111681debc",
+      "archive_sha256": "296bbafd1a328533c57e6b0e93078983cf40a827546e58a20464ce75485d5254",
+      "relative": "packages/hexpm/tesla-1.21.2.tar",
+      "bytes": 92672,
+      "status": "available"
+    },
+    {
+      "name": "vix",
+      "version": "0.38.0",
+      "inner_sha256": "77529ee4f6ced339c3d5f90a9eacf306f5b7109d3d1b5e3ef391a984ad404f75",
+      "archive_sha256": "dca58f654922fa678d5df8e028317483d9c0f8acb2e2714076a8468695687aa7",
+      "relative": "packages/hexpm/vix-0.38.0.tar",
+      "bytes": 73216,
+      "status": "available"
+    },
+    {
+      "name": "websock",
+      "version": "0.5.3",
+      "inner_sha256": "2f69a6ebe810328555b6fe5c831a851f485e303a7c8ce6c5f675abeb20ebdadc",
+      "archive_sha256": "6105453d7fac22c712ad66fab1d45abdf049868f253cf719b625151460b8b453",
+      "relative": "packages/hexpm/websock-0.5.3.tar",
+      "bytes": 9728,
+      "status": "available"
+    },
+    {
+      "name": "websock_adapter",
+      "version": "0.6.0",
+      "inner_sha256": "73db5ab8aaefd1a876a97ce3e6afc96562625de69ef17a4e04426e034849d0b8",
+      "archive_sha256": "50021a85bce8f203b086705d9e0c5415e2c7eb05d319111b0428fe71f9934617",
+      "relative": "packages/hexpm/websock_adapter-0.6.0.tar",
+      "bytes": 13312,
+      "status": "available"
+    },
+    {
+      "name": "yamerl",
+      "version": "0.10.0",
+      "inner_sha256": "4ff81fee2f1f6a46f1700c0d880b24d193ddb74bd14ef42cb0bcf46e81ef2f8e",
+      "archive_sha256": "346adb2963f1051dc837a2364e4acf6eb7d80097c0f53cbdc3046ec8ec4b4e6e",
+      "relative": "packages/hexpm/yamerl-0.10.0.tar",
+      "bytes": 61440,
+      "status": "available"
+    },
+    {
+      "name": "yaml_elixir",
+      "version": "2.12.2",
+      "inner_sha256": "9dd1330fb4cd9a36a7b0f502e5b12486eff632792ee4a5f0eba52a4d4ec32c9c",
+      "archive_sha256": "e7c1b10122f973e6558462d51c39026ba0e14afbc6745318e990ea82cfe9e159",
+      "relative": "packages/hexpm/yaml_elixir-2.12.2.tar",
+      "bytes": 10752,
+      "status": "available"
+    }
+  ],
+  "native": {
+    "vix": {
+      "filename": "vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "url": "https://github.com/akash-akya/vix/releases/download/v0.38.0/vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "sha256": "286faf9fa7b453de87520eac8d65b59b1aeedcc98b32897e8beb7f2772f2a2aa",
+      "path": "/private/tmp/rindle-phase133-129-inputs-i6VG4d/native/vix-nif-2.17-aarch64-apple-darwin-0.38.0.tar.gz",
+      "status": "available"
+    },
+    "lexbor": {
+      "pin": "244b84956a6dc7eec293781d051354f351274c46",
+      "path": "/private/tmp/rindle-phase133-129-inputs-i6VG4d/lexbor",
+      "status": "available",
+      "tree": "2e118403a70e01dfd434948c14d573238c1c88ce",
+      "files_sha256": "a2f48dfb5d35e1665523f5379a6c5cd7e4d0947b390648b2fc338fc37f2d9418"
+    },
+    "metadata_sha256": {
+      "vix": "97d6bedd9b681aa6ff6153c358a8f78f2d682e22bba3d6d099e5d5678f5530bc",
+      "checksum": "ae077442f0f52e52229feb76f1a4376c64c195e2fbf3be61ffae04f56a133187",
+      "lazy_html": "d45dc9bd5f9d79c9f8d5ea403924c710b13d5191e7e1a24d513c2b6efbc33dd1",
+      "makefile": "6cef74224c2855ec4b0ed916255397f02ffa9b08d3388ea34919839d2448721c"
+    }
+  },
+  "requirements": {
+    "ids": [
+      "EVID-01",
+      "EVID-02",
+      "EVID-03",
+      "EVID-04",
+      "TRUTH-08"
+    ],
+    "status": "pending"
+  },
+  "requirements_completed": [],
+  "qualification_credit": 0,
+  "child_commands": {
+    "mix": 0,
+    "network_fetch": 0,
+    "install": 0,
+    "qualification": 0,
+    "census": 0,
+    "nightly": 0,
+    "remote": 0
+  },
+  "command_scope": [
+    "mix deps.get --check-locked",
+    "focused JOSE preflight",
+    "mix ci",
+    "mix coveralls.multiple --type local --type json"
+  ],
+  "probe_commands": [
+    {
+      "argv": [
+        "asdf",
+        "current",
+        "erlang"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "current",
+        "elixir"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "where",
+        "erlang",
+        "27.3.4.15"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "where",
+        "elixir",
+        "1.17.3-otp-27"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "which",
+        "elixir"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "which",
+        "erl"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "asdf",
+        "which",
+        "mix"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "exit_code": 77,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/erlang/27.3.4.15/bin/erl",
+        "-noshell",
+        "-eval",
+        "io:format(\"~s|~s\", [erlang:system_info(otp_release), code:root_dir()]), halt()."
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "exit_code": 77,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-e",
+        "IO.write(Enum.join([System.version(), to_string(:erlang.system_info(:otp_release)), to_string(:erlang.system_info(:nif_version)), to_string(:erlang.system_info(:system_architecture))], \"|\"))"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "git",
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "git",
+        "ls-files"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "exit_code": 0,
+      "error": null
+    },
+    {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "exit_code": 77,
+      "error": null
+    }
+  ],
+  "report_sha256": "00915080f601b1e207089a9e287c686d8f7230b5325ad3faaf2ec630f2dba75d"
+}

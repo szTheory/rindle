@@ -505,6 +505,8 @@ jobs:
         # >= 6.0 gate in lib/rindle/av/probe.ex. Canonical repo path, used 4x in
         # ci.yml. See scripts/ci/install_ffmpeg.sh (CACHE-05, D-14).
         run: bash scripts/ci/install_ffmpeg.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install Hex and Rebar
         run: |

@@ -1,0 +1,10 @@
+{
+  "command": "node \"--test\" \"--test-reporter=tap\" \"--test-name-pattern=Plan 143 freezes an independent mux tuple without borrowing Plan 134 authority\" \"test/install_smoke/phase_133_registry_supply_test.mjs\"",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: Plan 143 freezes an independent mux tuple without borrowing Plan 134 authority\nnot ok 1 - Plan 143 freezes an independent mux tuple without borrowing Plan 134 authority\n  ---\n  duration_ms: 7.018166\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p142-1791568216-7790/test/install_smoke/phase_133_registry_supply_test.mjs:43:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    Plan 143 must freeze its own executable request tuple\n    + actual - expected\n    \n    + undefined\n    - 'frozen'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'frozen'\n  operator: 'strictEqual'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p142-1791568216-7790/test/install_smoke/phase_133_registry_supply_test.mjs:45:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 244.1305\n",
+  "targetTest": "Plan 143 freezes an independent mux tuple without borrowing Plan 134 authority",
+  "targetFile": "test/install_smoke/phase_133_registry_supply_test.mjs",
+  "expected": "frozen independent Plan 143 request tuple",
+  "actual": "undefined Plan 143 preflight",
+  "semanticAssessment": "Target executed and failed its planned frozen-status assertion because no Plan 143 constructor exists. No setup/import/discovery failure."
+}

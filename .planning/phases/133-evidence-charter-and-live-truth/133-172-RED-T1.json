@@ -1,0 +1,10 @@
+{
+  "command": "PHASE133_TEST_FILTER='Plan 170 supply mismatches report bounded nonsecret changed field paths' /Users/jon/.asdf/installs/nodejs/26.10.0/bin/node scripts/maintainer/phase_133_local_supply.test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\nnot ok 1 - Plan 170 supply mismatches report bounded nonsecret changed field paths\n  # AssertionError [ERR_ASSERTION]: Plan 170 supply verifier must expose bounded mismatch diagnosis\n  # + actual - expected\n  # \n  # + 'undefined'\n  # - 'function'\n  # \n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/scripts/maintainer/phase_133_local_supply.test.mjs:417:12\n  #     at file:///Users/jon/projects/rindle/.claude/worktrees/phase133-execution/scripts/maintainer/phase_133_local_supply.test.mjs:642:5\n1..1\n",
+  "targetTest": "Plan 170 supply mismatches report bounded nonsecret changed field paths",
+  "targetFile": "scripts/maintainer/phase_133_local_supply.test.mjs",
+  "expected": "a changed Plan 170 guard/runtime/signed-input report exposes bounded paths and nonsecret status values",
+  "actual": "the mismatch diagnosis API is absent and the target assertion fails",
+  "semanticAssessment": "The named TAP test ran and failed at the assertion that verify() must expose the planned mismatch diagnosis API; it did not fail from setup, parsing, or fixture execution."
+}

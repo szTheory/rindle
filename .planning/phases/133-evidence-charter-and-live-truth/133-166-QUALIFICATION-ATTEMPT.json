@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "plan": "133-166",
+  "status": "started",
+  "attempts": 1,
+  "source": {
+    "sha": "be48c6c2c8b97eef3ea9bd4328be3ffd14f49363",
+    "tree": "1b62c231fe7e96ea8e602d6001ef668e3019307c"
+  },
+  "preflight_sha256": "8e11f4baf0c6b63e30cbe7da556f3b3c477a475dce2df2c6ba51ffe59b78e20b",
+  "supply_sha256": "0160d53c4989e49059a1971443a2ecab530e8c17efcac75f54f6e57cacd7ca5a",
+  "authorization_sha256": "695d846c98909a3fbed56fd762e31f83e431682691c767183fd5ee61858d2a30",
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "report_sha256": "2f5040f41a872db7113e38a9e93b9d0aa3fc5bb196fe8b5d2b60e0a81ce7a184"
+}

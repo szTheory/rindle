@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "plan": "133-200",
+  "status": "preparation_only",
+  "source": {
+    "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+    "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+  },
+  "diagnostic_sha256": "c09dbd357821a31184eb99f7d3370530f8100270e15c877f1a84d3dc52104fe9",
+  "producer": {
+    "plan": "133-qualification-preflight",
+    "status": "ready",
+    "source": {
+      "sha": "f1ce532eac7d1bf866809643de5fd75393936114",
+      "tree": "c7fb233b5d273d2a1f105355769870f0d6333919"
+    },
+    "registry_closure_plan": "133-155",
+    "registry_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+    "required_names": 96,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "registry_cache_sha256": "35f5abd731719fdfa26122661c5f0836c67e25e886660cbdcead4e79dec09078",
+  "locked_archive_count": 67,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "private_stderr": {
+    "retained": true,
+    "audit_nonce": "04f77b142ce405ba61a199575104cc3f6ccd3c99",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "report_sha256": "9f5a0fbaed4dcfb94d6daa8c414f0d47e4b5d81119f831597d9f593bde12221b"
+}

@@ -1,0 +1,625 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_preflight_ci",
+  "status": "terminal_observed",
+  "qualification": "diagnostic_only",
+  "remote_action": "none",
+  "subject_sha": "f461b46433187a469b9525f6cdfb7933b3a364d9",
+  "subject_tree": "9c066d02e411c7ccef6953773742aef77a4406c0",
+  "worktree_id": "84ac5de5-6ea6-4ec6-af3c-448b3beb14b1",
+  "worktree": {
+    "detached": true,
+    "clean_start": true,
+    "initial_clean": true,
+    "final_clean": false,
+    "exact_subject": true,
+    "toolchain": {
+      "erlang": "27.3.4.15",
+      "elixir": "1.17.3",
+      "otp": "27"
+    }
+  },
+  "committed_blobs": {
+    "scripts/maintainer/phase_133_preflight_differential.sh": "9cba2c74411c349f254b21a8e9ebe461e1e6930e",
+    "scripts/maintainer/test_phase_133_preflight_differential.sh": "2e225d6f9755a60c74a6eef0b0e81a6ee0efad93"
+  },
+  "toolchain": {
+    "erlang": "27.3.4.15",
+    "elixir": "1.17.3",
+    "otp": "27"
+  },
+  "mix_process_environment": {
+    "mix_env": "test",
+    "mix_build_root": {
+      "classification": "worktree",
+      "path": "_build"
+    },
+    "mix_build_path": "unset",
+    "mix_deps_path": {
+      "classification": "worktree",
+      "path": "deps"
+    },
+    "hex_home": {
+      "classification": "worktree",
+      "path": ".hex"
+    }
+  },
+  "before_ci": {
+    "source_header": {
+      "type": "absent",
+      "exists": false,
+      "mode": null,
+      "link_category": "not_symlink",
+      "link_target_identity": null,
+      "lexical_target": {
+        "classification": "missing",
+        "path": null
+      },
+      "real_target": {
+        "classification": "missing",
+        "path": null
+      },
+      "readable": false,
+      "sha256": null,
+      "target_match": "none"
+    },
+    "staged_include": {
+      "type": "absent",
+      "exists": false,
+      "mode": null,
+      "link_category": "not_symlink",
+      "link_target_identity": null,
+      "lexical_target": {
+        "classification": "missing",
+        "path": null
+      },
+      "real_target": {
+        "classification": "missing",
+        "path": null
+      },
+      "readable": false,
+      "sha256": null,
+      "target_match": "none"
+    },
+    "staged_header": {
+      "type": "absent",
+      "exists": false,
+      "mode": null,
+      "link_category": "not_symlink",
+      "link_target_identity": null,
+      "lexical_target": {
+        "classification": "missing",
+        "path": null
+      },
+      "real_target": {
+        "classification": "missing",
+        "path": null
+      },
+      "readable": false,
+      "sha256": null,
+      "target_match": "none"
+    }
+  },
+  "after_ci": {
+    "source_header": {
+      "type": "file",
+      "exists": true,
+      "mode": "0644",
+      "link_category": "not_symlink",
+      "link_target_identity": null,
+      "lexical_target": {
+        "classification": "worktree",
+        "path": "deps/jose/include/jose_jwt.hrl"
+      },
+      "real_target": {
+        "classification": "worktree",
+        "path": "deps/jose/include/jose_jwt.hrl"
+      },
+      "readable": true,
+      "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+      "target_match": "not_symlink"
+    },
+    "staged_include": {
+      "type": "symlink",
+      "exists": true,
+      "mode": "0700",
+      "link_category": "relative_worktree",
+      "link_target_identity": {
+        "category": "relative_worktree",
+        "stable_sha256": "9413ebcd87315f14224f0df9a106ff6ca712f0383e71f167178b7c8e588f9b30"
+      },
+      "lexical_target": {
+        "classification": "worktree",
+        "path": "deps/jose/include"
+      },
+      "real_target": {
+        "classification": "worktree",
+        "path": "deps/jose/include"
+      },
+      "readable": true,
+      "sha256": null,
+      "target_match": "unmatched"
+    },
+    "staged_header": {
+      "type": "file",
+      "exists": true,
+      "mode": "0644",
+      "link_category": "not_symlink",
+      "link_target_identity": null,
+      "lexical_target": {
+        "classification": "worktree",
+        "path": "_build/test/lib/jose/include/jose_jwt.hrl"
+      },
+      "real_target": {
+        "classification": "worktree",
+        "path": "deps/jose/include/jose_jwt.hrl"
+      },
+      "readable": true,
+      "sha256": "eebde9a6693f67120e6aa5f6866c68d370e7411320a546eddb140421ddbfc56a",
+      "target_match": "not_symlink"
+    }
+  },
+  "historical_sha256": {
+    ".planning/phases/133-evidence-charter-and-live-truth/133-69-DIAGNOSTIC-FOLLOWUP.json": {
+      "status": "present",
+      "sha256": "879bee601a682a355e91441b6a1357138781604d806f75fcc5b38631b961a3d3"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-72-FORENSIC.json": {
+      "status": "present",
+      "sha256": "93d3521243a22eaa13157b6d3f0e6af75c86bbc8f6f42eee73892369aae6b682"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-72-DIAGNOSTIC-A.json": {
+      "status": "present",
+      "sha256": "569fb28ce9b02b018c81e3ceaf1b6e32a0248b2b50df1d585d7879866f3b387c"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-72-DIAGNOSTIC-B.json": {
+      "status": "present",
+      "sha256": "9ad5caa277c2c6a7dae638ddd1ded850bbe69b6fe02f392c9d00c7478b9e179e"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-73-DIAGNOSTIC-A.json": {
+      "status": "present",
+      "sha256": "23d6f37d864299bee5bbe73b844de36edd7244cb05e85f3411bb551c900c8fc5"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-73-DIAGNOSTIC-B.json": {
+      "status": "present",
+      "sha256": "f19e2d0f2900949afffe8d4f786aec074ced0a5b470cff12d6a3ee4df2169894"
+    },
+    ".planning/phases/133-evidence-charter-and-live-truth/133-73-SUMMARY.md": {
+      "status": "present",
+      "sha256": "867645a324485a0fde4f6400be371a61de29021b0debd25aa0e2a5f06ed975cf"
+    }
+  },
+  "canonical_receipt_sha256": "1cc607545ff6d4061931105a156a42549bb375efafe6418b054e7d33e18861a4",
+  "ci": {
+    "command": "mix ci",
+    "started": true,
+    "exit_code": 2,
+    "output": {
+      "sha256": "daec116c4b7943cd0c53bacc5ca89eb3382ac02f93fd93528f26dacb8dc2a2e1",
+      "original_bytes": 54943,
+      "sanitized_lines": [
+        "11:48:05.564 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+        "..........",
+        "11:48:05.580 [error] rindle.workers.cleanup_orphans.storage_not_found",
+        "11:48:05.580 [error] rindle.workers.cleanup_orphans.failed",
+        ".........",
+        "11:48:05.594 [warning] rindle.provider_asset.transition_failed",
+        ".................................",
+        "11:48:05.771 [warning] rindle.provider_asset.transition_failed",
+        "11:48:05.772 [warning] rindle.provider_asset.transition_failed",
+        ".......................",
+        "11:48:05.825 [warning] rindle.lifecycle_repair.requeue_variant_failed",
+        "..................................",
+        "11:48:06.589 [warning] rindle.workers.mux_ingest_variant.compensating_delete_failed",
+        "..........................................................",
+        "11:48:22.605 [warning] rindle.upload_maintenance.tus_abort_failed",
+        ".",
+        "11:48:22.606 [warning] rindle.upload_session.transition_failed",
+        "11:48:22.606 [warning] rindle.upload_maintenance.session_expiry_invalid_transition",
+        ".................................................Note: switching to 'f461b46433187a469b9525f6cdfb7933b3a364d9'.",
+        "You are in 'detached HEAD' state. You can look around, make experimental",
+        "changes and commit them, and you can discard any commits you make in this",
+        "state without impacting any branches by switching back to a branch.",
+        "If you want to create a new branch to retain commits you create, you may",
+        "do so (now or later) by using -c with the switch command. Example:",
+        "  git switch -c <new-branch-name>",
+        "Or undo this operation with:",
+        "  git switch -",
+        "Turn off this advice by setting config variable advice.detachedHead to false",
+        "...Note: switching to 'f461b46433187a469b9525f6cdfb7933b3a364d9'.",
+        "You are in 'detached HEAD' state. You can look around, make experimental",
+        "changes and commit them, and you can discard any commits you make in this",
+        "state without impacting any branches by switching back to a branch.",
+        "If you want to create a new branch to retain commits you create, you may",
+        "do so (now or later) by using -c with the switch command. Example:",
+        "  git switch -c <new-branch-name>",
+        "Or undo this operation with:",
+        "  git switch -",
+        "Turn off this advice by setting config variable advice.detachedHead to false",
+        "................Note: switching to 'f461b46433187a469b9525f6cdfb7933b3a364d9'.",
+        "You are in 'detached HEAD' state. You can look around, make experimental",
+        "changes and commit them, and you can discard any commits you make in this",
+        "state without impacting any branches by switching back to a branch.",
+        "If you want to create a new branch to retain commits you create, you may",
+        "do so (now or later) by using -c with the switch command. Example:",
+        "  git switch -c <new-branch-name>",
+        "Or undo this operation with:",
+        "  git switch -",
+        "Turn off this advice by setting config variable advice.detachedHead to false",
+        "....Note: switching to 'f461b46433187a469b9525f6cdfb7933b3a364d9'.",
+        "You are in 'detached HEAD' state. You can look around, make experimental",
+        "changes and commit them, and you can discard any commits you make in this",
+        "state without impacting any branches by switching back to a branch.",
+        "If you want to create a new branch to retain commits you create, you may",
+        "do so (now or later) by using -c with the switch command. Example:",
+        "  git switch -c <new-branch-name>",
+        "Or undo this operation with:",
+        "  git switch -",
+        "Turn off this advice by setting config variable advice.detachedHead to false",
+        "Note: switching to 'f461b46433187a469b9525f6cdfb7933b3a364d9'.",
+        "You are in 'detached HEAD' state. You can look around, make experimental",
+        "changes and commit them, and you can discard any commits you make in this",
+        "state without impacting any branches by switching back to a branch.",
+        "If you want to create a new branch to retain commits you create, you may",
+        "do so (now or later) by using -c with the switch command. Example:",
+        "  git switch -c <new-branch-name>",
+        "Or undo this operation with:",
+        "  git switch -",
+        "Turn off this advice by setting config variable advice.detachedHead to false",
+        ".........................",
+        "11:48:48.390 [info] rindle.workers.mux_sync_coordinator.completed",
+        "11:48:48.391 [info] rindle.workers.mux_sync_coordinator.completed",
+        ".........................................................................................................................................................................",
+        "11:49:28.452 [warning] Rindle.AV.Subprocess: MuonTrap closed its port at the command timeout; retrying the AV call once",
+        ".",
+        "11:49:28.713 [warning] Rindle.AV.Subprocess: MuonTrap worker exceeded its command timeout; retrying the AV call once",
+        "...",
+        "11:49:28.975 [warning] Rindle.AV.Subprocess: MuonTrap closed its port at the command timeout; retrying the AV call once",
+        ".......................",
+        "11:49:29.256 [warning] rindle.upload_maintenance.multipart_abort_failed",
+        "....",
+        "11:49:29.260 [warning] rindle.upload_maintenance.storage_adapter_missing",
+        "..........",
+        "11:49:29.268 [warning] rindle.upload_maintenance.object_delete_failed",
+        "........................................",
+        "11:55:27.098 [warning] rindle.metadata_backfill.asset_failed",
+        "..",
+        "11:55:27.101 [warning] rindle.metadata_backfill.asset_failed",
+        "..",
+        "11:55:27.106 [warning] rindle.metadata_backfill.asset_failed",
+        "11:55:27.106 [warning] rindle.metadata_backfill.asset_failed",
+        ".........",
+        "11:55:27.118 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+        "11:55:27.119 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+        "11:55:27.120 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+        "11:55:27.121 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+        "..",
+        "11:55:27.123 [warning] rindle.upload_session.transition_failed",
+        "...............*................",
+        "Finished in 1811.1 seconds (438.6s async, 1372.4s sync)",
+        "3 doctests, 1710 tests, 8 failures, 87 excluded, 4 skipped"
+      ]
+    },
+    "terminal_summary_status": "present",
+    "terminal_summary": {
+      "doctest_count": 3,
+      "test_count": 1710,
+      "failure_count": 8,
+      "excluded_count": 87,
+      "invalid_count": null,
+      "skipped_count": 4,
+      "line": "3 doctests, 1710 tests, 8 failures, 87 excluded, 4 skipped"
+    },
+    "all_summary_lines": [
+      {
+        "doctest_count": null,
+        "test_count": 97,
+        "failure_count": 0,
+        "excluded_count": null,
+        "invalid_count": null,
+        "skipped_count": null,
+        "line": "97 tests, 0 failures"
+      },
+      {
+        "doctest_count": 3,
+        "test_count": 1710,
+        "failure_count": 8,
+        "excluded_count": 87,
+        "invalid_count": null,
+        "skipped_count": 4,
+        "line": "3 doctests, 1710 tests, 8 failures, 87 excluded, 4 skipped"
+      }
+    ],
+    "nested_summaries": [
+      {
+        "doctest_count": null,
+        "test_count": 97,
+        "failure_count": 0,
+        "excluded_count": null,
+        "invalid_count": null,
+        "skipped_count": null,
+        "line": "97 tests, 0 failures"
+      }
+    ],
+    "failure_blocks": [
+      {
+        "test": "test no test/**/*.exs file reads an internal planning path at runtime (LOCK-05) (Rindle.PlanningPathHygieneTest)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "- test/install_smoke/phase_133_completed_validation_test.exs:373: requirements = File.read!(Path.join(@repo_root, \".planning/REQUIREMENTS.md\"))",
+          "- test/install_smoke/phase_133_completed_validation_test.exs:419: assert File.read!(Path.join(@repo_root, \".planning/REQUIREMENTS.md\")) =~",
+          "test/planning_path_hygiene_test.exs:66: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  1) test no test/**/*.exs file reads an internal planning path at runtime (LOCK-05) (Rindle.PlanningPathHygieneTest)",
+          "     test/planning_path_hygiene_test.exs:49",
+          "     Found 2 test file(s) that read an internal planning path at runtime via File.read!/File.exists?/Path.expand:",
+          "",
+          "       - test/install_smoke/phase_133_completed_validation_test.exs:373: requirements = File.read!(Path.join(@repo_root, \".planning/REQUIREMENTS.md\"))",
+          "       - test/install_smoke/phase_133_completed_validation_test.exs:419: assert File.read!(Path.join(@repo_root, \".planning/REQUIREMENTS.md\")) =~",
+          "",
+          "     Internal planning directories move when a milestone is archived (gsd-cleanup), so a runtime read of such a path breaks the merge-blocking quality lane for a non-shipped reason. Assert SHIPPED artifacts only (scripts/, test/, .github/).",
+          "",
+          "     code: assert offenders == [], failure_message(offenders)",
+          "     stacktrace:",
+          "       test/planning_path_hygiene_test.exs:66: (test)",
+          "",
+          ".......................................................................................................................................................................",
+          "11:25:19.067 [warning] rindle.asset.transition_failed",
+          "...........................................................................",
+          "11:25:19.768 [warning] rindle.variant_maintenance.mark_missing_invalid_transition",
+          ".........",
+          "11:25:19.838 [warning] rindle.variant_maintenance.mark_missing_invalid_transition",
+          "..........................................................................................",
+          "11:25:20.558 [warning] rindle.upload_session.transition_failed",
+          ".",
+          "11:25:20.558 [warning] rindle.upload_session.transition_failed",
+          ".",
+          "11:25:20.558 [warning] rindle.upload_session.transition_failed",
+          ".",
+          "11:25:20.558 [warning] rindle.upload_session.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.transition_failed",
+          ".",
+          "11:25:20.559 [warning] rindle.asset.quarantined",
+          "............................................................",
+          "11:25:20.800 [warning] rindle.provider_asset.transition_failed"
+        ],
+        "truncated": true
+      },
+      {
+        "test": "test accepts only a documented zero-credit Plan 66 local-gate halt (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:1218: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  2) test accepts only a documented zero-credit Plan 66 local-gate halt (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1215",
+          "     match (=) failed",
+          "     code:  assert {output, 0} = run_validator(fixture, [\"--fixture-expect-plan66-halted\"])",
+          "     left:  {output, 0}",
+          "     right: {\"[validate-phase-133-reconciliation] Plan 64 authority section ## Plan 64 Independent Code Review — Qualified Source is missing or duplicated\\n\",",
+          "             1}",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1218: (test)",
+          "",
+          "............",
+          ""
+        ],
+        "truncated": false
+      },
+      {
+        "test": "test rejects exhausted sources, requirement credit, and a Plan 66 handoff from Plan 65 (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1210: anonymous fn/2 in Rindle.InstallSmoke.Phase133Reconciliation42Test.\"test rejects exhausted sources, requirement credit, and a Plan 66 handoff from Plan 65\"/1",
+          "(elixir 1.17.3) lib/enum.ex:2531: Enum.\"-reduce/3-lists^foldl/2-0-\"/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1207: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  3) test rejects exhausted sources, requirement credit, and a Plan 66 handoff from Plan 65 (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1159",
+          "     Assertion with =~ failed",
+          "     code:  assert output =~ diagnostic",
+          "     left:  \"[validate-phase-133-reconciliation] Plan 64 authority section ## Plan 64 Independent Code Review — Qualified Source is missing or duplicated\\n\"",
+          "     right: \"Plan 65 source SHA must be fresh\"",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1210: anonymous fn/2 in Rindle.InstallSmoke.Phase133Reconciliation42Test.\"test rejects exhausted sources, requirement credit, and a Plan 66 handoff from Plan 65\"/1",
+          "       (elixir 1.17.3) lib/enum.ex:2531: Enum.\"-reduce/3-lists^foldl/2-0-\"/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1207: (test)",
+          "",
+          ".....",
+          ""
+        ],
+        "truncated": false
+      },
+      {
+        "test": "test accepts a committed source-only Plan 65 handoff with zero credit (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:1150: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  4) test accepts a committed source-only Plan 65 handoff with zero credit (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1147",
+          "     match (=) failed",
+          "     code:  assert {output, 0} = run_validator(fixture, [\"--fixture-expect-plan65-source\"])",
+          "     left:  {output, 0}",
+          "     right: {\"[validate-phase-133-reconciliation] Plan 64 authority section ## Plan 64 Independent Code Review — Qualified Source is missing or duplicated\\n\",",
+          "             1}",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1150: (test)",
+          "",
+          "..",
+          ""
+        ],
+        "truncated": false
+      },
+      {
+        "test": "test rejects a stale Plan 64 independent review section digest (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1062: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  5) test rejects a stale Plan 64 independent review section digest (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1051",
+          "     Assertion with =~ failed",
+          "     code:  assert output =~ diagnostic",
+          "     left:  \"[validate-phase-133-reconciliation] Plan 64 133-REVIEW.md historical prefix bytes differ\\n\"",
+          "     right: \"review section digest\"",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1062: (test)",
+          "",
+          ".............",
+          ""
+        ],
+        "truncated": false
+      },
+      {
+        "test": "test Plan 66 halted mode rejects post-gate evidence, candidate handoff, and credit (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1256: anonymous fn/2 in Rindle.InstallSmoke.Phase133Reconciliation42Test.\"test Plan 66 halted mode rejects post-gate evidence, candidate handoff, and credit\"/1",
+          "(elixir 1.17.3) lib/enum.ex:2531: Enum.\"-reduce/3-lists^foldl/2-0-\"/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1253: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  6) test Plan 66 halted mode rejects post-gate evidence, candidate handoff, and credit (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1224",
+          "     Assertion with =~ failed",
+          "     code:  assert output =~ diagnostic",
+          "     left:  \"[validate-phase-133-reconciliation] Plan 64 authority section ## Plan 64 Independent Code Review — Qualified Source is missing or duplicated\\n\"",
+          "     right: \"halted Plan 66 must not start coverage after failed CI\"",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1256: anonymous fn/2 in Rindle.InstallSmoke.Phase133Reconciliation42Test.\"test Plan 66 halted mode rejects post-gate evidence, candidate handoff, and credit\"/1",
+          "       (elixir 1.17.3) lib/enum.ex:2531: Enum.\"-reduce/3-lists^foldl/2-0-\"/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1253: (test)",
+          "",
+          "........",
+          ""
+        ],
+        "truncated": false
+      },
+      {
+        "test": "test accepts a fully bound Plan 64 repair-only fixture without requirement credit (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:1069: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  7) test accepts a fully bound Plan 64 repair-only fixture without requirement credit (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1066",
+          "     match (=) failed",
+          "     code:  assert {output, 0} = run_validator(fixture, [\"--fixture-expect-plan64-repair\"])",
+          "     left:  {output, 0}",
+          "     right: {\"[validate-phase-133-reconciliation] Plan 64 133-REVIEW.md historical prefix bytes differ\\n\",",
+          "             1}",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1069: (test)",
+          "",
+          "",
+          ""
+        ],
+        "truncated": false
+      },
+      {
+        "test": "test rejects duplicate authority fields after the section digest is recomputed (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+        "exception_class": null,
+        "normalized_message": null,
+        "stack_frames": [
+          "test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1099: anonymous fn/2 in Rindle.InstallSmoke.Phase133Reconciliation42Test.\"test rejects duplicate authority fields after the section digest is recomputed\"/1",
+          "(elixir 1.17.3) lib/enum.ex:2531: Enum.\"-reduce/3-lists^foldl/2-0-\"/3",
+          "test/install_smoke/phase_133_reconciliation_test.exs:1088: (test)"
+        ],
+        "complete": false,
+        "lines": [
+          "  8) test rejects duplicate authority fields after the section digest is recomputed (Rindle.InstallSmoke.Phase133Reconciliation42Test)",
+          "     test/install_smoke/phase_133_reconciliation_test.exs:1078",
+          "     Assertion with =~ failed",
+          "     code:  assert output =~ diagnostic",
+          "     left:  \"[validate-phase-133-reconciliation] Plan 64 133-REVIEW.md historical prefix bytes differ\\n\"",
+          "     right: \"duplicate authority fields\"",
+          "     stacktrace:",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:4037: Rindle.InstallSmoke.Phase133Reconciliation42Test.assert_invalid/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1099: anonymous fn/2 in Rindle.InstallSmoke.Phase133Reconciliation42Test.\"test rejects duplicate authority fields after the section digest is recomputed\"/1",
+          "       (elixir 1.17.3) lib/enum.ex:2531: Enum.\"-reduce/3-lists^foldl/2-0-\"/3",
+          "       test/install_smoke/phase_133_reconciliation_test.exs:1088: (test)",
+          "",
+          "...............................",
+          "11:32:35.000 [warning] rindle.tus.delete_backing_abort_failed",
+          ".......................................***......",
+          "11:32:35.047 [warning] rindle.upload_session.transition_failed",
+          ".................................................................",
+          "11:48:05.559 [error] rindle.workers.cleanup_orphans.storage_not_found",
+          "",
+          "11:48:05.559 [error] rindle.workers.cleanup_orphans.failed",
+          "..",
+          "11:48:05.564 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+          "..........",
+          "11:48:05.580 [error] rindle.workers.cleanup_orphans.storage_not_found",
+          "",
+          "11:48:05.580 [error] rindle.workers.cleanup_orphans.failed",
+          ".........",
+          "11:48:05.594 [warning] rindle.provider_asset.transition_failed",
+          ".................................",
+          "11:48:05.771 [warning] rindle.provider_asset.transition_failed",
+          "",
+          "11:48:05.772 [warning] rindle.provider_asset.transition_failed",
+          ".......................",
+          "11:48:05.825 [warning] rindle.lifecycle_repair.requeue_variant_failed",
+          "..................................",
+          "11:48:06.589 [warning] rindle.workers.mux_ingest_variant.compensating_delete_failed",
+          "..........................................................",
+          "11:48:22.605 [warning] rindle.upload_maintenance.tus_abort_failed",
+          ".",
+          "11:48:22.606 [warning] rindle.upload_session.transition_failed",
+          "",
+          "11:48:22.606 [warning] rindle.upload_maintenance.session_expiry_invalid_transition",
+          ".................................................Note: switching to 'f461b46433187a469b9525f6cdfb7933b3a364d9'.",
+          "",
+          "You are in 'detached HEAD' state. You can look around, make experimental"
+        ],
+        "truncated": true
+      }
+    ],
+    "doctor_fingerprint": null,
+    "plan73_doctor_fingerprint_match": false,
+    "raw_logs_removed_after_publication": true
+  },
+  "integrity_sha256": "938f921236150e53f2c86b77a202c79acfa2bc46905caa46b4be9368b627c2ec"
+}

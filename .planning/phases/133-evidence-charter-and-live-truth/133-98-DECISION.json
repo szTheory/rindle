@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "plan": "133-98",
+  "status": "stop",
+  "mode": "automatic_stop",
+  "reason": "Plan 97 route classification is unavailable: deps/vix/mix.exs: missing; deps/vix/checksum.exs: missing; deps/vix/c_src/Makefile: missing; deps/lazy_html/mix.exs: missing; deps/lazy_html/Makefile: missing; elixir identity probe failed: No version is set for command erl\nConsider adding one of the following versions in your config file at /Users/jon/projects/rindle/.claude/worktrees/agent-p133-97-1791330828644/.tool-versions; LazyHTML 0.1.12 metadata does not establish Lexbor pin 244b84956a6dc7eec293781d051354f351274c46; local runtime metadata is unavailable; Vix mix.exs, checksum.exs, or local runtime metadata is unavailable",
+  "execution_source_sha": "5a8e98ff1789a62cf0a0f48a6877056a826fbdf9",
+  "execution_source_tree": "fdedfaea8c2341abbe22ae5aed9c76f04e95aff9",
+  "scope_sha256": "c578555398d1f2aad24d91bdd206d43186273a6f70250ddd1741101e1808b487",
+  "preflight_sha256": "d058cd52c77e3451a46ce148bf9bb2d0ef9cfefa0b37589b5c821da7080c4da7",
+  "response": null,
+  "accepted_literal": null,
+  "requirement_credit": 0,
+  "report_sha256": "4b6fa9a157f4162240ed7891f44475c868754812b92d527c0f8412d88d57af1f"
+}

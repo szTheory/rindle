@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-reporter=tap --test-name-pattern='readiness publication refuses an existing Plan 134 mux authorization' test/install_smoke/phase_133_compatibility_bridge_141_test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: readiness publication refuses an existing Plan 134 mux authorization\nnot ok 1 - readiness publication refuses an existing Plan 134 mux authorization\n  ---\n  duration_ms: 778.771916\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p141-1791555694/test/install_smoke/phase_133_compatibility_bridge_141_test.mjs:146:1'\n  failureType: 'testCodeFailure'\n  error: 'Missing expected exception.'\n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected:\n  operator: 'throws'\n  stack: |-\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p141-1791555694/test/install_smoke/phase_133_compatibility_bridge_141_test.mjs:150:10)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 824.338042\n",
+  "targetTest": "readiness publication refuses an existing Plan 134 mux authorization",
+  "targetFile": "test/install_smoke/phase_133_compatibility_bridge_141_test.mjs",
+  "expected": "Readiness publication refuses to run when a Plan 134 mux authorization already exists.",
+  "actual": "The target assertion reports that publishReadiness did not throw when an authorization file existed.",
+  "semanticAssessment": "The copied-checkout fixture and production verifier execute successfully; the named target fails on the explicit missing authorization-boundary assertion, not on test setup or parsing."
+}

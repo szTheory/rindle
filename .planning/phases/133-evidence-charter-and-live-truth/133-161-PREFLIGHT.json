@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "plan": "133-161",
+  "status": "ready",
+  "source": {
+    "sha": "16fddcc4ee897baa5a454f592becbd2088e3ff85",
+    "tree": "bcce7fe4fc79d86f57099e69646ab5134c37cbca"
+  },
+  "registry_qualification_result": {
+    "plan": "133-qualification-preflight",
+    "status": "ready",
+    "source": {
+      "sha": "16fddcc4ee897baa5a454f592becbd2088e3ff85",
+      "tree": "bcce7fe4fc79d86f57099e69646ab5134c37cbca"
+    },
+    "registry_closure_plan": "133-155",
+    "registry_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+    "required_names": 96,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "registry_qualification_sha256": "a1fde6cb6b56827edecd4e90be0af17cb1162e2103c97e421f0df169abd53392",
+  "plan155_supply_sha256": "ff8e87783333dc672d3ef5cfda803deccd320fbed6772db109b983d8e11f21f5",
+  "plan155_route_sha256": "a616ed0320334a0d7f4030ea1fc7fd96d52fa22ff4f49173d1828762951556cf",
+  "supply_sha256": "cb47814c9533d61aa25237d17f650b4fcdc74d605881fdde529a30fea170ddad",
+  "registry_cache_sha256": "35f5abd731719fdfa26122661c5f0836c67e25e886660cbdcead4e79dec09078",
+  "lock_sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6",
+  "runtime": {
+    "elixir": "1.17.3",
+    "otp": "27",
+    "otp_patch": "27.3.4.15"
+  },
+  "command": [
+    "bash",
+    "scripts/maintainer/phase_133_local_gates.sh",
+    "--subject",
+    "16fddcc4ee897baa5a454f592becbd2088e3ff85",
+    "--plan",
+    "133-161",
+    "--offline-cache",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-161-SUPPLY.json",
+    "--output",
+    ".planning/phases/133-evidence-charter-and-live-truth/133-161-LOCAL-GATES.json"
+  ],
+  "requirements_pending": [
+    "EVID-01",
+    "EVID-02",
+    "EVID-03",
+    "EVID-04",
+    "TRUTH-08"
+  ],
+  "requirements_completed": [],
+  "flagged_edge_rows": [
+    {
+      "requirement": "EVID-01",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "adjacency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "empty",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "ordering",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-01",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-02",
+      "category": "unclassified",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "boundary",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-03",
+      "category": "precision",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "idempotency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "EVID-04",
+      "category": "concurrency",
+      "status": "unresolved"
+    },
+    {
+      "requirement": "TRUTH-08",
+      "category": "unclassified",
+      "status": "unresolved"
+    }
+  ],
+  "qualification_credit": 0,
+  "qualification_attempt_count": 0,
+  "network_request_count": 0,
+  "child_commands": {
+    "qualification": 0,
+    "network_fetch": 0,
+    "remote": 0
+  },
+  "report_sha256": "6b1e2c0e4e23c63e4208a6687f4fce8cddb66988c89dee4335554bab859407b2"
+}

@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "plan": "133-125",
+  "status": "available",
+  "recorded_at": "2026-10-08T12:51:48.898Z",
+  "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+  "branch": "worktree-agent-p125-1791463704",
+  "expected_base": "82f6e68ba6940f7d973003dc3fc49a2fe750ae14",
+  "command": [
+    "node",
+    "scripts/maintainer/phase_133_recovery.mjs",
+    "guard-diagnose",
+    "--actual-host"
+  ],
+  "escalation": {
+    "requested": true,
+    "result": "approved",
+    "exit_code": 0
+  },
+  "ordinary": {
+    "schema_version": 1,
+    "plan": "133-119",
+    "status": "unavailable",
+    "reason": "control_exit_nonzero",
+    "detail": "non-network control exited 71",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "host_context": {
+      "platform": "darwin",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "actual_host_requested": true
+    },
+    "current": {
+      "platform": "darwin",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "launcher": "/usr/bin/sandbox-exec",
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "control_exit": 71
+    },
+    "control": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "exit_code": 71,
+      "error": null,
+      "error_message": null,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "stdout_truncated": false,
+      "stderr": "sandbox-exec: sandbox_apply: Operation not permitted\n",
+      "stderr_bytes": 53,
+      "stderr_truncated": false
+    },
+    "loopback": null,
+    "plan114": {
+      "status": "tuple_mismatch",
+      "compared": [
+        "launcher",
+        "profile",
+        "profile_sha256",
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "missing": [],
+      "mismatches": [
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "context_mismatches": [
+        "cwd"
+      ],
+      "prior_control_exit": 0,
+      "current_control_exit": 71
+    },
+    "plan115": {
+      "status": "present",
+      "recorded_status": "guard_unavailable",
+      "reason": "network_guard_control_failed",
+      "detail": "non-network guard control did not start cleanly (exit 71)",
+      "control_exit_in_detail": 71,
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "platform": "darwin",
+      "actual_host_requested": true,
+      "fields_not_recorded": [
+        "control_argv",
+        "launcher",
+        "executable",
+        "cwd",
+        "control_stderr"
+      ]
+    },
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "escalated": {
+    "schema_version": 1,
+    "plan": "133-119",
+    "status": "available",
+    "reason": "positive_policy_denial_observed",
+    "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "profile": "(version 1) (allow default) (deny network*)",
+    "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+    "host_context": {
+      "platform": "darwin",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "actual_host_requested": true
+    },
+    "current": {
+      "platform": "darwin",
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "profile": "(version 1) (allow default) (deny network*)",
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "executable": "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+      "launcher": "/usr/bin/sandbox-exec",
+      "control_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "denied_child_argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "control_exit": 0
+    },
+    "control": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "process.exit(0)"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "exit_code": 0,
+      "error": null,
+      "error_message": null,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "stdout_truncated": false,
+      "stderr": "",
+      "stderr_bytes": 0,
+      "stderr_truncated": false
+    },
+    "loopback": {
+      "argv": [
+        "/usr/bin/sandbox-exec",
+        "-p",
+        "(version 1) (allow default) (deny network*)",
+        "/Users/jon/.asdf/installs/nodejs/20.18.1/bin/node",
+        "-e",
+        "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p125-1791463704",
+      "exit_code": 77,
+      "error": null,
+      "error_message": null,
+      "stdout": "",
+      "stdout_bytes": 0,
+      "stdout_truncated": false,
+      "stderr": "POLICY_DENIAL:EPERM\n",
+      "stderr_bytes": 20,
+      "stderr_truncated": false
+    },
+    "denial_witness": "EPERM",
+    "plan114": {
+      "status": "tuple_mismatch",
+      "compared": [
+        "launcher",
+        "profile",
+        "profile_sha256",
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "missing": [],
+      "mismatches": [
+        "executable",
+        "control_argv",
+        "denied_child_argv"
+      ],
+      "context_mismatches": [
+        "cwd"
+      ],
+      "prior_control_exit": 0,
+      "current_control_exit": 0
+    },
+    "plan115": {
+      "status": "present",
+      "recorded_status": "guard_unavailable",
+      "reason": "network_guard_control_failed",
+      "detail": "non-network guard control did not start cleanly (exit 71)",
+      "control_exit_in_detail": 71,
+      "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+      "platform": "darwin",
+      "actual_host_requested": true,
+      "fields_not_recorded": [
+        "control_argv",
+        "launcher",
+        "executable",
+        "cwd",
+        "control_stderr"
+      ]
+    },
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "child_commands": {
+    "mix": 0,
+    "native": 0,
+    "network_fetch": 0,
+    "qualification": 0
+  },
+  "qualification_credit": 0,
+  "requirements_completed": []
+}

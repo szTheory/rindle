@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-reporter=tap --test-name-pattern='portable verifier accepts immutable Plan 138 history from a copied checkout' test/install_smoke/phase_133_historical_138_139_test.mjs",
+  "exitCode": 1,
+  "output": "TAP version 13\n# Subtest: portable verifier accepts immutable Plan 138 history from a copied checkout\nnot ok 1 - portable verifier accepts immutable Plan 138 history from a copied checkout\n  ---\n  duration_ms: 49.375666\n  location: '/Users/jon/projects/rindle/.claude/worktrees/agent-p139-1791549852/test/install_smoke/phase_133_historical_138_139_test.mjs:66:1'\n  failureType: 'testCodeFailure'\n  error: |-\n    portable historical verifier must exist\n    + actual - expected\n    \n    + 'undefined'\n    - 'function'\n    \n  code: 'ERR_ASSERTION'\n  name: 'AssertionError'\n  expected: 'function'\n  actual: 'undefined'\n  operator: 'strictEqual'\n  stack: |-\n    verify (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p139-1791549852/test/install_smoke/phase_133_historical_138_139_test.mjs:21:10)\n    TestContext.<anonymous> (file:///Users/jon/projects/rindle/.claude/worktrees/agent-p139-1791549852/test/install_smoke/phase_133_historical_138_139_test.mjs:69:16)\n    Test.runInAsyncScope (node:async_hooks:211:14)\n    Test.run (node:internal/test_runner/test:979:25)\n    Test.start (node:internal/test_runner/test:877:17)\n    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 0\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 97.074875\n",
+  "targetTest": "portable verifier accepts immutable Plan 138 history from a copied checkout",
+  "targetFile": "test/install_smoke/phase_133_historical_138_139_test.mjs",
+  "expected": "A copied snapshot verifies as immutable halted Plan 138 history.",
+  "actual": "Assertion fails because the portable verifyHistorical function is absent.",
+  "semanticAssessment": "The copied fixture and Git objects were prepared successfully; the named test executed and failed on the explicit verifier entrypoint assertion before implementation. No fixture or import failure authorized GREEN."
+}

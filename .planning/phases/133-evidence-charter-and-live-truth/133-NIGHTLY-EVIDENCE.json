@@ -1,0 +1,883 @@
+{
+  "conclusion": "success",
+  "created_at": "2026-09-11T19:21:59Z",
+  "dialyzer": {
+    "cache_key": "plt-v3-Linux-X64-otpOTP-27.3.4.17-elixirv1.17.3-otp-27-6c351141945afd0267660d9e684048ac27092fe07215bcefe3a54f7d4db719ae",
+    "fresh": {
+      "analyses": 1,
+      "builds": 1,
+      "status": "pass"
+    },
+    "requested_elixir": "1.17",
+    "requested_otp": "27",
+    "resolved_elixir": "v1.17.3-otp-27",
+    "resolved_otp": "OTP-27.3.4.17",
+    "restored": {
+      "analyses": 1,
+      "status": "pass"
+    },
+    "stale_rebuilds": 0
+  },
+  "event": "workflow_dispatch",
+  "incident_snapshot_after": [
+    {
+      "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/32626146035\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+      "comments": [
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33166082285\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-08-28T11:14:58Z",
+          "id": "IC_kwDOSOrvxs8AAAABRPRNfw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5451828607",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "szTheory"
+          },
+          "authorAssociation": "OWNER",
+          "body": "Baseline verification: the targeted fix is now on `main` at `f2ecc92`, and an exact-head manual Nightly run completed green across Dialyzer and every compatibility lane: https://github.com/szTheory/rindle/actions/runs/33178174653. Keeping this issue open for the scheduled Nightly reporter to confirm and reconcile it on the next cron run.",
+          "createdAt": "2026-08-28T14:07:20Z",
+          "id": "IC_kwDOSOrvxs8AAAABRQ32ww",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5453510339",
+          "viewerDidAuthor": true
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33604173427\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-02T07:38:46Z",
+          "id": "IC_kwDOSOrvxs8AAAABSDFxwg",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5506167234",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33728680561\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-03T07:37:21Z",
+          "id": "IC_kwDOSOrvxs8AAAABSSc0sA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5522273456",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33849216884\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-04T07:37:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABSgxkOw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5537293371",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33952715177\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | failure |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-05T07:34:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABStMjkQ",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5550318481",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34019335239\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-06T07:34:30Z",
+          "id": "IC_kwDOSOrvxs8AAAABS0TRXA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5557768540",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34096671056\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-07T07:45:03Z",
+          "id": "IC_kwDOSOrvxs8AAAABS9OkRw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5567128647",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34199910757\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-08T07:38:18Z",
+          "id": "IC_kwDOSOrvxs8AAAABTKnmUA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5581170256",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34324448817\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-09T07:37:42Z",
+          "id": "IC_kwDOSOrvxs8AAAABTatnyA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5598046152",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34450521817\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-10T07:37:44Z",
+          "id": "IC_kwDOSOrvxs8AAAABTqzIkw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5614913683",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34574928855\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-11T07:37:59Z",
+          "id": "IC_kwDOSOrvxs8AAAABT6OyzA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5631095500",
+          "viewerDidAuthor": false
+        }
+      ],
+      "number": 88,
+      "title": "Nightly CI failure",
+      "updatedAt": "2026-09-11T07:37:59Z",
+      "url": "https://github.com/szTheory/rindle/issues/88"
+    }
+  ],
+  "incident_snapshot_before": [
+    {
+      "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/32626146035\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+      "comments": [
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33166082285\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-08-28T11:14:58Z",
+          "id": "IC_kwDOSOrvxs8AAAABRPRNfw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5451828607",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "szTheory"
+          },
+          "authorAssociation": "OWNER",
+          "body": "Baseline verification: the targeted fix is now on `main` at `f2ecc92`, and an exact-head manual Nightly run completed green across Dialyzer and every compatibility lane: https://github.com/szTheory/rindle/actions/runs/33178174653. Keeping this issue open for the scheduled Nightly reporter to confirm and reconcile it on the next cron run.",
+          "createdAt": "2026-08-28T14:07:20Z",
+          "id": "IC_kwDOSOrvxs8AAAABRQ32ww",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5453510339",
+          "viewerDidAuthor": true
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33604173427\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-02T07:38:46Z",
+          "id": "IC_kwDOSOrvxs8AAAABSDFxwg",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5506167234",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33728680561\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-03T07:37:21Z",
+          "id": "IC_kwDOSOrvxs8AAAABSSc0sA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5522273456",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33849216884\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-04T07:37:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABSgxkOw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5537293371",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/33952715177\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | failure |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-05T07:34:06Z",
+          "id": "IC_kwDOSOrvxs8AAAABStMjkQ",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5550318481",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34019335239\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-06T07:34:30Z",
+          "id": "IC_kwDOSOrvxs8AAAABS0TRXA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5557768540",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34096671056\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-07T07:45:03Z",
+          "id": "IC_kwDOSOrvxs8AAAABS9OkRw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5567128647",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34199910757\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-08T07:38:18Z",
+          "id": "IC_kwDOSOrvxs8AAAABTKnmUA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5581170256",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34324448817\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-09T07:37:42Z",
+          "id": "IC_kwDOSOrvxs8AAAABTatnyA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5598046152",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34450521817\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-10T07:37:44Z",
+          "id": "IC_kwDOSOrvxs8AAAABTqzIkw",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5614913683",
+          "viewerDidAuthor": false
+        },
+        {
+          "author": {
+            "login": "github-actions"
+          },
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "A scheduled nightly run failed: https://github.com/szTheory/rindle/actions/runs/34574928855\n\n| Job | Result |\n| --- | --- |\n| Compat Matrix | success |\n| Dialyzer | failure |\n| GCS Soak | success |\n| Package Consumer GCS Live | success |",
+          "createdAt": "2026-09-11T07:37:59Z",
+          "id": "IC_kwDOSOrvxs8AAAABT6OyzA",
+          "includesCreatedEdit": false,
+          "isMinimized": false,
+          "minimizedReason": "",
+          "reactionGroups": [],
+          "url": "https://github.com/szTheory/rindle/issues/88#issuecomment-5631095500",
+          "viewerDidAuthor": false
+        }
+      ],
+      "number": 88,
+      "title": "Nightly CI failure",
+      "updatedAt": "2026-09-11T07:37:59Z",
+      "url": "https://github.com/szTheory/rindle/issues/88"
+    }
+  ],
+  "jobs": [
+    {
+      "conclusion": "success",
+      "id": 103391958870,
+      "name": "Compat Matrix (1.15, 26)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958820,
+      "name": "Compat Matrix (1.16, 26)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958989,
+      "name": "Compat Matrix (1.17, 27)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958940,
+      "name": "Compat Matrix (1.18, 27)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958993,
+      "name": "Compat Matrix (1.18, 28)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958936,
+      "name": "Dialyzer",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958563,
+      "name": "GCS Soak (real bucket)",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "id": 103393759939,
+      "name": "Nightly Incident Lifecycle",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103393721300,
+      "name": "Nightly Summary",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "id": 103391958768,
+      "name": "Package Consumer GCS Live Proof",
+      "status": "completed"
+    },
+    {
+      "conclusion": "skipped",
+      "id": 103393758725,
+      "name": "Persist Nightly Incident Verdict",
+      "status": "completed"
+    }
+  ],
+  "local_authorities": {
+    "census": {
+      "ledger_blob": "519a359d09bcb0b31a0259b36145bccb1e1c2f8f",
+      "ledger_commit": "78a2b9403f202e70c3023a27a7b3e7d4760dd3d8",
+      "ledger_path": ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json",
+      "ledger_sha256": "21c03b1617f20157047f464b3b997f3427fae05087b1509a864d83edffdb3acd",
+      "receipt": {
+        "candidates_digest": "433d2a74d9d85b30145926790e1edd1cbe3ebe9026aeebedab179c7a5ddd27bd",
+        "dimensions": [
+          {
+            "applicable": true,
+            "detectors": [
+              "default-exunit"
+            ],
+            "id": "correctness"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "credo-quality"
+            ],
+            "id": "maintainability"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "mix-audit"
+            ],
+            "id": "security"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "pr-timing"
+            ],
+            "id": "performance"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "nightly-policy"
+            ],
+            "id": "reliability"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "supported-toolchain"
+            ],
+            "id": "compatibility"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "automation-first"
+            ],
+            "id": "testing"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "docs-accessibility"
+            ],
+            "id": "documentation/accessibility"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "package-consumer"
+            ],
+            "id": "packaging"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "workflow-topology"
+            ],
+            "id": "CI/CD"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "release-authority"
+            ],
+            "id": "release engineering"
+          },
+          {
+            "applicable": true,
+            "detectors": [
+              "repository-hygiene"
+            ],
+            "id": "repository hygiene"
+          }
+        ],
+        "dirty": false,
+        "inputs": [
+          {
+            "detector_id": "automation-first",
+            "path": "RUNNING.md",
+            "sha256": "d33f6a9c7251e34aeb0a1d57901efd3a8cb99a6821ba1770193d447de7112570"
+          },
+          {
+            "detector_id": "automation-first",
+            "path": "scripts/maintainer/automation_first_contract.sh",
+            "sha256": "07c4bab695510693625b486ad99edd60ff96cc4cde09f921b415f3e2759216b9"
+          },
+          {
+            "detector_id": "credo-quality",
+            "path": "scripts/maintainer/credo_complexity_baseline.json",
+            "sha256": "7f25bf3bd45317d00a243d19d168e98204cb47d021fa49b1052d86e431e001b2"
+          },
+          {
+            "detector_id": "credo-quality",
+            "path": "scripts/maintainer/credo_quality.sh",
+            "sha256": "ad9a7fea35ba021f352ad264adb7c874a9523570e13532abfc85d6bdd44775d4"
+          },
+          {
+            "detector_id": "default-exunit",
+            "path": "mix.exs",
+            "sha256": "daf7f76288d1c1b3895367fb7fb031c16fb26bdc3ba151462f9e591dbebf0ea8"
+          },
+          {
+            "detector_id": "docs-accessibility",
+            "path": "RUNNING.md",
+            "sha256": "d33f6a9c7251e34aeb0a1d57901efd3a8cb99a6821ba1770193d447de7112570"
+          },
+          {
+            "detector_id": "docs-accessibility",
+            "path": "scripts/maintainer/refactor_contract.sh",
+            "sha256": "e01d5af58ccde838a9015f92ac3520ede34457091ba1ca931f11c1f0b9e233ab"
+          },
+          {
+            "detector_id": "mix-audit",
+            "path": "mix.exs",
+            "sha256": "daf7f76288d1c1b3895367fb7fb031c16fb26bdc3ba151462f9e591dbebf0ea8"
+          },
+          {
+            "detector_id": "mix-audit",
+            "path": "mix.lock",
+            "sha256": "34401ca624a1a26810c5c812aecfaba13f573ece3dfd71bc4c2c76705718b9e6"
+          },
+          {
+            "detector_id": "nightly-policy",
+            "path": ".github/workflows/nightly.yml",
+            "sha256": "8447751a9c8186a838a1d1c4ba65cc911c18a5949dc9da1c89ca164171a1cd22"
+          },
+          {
+            "detector_id": "package-consumer",
+            "path": "mix.exs",
+            "sha256": "daf7f76288d1c1b3895367fb7fb031c16fb26bdc3ba151462f9e591dbebf0ea8"
+          },
+          {
+            "detector_id": "package-consumer",
+            "path": "test/install_smoke/package_metadata_test.exs",
+            "sha256": "906f37d4289b62e16c520c22403fb60c2e870bca154c7e430c6e53202fd9fe28"
+          },
+          {
+            "detector_id": "pr-timing",
+            "path": ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md",
+            "sha256": "969f9a381eaff849687f01494ddd02a25f78d63470d9364c42ce44c337103be5"
+          },
+          {
+            "detector_id": "release-authority",
+            "path": ".github/workflows/release.yml",
+            "sha256": "9ba620dfbf2cb3509bb10a286e64b0605f2a9a1171e534051935055c914d4b40"
+          },
+          {
+            "detector_id": "release-authority",
+            "path": ".release-please-manifest.json",
+            "sha256": "094710936b5604f1060ae1a321febe57f7fd1c9d806083f6c1f3a00d367c6642"
+          },
+          {
+            "detector_id": "release-authority",
+            "path": "mix.exs",
+            "sha256": "daf7f76288d1c1b3895367fb7fb031c16fb26bdc3ba151462f9e591dbebf0ea8"
+          },
+          {
+            "detector_id": "repository-hygiene",
+            "path": "scripts/maintainer/repo_hygiene_check.sh",
+            "sha256": "afaf138b1f40af28851efdc431a2fba1a35609ef0fa629f8fc6dc69cff57285c"
+          },
+          {
+            "detector_id": "supported-toolchain",
+            "path": ".github/workflows/nightly.yml",
+            "sha256": "8447751a9c8186a838a1d1c4ba65cc911c18a5949dc9da1c89ca164171a1cd22"
+          },
+          {
+            "detector_id": "supported-toolchain",
+            "path": ".tool-versions",
+            "sha256": "b9be8944df223dfbc8c733e4fd7192f110d2ba8e30c11ef32f1bc29c798b3d38"
+          },
+          {
+            "detector_id": "workflow-topology",
+            "path": ".github/workflows/ci.yml",
+            "sha256": "52d55b454941aa5641bf80f6dca21b92eff22c1d253e857e6c598faed62199c7"
+          },
+          {
+            "detector_id": "workflow-topology",
+            "path": ".github/workflows/nightly.yml",
+            "sha256": "8447751a9c8186a838a1d1c4ba65cc911c18a5949dc9da1c89ca164171a1cd22"
+          }
+        ],
+        "observations": [
+          {
+            "attributes": {
+              "authorization_only_checkpoint_count": 1,
+              "manual_acceptance_count": 0
+            },
+            "detector_id": "automation-first",
+            "dimension": "testing",
+            "id": "obs-automation-first-post-133",
+            "kind": "acceptance-policy",
+            "location": ".planning/phases/133-evidence-charter-and-live-truth/133-VALIDATION.md",
+            "signal": "automation-first phase contract",
+            "status": "pass"
+          },
+          {
+            "attributes": {
+              "phase_133_changed": false
+            },
+            "detector_id": "credo-quality",
+            "dimension": "maintainability",
+            "id": "obs-credo-quality-baseline",
+            "kind": "curated-quality-policy",
+            "location": "scripts/maintainer/credo_complexity_baseline.json",
+            "signal": "reviewed warning and complexity multiset",
+            "status": "retain-pass"
+          },
+          {
+            "attributes": {
+              "failure_count": 0,
+              "local_toolchain_only": true,
+              "skipped_count": 4,
+              "test_count": 1507
+            },
+            "detector_id": "default-exunit",
+            "dimension": "correctness",
+            "id": "obs-default-exunit-post-133",
+            "kind": "test-suite",
+            "location": "test",
+            "signal": "mix ci default suite",
+            "status": "pass"
+          },
+          {
+            "attributes": {
+              "admin_contrast_pair_count": 58,
+              "doctor_failed_module_count": 0
+            },
+            "detector_id": "docs-accessibility",
+            "dimension": "documentation/accessibility",
+            "id": "obs-docs-accessibility-post-133",
+            "kind": "documentation-and-accessibility-contract",
+            "location": "RUNNING.md",
+            "signal": "maintainer evidence semantics and generated accessibility gates",
+            "status": "pass"
+          },
+          {
+            "attributes": {
+              "dependency_disposition_deferred_to_phase_134": true,
+              "phase_133_changed": false
+            },
+            "detector_id": "mix-audit",
+            "dimension": "security",
+            "id": "obs-mix-audit-policy",
+            "kind": "dependency-policy",
+            "location": "mix.lock",
+            "signal": "repository dependency audit contract",
+            "status": "retain"
+          },
+          {
+            "attributes": {
+              "dispatch_case_count": 130,
+              "exact_run_live_proof": false,
+              "incident_case_count": 15,
+              "live_owner_plan": "133-22",
+              "summary_case_count": 49
+            },
+            "detector_id": "nightly-policy",
+            "dimension": "reliability",
+            "id": "obs-nightly-policy-post-133",
+            "kind": "strict-nightly-policy",
+            "location": ".github/workflows/nightly.yml",
+            "signal": "49-case aggregate, 15-case immutable incident replay, and 130-case dispatch contracts",
+            "status": "local-contract-pass-live-evidence-pending"
+          },
+          {
+            "attributes": {
+              "combined_smoke_lifecycle": true,
+              "package_authority_test_count": 9,
+              "prebuilt_fallback": false,
+              "repository_fallback": false,
+              "unpacked": true
+            },
+            "detector_id": "package-consumer",
+            "dimension": "packaging",
+            "id": "obs-package-consumer-post-133",
+            "kind": "built-package-provenance",
+            "location": "test/install_smoke/live_truth_parity_test.exs",
+            "signal": "exact-version generated consumer from one fresh unpacked-package smoke and lifecycle execution",
+            "status": "pass"
+          },
+          {
+            "attributes": {
+              "median_seconds": 453,
+              "p95_seconds": 481,
+              "phase_133_changed": false,
+              "sample_count": 10
+            },
+            "detector_id": "pr-timing",
+            "dimension": "performance",
+            "id": "obs-pr-timing-v125",
+            "kind": "accepted-performance-receipt",
+            "location": ".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md",
+            "signal": "ten comparable PR runs",
+            "status": "retain-pass"
+          },
+          {
+            "attributes": {
+              "authority_count": 2,
+              "exact_sha_release_coupling": true,
+              "version": "0.4.6"
+            },
+            "detector_id": "release-authority",
+            "dimension": "release engineering",
+            "id": "obs-release-authority-post-133",
+            "kind": "derived-release-truth",
+            "location": "mix.exs",
+            "signal": "matching release authorities and exact-SHA CI coupling",
+            "status": "pass"
+          },
+          {
+            "attributes": {
+              "caller_changes_excluded": true,
+              "phase_133_changed": false
+            },
+            "detector_id": "repository-hygiene",
+            "dimension": "repository hygiene",
+            "id": "obs-repository-hygiene",
+            "kind": "clean-subject-policy",
+            "location": "scripts/maintainer/repo_hygiene_check.sh",
+            "signal": "detached exact-subject hygiene gate",
+            "status": "retain-pending-detached-receipt"
+          },
+          {
+            "attributes": {
+              "dialyzer_case_count": 34,
+              "live_owner_plan": "133-22",
+              "local_elixir": "1.19.5",
+              "local_otp": "28",
+              "supported_cell_live_proof": false,
+              "supported_elixir": "1.17",
+              "supported_otp": "27"
+            },
+            "detector_id": "supported-toolchain",
+            "dimension": "compatibility",
+            "id": "obs-supported-toolchain-post-133",
+            "kind": "supported-cell-policy",
+            "location": ".github/workflows/nightly.yml",
+            "signal": "fresh/restored/stale-only Dialyzer contract",
+            "status": "local-contract-pass-live-evidence-pending"
+          },
+          {
+            "attributes": {
+              "full_adoption_e2e_merge_blocking": false,
+              "nightly_gating_job_count": 4,
+              "required_check_count": 1,
+              "smoke_adoption_e2e_merge_blocking": true
+            },
+            "detector_id": "workflow-topology",
+            "dimension": "CI/CD",
+            "id": "obs-workflow-topology-post-133",
+            "kind": "parsed-workflow-policy",
+            "location": ".github/workflows/nightly.yml",
+            "signal": "strict aggregate and immutable incident replay wiring with preserved CI identity",
+            "status": "pass"
+          }
+        ],
+        "schema_version": 1,
+        "source_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
+        "toolchain": {
+          "elixir": "1.19.5",
+          "otp": "28"
+        }
+      },
+      "status": "pass",
+      "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68"
+    },
+    "live_truth": {
+      "model_sha256": "37c5575e05185bce8b44a64eed08cf62fb5084518efcd3353b8b54588929c6e0",
+      "status": "pass",
+      "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68"
+    }
+  },
+  "preflight": {
+    "remote_ref": "phase-133-evidence-1470cf8cb0f1",
+    "repository": "szTheory/rindle",
+    "status": "pass",
+    "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
+    "workflow": "nightly.yml"
+  },
+  "remote_ref": "phase-133-evidence-1470cf8cb0f1",
+  "repository": "szTheory/rindle",
+  "run_attempt": 1,
+  "run_id": 34638437301,
+  "schema_version": 2,
+  "strict_verdict": {
+    "summary_job": "Nightly Summary",
+    "verdict": "green"
+  },
+  "subject_sha": "1470cf8cb0f111d0b233efbf77ee69e92f25fd68",
+  "workflow": "nightly.yml"
+}

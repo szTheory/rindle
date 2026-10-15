@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_doctor_diagnostic",
+  "status": "not_reproduced",
+  "subject_sha": "7a16f7736162917063a6822968dc49feac75b670",
+  "subject_tree": "7046df7a7b1953a399600f258a741170511c44dc",
+  "worktree_id": "fbbd797045f915293ac217ab054940c86dd4e167fdc25c46a6c50e6287e2fddb",
+  "toolchain": {
+    "elixir": "1.17.3",
+    "otp": "27"
+  },
+  "remote_action": "none",
+  "qualification": "diagnostic_only",
+  "commands": [
+    {
+      "name": "deps_get",
+      "command": "mix deps.get",
+      "exit_code": 0,
+      "terminal_summary": null,
+      "output": {
+        "lines": [],
+        "original_bytes": 6214,
+        "sha256": "cb0b612f5ea67534aa7fa3867a6d3d1c0e2a5cbd00512b98f7fa2e0e6246971e",
+        "truncated": true
+      }
+    },
+    {
+      "name": "focused_test",
+      "command": "mix test test/rindle/doctor_thresholds_test.exs --trace",
+      "exit_code": 0,
+      "terminal_summary": {
+        "doctest_count": null,
+        "test_count": 2,
+        "failure_count": 0
+      },
+      "output": {
+        "lines": [
+          "2 tests, 0 failures"
+        ],
+        "original_bytes": 7424,
+        "sha256": "24c3696e2904dce2cf84cb6b9e52e756dfbbcd9bce22a572ba1f21f03f8eedcf",
+        "truncated": true
+      }
+    },
+    {
+      "name": "full_test",
+      "command": "mix test --trace",
+      "exit_code": 1,
+      "terminal_summary": null,
+      "output": {
+        "lines": [
+          "  * test Branch 5: config drift between row and profile (WR-04) row playback_policy differs from streaming_config returns :provider_sync_failed and emits drift telemetry [L#361]\r  * test Branch 5: config drift between row and profile (WR-04) row playback_policy differs from streaming_config returns :provider_sync_failed and emits drift telemetry (2.7ms) [L#361]",
+          "  * test Branch 4: row state = errored returns :provider_sync_failed (no telemetry) [L#228]\r  * test Branch 4: row state = errored returns :provider_sync_failed (no telemetry) (2.5ms) [L#228]",
+          "  * test Branch 5: authorizer integration (CR-01 regression) authorizer rejection on :ready row returns {:error, :forbidden} and emits no telemetry [L#525]\r  * test Branch 5: authorizer integration (CR-01 regression) authorizer rejection on :ready row returns {:error, :forbidden} and emits no telemetry (2.7ms) [L#525]",
+          "  * test Branch 5: config drift between row and profile (WR-04) row ingest_mode differs from streaming_config returns :provider_sync_failed and emits drift telemetry [L#399]\r  * test Branch 5: config drift between row and profile (WR-04) row ingest_mode differs from streaming_config returns :provider_sync_failed and emits drift telemetry (2.2ms) [L#399]",
+          "  * test sign_url/1 fails if session is in invalid state [L#209]",
+          "11:03:00.128 [warning] rindle.upload_session.transition_failed",
+          "\r  * test sign_url/1 fails if session is in invalid state (3.0ms) [L#209]",
+          "  * test resumable upload lifecycle unsupported status and cancel calls return tagged resumable capability errors [L#692]\r  * test resumable upload lifecycle unsupported status and cancel calls return tagged resumable capability errors (2.2ms) [L#692]",
+          "  * test verify_completion/1 returns error if profile is unknown [L#258]\r  * test verify_completion/1 returns error if profile is unknown (4.1ms) [L#258]",
+          "  * test multipart upload lifecycle multipart on an unsupported adapter fails with a tagged capability error [L#485]\r  * test multipart upload lifecycle multipart on an unsupported adapter fails with a tagged capability error (1.0ms) [L#485]",
+          "  * test initialization capability validation and method guard init/1 raises ArgumentError when the adapter lacks :tus_upload (no silent downgrade) [L#178]\r  * test initialization capability validation and method guard init/1 raises ArgumentError when the adapter lacks :tus_upload (no silent downgrade) (1.3ms) [L#178]",
+          "  * test DELETE aborts the backing store before its state transition DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails (CR-01 Plug half) [L#640]",
+          "11:03:00.735 [warning] rindle.tus.delete_backing_abort_failed",
+          "\r  * test DELETE aborts the backing store before its state transition DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails (CR-01 Plug half) (4.6ms) [L#640]",
+          "  * test Phase 57 — Checksum & Defer Length PATCH rejects invalid sha256 checksum with 460 [L#945]\r  * test Phase 57 — Checksum & Defer Length PATCH rejects invalid sha256 checksum with 460 (3.9ms) [L#945]",
+          "  * test Phase 58 - Concatenation POST with Upload-Concat: final fails with invalid URL [L#1091]\r  * test Phase 58 - Concatenation POST with Upload-Concat: final fails with invalid URL (0.8ms) [L#1091]",
+          "  * test DELETE aborts the backing store before its state transition DELETE leaves failure_reason nil on a clean abort (no marker => never re-selected by the reaper) [L#659]\r  * test DELETE aborts the backing store before its state transition DELETE leaves failure_reason nil on a clean abort (no marker => never re-selected by the reaper) (5.7ms) [L#659]",
+          "  * test url/3 — signing-key dispatch (RESEARCH Q5 LOCKED) raises ArgumentError when signing_key: looks like a file path (Q5 LOCKED — file-path loading is adopter responsibility) [L#93]\r  * test url/3 — signing-key dispatch (RESEARCH Q5 LOCKED) raises ArgumentError when signing_key: looks like a file path (Q5 LOCKED — file-path loading is adopter responsibility) (0.04ms) [L#93]",
+          "  * test url/3 — signing-key dispatch (RESEARCH Q5 LOCKED) raises ArgumentError on bare PEM when :client_email is NOT configured (sad path) [L#106]\r  * test url/3 — signing-key dispatch (RESEARCH Q5 LOCKED) raises ArgumentError on bare PEM when :client_email is NOT configured (sad path) (59.4ms) [L#106]",
+          "  * test Rindle.Migration.move_public_to_rindle/1 preflight classifies marker-invalid, mixed, and already-upgraded states before mutation [L#211]\r  * test Rindle.Migration.move_public_to_rindle/1 preflight classifies marker-invalid, mixed, and already-upgraded states before mutation (95.8ms) [L#211]",
+          "  * test Rindle.Migration.move_public_to_rindle/1 does not translate a non-lock Postgrex error [L#452]\r  * test Rindle.Migration.move_public_to_rindle/1 does not translate a non-lock Postgrex error (31.1ms) [L#452]",
+          "  * test Rindle.Migration option validation rejects unknown options, invalid versions, and non-string prefixes [L#122]\r  * test Rindle.Migration option validation rejects unknown options, invalid versions, and non-string prefixes (0.5ms) [L#122]",
+          "  * test Variants/Jobs empty and error affordance copy remains stable [L#238]\r  * test Variants/Jobs empty and error affordance copy remains stable (17.4ms) [L#238]",
+          "  * test Runtime/Doctor renders doctor rows, runtime status, failed prerequisites, and links [L#249]\r  * test Runtime/Doctor renders doctor rows, runtime status, failed prerequisites, and links (150.0ms) [L#249]",
+          "  * test abort_incomplete_uploads/1 retries aborted resumable rows that retained their session URI after a prior cancel failure [L#183]\r  * test abort_incomplete_uploads/1 retries aborted resumable rows that retained their session URI after a prior cancel failure (4.2ms) [L#183]",
+          "  * test abort_incomplete_uploads/1 returns error tuple when repo raises [L#312]\r  * test abort_incomplete_uploads/1 returns error tuple when repo raises (1.4ms) [L#312]",
+          "11:03:02.766 [warning] rindle.upload_session.transition_failed",
+          "  * test abort_incomplete_uploads/1 maps resumable cancel failures to bounded failure reasons [L#143]",
+          "11:03:02.769 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+          "11:03:02.771 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+          "11:03:02.772 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+          "11:03:02.774 [warning] rindle.upload_maintenance.resumable_cancel_failed",
+          "\r  * test abort_incomplete_uploads/1 maps resumable cancel failures to bounded failure reasons (8.0ms) [L#143]",
+          "  * test upload_part_stream/5 + complete_part_stream/4 (TUS-06 Local, Plan 04) complete_part_stream/4 propagates an error when there is no part file [L#235]\r  * test upload_part_stream/5 + complete_part_stream/4 (TUS-06 Local, Plan 04) complete_part_stream/4 propagates an error when there is no part file (1.7ms) [L#235]",
+          "  * test cancel_upload/1 returns :ok on 404 (upload not found) [L#41]\r  * test cancel_upload/1 returns :ok on 404 (upload not found) (2.5ms) [L#41]",
+          "  * test Assets detail treats PubSub payloads as invalidation and re-queries [L#84]\r  * test Assets detail treats PubSub payloads as invalidation and re-queries (22.1ms) [L#84]",
+          "  * test Home/Status refreshes from the admin lifecycle invalidation topic [L#143]\r  * test Home/Status refreshes from the admin lifecycle invalidation topic (239.3ms) [L#143]",
+          "  * test run/2 errors when Rindle-owned schema catalog checks are incomplete [L#391]\r  * test run/2 errors when Rindle-owned schema catalog checks are incomplete (15.1ms) [L#391]",
+          "  * test run/2 redacts migration inspection failure names while preserving ownership checks [L#190]\r  * test run/2 redacts migration inspection failure names while preserving ownership checks (14.4ms) [L#190]",
+          "  * test run/2 errors when the host-owned oban_jobs table is not installed [L#436]\r  * test run/2 errors when the host-owned oban_jobs table is not installed (14.6ms) [L#436]"
+        ],
+        "original_bytes": 269794,
+        "sha256": "88720dde88c7d9acf6df5b5bd7b6da27fdb53f10fa98dc07b0146b24951d2559",
+        "truncated": true
+      }
+    }
+  ],
+  "terminal_summary": null,
+  "failure": null
+}

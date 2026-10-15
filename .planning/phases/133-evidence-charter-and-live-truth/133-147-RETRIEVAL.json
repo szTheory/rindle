@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "kind": "phase_133_mux_retrieval",
+  "plan": "133-147",
+  "status": "halted",
+  "preflight_sha256": "0c8cf767fe743816bb9b32262b4d105c0a2ca2a456847fb66663083e8d3a58e7",
+  "authorization_sha256": "b5bd8ef66c478380498915fda18f68a8642b989ef8c6732d867d6bd30aec4227",
+  "started_sha256": "b28ad5398c7013701397cc3c15d2bce4def1bc64b0b36c8096d5cf206ec96843",
+  "tuple": {
+    "method": "GET",
+    "url": "https://repo.hex.pm/packages/mux",
+    "repo": "hexpm",
+    "package": "mux",
+    "version": "3.2.2",
+    "ebin": "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+    "cache_key": [
+      "versions",
+      "hexpm",
+      "mux"
+    ],
+    "cache_destination": "/Users/jon/.hex/cache.ets",
+    "cache_baseline_sha256": "75eb38bfac8ca4c972538f138f76a0967463240c789e57145b082b987ed834a8",
+    "object": "/private/tmp/rindle-phase133-mux-147.signed.gz",
+    "route": {
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-pa",
+        "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+        "-e",
+        "\ndefmodule Phase147HTTP do\n  def request(:get, \"https://repo.hex.pm/packages/mux\" = url, headers, body, opts) do\n    if Process.get(:mux_requests, 0) != 0, do: raise(\"second request refused\")\n    Process.put(:mux_requests, 1)\n    IO.puts(\"MUX_REQUEST_STARTED\")\n    result = apply(:mix_hex_http_httpc, :request, [:get, url, headers, body, opts])\n    case result do\n      {:ok, {200, _, signed}} when byte_size(signed) <= 8_388_608 ->\n        File.write!(Process.get(:object_path), signed, [:exclusive])\n      _ -> :ok\n    end\n    result\n  end\nend\ndefmodule Phase147Route do\n  def request(:get, url, _headers, _body, _opts) do\n    Process.put(:observed_url, url)\n    {:error, :offline_route_probe}\n  end\nend\n[stage, preflight_path] = System.argv()\np = preflight_path |> File.read!() |> :json.decode()\nt = p[\"tuple\"]\notp = :erlang.system_info(:otp_release) |> to_string()\npatch = Path.join([to_string(:code.root_dir()), \"releases\", otp, \"OTP_VERSION\"]) |> File.read!() |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported runtime\")\n{:module, _} = Code.ensure_loaded(Hex.Registry.Server)\nbeam = :code.which(Hex.Registry.Server) |> to_string() |> Path.expand()\nunless beam == Path.join(t[\"ebin\"], \"Elixir.Hex.Registry.Server.beam\"), do: raise(\"foreign Hex BEAM\")\n:ok = Application.load(:hex)\n{:ok, hex} = :application.get_key(:hex, :vsn)\nunless to_string(hex) == \"2.5.1\", do: raise(\"wrong Hex version\")\n{:ok, _} = Application.ensure_all_started(:ssl)\n{:ok, _} = Application.ensure_all_started(:inets)\nconfig = apply(:mix_hex_core, :default_config, [])\nunless config.repo_url == \"https://repo.hex.pm\" and config.repo_name == \"hexpm\" and\n         config.repo_verify and config.repo_verify_origin, do: raise(\"unexpected Hex origin contract\")\nhash = fn data -> :crypto.hash(:sha256, data) |> Base.encode16(case: :lower) end\nresult = if stage == \"route\" do\n  {:error, :offline_route_probe} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: {Phase147Route, %{}}}, \"mux\"])\n  unless Process.get(:observed_url) == t[\"url\"], do: raise(\"observed request route differs\")\n  %{stage: stage, url: Process.get(:observed_url), network_request_count: 0, elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), public_key_sha256: hash.(config.repo_public_key)}\nelse\n  if System.get_env(\"HEX_OFFLINE\") != \"1\" or System.get_env(\"HEX_UNSAFE_REGISTRY\") != \"0\" or\n       System.get_env(\"HEX_NO_VERIFY_REPO_ORIGIN\") != \"0\", do: raise(\"unsafe environment\")\n  signed = if stage == \"request\" do\n    Process.put(:object_path, t[\"object\"])\n    tls = [verify: :verify_peer, cacerts: :public_key.cacerts_get(), depth: 3,\n      customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]]\n    adapter = {Phase147HTTP, %{http_options: [ssl: tls, autoredirect: false, timeout: 15_000, connect_timeout: 10_000]}}\n    {:ok, {200, _, _}} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: adapter}, \"mux\"])\n    File.read!(t[\"object\"])\n  else\n    File.read!(t[\"object\"])\n  end\n  {:ok, record} = apply(:mix_hex_registry, :unpack_package, [signed, \"hexpm\", \"mux\", config.repo_public_key])\n  unless record.repository == \"hexpm\" and record.name == \"mux\", do: raise(\"registry origin mismatch\")\n  [release] = Enum.filter(record.releases, &(&1.version == \"3.2.2\"))\n  inner = Base.encode16(release.inner_checksum, case: :lower)\n  outer = Base.encode16(release.outer_checksum, case: :lower)\n  unless inner == p[\"lock\"][\"inner_sha256\"] and outer == p[\"lock\"][\"outer_sha256\"], do: raise(\"lock mismatch\")\n  before = File.read!(t[\"cache_destination\"]) |> hash.()\n  Mix.start()\n  {:ok, _} = apply(Hex.State, :start_link, [[]])\n  apply(Hex.State, :put, [:repos, %{\"hexpm\" => apply(Hex.Repo, :default_hexpm_repo, [])}])\n  unless apply(Hex.State, :fetch!, [:offline]) and not apply(Hex.State, :fetch!, [:unsafe_registry]) and\n           not apply(Hex.State, :fetch!, [:no_verify_repo_origin]), do: raise(\"Hex safety state differs\")\n  {:ok, _} = apply(Hex.Registry.Server, :start_link, [[]])\n  :ok = apply(Hex.Registry.Server, :open, [[registry_path: t[\"cache_destination\"], check_version: false]])\n  if stage == \"request\" do\n    send(Hex.Registry.Server, {:get_package, \"hexpm\", \"mux\", {:ok, {200, %{}, record}}})\n    :ok = apply(Hex.Registry.Server, :persist, [])\n  end\n  :ok = apply(Hex.Registry.Server, :prefetch, [[{\"hexpm\", \"mux\"}]])\n  cached_inner = apply(Hex.Registry.Server, :inner_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  cached_outer = apply(Hex.Registry.Server, :outer_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  unless cached_inner == inner and cached_outer == outer, do: raise(\"offline cache mismatch\")\n  after_hash = File.read!(t[\"cache_destination\"]) |> hash.()\n  if stage == \"read\" and before != after_hash, do: raise(\"offline read modified cache\")\n  %{stage: stage, url: t[\"url\"], network_request_count: Process.get(:mux_requests, 0), elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), os_pid: System.pid(), signature_verified: true, origin_verified: true,\n    inner_sha256: inner, outer_sha256: outer, object_sha256: hash.(signed), public_key_sha256: hash.(config.repo_public_key),\n    cache_before: before, cache_sha256: after_hash, offline: true, persisted: stage == \"request\", restarted: stage == \"read\"}\nend\nIO.puts(\"MUX_PROOF \" <> (:json.encode(result) |> IO.iodata_to_binary()))\n",
+        "--",
+        "route",
+        "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412/.planning/phases/133-evidence-charter-and-live-truth/133-147-REGISTRY-PREFLIGHT.json"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin",
+        "HOME": "/Users/jon",
+        "HEX_HOME": "/Users/jon/.hex",
+        "HEX_OFFLINE": "1",
+        "HEX_UNSAFE_REGISTRY": "0",
+        "HEX_NO_VERIFY_REPO_ORIGIN": "0",
+        "MIX_ARCHIVES": "/private/tmp/rindle-phase133-no-global-archives",
+        "ERL_CRASH_DUMP": "/private/tmp/rindle-phase133-147-erl-crash.dump"
+      }
+    },
+    "request": {
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-pa",
+        "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+        "-e",
+        "\ndefmodule Phase147HTTP do\n  def request(:get, \"https://repo.hex.pm/packages/mux\" = url, headers, body, opts) do\n    if Process.get(:mux_requests, 0) != 0, do: raise(\"second request refused\")\n    Process.put(:mux_requests, 1)\n    IO.puts(\"MUX_REQUEST_STARTED\")\n    result = apply(:mix_hex_http_httpc, :request, [:get, url, headers, body, opts])\n    case result do\n      {:ok, {200, _, signed}} when byte_size(signed) <= 8_388_608 ->\n        File.write!(Process.get(:object_path), signed, [:exclusive])\n      _ -> :ok\n    end\n    result\n  end\nend\ndefmodule Phase147Route do\n  def request(:get, url, _headers, _body, _opts) do\n    Process.put(:observed_url, url)\n    {:error, :offline_route_probe}\n  end\nend\n[stage, preflight_path] = System.argv()\np = preflight_path |> File.read!() |> :json.decode()\nt = p[\"tuple\"]\notp = :erlang.system_info(:otp_release) |> to_string()\npatch = Path.join([to_string(:code.root_dir()), \"releases\", otp, \"OTP_VERSION\"]) |> File.read!() |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported runtime\")\n{:module, _} = Code.ensure_loaded(Hex.Registry.Server)\nbeam = :code.which(Hex.Registry.Server) |> to_string() |> Path.expand()\nunless beam == Path.join(t[\"ebin\"], \"Elixir.Hex.Registry.Server.beam\"), do: raise(\"foreign Hex BEAM\")\n:ok = Application.load(:hex)\n{:ok, hex} = :application.get_key(:hex, :vsn)\nunless to_string(hex) == \"2.5.1\", do: raise(\"wrong Hex version\")\n{:ok, _} = Application.ensure_all_started(:ssl)\n{:ok, _} = Application.ensure_all_started(:inets)\nconfig = apply(:mix_hex_core, :default_config, [])\nunless config.repo_url == \"https://repo.hex.pm\" and config.repo_name == \"hexpm\" and\n         config.repo_verify and config.repo_verify_origin, do: raise(\"unexpected Hex origin contract\")\nhash = fn data -> :crypto.hash(:sha256, data) |> Base.encode16(case: :lower) end\nresult = if stage == \"route\" do\n  {:error, :offline_route_probe} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: {Phase147Route, %{}}}, \"mux\"])\n  unless Process.get(:observed_url) == t[\"url\"], do: raise(\"observed request route differs\")\n  %{stage: stage, url: Process.get(:observed_url), network_request_count: 0, elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), public_key_sha256: hash.(config.repo_public_key)}\nelse\n  if System.get_env(\"HEX_OFFLINE\") != \"1\" or System.get_env(\"HEX_UNSAFE_REGISTRY\") != \"0\" or\n       System.get_env(\"HEX_NO_VERIFY_REPO_ORIGIN\") != \"0\", do: raise(\"unsafe environment\")\n  signed = if stage == \"request\" do\n    Process.put(:object_path, t[\"object\"])\n    tls = [verify: :verify_peer, cacerts: :public_key.cacerts_get(), depth: 3,\n      customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]]\n    adapter = {Phase147HTTP, %{http_options: [ssl: tls, autoredirect: false, timeout: 15_000, connect_timeout: 10_000]}}\n    {:ok, {200, _, _}} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: adapter}, \"mux\"])\n    File.read!(t[\"object\"])\n  else\n    File.read!(t[\"object\"])\n  end\n  {:ok, record} = apply(:mix_hex_registry, :unpack_package, [signed, \"hexpm\", \"mux\", config.repo_public_key])\n  unless record.repository == \"hexpm\" and record.name == \"mux\", do: raise(\"registry origin mismatch\")\n  [release] = Enum.filter(record.releases, &(&1.version == \"3.2.2\"))\n  inner = Base.encode16(release.inner_checksum, case: :lower)\n  outer = Base.encode16(release.outer_checksum, case: :lower)\n  unless inner == p[\"lock\"][\"inner_sha256\"] and outer == p[\"lock\"][\"outer_sha256\"], do: raise(\"lock mismatch\")\n  before = File.read!(t[\"cache_destination\"]) |> hash.()\n  Mix.start()\n  {:ok, _} = apply(Hex.State, :start_link, [[]])\n  apply(Hex.State, :put, [:repos, %{\"hexpm\" => apply(Hex.Repo, :default_hexpm_repo, [])}])\n  unless apply(Hex.State, :fetch!, [:offline]) and not apply(Hex.State, :fetch!, [:unsafe_registry]) and\n           not apply(Hex.State, :fetch!, [:no_verify_repo_origin]), do: raise(\"Hex safety state differs\")\n  {:ok, _} = apply(Hex.Registry.Server, :start_link, [[]])\n  :ok = apply(Hex.Registry.Server, :open, [[registry_path: t[\"cache_destination\"], check_version: false]])\n  if stage == \"request\" do\n    send(Hex.Registry.Server, {:get_package, \"hexpm\", \"mux\", {:ok, {200, %{}, record}}})\n    :ok = apply(Hex.Registry.Server, :persist, [])\n  end\n  :ok = apply(Hex.Registry.Server, :prefetch, [[{\"hexpm\", \"mux\"}]])\n  cached_inner = apply(Hex.Registry.Server, :inner_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  cached_outer = apply(Hex.Registry.Server, :outer_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  unless cached_inner == inner and cached_outer == outer, do: raise(\"offline cache mismatch\")\n  after_hash = File.read!(t[\"cache_destination\"]) |> hash.()\n  if stage == \"read\" and before != after_hash, do: raise(\"offline read modified cache\")\n  %{stage: stage, url: t[\"url\"], network_request_count: Process.get(:mux_requests, 0), elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), os_pid: System.pid(), signature_verified: true, origin_verified: true,\n    inner_sha256: inner, outer_sha256: outer, object_sha256: hash.(signed), public_key_sha256: hash.(config.repo_public_key),\n    cache_before: before, cache_sha256: after_hash, offline: true, persisted: stage == \"request\", restarted: stage == \"read\"}\nend\nIO.puts(\"MUX_PROOF \" <> (:json.encode(result) |> IO.iodata_to_binary()))\n",
+        "--",
+        "request",
+        "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412/.planning/phases/133-evidence-charter-and-live-truth/133-147-REGISTRY-PREFLIGHT.json"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin",
+        "HOME": "/Users/jon",
+        "HEX_HOME": "/Users/jon/.hex",
+        "HEX_OFFLINE": "1",
+        "HEX_UNSAFE_REGISTRY": "0",
+        "HEX_NO_VERIFY_REPO_ORIGIN": "0",
+        "MIX_ARCHIVES": "/private/tmp/rindle-phase133-no-global-archives",
+        "ERL_CRASH_DUMP": "/private/tmp/rindle-phase133-147-erl-crash.dump"
+      }
+    },
+    "read": {
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-pa",
+        "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+        "-e",
+        "\ndefmodule Phase147HTTP do\n  def request(:get, \"https://repo.hex.pm/packages/mux\" = url, headers, body, opts) do\n    if Process.get(:mux_requests, 0) != 0, do: raise(\"second request refused\")\n    Process.put(:mux_requests, 1)\n    IO.puts(\"MUX_REQUEST_STARTED\")\n    result = apply(:mix_hex_http_httpc, :request, [:get, url, headers, body, opts])\n    case result do\n      {:ok, {200, _, signed}} when byte_size(signed) <= 8_388_608 ->\n        File.write!(Process.get(:object_path), signed, [:exclusive])\n      _ -> :ok\n    end\n    result\n  end\nend\ndefmodule Phase147Route do\n  def request(:get, url, _headers, _body, _opts) do\n    Process.put(:observed_url, url)\n    {:error, :offline_route_probe}\n  end\nend\n[stage, preflight_path] = System.argv()\np = preflight_path |> File.read!() |> :json.decode()\nt = p[\"tuple\"]\notp = :erlang.system_info(:otp_release) |> to_string()\npatch = Path.join([to_string(:code.root_dir()), \"releases\", otp, \"OTP_VERSION\"]) |> File.read!() |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported runtime\")\n{:module, _} = Code.ensure_loaded(Hex.Registry.Server)\nbeam = :code.which(Hex.Registry.Server) |> to_string() |> Path.expand()\nunless beam == Path.join(t[\"ebin\"], \"Elixir.Hex.Registry.Server.beam\"), do: raise(\"foreign Hex BEAM\")\n:ok = Application.load(:hex)\n{:ok, hex} = :application.get_key(:hex, :vsn)\nunless to_string(hex) == \"2.5.1\", do: raise(\"wrong Hex version\")\n{:ok, _} = Application.ensure_all_started(:ssl)\n{:ok, _} = Application.ensure_all_started(:inets)\nconfig = apply(:mix_hex_core, :default_config, [])\nunless config.repo_url == \"https://repo.hex.pm\" and config.repo_name == \"hexpm\" and\n         config.repo_verify and config.repo_verify_origin, do: raise(\"unexpected Hex origin contract\")\nhash = fn data -> :crypto.hash(:sha256, data) |> Base.encode16(case: :lower) end\nresult = if stage == \"route\" do\n  {:error, :offline_route_probe} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: {Phase147Route, %{}}}, \"mux\"])\n  unless Process.get(:observed_url) == t[\"url\"], do: raise(\"observed request route differs\")\n  %{stage: stage, url: Process.get(:observed_url), network_request_count: 0, elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), public_key_sha256: hash.(config.repo_public_key)}\nelse\n  if System.get_env(\"HEX_OFFLINE\") != \"1\" or System.get_env(\"HEX_UNSAFE_REGISTRY\") != \"0\" or\n       System.get_env(\"HEX_NO_VERIFY_REPO_ORIGIN\") != \"0\", do: raise(\"unsafe environment\")\n  signed = if stage == \"request\" do\n    Process.put(:object_path, t[\"object\"])\n    tls = [verify: :verify_peer, cacerts: :public_key.cacerts_get(), depth: 3,\n      customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]]\n    adapter = {Phase147HTTP, %{http_options: [ssl: tls, autoredirect: false, timeout: 15_000, connect_timeout: 10_000]}}\n    {:ok, {200, _, _}} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: adapter}, \"mux\"])\n    File.read!(t[\"object\"])\n  else\n    File.read!(t[\"object\"])\n  end\n  {:ok, record} = apply(:mix_hex_registry, :unpack_package, [signed, \"hexpm\", \"mux\", config.repo_public_key])\n  unless record.repository == \"hexpm\" and record.name == \"mux\", do: raise(\"registry origin mismatch\")\n  [release] = Enum.filter(record.releases, &(&1.version == \"3.2.2\"))\n  inner = Base.encode16(release.inner_checksum, case: :lower)\n  outer = Base.encode16(release.outer_checksum, case: :lower)\n  unless inner == p[\"lock\"][\"inner_sha256\"] and outer == p[\"lock\"][\"outer_sha256\"], do: raise(\"lock mismatch\")\n  before = File.read!(t[\"cache_destination\"]) |> hash.()\n  Mix.start()\n  {:ok, _} = apply(Hex.State, :start_link, [[]])\n  apply(Hex.State, :put, [:repos, %{\"hexpm\" => apply(Hex.Repo, :default_hexpm_repo, [])}])\n  unless apply(Hex.State, :fetch!, [:offline]) and not apply(Hex.State, :fetch!, [:unsafe_registry]) and\n           not apply(Hex.State, :fetch!, [:no_verify_repo_origin]), do: raise(\"Hex safety state differs\")\n  {:ok, _} = apply(Hex.Registry.Server, :start_link, [[]])\n  :ok = apply(Hex.Registry.Server, :open, [[registry_path: t[\"cache_destination\"], check_version: false]])\n  if stage == \"request\" do\n    send(Hex.Registry.Server, {:get_package, \"hexpm\", \"mux\", {:ok, {200, %{}, record}}})\n    :ok = apply(Hex.Registry.Server, :persist, [])\n  end\n  :ok = apply(Hex.Registry.Server, :prefetch, [[{\"hexpm\", \"mux\"}]])\n  cached_inner = apply(Hex.Registry.Server, :inner_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  cached_outer = apply(Hex.Registry.Server, :outer_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  unless cached_inner == inner and cached_outer == outer, do: raise(\"offline cache mismatch\")\n  after_hash = File.read!(t[\"cache_destination\"]) |> hash.()\n  if stage == \"read\" and before != after_hash, do: raise(\"offline read modified cache\")\n  %{stage: stage, url: t[\"url\"], network_request_count: Process.get(:mux_requests, 0), elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), os_pid: System.pid(), signature_verified: true, origin_verified: true,\n    inner_sha256: inner, outer_sha256: outer, object_sha256: hash.(signed), public_key_sha256: hash.(config.repo_public_key),\n    cache_before: before, cache_sha256: after_hash, offline: true, persisted: stage == \"request\", restarted: stage == \"read\"}\nend\nIO.puts(\"MUX_PROOF \" <> (:json.encode(result) |> IO.iodata_to_binary()))\n",
+        "--",
+        "read",
+        "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412/.planning/phases/133-evidence-charter-and-live-truth/133-147-REGISTRY-PREFLIGHT.json"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin",
+        "HOME": "/Users/jon",
+        "HEX_HOME": "/Users/jon/.hex",
+        "HEX_OFFLINE": "1",
+        "HEX_UNSAFE_REGISTRY": "0",
+        "HEX_NO_VERIFY_REPO_ORIGIN": "0",
+        "MIX_ARCHIVES": "/private/tmp/rindle-phase133-no-global-archives",
+        "ERL_CRASH_DUMP": "/private/tmp/rindle-phase133-147-erl-crash.dump"
+      }
+    },
+    "maximum_requests": 1,
+    "offline_profile": "(version 1) (allow default) (deny network*)",
+    "request_profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\"))"
+  },
+  "children": [
+    {
+      "argv": [
+        "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin/elixir",
+        "-pa",
+        "/private/tmp/rindle-phase133-hex-v2.5.1-a43131c26aeca06064959297d737991163f5ac5d-build-p140/_build/lib/hex/ebin",
+        "-e",
+        "\ndefmodule Phase147HTTP do\n  def request(:get, \"https://repo.hex.pm/packages/mux\" = url, headers, body, opts) do\n    if Process.get(:mux_requests, 0) != 0, do: raise(\"second request refused\")\n    Process.put(:mux_requests, 1)\n    IO.puts(\"MUX_REQUEST_STARTED\")\n    result = apply(:mix_hex_http_httpc, :request, [:get, url, headers, body, opts])\n    case result do\n      {:ok, {200, _, signed}} when byte_size(signed) <= 8_388_608 ->\n        File.write!(Process.get(:object_path), signed, [:exclusive])\n      _ -> :ok\n    end\n    result\n  end\nend\ndefmodule Phase147Route do\n  def request(:get, url, _headers, _body, _opts) do\n    Process.put(:observed_url, url)\n    {:error, :offline_route_probe}\n  end\nend\n[stage, preflight_path] = System.argv()\np = preflight_path |> File.read!() |> :json.decode()\nt = p[\"tuple\"]\notp = :erlang.system_info(:otp_release) |> to_string()\npatch = Path.join([to_string(:code.root_dir()), \"releases\", otp, \"OTP_VERSION\"]) |> File.read!() |> String.trim()\nunless System.version() == \"1.17.3\" and patch == \"27.3.4.15\", do: raise(\"unsupported runtime\")\n{:module, _} = Code.ensure_loaded(Hex.Registry.Server)\nbeam = :code.which(Hex.Registry.Server) |> to_string() |> Path.expand()\nunless beam == Path.join(t[\"ebin\"], \"Elixir.Hex.Registry.Server.beam\"), do: raise(\"foreign Hex BEAM\")\n:ok = Application.load(:hex)\n{:ok, hex} = :application.get_key(:hex, :vsn)\nunless to_string(hex) == \"2.5.1\", do: raise(\"wrong Hex version\")\n{:ok, _} = Application.ensure_all_started(:ssl)\n{:ok, _} = Application.ensure_all_started(:inets)\nconfig = apply(:mix_hex_core, :default_config, [])\nunless config.repo_url == \"https://repo.hex.pm\" and config.repo_name == \"hexpm\" and\n         config.repo_verify and config.repo_verify_origin, do: raise(\"unexpected Hex origin contract\")\nhash = fn data -> :crypto.hash(:sha256, data) |> Base.encode16(case: :lower) end\nresult = if stage == \"route\" do\n  {:error, :offline_route_probe} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: {Phase147Route, %{}}}, \"mux\"])\n  unless Process.get(:observed_url) == t[\"url\"], do: raise(\"observed request route differs\")\n  %{stage: stage, url: Process.get(:observed_url), network_request_count: 0, elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), public_key_sha256: hash.(config.repo_public_key)}\nelse\n  if System.get_env(\"HEX_OFFLINE\") != \"1\" or System.get_env(\"HEX_UNSAFE_REGISTRY\") != \"0\" or\n       System.get_env(\"HEX_NO_VERIFY_REPO_ORIGIN\") != \"0\", do: raise(\"unsafe environment\")\n  signed = if stage == \"request\" do\n    Process.put(:object_path, t[\"object\"])\n    tls = [verify: :verify_peer, cacerts: :public_key.cacerts_get(), depth: 3,\n      customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]]\n    adapter = {Phase147HTTP, %{http_options: [ssl: tls, autoredirect: false, timeout: 15_000, connect_timeout: 10_000]}}\n    {:ok, {200, _, _}} = apply(:mix_hex_repo, :get_package, [%{config | http_adapter: adapter}, \"mux\"])\n    File.read!(t[\"object\"])\n  else\n    File.read!(t[\"object\"])\n  end\n  {:ok, record} = apply(:mix_hex_registry, :unpack_package, [signed, \"hexpm\", \"mux\", config.repo_public_key])\n  unless record.repository == \"hexpm\" and record.name == \"mux\", do: raise(\"registry origin mismatch\")\n  [release] = Enum.filter(record.releases, &(&1.version == \"3.2.2\"))\n  inner = Base.encode16(release.inner_checksum, case: :lower)\n  outer = Base.encode16(release.outer_checksum, case: :lower)\n  unless inner == p[\"lock\"][\"inner_sha256\"] and outer == p[\"lock\"][\"outer_sha256\"], do: raise(\"lock mismatch\")\n  before = File.read!(t[\"cache_destination\"]) |> hash.()\n  Mix.start()\n  {:ok, _} = apply(Hex.State, :start_link, [[]])\n  apply(Hex.State, :put, [:repos, %{\"hexpm\" => apply(Hex.Repo, :default_hexpm_repo, [])}])\n  unless apply(Hex.State, :fetch!, [:offline]) and not apply(Hex.State, :fetch!, [:unsafe_registry]) and\n           not apply(Hex.State, :fetch!, [:no_verify_repo_origin]), do: raise(\"Hex safety state differs\")\n  {:ok, _} = apply(Hex.Registry.Server, :start_link, [[]])\n  :ok = apply(Hex.Registry.Server, :open, [[registry_path: t[\"cache_destination\"], check_version: false]])\n  if stage == \"request\" do\n    send(Hex.Registry.Server, {:get_package, \"hexpm\", \"mux\", {:ok, {200, %{}, record}}})\n    :ok = apply(Hex.Registry.Server, :persist, [])\n  end\n  :ok = apply(Hex.Registry.Server, :prefetch, [[{\"hexpm\", \"mux\"}]])\n  cached_inner = apply(Hex.Registry.Server, :inner_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  cached_outer = apply(Hex.Registry.Server, :outer_checksum, [\"hexpm\", \"mux\", \"3.2.2\"]) |> Base.encode16(case: :lower)\n  unless cached_inner == inner and cached_outer == outer, do: raise(\"offline cache mismatch\")\n  after_hash = File.read!(t[\"cache_destination\"]) |> hash.()\n  if stage == \"read\" and before != after_hash, do: raise(\"offline read modified cache\")\n  %{stage: stage, url: t[\"url\"], network_request_count: Process.get(:mux_requests, 0), elixir: System.version(),\n    otp_patch: patch, hex: to_string(hex), os_pid: System.pid(), signature_verified: true, origin_verified: true,\n    inner_sha256: inner, outer_sha256: outer, object_sha256: hash.(signed), public_key_sha256: hash.(config.repo_public_key),\n    cache_before: before, cache_sha256: after_hash, offline: true, persisted: stage == \"request\", restarted: stage == \"read\"}\nend\nIO.puts(\"MUX_PROOF \" <> (:json.encode(result) |> IO.iodata_to_binary()))\n",
+        "--",
+        "request",
+        "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412/.planning/phases/133-evidence-charter-and-live-truth/133-147-REGISTRY-PREFLIGHT.json"
+      ],
+      "cwd": "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412",
+      "environment": {
+        "PATH": "/Users/jon/.asdf/installs/elixir/1.17.3-otp-27/bin:/Users/jon/.asdf/installs/erlang/27.3.4.15/bin:/usr/bin:/bin",
+        "HOME": "/Users/jon",
+        "HEX_HOME": "/Users/jon/.hex",
+        "HEX_OFFLINE": "1",
+        "HEX_UNSAFE_REGISTRY": "0",
+        "HEX_NO_VERIFY_REPO_ORIGIN": "0",
+        "MIX_ARCHIVES": "/private/tmp/rindle-phase133-no-global-archives",
+        "ERL_CRASH_DUMP": "/private/tmp/rindle-phase133-147-erl-crash.dump"
+      },
+      "stage": "request",
+      "exit_code": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "MUX_REQUEST_STARTED\n",
+      "stderr": "** (MatchError) no match of right hand side value: {:error, {:failed_connect, [{:to_address, {~c\"repo.hex.pm\", 443}}, {:inet, [:inet], :nxdomain}]}}\n    (stdlib 6.2.2.4) erl_eval.erl:667: :erl_eval.expr/6\n    nofile:53: (file)\n",
+      "stdout_sha256": "d5c46a13bf6a0ca6e443f5bfd471b3661364c8cf379359fa8a8f5049d3fa6da2",
+      "stderr_sha256": "ce6f884a88c44dd3844aad12dfdd09f7046141a949284ff37e382957c538d99e",
+      "guard": {
+        "status": "available",
+        "identity": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "profile": "(version 1) (allow default) (deny network*)",
+        "profile_sha256": "0a5222386587bf836d30a070bd759c0194f999bf5503ba76c6c0f8cb84b19db2",
+        "launcher": "/usr/bin/sandbox-exec",
+        "executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+        "host_context": {
+          "platform": "darwin",
+          "node_executable": "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node"
+        },
+        "control_argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "process.exit(0)"
+        ],
+        "control_exit": 0,
+        "denied_child_argv": [
+          "/usr/bin/sandbox-exec",
+          "-p",
+          "(version 1) (allow default) (deny network*)",
+          "/Users/jon/.asdf/installs/nodejs/22.14.0/bin/node",
+          "-e",
+          "const net=require(\"node:net\");const s=net.createServer();s.on(\"error\",e=>{const denied=e.code===\"EPERM\"||e.code===\"EACCES\";process.stderr.write((denied?\"POLICY_DENIAL:\":\"NON_POLICY_FAILURE:\")+String(e.code)+\"\\n\");process.exit(denied?77:78)});s.listen(0,\"127.0.0.1\",()=>{process.stderr.write(\"NETWORK_ALLOWED\\n\");s.close(()=>process.exit(0))});"
+        ],
+        "denied_child_exit": 77,
+        "denial_witness": "EPERM",
+        "denial_output": "POLICY_DENIAL:EPERM",
+        "probe": "loopback-listen",
+        "worktree_root": "/Users/jon/projects/rindle/.claude/worktrees/agent-p147-retry-20261010T121758-73412",
+        "request_profile": "(version 1) (allow default) (deny network*) (allow network-outbound (remote tcp \"*:443\")) (allow network-outbound (remote udp \"*:53\")) (allow network-outbound (remote tcp \"*:53\"))",
+        "request_control_exit": 0,
+        "request_denied_exit": 77
+      }
+    }
+  ],
+  "proofs": [],
+  "network_request_count": 1,
+  "qualification_credit": 0,
+  "requirements_completed": [],
+  "stop_reason": {
+    "stage": "request",
+    "detail": "child first red: request"
+  },
+  "report_sha256": "24ec14803b36914ed11c9a7314b6b4522c9158acf784d9e912f8e49674041d11"
+}

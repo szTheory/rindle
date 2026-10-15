@@ -1,0 +1,58 @@
+{
+  "plan": "133-115",
+  "answer": "authorize",
+  "preflight_sha256": "693e1865584a5bc286299c3fbe965f2659213763dcef1ed5b9bfa908d79ada97",
+  "source": {
+    "sha": "c1d12b18d0e07ac8b5c3a69a4fbd17d632f10509",
+    "tree": "30845f00aa1ffa3054614d36dddb9b7536762696"
+  },
+  "operation": {
+    "url": "https://github.com/lexbor/lexbor.git",
+    "commit": "244b84956a6dc7eec293781d051354f351274c46",
+    "destination": "/Users/jon/.hex/native/lexbor"
+  },
+  "checkpoint": {
+    "type": "decision",
+    "gate": "blocking-human",
+    "displayed_plan": "133-115",
+    "displayed_preflight_sha256": "693e1865584a5bc286299c3fbe965f2659213763dcef1ed5b9bfa908d79ada97",
+    "displayed_source_sha": "c1d12b18d0e07ac8b5c3a69a4fbd17d632f10509",
+    "displayed_source_tree": "30845f00aa1ffa3054614d36dddb9b7536762696",
+    "displayed_url": "https://github.com/lexbor/lexbor.git",
+    "displayed_commit": "244b84956a6dc7eec293781d051354f351274c46",
+    "displayed_destination": "/Users/jon/.hex/native/lexbor",
+    "response_text": "yeah i authorize that",
+    "selected_option": "authorize",
+    "response_context": "The user supplied this explicit one-time authorization for the displayed Plan 115 digest; the orchestrator continuation maps the affirmative response to the authorize option."
+  },
+  "attempt": 1,
+  "remote_action_count": 1,
+  "fetch_outcome": {
+    "invocation_count": 1,
+    "status": "halted_before_network",
+    "reason": "ENOENT",
+    "detail": "ENOENT: no such file or directory, lstat '/Users/jon/.hex/native'",
+    "git_clone_started": false,
+    "authenticated_commit": null,
+    "authenticated_tree": null,
+    "files_sha256": null,
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "post_attempt_prerequisites": {
+    "command": "node scripts/maintainer/phase_133_recovery.mjs verify-prerequisites --plan 133-115 --manifest .planning/phases/133-evidence-charter-and-live-truth/133-115-SUPPLY.json --report .planning/phases/133-evidence-charter-and-live-truth/133-115-PREFLIGHT.json",
+    "invocation_count": 1,
+    "exit_code": 1,
+    "status": "halted",
+    "reason": "ENOENT",
+    "detail": "ENOENT: no such file or directory, lstat '/Users/jon/projects/rindle/.claude/worktrees/agent-p115-1791416156/.planning/phases/133-evidence-charter-and-live-truth/133-115-SUPPLY.json'",
+    "preflight_status": "needs_authorization",
+    "guard_probe_status": "guard_unavailable",
+    "guard_reason": "network_guard_control_failed",
+    "guard_detail": "non-network guard control did not start cleanly (exit 71)",
+    "qualification_credit": 0,
+    "requirements_completed": []
+  },
+  "qualification_credit": 0,
+  "requirements_completed": []
+}
