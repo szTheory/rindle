@@ -649,11 +649,11 @@ Plans:
   3. Every reported advisory records its dependency path, supported-runtime reachability, fix version, and either verified resolution or a bounded exception with an executable expiry trigger.
   4. Each landed dependency risk group is independently attributable and passes supported-toolchain, public-contract, built-package consumer, and relevant twin gates before its remote disposition can close.
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 Plans:
 - [x] 134-01-PLAN.md — Read-only inbox collector (collect_inbox.sh) with fake-gh/mix tripwire harness (wave 1)
-- [ ] 134-02-PLAN.md — dep_landing_evidence.sh, hex.audit advisory step, MuonTrap-major ignore, action-pin test decoupling (wave 1)
+- [x] 134-02-PLAN.md — dep_landing_evidence.sh, hex.audit advisory step, MuonTrap-major ignore, action-pin test decoupling (wave 1)
 - [ ] 134-03-PLAN.md — Ledger validator, INBOX-LEDGER.json seed, triage pointer, ci-script-tests wiring (wave 2)
 - [ ] 134-04-PLAN.md — Baseline rerun, landing loop, batch A: tooling PR, #113, cowlib, mint, decimal (wave 3)
 - [ ] 134-05-PLAN.md — Batch B: #105, #108, #109, #112, adoption demo lock refresh (wave 4)
@@ -740,7 +740,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
-| 134. Dependency, Security, and Inbox Disposition | 1/6 | In Progress | - |
+| 134. Dependency, Security, and Inbox Disposition | 2/6 | In Progress | - |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
