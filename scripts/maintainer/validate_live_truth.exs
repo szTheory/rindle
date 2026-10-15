@@ -730,7 +730,7 @@ defmodule Rindle.ValidateLiveTruth do
 
       assert!(
         helper_exit == 0,
-        "package lifecycle rebuild failed: #{String.slice(output, 0, 500)}"
+        "package lifecycle rebuild failed (exit #{helper_exit}): #{String.slice(output, -2000, 2000)}"
       )
 
       proof_line =
