@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.8](https://github.com/szTheory/rindle/compare/rindle-v0.4.7...rindle-v0.4.8) (2026-10-15)
+
+
+### Bug Fixes
+
+* respond on the conn returned by read_body for Bandit 1.13 ([40e9cbf](https://github.com/szTheory/rindle/commit/40e9cbf3c5b1cc0db984617477b2e41a3c4b7aa3))
+
 ## [0.4.7](https://github.com/szTheory/rindle/compare/rindle-v0.4.6...rindle-v0.4.7) (2026-10-15)
 
 
