@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase 133 complete, ready to plan Phase 134
-last_updated: "2026-10-15T17:55:23.155Z"
-state_head: a28f0b20ec8a981f849d30bef704de880b6a7b82
+stopped_at: Completed 134-01-PLAN.md
+last_updated: "2026-10-15T18:06:47.348Z"
+state_head: 818399d9b4ba334b93840e020e3aa57b9b853e5f
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 184
-  completed_plans: 178
+  completed_plans: 179
 last_activity: 2026-10-15
-current_phase_name: Dependency, Security, and Inbox Disposition
 current_phase: 134
+current_phase_name: Dependency, Security, and Inbox Disposition
 current_plan: null
 last_activity_desc: Phase 133 verified passed (5/5 on scheduled Nightly 38699984093 at main 3858267b); next /gsd-plan-phase 134.
 ---
@@ -132,6 +132,7 @@ Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-tr
 | Phase 133 P165 | 19min | 2 tasks | 4 files |
 | Phase 133 P167 | 45min | 2 tasks | 4 files |
 | Phase 133 P176 | 19min | 2 tasks | 7 files |
+| Phase 134 P01 | 26 min | 3 tasks | 2 files |
 
 ## Decisions
 
@@ -157,11 +158,12 @@ Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-tr
 - [Phase 133]: Only the freshly verified guard.worktree_root is relocatable; every other report and guard field remains a comparison input.
 - [Phase 133]: Plan 165 is prerequisite repair only: retain all five Pending requirements, zero qualification credit, and Plan 163's immutable preauthorization halt.
 - [Phase 133]: Plan 167 repair is evidence-only; Plan 168 needs fresh source-bound preauthorization and its own exact-literal checkpoint. — Detached-staging and terminal-receipt repair grants no qualification authority or requirement credit.
+- [Phase 134]: 134-01: collect_inbox.sh guards mix.lock integrity with a cksum fingerprint and aborts the inventory if either lock changes
 
 ## Session
 
-**Last session:** 2026-10-13T15:46:48.277425+00:00
-**Stopped at:** Phase 133 complete, ready to plan Phase 134
+**Last session:** 2026-10-15T18:06:47.014Z
+**Stopped at:** Completed 134-01-PLAN.md
 **Resume file:** None
 
 ### Blockers
