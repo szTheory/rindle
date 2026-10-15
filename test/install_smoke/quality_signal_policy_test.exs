@@ -53,6 +53,20 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     assert step(workflow, "quality", "Credo (strict, advisory style)")["continue-on-error"]
   end
 
+  test "Quality runs mix hex.audit as an advisory step right after mix deps.audit", %{
+    workflow: workflow
+  } do
+    names = workflow |> steps("quality") |> Enum.map(&Map.get(&1, "name"))
+    hex_audit = step(workflow, "quality", "Audit Hex advisories (advisory)")
+
+    assert hex_audit["run"] == "mix hex.audit"
+    assert hex_audit["if"] == @canonical_lint_condition
+    assert hex_audit["continue-on-error"] == true
+
+    assert index_of(names, "Audit Hex advisories (advisory)") ==
+             index_of(names, "Audit dependencies (advisory)") + 1
+  end
+
   test "Contract carries deterministic contract tests and SAFE-01 without masking", %{
     workflow: workflow
   } do

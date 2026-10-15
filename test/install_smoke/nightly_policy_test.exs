@@ -106,6 +106,18 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     assert step(script_tests, "Nightly Summary gate logic")["run"] ==
              "bash scripts/ci/test_nightly_summary_gate.sh"
 
+    assert step(script_tests, "Inbox collector harness")["run"] ==
+             "bash scripts/ci/test_collect_inbox.sh"
+
+    assert step(script_tests, "Inbox ledger validator harness")["run"] ==
+             "bash scripts/ci/test_validate_inbox_ledger.sh"
+
+    assert step(script_tests, "Dependency landing evidence harness")["run"] ==
+             "bash scripts/ci/test_dep_landing_evidence.sh"
+
+    assert step(script_tests, "Inbox ledger shape (offline)")["run"] ==
+             "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json"
+
     assert workflow["name"] == "CI"
     assert summary["name"] == "CI Summary"
     assert summary["needs"] == @required_ci_needs
@@ -139,8 +151,7 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
 
     upload = step(producer, "Upload immutable Nightly verdict event")
 
-    assert upload["uses"] ==
-             "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+    assert_upload_artifact_pin!(upload["uses"])
 
     assert upload["with"]["name"] ==
              "nightly-incident-verdict-${{ github.run_id }}-${{ github.run_attempt }}"
@@ -209,8 +220,7 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
 
     checkpoint = step(lifecycle, "Upload authenticated Nightly replay checkpoint")
 
-    assert checkpoint["uses"] ==
-             "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+    assert_upload_artifact_pin!(checkpoint["uses"])
 
     assert checkpoint["with"]["name"] ==
              "nightly-incident-replay-checkpoint-${{ github.run_id }}-${{ github.run_attempt }}"
@@ -258,6 +268,21 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     assert Enum.count(workflow["jobs"], fn {_name, candidate} ->
              get_in(candidate, ["permissions", "issues"]) == "write"
            end) == 1
+  end
+
+  # D-134-08: never pin an action commit SHA literally in a test. The pin is derived
+  # from nightly.yml (both upload steps must agree) and checked only for its shape,
+  # so an actions-group bump changes no test.
+  defp assert_upload_artifact_pin!(uses) do
+    assert uses =~ ~r/^actions\/upload-artifact@[0-9a-f]{40}$/
+
+    pins =
+      ~r/uses:\s*(actions\/upload-artifact@[0-9a-f]{40})/
+      |> Regex.scan(File.read!(@nightly_path), capture: :all_but_first)
+      |> List.flatten()
+      |> Enum.uniq()
+
+    assert pins == [uses]
   end
 
   defp job(workflow, name), do: workflow |> Map.fetch!("jobs") |> Map.fetch!(name)

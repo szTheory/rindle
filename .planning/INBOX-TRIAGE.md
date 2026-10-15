@@ -1,28 +1,13 @@
-# Inbox Triage — 2026-08-28
+# Inbox Triage
 
-Repository posture: **demand-gated pause**. This pass classifies the live inbox against the
-green-main release train; it does not authorize a feature milestone.
+Superseded on 2026-10-15 by [`.planning/INBOX-LEDGER.json`](INBOX-LEDGER.json), the machine-checked
+disposition ledger (schema `rindle-inbox-ledger-v1`).
 
-## Pull requests
-
-| PR | Classification | Evidence | Disposition |
-|---|---|---|---|
-| [#93](https://github.com/szTheory/rindle/pull/93) Actions maintenance | Ready after refresh | Latest head has a green `CI Summary`; branch is behind `main`. The change only advances the already-pinned `actions/checkout` and `erlef/setup-beam` revisions. | Rebase after the baseline PR lands, require a fresh green `CI Summary`, then merge. |
-| [#95](https://github.com/szTheory/rindle/pull/95) MuonTrap 2.0 | Incompatible as proposed | Rindle passes v1-only `cgroup_controllers` and `cgroup_sets`; MuonTrap 2 replaces them with a v2 `cgroup` map. CI disables cgroups, so the green run does not exercise the breaking path. | Close with an explanatory comment. Re-open as a separately chartered cgroup-v2 migration only if demanded. |
-| [#98](https://github.com/szTheory/rindle/pull/98) mixed dependency group | Invalid batch | A group named `dev-dependencies` contains five runtime dependencies, including behavior-bearing Image, Oban, and ExAws upgrades. Its only failing lane is the existing automation-contract pipe race fixed by this baseline branch. | Close as superseded by the corrected Dependabot grouping; let runtime updates return as individual PRs. |
-
-## Issues
-
-| Issue | Classification | Evidence | Disposition |
-|---|---|---|---|
-| [#88](https://github.com/szTheory/rindle/issues/88) Nightly CI failure | Actionable, fix in flight | The latest Nightly failure is the unreachable GCS CORS decode branch reported by Dialyzer. The baseline branch removes that branch and focused GCS tests pass. | Keep open until the baseline PR merges and an exact-head Nightly run is green; allow the Nightly reporter to close/update it. |
-| [#42](https://github.com/szTheory/rindle/issues/42) rare async-isolation race | Valid, evidence-gated | The last finite matrix stopped after one run because of an unrelated automation-contract pipe failure, so it did not produce the evidence required to close or broaden the issue. | Keep open at its narrowed boundary. Re-run only when a bounded reliability signal authorizes it; do not turn it into a speculative milestone. |
-
-## Repository follow-through
-
-- `.github/dependabot.yml` now limits the Mix group to `dependency-type: development`, with a
-  regression test locking the policy.
-- The missing `dependencies` and `ci` labels should be created so Dependabot can apply the labels
-  already declared in repository configuration.
-- No roadmap candidate is promoted. LIFE-06 and STREAM-10 remain signal-gated; the current release
-  anchor derives from `mix.exs` and `.release-please-manifest.json`.
+- Dispositions, advisory records, source records and landing records live only in the ledger.
+- `scripts/maintainer/collect_inbox.sh` collects a fresh read-only inventory of open issues, PRs and
+  advisory sources; `scripts/maintainer/validate_inbox_ledger.sh --inventory FILE --ledger
+  .planning/INBOX-LEDGER.json` accepts the ledger only when every open item has exactly one
+  disposition and every advisory finding is accounted for.
+- `validate_inbox_ledger.sh --offline` checks shape only and runs in the merge-blocking
+  `ci-script-tests` job; live and clock-dependent validation runs from a maintainer machine.
+- The 2026-08-28 triage table is kept in git history.

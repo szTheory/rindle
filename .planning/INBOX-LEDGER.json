@@ -1,0 +1,413 @@
+{
+  "advisories": [
+    {
+      "fix_version": "2.20.0",
+      "id": "EEF-CVE-2026-43971",
+      "locked": "2.19.0",
+      "package": "cowlib",
+      "path": [
+        "bypass",
+        "plug_cowboy",
+        "cowboy",
+        "cowlib"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": null,
+      "id": "EEF-CVE-2026-43966",
+      "locked": "2.19.0",
+      "package": "cowlib",
+      "path": [
+        "bypass",
+        "plug_cowboy",
+        "cowboy",
+        "cowlib"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "2.21.0",
+      "id": "EEF-CVE-2026-43969",
+      "locked": "2.19.0",
+      "package": "cowlib",
+      "path": [
+        "bypass",
+        "plug_cowboy",
+        "cowboy",
+        "cowlib"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.0",
+      "id": "EEF-CVE-2026-82729",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "finch",
+        "mint"
+      ],
+      "reachability": "optional-dep",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.1",
+      "id": "EEF-CVE-2026-82672",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "finch",
+        "mint"
+      ],
+      "reachability": "optional-dep",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.2",
+      "id": "EEF-CVE-2026-91043",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "finch",
+        "mint"
+      ],
+      "reachability": "optional-dep",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.2",
+      "id": "EEF-CVE-2026-92103",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "finch",
+        "mint"
+      ],
+      "reachability": "optional-dep",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.2",
+      "id": "EEF-CVE-2026-94194",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "finch",
+        "mint"
+      ],
+      "reachability": "optional-dep",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.0",
+      "id": "EEF-CVE-2026-82728",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "finch",
+        "mint"
+      ],
+      "reachability": "optional-dep",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "3.1.2",
+      "id": "EEF-CVE-2026-97853",
+      "locked": "3.1.1",
+      "package": "decimal",
+      "path": [
+        "ecto_sql",
+        "ecto",
+        "decimal"
+      ],
+      "reachability": "runtime",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "0.1.13",
+      "id": "EEF-CVE-2026-92106",
+      "locked": "0.1.12",
+      "package": "lazy_html",
+      "path": [
+        "lazy_html"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "root",
+      "status": "open"
+    },
+    {
+      "fix_version": "0.1.13",
+      "id": "EEF-CVE-2026-92106",
+      "locked": "0.1.12",
+      "package": "lazy_html",
+      "path": [
+        "lazy_html"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.0",
+      "id": "EEF-CVE-2026-82729",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "req",
+        "finch",
+        "mint"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.1",
+      "id": "EEF-CVE-2026-82672",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "req",
+        "finch",
+        "mint"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.2",
+      "id": "EEF-CVE-2026-91043",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "req",
+        "finch",
+        "mint"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.2",
+      "id": "EEF-CVE-2026-92103",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "req",
+        "finch",
+        "mint"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.2",
+      "id": "EEF-CVE-2026-94194",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "req",
+        "finch",
+        "mint"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "1.10.0",
+      "id": "EEF-CVE-2026-82728",
+      "locked": "1.9.3",
+      "package": "mint",
+      "path": [
+        "req",
+        "finch",
+        "mint"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": "3.1.2",
+      "id": "EEF-CVE-2026-97853",
+      "locked": "3.1.1",
+      "package": "decimal",
+      "path": [
+        "ecto_sql",
+        "ecto",
+        "decimal"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    },
+    {
+      "fix_version": null,
+      "id": "EEF-CVE-2026-105659",
+      "locked": "1.12.5",
+      "package": "bandit",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "open"
+    }
+  ],
+  "items": [
+    {
+      "disposition": "retain",
+      "kind": "issue",
+      "number": 42,
+      "rationale": "evidence-gated; owned by TEST-08 (Phase 136)"
+    },
+    {
+      "disposition": "close",
+      "head_sha": "d76291a2f8d537a7fe42186bd1296ddf514b2c60",
+      "ignore_policy": ".github/dependabot.yml muontrap semver-major",
+      "kind": "pr",
+      "number": 95,
+      "pending_action": "close",
+      "rationale": "v1-only cgroup_controllers/cgroup_sets in lib/rindle/av/subprocess.ex; MuonTrap 2 is a public-contract major"
+    },
+    {
+      "disposition": "merge",
+      "group_packages": [
+        "ecto",
+        "ecto_sql"
+      ],
+      "head_sha": "e373b3e2b3791ab4afc1d3b8a143431e33b564fc",
+      "kind": "pr",
+      "number": 105,
+      "pending_action": "rebase",
+      "rationale": "runtime core minor; lands alone after rebase",
+      "risk_group": "ecto_sql"
+    },
+    {
+      "disposition": "merge",
+      "group_packages": [
+        "req"
+      ],
+      "head_sha": "a9f6b293281483d0f29441e99e3e9ccf3d299069",
+      "kind": "pr",
+      "number": 108,
+      "pending_action": "rebase",
+      "rationale": "optional runtime dep; mint overlap with 109 peels off to a maintainer lock PR",
+      "risk_group": "req"
+    },
+    {
+      "disposition": "merge",
+      "group_packages": [
+        "ex_aws"
+      ],
+      "head_sha": "a919a4d64b63130bbdc4a23eb3838bf9f3d9d90a",
+      "kind": "pr",
+      "number": 109,
+      "pending_action": "rebase",
+      "rationale": "runtime dep; lands after 108, delta shrinks to ex_aws; rebased run is the only valid evidence",
+      "risk_group": "ex_aws"
+    },
+    {
+      "disposition": "merge",
+      "group_packages": [
+        "credo",
+        "dialyxir",
+        "earmark_parser",
+        "erlex",
+        "ex_doc",
+        "ex_machina",
+        "lazy_html",
+        "makeup",
+        "mox"
+      ],
+      "head_sha": "c57e9e7c0aa657d60ef797140d5a1a55139d1e9b",
+      "kind": "pr",
+      "number": 112,
+      "pending_action": "rebase",
+      "rationale": "dev tooling group; ecto, ecto_sql and decimal peel off (runtime core lands separately)",
+      "risk_group": "dev-dependencies"
+    },
+    {
+      "disposition": "merge",
+      "group_packages": [],
+      "head_sha": "cf9f80c46eaf683c79c6a4fe165ce5494b35ab0b",
+      "kind": "pr",
+      "number": 113,
+      "pending_action": "rebase",
+      "rationale": "workflow-only actions group; rebase after the SHA-literal test decoupling landed",
+      "risk_group": "actions"
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 120,
+      "rationale": "ci branch-protection guard; user-merged outside the landing queue as an external gate",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "close",
+      "kind": "issue",
+      "number": 88,
+      "rationale": "Nightly failure fixed and closed by the Nightly reporter",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": "completed"
+      }
+    },
+    {
+      "disposition": "supersede",
+      "kind": "pr",
+      "number": 93,
+      "rationale": "actions maintenance superseded by the actions group PR",
+      "successor": "#113",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "close",
+      "kind": "pr",
+      "number": 98,
+      "rationale": "mixed dev-dependencies batch closed; runtime updates return as individual PRs",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": null
+      }
+    }
+  ],
+  "landings": [],
+  "repo": "szTheory/rindle",
+  "schema": "rindle-inbox-ledger-v1",
+  "sources": {
+    "dependabot_alerts": {
+      "rationale": "GitHub dependency graph does not parse mix.lock, so enabling Dependabot alerts adds no Hex coverage by itself; mix hex.audit (root and demo) is the advisory source and the enable action is offered in Plan 06",
+      "status": "source_disabled"
+    }
+  }
+}
