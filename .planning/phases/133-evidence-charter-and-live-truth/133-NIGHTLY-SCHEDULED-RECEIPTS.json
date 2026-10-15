@@ -1,0 +1,128 @@
+[
+  {
+    "conclusion": "success",
+    "created_at": "2026-10-15T07:37:19Z",
+    "event": "schedule",
+    "gating_needs": {
+      "compat-matrix": "success",
+      "dialyzer": "success",
+      "gcs-soak": "success",
+      "package-consumer-gcs-live": "success"
+    },
+    "head_branch": "main",
+    "head_sha": "3858267b4837d04367f1d26b1ee74651e507ea77",
+    "jobs": [
+      {
+        "conclusion": "success",
+        "name": "Compat Matrix (1.15, 26)"
+      },
+      {
+        "conclusion": "success",
+        "name": "Compat Matrix (1.16, 26)"
+      },
+      {
+        "conclusion": "success",
+        "name": "Compat Matrix (1.17, 27)"
+      },
+      {
+        "conclusion": "success",
+        "name": "Compat Matrix (1.18, 27)"
+      },
+      {
+        "conclusion": "success",
+        "name": "Compat Matrix (1.18, 28)"
+      },
+      {
+        "conclusion": "success",
+        "name": "Dialyzer"
+      },
+      {
+        "conclusion": "success",
+        "name": "GCS Soak (real bucket)"
+      },
+      {
+        "conclusion": "success",
+        "name": "Nightly Incident Lifecycle"
+      },
+      {
+        "conclusion": "success",
+        "name": "Nightly Summary"
+      },
+      {
+        "conclusion": "success",
+        "name": "Package Consumer GCS Live Proof"
+      },
+      {
+        "conclusion": "success",
+        "name": "Persist Nightly Incident Verdict"
+      }
+    ],
+    "repository": "szTheory/rindle",
+    "run_attempt": 1,
+    "run_id": 38699984093,
+    "schema": "rindle-nightly-scheduled-receipt-v1",
+    "status": "completed",
+    "summary_conclusion": "success",
+    "url": "https://github.com/szTheory/rindle/actions/runs/38699984093",
+    "verdict": "green",
+    "verdict_artifact": {
+      "event": "schedule",
+      "ref": "refs/heads/main",
+      "repository": "szTheory/rindle",
+      "run_attempt": 1,
+      "run_id": 38699984093,
+      "schema": "rindle-nightly-incident-verdict-v1",
+      "sha": "3858267b4837d04367f1d26b1ee74651e507ea77",
+      "url": "https://github.com/szTheory/rindle/actions/runs/38699984093",
+      "verdict": {
+        "errors": [],
+        "jobs": [
+          {
+            "applicability_rule": "always",
+            "applicable": true,
+            "errors": [],
+            "execution": "passed",
+            "name": "compat-matrix",
+            "reason": "",
+            "result": "success",
+            "status": "passed"
+          },
+          {
+            "applicability_rule": "always",
+            "applicable": true,
+            "errors": [],
+            "execution": "passed",
+            "name": "dialyzer",
+            "reason": "",
+            "result": "success",
+            "status": "passed"
+          },
+          {
+            "applicability_rule": "upstream-repository-and-required-secrets",
+            "applicable": false,
+            "errors": [],
+            "execution": "not-run",
+            "name": "gcs-soak",
+            "reason": "required-secrets-unavailable",
+            "result": "success",
+            "status": "not-run"
+          },
+          {
+            "applicability_rule": "upstream-repository-and-required-secrets",
+            "applicable": false,
+            "errors": [],
+            "execution": "not-run",
+            "name": "package-consumer-gcs-live",
+            "reason": "required-secrets-unavailable",
+            "result": "success",
+            "status": "not-run"
+          }
+        ],
+        "verdict": "green"
+      },
+      "workflow_name": "Nightly",
+      "workflow_ref": "szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main"
+    },
+    "workflow": "nightly.yml"
+  }
+]

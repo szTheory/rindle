@@ -1,12 +1,12 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
+  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
   "phases": [
     {
       "number": "133",
       "name": "Evidence Charter and Live Truth",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "134",
@@ -40,9 +40,9 @@
     }
   ],
   "next": {
-    "command": "/gsd:plan-phase 133 --gaps",
-    "label": "Plan fresh adapter environment/capture repair",
-    "reason": "Plan192 is terminal before reservation; no ready gap plan remains; require separately reviewed distinct-source successor."
+    "command": "/gsd-progress --next",
+    "label": "Advance to the next step (plan phase 134)",
+    "reason": "Phase 2 of 7 — needs a plan"
   },
-  "updated_at": "2026-10-13T15:46:48.277425+00:00"
+  "updated_at": "2026-10-15T15:05:30.146Z"
 }
