@@ -39,6 +39,12 @@ updates:
     commit-message:
       prefix: "build"
       include: "scope"
+    # MuonTrap 2.x removes the v1-only cgroup options that lib/rindle/av/subprocess.ex
+    # passes, so a semver-major bump breaks AV subprocess supervision. The ignore is
+    # lifted only by a chartered cgroup-v2 migration.
+    ignore:
+      - dependency-name: "muontrap"
+        update-types: ["version-update:semver-major"]
     groups:
       dev-dependencies:
         dependency-type: "development"

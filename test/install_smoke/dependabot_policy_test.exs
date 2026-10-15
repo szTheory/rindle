@@ -16,4 +16,17 @@ defmodule Rindle.InstallSmoke.DependabotPolicyTest do
     assert group["patterns"] == ["*"]
     assert group["update-types"] == ["minor", "patch"]
   end
+
+  test "Mix ignores MuonTrap semver-major updates (v2 drops the v1 cgroup options)" do
+    config = YamlElixir.read_from_file!(@config_path)
+
+    mix_update =
+      Enum.find(config["updates"], &(&1["package-ecosystem"] == "mix")) ||
+        flunk("missing Mix Dependabot configuration")
+
+    ignore = Enum.find(mix_update["ignore"] || [], &(&1["dependency-name"] == "muontrap"))
+
+    assert ignore, "mix entry must ignore muontrap"
+    assert ignore["update-types"] == ["version-update:semver-major"]
+  end
 end
