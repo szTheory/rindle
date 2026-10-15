@@ -293,6 +293,7 @@ defmodule Rindle.Delivery.WebhookPlugTest do
         :post
         |> PlugTest.conn("/", "")
         |> Conn.put_req_header("content-type", "application/json")
+        |> Rindle.StrictConnAdapter.wrap()
 
       conn = WebhookPlug.call(conn, init_opts([@secret]))
 
@@ -313,6 +314,7 @@ defmodule Rindle.Delivery.WebhookPlugTest do
         :post
         |> PlugTest.conn("/", oversized_body)
         |> Conn.put_req_header("content-type", "application/json")
+        |> Rindle.StrictConnAdapter.wrap()
 
       conn = WebhookPlug.call(conn, init_opts([@secret]))
 

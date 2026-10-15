@@ -295,7 +295,7 @@ defmodule Rindle.Upload.TusPlug do
          :ok <- TusProtocol.check_offset_match(inbound_offset, session.last_known_offset),
          {:ok, session, effective_len} <- resolve_patch_length(conn, session, claims, opts),
          {:ok, checksum_alg, expected_hash} <- TusProtocol.parse_upload_checksum(conn),
-         {:ok, part_state} <-
+         {{:ok, part_state}, conn} <-
            TusStream.append(
              conn,
              session,
@@ -324,6 +324,7 @@ defmodule Rindle.Upload.TusPlug do
 
       maybe_complete(conn, advanced, new_offset, effective_len, claims, opts)
     else
+      {{:error, reason}, conn} -> tus_error(conn, TusProtocol.status_for(reason), "")
       {:error, reason} -> tus_error(conn, TusProtocol.status_for(reason), "")
     end
   end

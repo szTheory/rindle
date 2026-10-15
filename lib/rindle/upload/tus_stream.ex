@@ -15,7 +15,7 @@ defmodule Rindle.Upload.TusStream do
           binary() | nil,
           keyword()
         ) ::
-          {:ok, map()} | {:error, term()}
+          {{:ok, map()} | {:error, term()}, Plug.Conn.t()}
   def append(conn, session, payload, effective_len, checksum_alg, expected_hash, opts) do
     temp_path = Path.join([tmp_dir(opts), session.id <> ".patch"])
     File.mkdir_p!(Path.dirname(temp_path))
@@ -27,7 +27,10 @@ defmodule Rindle.Upload.TusStream do
         _ -> :no_hash
       end
 
-    drain_result =
+    # The body is read here, so the conn returned by the last `read_body/2` is
+    # handed back: responding on the pre-read conn is a stale-conn error under
+    # Bandit >= 1.13.
+    {drain_result, conn} =
       case File.open(temp_path, [:write, :binary]) do
         {:ok, file} ->
           try do
@@ -45,13 +48,16 @@ defmodule Rindle.Upload.TusStream do
           end
 
         {:error, reason} ->
-          {:error, reason}
+          {{:error, reason}, conn}
       end
 
     try do
-      drain_result
-      |> verify_checksum(expected_hash)
-      |> dispatch_part(temp_path, session, payload, opts)
+      result =
+        drain_result
+        |> verify_checksum(expected_hash)
+        |> dispatch_part(temp_path, session, payload, opts)
+
+      {result, conn}
     after
       File.rm(temp_path)
     end
@@ -117,8 +123,9 @@ defmodule Rindle.Upload.TusStream do
 
   defp drain(conn, file, base_offset, written, ceiling, upload_length, hash_ctx) do
     case Plug.Conn.read_body(conn, length: @read_length, read_length: @read_length) do
-      {:ok, chunk, _conn} ->
-        write_chunk(file, chunk, base_offset, written, ceiling, upload_length, hash_ctx, :done)
+      {:ok, chunk, conn} ->
+        {write_chunk(file, chunk, base_offset, written, ceiling, upload_length, hash_ctx, :done),
+         conn}
 
       {:more, chunk, conn} ->
         case write_chunk(
@@ -135,11 +142,11 @@ defmodule Rindle.Upload.TusStream do
             drain(conn, file, base_offset, new_written, ceiling, upload_length, new_hash_ctx)
 
           other ->
-            other
+            {other, conn}
         end
 
       {:error, reason} ->
-        {:error, reason}
+        {{:error, reason}, conn}
     end
   end
 

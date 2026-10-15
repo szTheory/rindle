@@ -486,6 +486,52 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
+  describe "PATCH responds on the conn returned by read_body/2 (Bandit >= 1.13 stale-conn check)" do
+    defp strict_patch(opts, token, offset, body, headers \\ []) do
+      Enum.reduce(
+        headers,
+        conn(:patch, "/uploads/tus/" <> token, body)
+        |> put_req_header("content-type", "application/offset+octet-stream")
+        |> put_req_header("upload-offset", Integer.to_string(offset)),
+        fn {name, value}, conn -> put_req_header(conn, name, value) end
+      )
+      |> Rindle.StrictConnAdapter.wrap()
+      |> TusPlug.call(opts)
+    end
+
+    test "partial and completing PATCHes respond 204", %{root: root} do
+      opts = opts_for(root)
+      {token, sid} = create(opts, 16)
+
+      p1 = strict_patch(opts, token, 0, "01234567")
+      assert p1.status == 204
+      assert get_resp_header(p1, "upload-offset") == ["8"]
+
+      p2 = strict_patch(opts, token, 8, "89abcdef")
+      assert p2.status == 204
+      assert get_resp_header(p2, "upload-offset") == ["16"]
+      assert AdopterRepo.get!(MediaUploadSession, sid).state == "completed"
+    end
+
+    test "an over-length body responds 413", %{root: root} do
+      opts = opts_for(root)
+      {token, _sid} = create(opts, 5)
+
+      assert strict_patch(opts, token, 0, "0123456789").status == 413
+    end
+
+    test "a checksum mismatch responds 460", %{root: root} do
+      opts = opts_for(root)
+      {token, _sid} = create(opts, 10)
+      hash = :crypto.hash(:sha256, "wrong data") |> Base.encode64()
+
+      conn =
+        strict_patch(opts, token, 0, "0123456789", [{"upload-checksum", "sha256 #{hash}"}])
+
+      assert conn.status == 460
+    end
+  end
+
   describe "DELETE termination" do
     test "DELETE with a valid token returns 204, aborts the session AND removes the Local backing part (CR-01)",
          %{root: root} do

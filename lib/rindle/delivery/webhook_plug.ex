@@ -128,7 +128,7 @@ defmodule Rindle.Delivery.WebhookPlug do
          {:ok, event} <- safe_verify(provider, raw_body, headers, secrets) do
       dispatch_event(conn, provider, event)
     else
-      {:error, :body_missing} ->
+      {:error, :body_missing, conn} ->
         emit_rejected(:body_reader_missing, %{provider: provider_atom(provider)})
 
         conn
@@ -234,8 +234,9 @@ defmodule Rindle.Delivery.WebhookPlug do
         # documents. If this also yields empty, the adopter's endpoint is misconfigured.
         case Plug.Conn.read_body(conn, length: 1_048_576) do
           {:ok, body, conn} when byte_size(body) > 0 -> {:ok, body, conn}
-          {:more, _partial, _conn} -> {:error, :body_missing}
-          _ -> {:error, :body_missing}
+          {:ok, _empty, conn} -> {:error, :body_missing, conn}
+          {:more, _partial, conn} -> {:error, :body_missing, conn}
+          {:error, _reason} -> {:error, :body_missing, conn}
         end
     end
   end
