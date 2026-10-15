@@ -52,6 +52,28 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert setup_minio =~ "using: composite"
   end
 
+  # The upstream minio/minio + minio/mc images and dl.min.io binaries are no
+  # longer published. Every MinIO bring-up uses one digest-pinned image, which
+  # also supplies the `mc` client.
+  @minio_image "cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8"
+  @minio_consumers ~w(
+    .github/actions/setup-minio/action.yml
+    scripts/ensure_minio.sh
+    docker/compose.cohort-demo.yml
+    docker/dx-template/compose.__app__.yml
+  )
+
+  test "MinIO bring-up uses the digest-pinned image and no retired upstream source" do
+    for rel <- @minio_consumers do
+      body = File.read!(Path.join(@repo_root, rel))
+      assert body =~ @minio_image, "#{rel} must use the digest-pinned MinIO image"
+      refute body =~ "dl.min.io", "#{rel} must not download retired dl.min.io binaries"
+
+      refute body =~ ~r{(^|[\s"'])minio/(minio|mc)\b}m,
+             "#{rel} must not use retired minio/* images"
+    end
+  end
+
   test "CACHE-01: ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
     # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×8 in ci.yml.
     # Both went +1 in Phase 112: the lean `adoption-demo-e2e-smoke` PR lane
