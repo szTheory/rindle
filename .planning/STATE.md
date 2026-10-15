@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Completed 134-02-PLAN.md
-last_updated: "2026-10-15T18:13:20.722Z"
-state_head: 082bd29b980ceb4c1368d8d4f5d66b8a94e1087a
+stopped_at: Completed 134-03-PLAN.md
+last_updated: "2026-10-15T18:22:25.168Z"
+state_head: d9a927e85ab528811ab43b34b87c4afac7d14b84
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 184
-  completed_plans: 180
+  completed_plans: 181
 last_activity: 2026-10-15
 current_phase: 134
 current_phase_name: Dependency, Security, and Inbox Disposition
@@ -134,6 +134,7 @@ Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-tr
 | Phase 133 P176 | 19min | 2 tasks | 7 files |
 | Phase 134 P01 | 26 min | 3 tasks | 2 files |
 | Phase 134 P02 | 30min | 3 tasks | 7 files |
+| Phase 134 P03 | 35min | 3 tasks | 6 files |
 
 ## Decisions
 
@@ -160,11 +161,12 @@ Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-tr
 - [Phase 133]: Plan 165 is prerequisite repair only: retain all five Pending requirements, zero qualification credit, and Plan 163's immutable preauthorization halt.
 - [Phase 133]: Plan 167 repair is evidence-only; Plan 168 needs fresh source-bound preauthorization and its own exact-literal checkpoint. — Detached-staging and terminal-receipt repair grants no qualification authority or requirement credit.
 - [Phase 134]: 134-01: collect_inbox.sh guards mix.lock integrity with a cksum fingerprint and aborts the inventory if either lock changes
+- [Phase 134]: 134-03: merge item with pending_action skips mergeable/lock-delta checks (recorded, never credited); advisory identity is (id, scope); demo bandit reachability recorded runtime
 
 ## Session
 
-**Last session:** 2026-10-15T18:13:20.369Z
-**Stopped at:** Completed 134-02-PLAN.md
+**Last session:** 2026-10-15T18:22:24.784Z
+**Stopped at:** Completed 134-03-PLAN.md
 **Resume file:** None
 
 ### Blockers
