@@ -72,7 +72,10 @@ TMP_OUT=""
 
 cleanup() {
   [ -z "${TMP_OUT}" ] || [ ! -e "${TMP_OUT}" ] || rm -f "${TMP_OUT}"
-  [ -z "${WORK}" ] || [ ! -d "${WORK}" ] || rm -rf "${WORK}"
+  if [ -n "${WORK}" ] && [ -d "${WORK}" ]; then
+    chmod -R u+w "${WORK}" 2>/dev/null || true
+    rm -rf "${WORK}"
+  fi
 }
 
 on_exit() {
@@ -92,7 +95,7 @@ die() {
   exit 1
 }
 
-for tool in gh jq; do
+for tool in gh jq mix; do
   command -v "${tool}" >/dev/null 2>&1 || die "${tool} is required"
 done
 
@@ -302,6 +305,161 @@ jq -S -n --slurpfile r "${WORK}/main.runs.json" --slurpfile j "${WORK}/main.jobs
    | {main_ci: {run_id: $run.id, head_sha: $run.head_sha, conclusion: $run.conclusion,
                 failed_jobs: [ $j[0].jobs[] | select(.conclusion != "success" and .conclusion != "skipped") | .name ]}}' \
   >"${WORK}/sec-main-ci.json" || die "cannot assemble main CI baseline"
+
+# --- advisories (SEC-09 input) ---------------------------------------------
+# Every source is an explicit record. A disabled or unreadable source is never a
+# zero count, and an unparseable audit aborts the whole collection (Pitfall 6:
+# hex.audit exits 1 for findings AND for operational errors).
+
+ESC="$(printf '\033')"
+
+lock_fingerprint() {
+  local f
+  for f in "${ROOT}/mix.lock" "${ROOT}/examples/adoption_demo/mix.lock"; do
+    if [ -f "${f}" ]; then cksum <"${f}"; else echo missing; fi
+  done
+}
+LOCKS_BEFORE="$(lock_fingerprint)"
+
+# run_hex_audit DIR SCOPE DEST [DEPS_PATH BUILD_PATH]
+# Runs `mix hex.audit` with configured ignores emptied so mix.exs/env ignores cannot
+# mask the raw advisory set, and writes {status, findings[]} to DEST.
+run_hex_audit() {
+  local dir="$1" scope="$2" dest="$3" deps_path="${4:-}" build_path="${5:-}" rc=0 markers nfind
+  (
+    cd "${dir}"
+    if [ -n "${deps_path}" ]; then export MIX_DEPS_PATH="${deps_path}" MIX_BUILD_PATH="${build_path}"; fi
+    HEX_IGNORE_ADVISORIES="" mix hex.audit
+  ) >"${WORK}/audit.out" 2>"${WORK}/audit.err" || rc=$?
+  sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/audit.out" | awk '
+    BEGIN { ign = 0 }
+    /^Advisories:$/ { ign = 0; print "M"; next }
+    /^Ignored advisories:$/ { ign = 1; print "M"; next }
+    /^  [a-z0-9_]+ [0-9][^ ]* - [A-Za-z0-9-]+ \([A-Z]+\)$/ {
+      sev = $5; gsub(/[()]/, "", sev)
+      print "F\t" $1 "\t" $2 "\t" $4 "\t" sev "\t" ign
+    }' >"${WORK}/audit.tsv"
+  markers="$(grep -c '^M' "${WORK}/audit.tsv" || true)"
+  nfind="$(grep -c '^F' "${WORK}/audit.tsv" || true)"
+  if [ "${rc}" -eq 0 ] && [ "${markers}" -eq 0 ] && [ "${nfind}" -eq 0 ]; then
+    echo '{"status":"clean","findings":[]}' >"${dest}"
+    return 0
+  fi
+  if [ "${markers}" -eq 0 ] || [ "${nfind}" -eq 0 ]; then
+    die "mix hex.audit in ${scope} exited ${rc} with no recognizable advisory section: $(tail -n 3 "${WORK}/audit.err" | tr '\n' ' ')"
+  fi
+  jq -R -S -n --arg scope "${scope}" \
+    '{status: "findings",
+      findings: [ inputs | split("\t") | select(.[0] == "F")
+                  | {id: .[3], package: .[1], version: .[2], severity: .[4], scope: $scope,
+                     source: "hex_audit", ignored: (.[5] == "1")} ]}' \
+    <"${WORK}/audit.tsv" >"${dest}" || die "cannot parse hex.audit findings in ${scope}"
+}
+
+run_hex_audit "${ROOT}" "root" "${WORK}/audit-root.json"
+jq -S '{status}' "${WORK}/audit-root.json" >"${WORK}/src-hex_audit_root.json"
+
+if [ "${SKIP_DEMO_AUDIT}" = true ]; then
+  echo '{"findings":[]}' >"${WORK}/audit-demo.json"
+  echo '{"status":"unreadable","reason":"skipped"}' >"${WORK}/src-hex_audit_demo.json"
+else
+  mkdir -p "${WORK}/demo-deps" "${WORK}/demo-build"
+  demo_rc=0
+  (
+    cd "${ROOT}/examples/adoption_demo"
+    export MIX_DEPS_PATH="${WORK}/demo-deps" MIX_BUILD_PATH="${WORK}/demo-build"
+    mix deps.get --check-locked
+  ) >"${WORK}/demo-get.out" 2>&1 || demo_rc=$?
+  if [ "${demo_rc}" -ne 0 ]; then
+    echo '{"findings":[]}' >"${WORK}/audit-demo.json"
+    jq -S -n --arg reason "deps.get failed: $(tail -n 1 "${WORK}/demo-get.out" | tr -d '\r' | cut -c1-200)" \
+      '{status: "unreadable", reason: $reason}' >"${WORK}/src-hex_audit_demo.json"
+  else
+    run_hex_audit "${ROOT}/examples/adoption_demo" "examples/adoption_demo" "${WORK}/audit-demo.json" \
+      "${WORK}/demo-deps" "${WORK}/demo-build"
+    jq -S '{status}' "${WORK}/audit-demo.json" >"${WORK}/src-hex_audit_demo.json"
+  fi
+fi
+
+# deps.audit is a second opinion only (it disagreed with hex.audit in research).
+da_rc=0
+(cd "${ROOT}" && mix deps.audit) >"${WORK}/deps-audit.out" 2>&1 || da_rc=$?
+sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/deps-audit.out" | tail -n 20 >"${WORK}/deps-audit.tail"
+if [ "${da_rc}" -eq 0 ]; then
+  da_status=clean
+elif grep -qi 'vulnerabilit' "${WORK}/deps-audit.tail"; then
+  da_status=findings
+else
+  da_status=unreadable
+fi
+jq -S -n --arg status "${da_status}" --rawfile tail "${WORK}/deps-audit.tail" \
+  '{status: $status, output_tail: $tail}' >"${WORK}/src-deps_audit.json"
+
+[ "$(lock_fingerprint)" = "${LOCKS_BEFORE}" ] || die "a mix.lock changed during collection; refusing to write an inventory"
+
+# GitHub Dependabot alerts: 200 enabled; 403 is source_disabled only when GitHub says so.
+echo '[]' >"${WORK}/alerts.findings.json"
+gh_get_opt "repos/${REPO}/dependabot/alerts?state=open&per_page=100"
+alerts_msg="$(jq -r '.message // ""' "${OPT_BODY}" 2>/dev/null || true)"
+case "${OPT_STATUS}" in
+  200)
+    jq -e 'type == "array" and length < 100' "${OPT_BODY}" >/dev/null \
+      || die "dependabot alerts response is not a complete single page"
+    jq -S '[ .[] | {id: (.security_advisory.ghsa_id // .security_advisory.cve_id // "unknown"),
+                    package: .dependency.package.name,
+                    version: .security_vulnerability.vulnerable_version_range,
+                    severity: .security_advisory.severity,
+                    scope: (if ((.dependency.manifest_path // "") | startswith("examples/adoption_demo")) then "examples/adoption_demo" else "root" end),
+                    source: "dependabot", ignored: false} ]' \
+      "${OPT_BODY}" >"${WORK}/alerts.findings.json" || die "malformed dependabot alerts"
+    echo '{"status":"enabled","http":200}' >"${WORK}/src-dependabot_alerts.json"
+    ;;
+  403)
+    case "${alerts_msg}" in
+      *"disabled for this repository"*)
+        echo '{"status":"source_disabled","http":403}' >"${WORK}/src-dependabot_alerts.json" ;;
+      *)
+        jq -S -n --arg m "${alerts_msg}" '{status:"unreadable",http:403,message:$m}' >"${WORK}/src-dependabot_alerts.json" ;;
+    esac
+    ;;
+  404)
+    jq -S -n --arg m "${alerts_msg}" '{status:"unreadable",http:404,message:$m}' >"${WORK}/src-dependabot_alerts.json"
+    ;;
+  *) die "unexpected HTTP ${OPT_STATUS} reading dependabot alerts" ;;
+esac
+
+# vulnerability-alerts probe: 204 enabled, 404 disabled, 403 unreadable.
+gh_get_opt "repos/${REPO}/vulnerability-alerts"
+case "${OPT_STATUS}" in
+  204) echo '{"status":"enabled","http":204}' >"${WORK}/src-vulnerability_alerts.json" ;;
+  404) echo '{"status":"source_disabled","http":404}' >"${WORK}/src-vulnerability_alerts.json" ;;
+  403) echo '{"status":"unreadable","http":403}' >"${WORK}/src-vulnerability_alerts.json" ;;
+  *) die "unexpected HTTP ${OPT_STATUS} probing vulnerability-alerts" ;;
+esac
+echo '{"status":"not-applicable","reason":"SHA-pinned actions produce no alerts"}' >"${WORK}/src-actions.json"
+
+jq -S -n \
+  --slurpfile root "${WORK}/audit-root.json" --slurpfile demo "${WORK}/audit-demo.json" \
+  --slurpfile alerts "${WORK}/alerts.findings.json" \
+  --slurpfile s_root "${WORK}/src-hex_audit_root.json" --slurpfile s_demo "${WORK}/src-hex_audit_demo.json" \
+  --slurpfile s_deps "${WORK}/src-deps_audit.json" --slurpfile s_dep "${WORK}/src-dependabot_alerts.json" \
+  --slurpfile s_vuln "${WORK}/src-vulnerability_alerts.json" --slurpfile s_act "${WORK}/src-actions.json" \
+  '{advisories: {sources: {hex_audit_root: $s_root[0], hex_audit_demo: $s_demo[0], deps_audit: $s_deps[0],
+                           dependabot_alerts: $s_dep[0], vulnerability_alerts: $s_vuln[0], actions: $s_act[0]},
+                 findings: ($root[0].findings + $demo[0].findings + $alerts[0])}}' \
+  >"${WORK}/sec-advisories.json" || die "cannot assemble advisories"
+
+# Latest released version per requested package (via mix hex.info).
+echo '{}' >"${WORK}/hex_latest.json"
+for pkg in ${HEX_PACKAGES}; do
+  (cd "${ROOT}" && mix hex.info "${pkg}") >"${WORK}/hexinfo.out" 2>/dev/null || die "mix hex.info ${pkg} failed"
+  ver="$(sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/hexinfo.out" \
+    | awk '/^(Recent releases|Releases):/ { f = 1; next } f && $1 ~ /^[0-9]/ { print $1; exit }')"
+  [ -n "${ver}" ] || die "cannot find a released version for ${pkg} in mix hex.info output"
+  jq -S --arg k "${pkg}" --arg v "${ver}" '. + {($k): $v}' "${WORK}/hex_latest.json" >"${WORK}/hex_latest.next" \
+    && mv "${WORK}/hex_latest.next" "${WORK}/hex_latest.json"
+done
+jq -S '{hex_latest: .}' "${WORK}/hex_latest.json" >"${WORK}/sec-hex-latest.json"
 
 # --- assemble ---------------------------------------------------------------
 

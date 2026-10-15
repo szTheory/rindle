@@ -140,13 +140,43 @@ esac
 FAKE_DATE
 chmod +x "${BIN}/date"
 
-# --- fake mix (answers arrive with the advisory fixtures) --------------------
+# --- fake mix -----------------------------------------------------------------
 cat >"${BIN}/mix" <<'FAKE_MIX'
 #!/usr/bin/env bash
-echo "unexpected mix call: $*" >>"${FAKE_DIR}/unexpected"
-exit 99
+set -u
+d="${FAKE_DIR}"
+scope=root
+case "${PWD}" in */examples/adoption_demo) scope=demo ;; esac
+printf '%s scope=%s deps=[%s] build=[%s] ignores=[%s]\n' "$*" "${scope}" \
+  "${MIX_DEPS_PATH-UNSET}" "${MIX_BUILD_PATH-UNSET}" "${HEX_IGNORE_ADVISORIES-UNSET}" >>"${d}/mix.log"
+canned() { # NAME DEFAULT_TEXT: print the canned text and exit with its recorded rc
+  if [ -f "${d}/mix/$1.txt" ]; then cat "${d}/mix/$1.txt"; exit "$(cat "${d}/mix/$1.rc")"; fi
+  printf '%s\n' "$2"; exit 0
+}
+case "${1-}" in
+  hex.audit)
+    if [ "${FAKE_MIX_FAIL-}" = garbage ]; then echo "** (Mix) boom" >&2; exit 1; fi
+    if [ "${FAKE_MIX_FAIL-}" = touchlock ]; then echo "# tampered" >>"${INBOX_ROOT_DIR}/examples/adoption_demo/mix.lock"; fi
+    canned "hex_audit_${scope}" "No vulnerable packages found" ;;
+  deps.audit) canned deps_audit "No vulnerabilities found." ;;
+  deps.get)
+    if [ "${FAKE_MIX_FAIL-}" = demo_get ]; then echo "** (Mix) Failed to fetch dependencies" >&2; exit 1; fi
+    exit 0 ;;
+  hex.info)
+    f="${d}/mix/hex_info_${2-}.txt"
+    if [ -f "${f}" ]; then cat "${f}"; exit 0; fi
+    echo "** (Mix) No package with name ${2-}" >&2; exit 1 ;;
+  *) echo "unexpected mix call: $*" >>"${d}/unexpected"; exit 99 ;;
+esac
 FAKE_MIX
 chmod +x "${BIN}/mix"
+
+# Fixture project tree (the collector fingerprints these two locks).
+PROJ="${ROOT_TMP}/proj"
+mkdir -p "${PROJ}/examples/adoption_demo"
+printf '%%{"a": {:hex, :a, "1.0.0"}}\n' >"${PROJ}/mix.lock"
+printf '%%{"b": {:hex, :b, "1.0.0"}}\n' >"${PROJ}/examples/adoption_demo/mix.lock"
+export INBOX_ROOT_DIR="${PROJ}"
 
 # --- fixture helpers ---------------------------------------------------------
 
@@ -167,6 +197,20 @@ fx_new() {
   fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=5" \
     '{"workflow_runs":[{"id":555,"head_sha":"'"${MAIN_SHA}"'","conclusion":"success"}]}'
   fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" '{"jobs":[{"name":"Quality","conclusion":"success"}]}'
+  fx "repos/szTheory/rindle/dependabot/alerts?state=open&per_page=100" \
+    '{"message":"Dependabot alerts are disabled for this repository.","status":"403"}' 403
+  fx "repos/szTheory/rindle/vulnerability-alerts" '{"message":"Not Found"}' 404
+  mkdir -p "${FAKE_DIR}/mix"
+  cp "${PROJ}/mix.lock" "${PROJ}/mix.lock.orig"
+  cp "${PROJ}/examples/adoption_demo/mix.lock" "${PROJ}/examples/adoption_demo/mix.lock.orig"
+  cp "${PROJ}/mix.lock.orig" "${PROJ}/mix.lock"
+  cp "${PROJ}/examples/adoption_demo/mix.lock.orig" "${PROJ}/examples/adoption_demo/mix.lock"
+}
+
+# mixfx NAME RC TEXT: canned mix output (hex_audit_root, hex_audit_demo, deps_audit, hex_info_PKG)
+mixfx() {
+  printf '%s\n' "$3" >"${FAKE_DIR}/mix/$1.txt"
+  printf '%s\n' "$2" >"${FAKE_DIR}/mix/$1.rc"
 }
 
 # fx PATH BODY [STATUS]
@@ -174,6 +218,7 @@ fx() {
   local san
   san="$(printf '%s' "$1" | tr -c 'A-Za-z0-9' '_')"
   printf '%s\n' "$2" >"${FAKE_DIR}/api/${san}.json"
+  rm -f "${FAKE_DIR}/api/${san}.status"
   if [ -n "${3-}" ]; then printf '%s\n' "$3" >"${FAKE_DIR}/api/${san}.status"; fi
 }
 
@@ -389,6 +434,167 @@ if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
   record "malformed issues response: abort with no output file" true
 else
   record "malformed issues response: abort with no output file" false "rc=${RC}"
+fi
+
+# --- Task 3: advisory sources --------------------------------------------------
+
+ADV_FINDINGS="$(printf '%s\n' \
+  'Advisories:' \
+  '  cowlib 2.19.0 - EEF-CVE-2026-43971 (MEDIUM)' \
+  '    aka: CVE-2026-43971' \
+  '    Link Header Directive Smuggling' \
+  '    https://osv.dev/vulnerability/EEF-CVE-2026-43971' \
+  '' \
+  '  mint 1.9.3 - EEF-CVE-2026-91043 (HIGH)' \
+  '    aka: CVE-2026-91043' \
+  '    https://osv.dev/vulnerability/EEF-CVE-2026-91043' \
+  '' \
+  '  decimal 3.1.1 - EEF-CVE-2026-97853 (MEDIUM)' \
+  '    https://osv.dev/vulnerability/EEF-CVE-2026-97853')"
+
+fx_new adv_findings
+mixfx hex_audit_root 1 "${ADV_FINDINGS}"
+out="${ROOT_TMP}/adv_findings.json"
+run_collector "${out}"
+if [ "${RC}" -eq 0 ]; then
+  record "hex.audit findings: collector exits 0" true
+else
+  record "hex.audit findings: collector exits 0" false "rc=${RC} $(head -3 "${FAKE_DIR}/stderr")"
+fi
+assert "hex.audit findings: hex_audit_root status findings" \
+  jq -e '.advisories.sources.hex_audit_root.status=="findings"' "${out}"
+assert "hex.audit findings: three root findings, ignored false, source hex_audit" \
+  jq -e '(.advisories.findings|length)==3 and (.advisories.findings|all(.scope=="root" and .ignored==false and .source=="hex_audit")) and (.advisories.findings|map(.id)==["EEF-CVE-2026-43971","EEF-CVE-2026-91043","EEF-CVE-2026-97853"]) and (.advisories.findings[1]=={id:"EEF-CVE-2026-91043",package:"mint",version:"1.9.3",severity:"HIGH",scope:"root",source:"hex_audit",ignored:false})' "${out}"
+assert "hex.audit runs with ignores emptied (root)" grep -q 'hex.audit scope=root .*ignores=\[\]' "${FAKE_DIR}/mix.log"
+assert "demo audit uses scratch MIX_DEPS_PATH/MIX_BUILD_PATH, never the caller's" \
+  grep -qE 'hex.audit scope=demo deps=\[[^]U][^]]*\] build=\[[^]U][^]]*\] ignores=\[\]' "${FAKE_DIR}/mix.log"
+assert "demo audit clean when fake demo audit is clean" \
+  jq -e '.advisories.sources.hex_audit_demo.status=="clean"' "${out}"
+assert "deps_audit second opinion recorded" \
+  jq -e '.advisories.sources.deps_audit.status=="clean" and (.advisories.sources.deps_audit.output_tail|contains("No vulnerabilities"))' "${out}"
+assert "actions recorded not-applicable" \
+  jq -e '.advisories.sources.actions=={status:"not-applicable",reason:"SHA-pinned actions produce no alerts"}' "${out}"
+no_mutations "hex.audit findings"
+
+fx_new adv_clean
+out="${ROOT_TMP}/adv_clean.json"
+run_collector "${out}"
+assert "hex.audit clean: status clean and no findings" \
+  jq -e '.advisories.sources.hex_audit_root.status=="clean" and .advisories.findings==[]' "${out}"
+
+fx_new adv_garbage
+out="${ROOT_TMP}/adv_garbage.json"
+FAKE_MIX_FAIL=garbage run_collector "${out}"
+if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
+  record "hex.audit exit 1 with no section marker: abort, no output file" true
+else
+  record "hex.audit exit 1 with no section marker: abort, no output file" false "rc=${RC}"
+fi
+
+fx_new adv_ignored
+mixfx hex_audit_root 0 "$(printf '%s\n' 'Ignored advisories:' '  bandit 1.12.5 - EEF-CVE-2026-105659 (HIGH)' '    https://osv.dev/vulnerability/EEF-CVE-2026-105659')"
+out="${ROOT_TMP}/adv_ignored.json"
+run_collector "${out}"
+assert "Ignored advisories section: findings tagged ignored true (exit 0 still findings)" \
+  jq -e '.advisories.sources.hex_audit_root.status=="findings" and (.advisories.findings|length)==1 and .advisories.findings[0].ignored==true and .advisories.findings[0].package=="bandit"' "${out}"
+
+fx_new adv_demo
+mixfx hex_audit_demo 1 "$(printf '%s\n' 'Advisories:' '  bandit 1.12.5 - EEF-CVE-2026-105659 (HIGH)')"
+out="${ROOT_TMP}/adv_demo.json"
+run_collector "${out}"
+assert "demo findings carry scope examples/adoption_demo" \
+  jq -e '.advisories.sources.hex_audit_demo.status=="findings" and .advisories.sources.hex_audit_root.status=="clean" and (.advisories.findings|map(.scope)==["examples/adoption_demo"])' "${out}"
+
+fx_new adv_demo_get
+out="${ROOT_TMP}/adv_demo_get.json"
+FAKE_MIX_FAIL=demo_get run_collector "${out}"
+assert "demo deps.get failure records unreadable with reason (never clean)" \
+  jq -e '.advisories.sources.hex_audit_demo.status=="unreadable" and (.advisories.sources.hex_audit_demo.reason|startswith("deps.get failed"))' "${out}"
+
+fx_new adv_skip
+out="${ROOT_TMP}/adv_skip.json"
+run_collector "${out}" --skip-demo-audit
+assert "--skip-demo-audit records unreadable with reason skipped" \
+  jq -e '.advisories.sources.hex_audit_demo=={status:"unreadable",reason:"skipped"}' "${out}"
+if ! grep -q 'scope=demo' "${FAKE_DIR}/mix.log"; then
+  record "--skip-demo-audit never touches the demo project" true
+else
+  record "--skip-demo-audit never touches the demo project" false "$(grep 'scope=demo' "${FAKE_DIR}/mix.log" | head -2)"
+fi
+
+fx_new adv_lockchange
+out="${ROOT_TMP}/adv_lockchange.json"
+FAKE_MIX_FAIL=touchlock run_collector "${out}"
+if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
+  record "a lock file changing during collection aborts with no output file" true
+else
+  record "a lock file changing during collection aborts with no output file" false "rc=${RC}"
+fi
+
+fx_new adv_depsaudit
+mixfx deps_audit 1 "$(printf '%s\n' 'Name: plug' '1 vulnerabilities found')"
+out="${ROOT_TMP}/adv_depsaudit.json"
+run_collector "${out}"
+assert "deps.audit findings recorded as second opinion" \
+  jq -e '.advisories.sources.deps_audit.status=="findings"' "${out}"
+
+# GitHub-side sources.
+fx_new gh_disabled
+out="${ROOT_TMP}/gh_disabled.json"
+run_collector "${out}"
+assert "alerts 403 'disabled for this repository' -> source_disabled; vulnerability-alerts 404 -> source_disabled; no zero count" \
+  jq -e '.advisories.sources.dependabot_alerts=={status:"source_disabled",http:403} and .advisories.sources.vulnerability_alerts=={status:"source_disabled",http:404} and (.advisories.findings|map(select(.source=="dependabot"))==[])' "${out}"
+
+fx_new gh_scope
+fx "repos/szTheory/rindle/dependabot/alerts?state=open&per_page=100" \
+  '{"message":"Resource not accessible by personal access token; requires the security_events scope"}' 403
+fx "repos/szTheory/rindle/vulnerability-alerts" '{"message":"forbidden"}' 403
+out="${ROOT_TMP}/gh_scope.json"
+run_collector "${out}"
+assert "alerts 403 missing scope -> unreadable (never source_disabled); vulnerability-alerts 403 -> unreadable" \
+  jq -e '.advisories.sources.dependabot_alerts.status=="unreadable" and .advisories.sources.dependabot_alerts.http==403 and (.advisories.sources.dependabot_alerts.message|contains("scope")) and .advisories.sources.vulnerability_alerts.status=="unreadable"' "${out}"
+
+fx_new gh_404
+fx "repos/szTheory/rindle/dependabot/alerts?state=open&per_page=100" '{"message":"Not Found"}' 404
+out="${ROOT_TMP}/gh_404.json"
+run_collector "${out}"
+assert "alerts 404 -> unreadable with http and message" \
+  jq -e '.advisories.sources.dependabot_alerts=={status:"unreadable",http:404,message:"Not Found"}' "${out}"
+
+fx_new gh_enabled
+fx "repos/szTheory/rindle/vulnerability-alerts" '' 204
+fx "repos/szTheory/rindle/dependabot/alerts?state=open&per_page=100" \
+  '[{"security_advisory":{"ghsa_id":"GHSA-aaaa-bbbb-cccc","severity":"high"},"dependency":{"package":{"name":"plug"},"manifest_path":"mix.lock"},"security_vulnerability":{"vulnerable_version_range":"< 1.2.3"}},
+    {"security_advisory":{"ghsa_id":"GHSA-dddd-eeee-ffff","severity":"low"},"dependency":{"package":{"name":"bandit"},"manifest_path":"examples/adoption_demo/mix.lock"},"security_vulnerability":{"vulnerable_version_range":"< 2"}}]'
+out="${ROOT_TMP}/gh_enabled.json"
+run_collector "${out}"
+assert "vulnerability-alerts 204 and alerts 200 -> enabled, open alerts become dependabot findings" \
+  jq -e '.advisories.sources.vulnerability_alerts=={status:"enabled",http:204} and .advisories.sources.dependabot_alerts=={status:"enabled",http:200} and (.advisories.findings|map(select(.source=="dependabot"))|map([.id,.package,.scope])==[["GHSA-aaaa-bbbb-cccc","plug","root"],["GHSA-dddd-eeee-ffff","bandit","examples/adoption_demo"]])' "${out}"
+no_mutations "GitHub-side advisory sources"
+
+fx_new gh_5xx
+fx "repos/szTheory/rindle/dependabot/alerts?state=open&per_page=100" '{"message":"oops"}' 503
+out="${ROOT_TMP}/gh_5xx.json"
+run_collector "${out}"
+if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
+  record "5xx on dependabot alerts: abort with no output file" true
+else
+  record "5xx on dependabot alerts: abort with no output file" false "rc=${RC}"
+fi
+
+# hex_latest.
+fx_new hexlatest
+mixfx hex_info_bandit 0 "$(printf '%s\n' 'A pure-Elixir HTTP server' '' 'Config: {:bandit, "~> 1.12"}' '' 'Recent releases:' '  1.12.5 (2026-08-20)' '  1.12.4 (2026-07-27)')"
+mixfx hex_info_req 0 "$(printf '%s\n' 'Config: {:req, "~> 0.7"}' '' 'Recent releases:' '  0.7.5 (2026-10-06)' '  0.7.4 (2026-09-01)')"
+out="${ROOT_TMP}/hexlatest.json"
+run_collector "${out}" --hex-package bandit --hex-package req
+assert "--hex-package records the first released version per package" \
+  jq -e '.hex_latest=={bandit:"1.12.5",req:"0.7.5"}' "${out}"
+run_collector "${ROOT_TMP}/hexlatest-none.json" --hex-package no_such_pkg
+if [ "${RC}" -ne 0 ] && [ ! -e "${ROOT_TMP}/hexlatest-none.json" ]; then
+  record "unknown --hex-package aborts with no output file" true
+else
+  record "unknown --hex-package aborts with no output file" false "rc=${RC}"
 fi
 
 # Tripwire self-test: the fake gh must flag writes, otherwise "no mutations" proves nothing.
