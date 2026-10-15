@@ -106,6 +106,18 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     assert step(script_tests, "Nightly Summary gate logic")["run"] ==
              "bash scripts/ci/test_nightly_summary_gate.sh"
 
+    assert step(script_tests, "Inbox collector harness")["run"] ==
+             "bash scripts/ci/test_collect_inbox.sh"
+
+    assert step(script_tests, "Inbox ledger validator harness")["run"] ==
+             "bash scripts/ci/test_validate_inbox_ledger.sh"
+
+    assert step(script_tests, "Dependency landing evidence harness")["run"] ==
+             "bash scripts/ci/test_dep_landing_evidence.sh"
+
+    assert step(script_tests, "Inbox ledger shape (offline)")["run"] ==
+             "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json"
+
     assert workflow["name"] == "CI"
     assert summary["name"] == "CI Summary"
     assert summary["needs"] == @required_ci_needs

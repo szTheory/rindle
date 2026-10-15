@@ -1473,6 +1473,14 @@ jobs:
         run: bash scripts/ci/test_nightly_incident.sh
       - name: Branch protection pending-forever guard
         run: bash scripts/ci/test_setup_branch_protection.sh
+      - name: Inbox collector harness
+        run: bash scripts/ci/test_collect_inbox.sh
+      - name: Inbox ledger validator harness
+        run: bash scripts/ci/test_validate_inbox_ledger.sh
+      - name: Dependency landing evidence harness
+        run: bash scripts/ci/test_dep_landing_evidence.sh
+      - name: Inbox ledger shape (offline)
+        run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json
 
   ci-summary:
     name: CI Summary
