@@ -1463,6 +1463,8 @@ jobs:
         run: bash scripts/ci/test_nightly_summary_gate.sh
       - name: Nightly incident lifecycle
         run: bash scripts/ci/test_nightly_incident.sh
+      - name: Branch protection pending-forever guard
+        run: bash scripts/ci/test_setup_branch_protection.sh
 
   ci-summary:
     name: CI Summary
