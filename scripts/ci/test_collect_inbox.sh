@@ -160,6 +160,13 @@ fx_new() {
   mkdir -p "${FAKE_DIR}/api"
   export FAKE_DIR
   fx "repos/szTheory/rindle/commits/main" "{\"sha\":\"${MAIN_SHA}\"}"
+  fx "repos/szTheory/rindle/issues?state=open&per_page=100" '[]'
+  fx "repos/szTheory/rindle/pulls?state=open&per_page=100" '[]'
+  fx "repos/szTheory/rindle/branches/main/protection" \
+    '{"required_status_checks":{"strict":true,"contexts":["CI Summary"],"checks":[{"context":"CI Summary","app_id":15368}]},"enforce_admins":{"enabled":false}}'
+  fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=5" \
+    '{"workflow_runs":[{"id":555,"head_sha":"'"${MAIN_SHA}"'","conclusion":"success"}]}'
+  fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" '{"jobs":[{"name":"Quality","conclusion":"success"}]}'
 }
 
 # fx PATH BODY [STATUS]
@@ -249,6 +256,139 @@ if [ "${RC}" -eq 64 ]; then
   record "unknown flag exits 64" true
 else
   record "unknown flag exits 64" false "rc=${RC}"
+fi
+
+# --- Task 2: PRs, CI Summary selection, lock delta, terminal, protection, main CI ----
+
+SHA_A=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+SHA_B=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+SHA_C=cccccccccccccccccccccccccccccccccccccccc
+
+pr_fixture() { # number sha mergeable mergeable_state
+  fx "repos/szTheory/rindle/pulls/$1" \
+    "{\"number\":$1,\"title\":\"PR $1 \$(touch pwned2)\",\"user\":{\"login\":\"dependabot[bot]\"},\"base\":{\"ref\":\"main\"},\"head\":{\"sha\":\"$2\"},\"mergeable\":$3,\"mergeable_state\":\"$4\"}"
+}
+
+fx_new prs
+fx "repos/szTheory/rindle/pulls?state=open&per_page=100" '[{"number":108},{"number":95},{"number":120}]'
+pr_fixture 108 "${SHA_A}" true behind
+pr_fixture 95 "${SHA_B}" null unknown
+pr_fixture 120 "${SHA_C}" true blocked
+LOCK_PATCH="$(printf '%s\n' \
+  '@@ -1,5 +1,5 @@' \
+  '-  "mint": {:hex, :mint, "1.9.3", "abc", [:mix], [], "hexpm", "def"},' \
+  '+  "mint": {:hex, :mint, "1.10.0", "abc", [:mix], [], "hexpm", "def"},' \
+  '-  "req": {:hex, :req, "0.7.3", "abc", [:mix], [], "hexpm", "def"},' \
+  '+  "req": {:hex, :req, "0.7.4", "abc", [:mix], [], "hexpm", "def"},' \
+  '   "unchanged": {:hex, :unchanged, "1.0.0", "abc", [:mix], [], "hexpm", "def"},' \
+  '+garbage line that is not a lock row')"
+files108="$(jq -c -n --arg patch "${LOCK_PATCH}" \
+  '[{filename:"mix.lock",patch:$patch},{filename:"lib/rindle/foo.ex",patch:"x"},{filename:"mix.exs"},{filename:".github/workflows/ci.yml"},{filename:"brandbook/package-lock.json"},{filename:"README.md"}]')"
+fx "repos/szTheory/rindle/pulls/108/files?per_page=100" "${files108}"
+fx "repos/szTheory/rindle/pulls/95/files?per_page=100" '[{"filename":"mix.exs"}]'
+fx "repos/szTheory/rindle/pulls/120/files?per_page=100" '[]'
+# #108: failure completed earlier, success later (cancelled-run duplicate).
+fx "repos/szTheory/rindle/commits/${SHA_A}/check-runs?check_name=CI%20Summary&per_page=100" \
+  '{"check_runs":[
+     {"id":1,"name":"CI Summary","app":{"slug":"github-actions"},"conclusion":"failure","completed_at":"2026-10-14T12:11:41Z"},
+     {"id":2,"name":"CI Summary","app":{"slug":"github-actions"},"conclusion":"success","completed_at":"2026-10-14T12:19:50Z"},
+     {"id":3,"name":"CI Summary","app":{"slug":"other-app"},"conclusion":"failure","completed_at":"2026-10-14T13:00:00Z"}]}'
+fx "repos/szTheory/rindle/commits/${SHA_B}/check-runs?check_name=CI%20Summary&per_page=100" '{"check_runs":[]}'
+fx "repos/szTheory/rindle/commits/${SHA_C}/check-runs?check_name=CI%20Summary&per_page=100" \
+  '{"check_runs":[{"id":9,"name":"CI Summary","app":{"slug":"github-actions"},"conclusion":"success","completed_at":"2026-10-14T01:00:00Z"}]}'
+fx "repos/szTheory/rindle/issues/93" '{"number":93,"state":"closed","state_reason":null,"pull_request":{"url":"x"}}'
+fx "repos/szTheory/rindle/pulls/93" '{"number":93,"merged":false}'
+fx "repos/szTheory/rindle/issues/88" '{"number":88,"state":"closed","state_reason":"completed"}'
+fx "repos/szTheory/rindle/issues/77" '{"number":77,"state":"closed","state_reason":null,"pull_request":{"url":"x"}}'
+fx "repos/szTheory/rindle/pulls/77" '{"number":77,"merged":true}'
+fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" \
+  '{"jobs":[{"name":"Quality","conclusion":"success"},{"name":"Adoption Demo E2E","conclusion":"failure"},{"name":"Cohort Demo Smoke","conclusion":"skipped"},{"name":"Package Consumer Full","conclusion":null}]}'
+out="${ROOT_TMP}/prs.json"
+run_collector "${out}" --include 93 --include 88 --include 77
+if [ "${RC}" -eq 0 ] && [ -f "${out}" ]; then
+  record "PR inventory: exit 0 and file written" true
+else
+  record "PR inventory: exit 0 and file written" false "rc=${RC} $(head -3 "${FAKE_DIR}/stderr")"
+fi
+assert "duplicate check-runs: latest completed_at wins (success, superseded_count 1, foreign app ignored)" \
+  jq -e '.prs[]|select(.number==108)|.ci_summary|(.conclusion=="success" and .superseded_count==1 and .check_run_id==2)' "${out}"
+assert "no check-runs: conclusion null with reason no_check_runs" \
+  jq -e '.prs[]|select(.number==95)|.ci_summary==({conclusion:null,reason:"no_check_runs"})' "${out}"
+assert "unknown mergeable: stays \"unknown\" after bounded retries, not coerced" \
+  jq -e '.prs[]|select(.number==95)|(.mergeable=="unknown" and .behind==false)' "${out}"
+if [ "$(grep -c 'pulls/95$' "${FAKE_DIR}/gh.log")" -eq 3 ]; then
+  record "unknown mergeable: exactly 3 bounded reads" true
+else
+  record "unknown mergeable: exactly 3 bounded reads" false "$(grep -c 'pulls/95$' "${FAKE_DIR}/gh.log")"
+fi
+assert "mergeable_state behind sets behind true" \
+  jq -e '.prs[]|select(.number==108)|(.behind==true and .mergeable==true and .mergeable_state=="behind")' "${out}"
+assert "lock_delta parse: two packages with from/to, garbage ignored" \
+  jq -e '.prs[]|select(.number==108)|.lock_delta==[{lock:"mix.lock",package:"mint",from:"1.9.3",to:"1.10.0"},{lock:"mix.lock",package:"req",from:"0.7.3",to:"0.7.4"}]' "${out}"
+assert "manifest_files: mix.exs, mix.lock, workflows, package*.json only" \
+  jq -e '.prs[]|select(.number==108)|.manifest_files==["mix.lock","mix.exs",".github/workflows/ci.yml","brandbook/package-lock.json"]' "${out}"
+assert "PR fields: author, base, head_sha, title kept verbatim" \
+  jq -e --arg sha "${SHA_A}" '.prs[]|select(.number==108)|(.author=="dependabot[bot]" and .base=="main" and .head_sha==$sha and (.title|contains("$(touch pwned2)")))' "${out}"
+assert "prs sorted by number" jq -e '(.prs|map(.number))==[95,108,120]' "${out}"
+assert "terminal include 93: closed, merged false, kind pr" \
+  jq -e '.terminal[]|select(.number==93)|(.state=="closed" and .merged==false and .kind=="pr")' "${out}"
+assert "terminal include 77: merged true" \
+  jq -e '.terminal[]|select(.number==77)|(.merged==true and .state=="closed")' "${out}"
+assert "terminal include 88: issue with state_reason completed" \
+  jq -e '.terminal[]|select(.number==88)|(.kind=="issue" and .state_reason=="completed" and .merged==false)' "${out}"
+assert "protection 200: source protection, strict true, enforce_admins false (booleans)" \
+  jq -e '.branch_protection==({source:"protection",http:200,contexts:["CI Summary"],strict:true,enforce_admins:false})' "${out}"
+assert "main_ci: latest push run with every non-passing job listed" \
+  jq -e '.main_ci|(.run_id==555 and .conclusion=="success" and .failed_jobs==["Adoption Demo E2E","Package Consumer Full"])' "${out}"
+no_mutations "PR inventory"
+assert "PR title with shell metacharacters was not executed" test ! -e pwned2
+
+# Protection 403 -> branches/main partial.
+fx "repos/szTheory/rindle/branches/main/protection" '{"message":"Resource not accessible by integration"}' 403
+fx "repos/szTheory/rindle/branches/main" '{"protected":true,"protection":{"required_status_checks":{"contexts":["CI Summary"],"enforcement_level":"non_admins"}}}'
+out="${ROOT_TMP}/prot403.json"
+run_collector "${out}"
+assert "protection 403: branches-partial with strict/enforce_admins \"unreadable\" (never booleans)" \
+  jq -e '.branch_protection==({source:"branches-partial",http:403,contexts:["CI Summary"],strict:"unreadable",enforce_admins:"unreadable"})' "${out}"
+no_mutations "protection 403"
+
+# Protection 404 + branches 403 -> unreadable.
+fx "repos/szTheory/rindle/branches/main/protection" '{"message":"Not Found"}' 404
+fx "repos/szTheory/rindle/branches/main" '{"message":"Forbidden"}' 403
+out="${ROOT_TMP}/protunread.json"
+run_collector "${out}"
+assert "protection and branches both failing: source unreadable" \
+  jq -e '.branch_protection|(.source=="unreadable" and .http==404 and .strict=="unreadable" and .enforce_admins=="unreadable")' "${out}"
+
+# 5xx on a required endpoint aborts without output.
+fx_new fivexx
+fx "repos/szTheory/rindle/branches/main/protection" '{"message":"Bad Gateway"}' 502
+out="${ROOT_TMP}/fivexx.json"
+run_collector "${out}"
+if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
+  record "5xx on protection: abort with no output file" true
+else
+  record "5xx on protection: abort with no output file" false "rc=${RC}"
+fi
+fx_new fivexx2
+fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" '{"message":"Server Error"}' 500
+out="${ROOT_TMP}/fivexx2.json"
+run_collector "${out}"
+if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
+  record "5xx on main CI jobs: abort with no output file" true
+else
+  record "5xx on main CI jobs: abort with no output file" false "rc=${RC}"
+fi
+
+# Malformed JSON aborts without output.
+fx_new malformed
+fx "repos/szTheory/rindle/issues?state=open&per_page=100" 'not json {'
+out="${ROOT_TMP}/malformed.json"
+run_collector "${out}"
+if [ "${RC}" -ne 0 ] && [ ! -e "${out}" ]; then
+  record "malformed issues response: abort with no output file" true
+else
+  record "malformed issues response: abort with no output file" false "rc=${RC}"
 fi
 
 # Tripwire self-test: the fake gh must flag writes, otherwise "no mutations" proves nothing.

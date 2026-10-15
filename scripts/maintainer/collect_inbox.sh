@@ -147,7 +147,6 @@ gh_get_opt() {
 
 # --- collection -------------------------------------------------------------
 
-command -v gh >/dev/null 2>&1
 gh auth status >/dev/null 2>&1 || die "gh is not authenticated (gh auth status failed)"
 
 if [ -n "${INBOX_NOW_EPOCH:-}" ]; then
@@ -170,6 +169,139 @@ jq -S '{issues: ([ .[] | select(.pull_request == null)
         | {number, title, labels: [ .labels[]? | (if type == "object" then .name else . end) ], updated_at} ]
       | sort_by(.number))}' "${WORK}/issues.raw.json" >"${WORK}/sec-issues.json" \
   || die "malformed issues response"
+
+# Open PRs: list, then a per-PR REST read (the gh pr list CLI reports mergeable as
+# UNKNOWN), the changed files, and the authoritative CI Summary for the head.
+MERGEABLE_SLEEP="${INBOX_MERGEABLE_SLEEP:-2}"
+: >"${WORK}/prs.jsonl"
+gh_paged "repos/${REPO}/pulls?state=open&per_page=100" >"${WORK}/pulls.list.json" \
+  || die "cannot read open pull requests"
+PR_NUMBERS="$(jq -r '.[].number' "${WORK}/pulls.list.json")" || die "malformed pull request list"
+
+for n in ${PR_NUMBERS}; do
+  attempt=0
+  while :; do
+    gh_get "repos/${REPO}/pulls/${n}" >"${WORK}/pr.json" || die "cannot read PR #${n}"
+    jq -e 'type == "object"' "${WORK}/pr.json" >/dev/null || die "malformed PR #${n}"
+    mergeable_null="$(jq -r 'if .mergeable == null then "yes" else "no" end' "${WORK}/pr.json")"
+    attempt=$((attempt + 1))
+    # mergeable is null while GitHub computes it: bounded retries, never coerced.
+    if [ "${mergeable_null}" = no ] || [ "${attempt}" -ge 3 ]; then break; fi
+    sleep "${MERGEABLE_SLEEP}"
+  done
+  head_sha="$(jq -r '.head.sha // empty' "${WORK}/pr.json")"
+  case "${head_sha}" in *[!0-9a-f]*|"") die "PR #${n} head sha is not 40 hex" ;; esac
+  [ "${#head_sha}" -eq 40 ] || die "PR #${n} head sha is not 40 hex"
+
+  gh_paged "repos/${REPO}/pulls/${n}/files?per_page=100" >"${WORK}/pr.files.json" \
+    || die "cannot read files of PR #${n}"
+  gh_get "repos/${REPO}/commits/${head_sha}/check-runs?check_name=CI%20Summary&per_page=100" \
+    >"${WORK}/pr.checks.json" || die "cannot read check-runs of PR #${n}"
+
+  # Pitfall 5: a cancelled earlier run leaves a failed CI Summary beside the later
+  # success, and filter=latest does not de-duplicate. Take the greatest completed_at.
+  jq -S -n \
+    --slurpfile d "${WORK}/pr.json" \
+    --slurpfile f "${WORK}/pr.files.json" \
+    --slurpfile c "${WORK}/pr.checks.json" \
+    '$d[0] as $p | $f[0] as $files | $c[0] as $checks
+     | ([ $checks.check_runs[]? | select(.name == "CI Summary" and .app.slug == "github-actions") ]) as $runs
+     | {number: $p.number,
+        title: $p.title,
+        author: $p.user.login,
+        base: $p.base.ref,
+        head_sha: $p.head.sha,
+        mergeable: (if $p.mergeable == null then "unknown" else $p.mergeable end),
+        mergeable_state: ($p.mergeable_state // "unknown"),
+        behind: (($p.mergeable_state // "") == "behind"),
+        ci_summary: (if ($runs | length) == 0
+                     then {conclusion: null, reason: "no_check_runs"}
+                     else ($runs | max_by(.completed_at // "")) as $r
+                          | {conclusion: $r.conclusion, completed_at: $r.completed_at,
+                             check_run_id: $r.id, superseded_count: (($runs | length) - 1)}
+                     end),
+        manifest_files: [ $files[] | .filename
+                          | select(test("(^|/)mix\\.exs$") or test("(^|/)mix\\.lock$")
+                                   or test("^\\.github/workflows/") or test("(^|/)package[^/]*\\.json$")) ],
+        lock_delta: ([ $files[]
+                       | select(.filename == "mix.lock" or .filename == "examples/adoption_demo/mix.lock")
+                       | .filename as $lock
+                       | (.patch // "") | split("\n")[]
+                       | capture("^(?<sign>[-+])  \"(?<pkg>[a-z_0-9]+)\": \\{:hex, :[a-z_0-9]+, \"(?<ver>[^\"]+)\"")
+                       | {lock: $lock, sign: .sign, pkg: .pkg, ver: .ver} ]
+                     | group_by([.lock, .pkg])
+                     | map({lock: .[0].lock, package: .[0].pkg,
+                            from: (map(select(.sign == "-") | .ver) | .[0]),
+                            to: (map(select(.sign == "+") | .ver) | .[0])}))}' \
+    >>"${WORK}/prs.jsonl" || die "cannot assemble PR #${n}"
+done
+jq -S -s '{prs: (sort_by(.number))}' "${WORK}/prs.jsonl" >"${WORK}/sec-prs.json" \
+  || die "cannot assemble PR list"
+
+# Terminal lookups for ledger entries that are no longer open (--include N).
+: >"${WORK}/terminal.jsonl"
+for n in ${INCLUDES}; do
+  gh_get "repos/${REPO}/issues/${n}" >"${WORK}/term.issue.json" || die "cannot read #${n}"
+  if jq -e '.pull_request != null' "${WORK}/term.issue.json" >/dev/null 2>&1; then
+    gh_get "repos/${REPO}/pulls/${n}" >"${WORK}/term.pull.json" || die "cannot read PR #${n}"
+  else
+    echo '{"merged":false}' >"${WORK}/term.pull.json"
+  fi
+  jq -S -n --slurpfile i "${WORK}/term.issue.json" --slurpfile p "${WORK}/term.pull.json" \
+    '$i[0] as $x | {number: $x.number,
+                    kind: (if $x.pull_request != null then "pr" else "issue" end),
+                    state: $x.state, state_reason: $x.state_reason,
+                    merged: ($p[0].merged // false)}' >>"${WORK}/terminal.jsonl" \
+    || die "cannot assemble terminal record for #${n}"
+done
+jq -S -s '{terminal: (sort_by(.number))}' "${WORK}/terminal.jsonl" >"${WORK}/sec-terminal.json" \
+  || die "cannot assemble terminal records"
+
+# Branch protection on main: full read, else the reader-visible partial, else unreadable.
+gh_get_opt "repos/${REPO}/branches/main/protection"
+PROT_STATUS="${OPT_STATUS}"
+case "${PROT_STATUS}" in
+  200)
+    jq -S '{branch_protection: {source: "protection", http: 200,
+              contexts: (.required_status_checks.contexts // [ .required_status_checks.checks[]?.context ]),
+              strict: (.required_status_checks.strict // false),
+              enforce_admins: (.enforce_admins.enabled // false)}}' \
+      "${OPT_BODY}" >"${WORK}/sec-protection.json" || die "malformed protection response"
+    ;;
+  403|404)
+    gh_get_opt "repos/${REPO}/branches/main"
+    case "${OPT_STATUS}" in
+      200)
+        jq -S --argjson http "${PROT_STATUS}" \
+          '{branch_protection: {source: "branches-partial", http: $http,
+              contexts: (.protection.required_status_checks.contexts // []),
+              strict: "unreadable", enforce_admins: "unreadable"}}' \
+          "${OPT_BODY}" >"${WORK}/sec-protection.json" || die "malformed branch response"
+        ;;
+      403|404)
+        jq -S -n --argjson http "${PROT_STATUS}" \
+          '{branch_protection: {source: "unreadable", http: $http, contexts: [],
+              strict: "unreadable", enforce_admins: "unreadable"}}' \
+          >"${WORK}/sec-protection.json"
+        ;;
+      *) die "unexpected HTTP ${OPT_STATUS} reading branches/main" ;;
+    esac
+    ;;
+  *) die "unexpected HTTP ${PROT_STATUS} reading branch protection" ;;
+esac
+
+# Main CI baseline: latest ci.yml push run on main and every job that did not pass.
+gh_get "repos/${REPO}/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=5" \
+  >"${WORK}/main.runs.json" || die "cannot read main CI runs"
+MAIN_RUN_ID="$(jq -r '.workflow_runs[0].id // empty' "${WORK}/main.runs.json")" || die "malformed main CI runs"
+case "${MAIN_RUN_ID}" in ''|*[!0-9]*) die "no ci.yml push run found on main" ;; esac
+gh_get "repos/${REPO}/actions/runs/${MAIN_RUN_ID}/jobs?per_page=100" >"${WORK}/main.jobs.json" \
+  || die "cannot read jobs of main CI run ${MAIN_RUN_ID}"
+jq -S -n --slurpfile r "${WORK}/main.runs.json" --slurpfile j "${WORK}/main.jobs.json" \
+  '$r[0].workflow_runs[0] as $run
+   | {main_ci: {run_id: $run.id, head_sha: $run.head_sha, conclusion: $run.conclusion,
+                failed_jobs: [ $j[0].jobs[] | select(.conclusion != "success" and .conclusion != "skipped") | .name ]}}' \
+  >"${WORK}/sec-main-ci.json" || die "cannot assemble main CI baseline"
 
 # --- assemble ---------------------------------------------------------------
 
