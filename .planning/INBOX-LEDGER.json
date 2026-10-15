@@ -56,7 +56,7 @@
       ],
       "reachability": "optional-dep",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.1",
@@ -69,7 +69,7 @@
       ],
       "reachability": "optional-dep",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.2",
@@ -82,7 +82,7 @@
       ],
       "reachability": "optional-dep",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.2",
@@ -95,7 +95,7 @@
       ],
       "reachability": "optional-dep",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.2",
@@ -108,7 +108,7 @@
       ],
       "reachability": "optional-dep",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.0",
@@ -121,7 +121,7 @@
       ],
       "reachability": "optional-dep",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "3.1.2",
@@ -135,7 +135,7 @@
       ],
       "reachability": "runtime",
       "scope": "root",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "0.1.13",
