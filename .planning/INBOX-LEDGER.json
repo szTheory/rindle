@@ -446,7 +446,7 @@
         "mint",
         "req"
       ],
-      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group",
+      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 went red only at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), so no landings[] record; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
       "terminal": {
         "merged": true,
         "state": "closed",
