@@ -592,11 +592,14 @@
       "disposition": "merge",
       "kind": "pr",
       "number": 133,
-      "head_sha": "de102815da0423715699d732ca77a2a28b6bb18e",
-      "pending_action": "merge",
       "risk_group": "none",
       "group_packages": [],
-      "rationale": "Nightly fix: drop unreachable StrictConnAdapter clauses and wait for incident mutation visibility; test/ci only, no release"
+      "rationale": "Nightly fix: drop unreachable StrictConnAdapter clauses and wait for incident mutation visibility; test/ci only, no release; squash-merged after PR CI green on de102815; Nightly confirmation pending the next scheduled run",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     }
   ],
   "landings": [
