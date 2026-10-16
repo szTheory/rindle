@@ -20,10 +20,10 @@ completion credit.
 
 ### Security, Dependencies, and Inbox
 
-- [ ] **INBOX-01**: Maintainers can capture a timestamped, read-only inventory of every open issue, pull request, check state, advisory, and relevant branch-protection setting.
-- [ ] **INBOX-02**: Every open issue and pull request has an explicit merge, close, retain, supersede, or evidence-gated defer disposition; inbox zero is not required.
-- [ ] **SEC-09**: Every reported dependency advisory has a recorded dependency path, supported-runtime reachability analysis, fix version, and verified resolution or bounded exception.
-- [ ] **DEPS-01**: Dependency updates land only in independently attributable risk groups after supported-toolchain, package-consumer, contract, and relevant twin evidence passes.
+- [x] **INBOX-01**: Maintainers can capture a timestamped, read-only inventory of every open issue, pull request, check state, advisory, and relevant branch-protection setting.
+- [x] **INBOX-02**: Every open issue and pull request has an explicit merge, close, retain, supersede, or evidence-gated defer disposition; inbox zero is not required.
+- [x] **SEC-09**: Every reported dependency advisory has a recorded dependency path, supported-runtime reachability analysis, fix version, and verified resolution or bounded exception.
+- [x] **DEPS-01**: Dependency updates land only in independently attributable risk groups after supported-toolchain, package-consumer, contract, and relevant twin evidence passes.
 
 ### Repository and Code Craft
 
@@ -108,10 +108,10 @@ completion credit.
 | EVID-03 | Phase 133 | Complete |
 | EVID-04 | Phase 133 | Complete |
 | TRUTH-08 | Phase 133 | Complete |
-| INBOX-01 | Phase 134 | Pending |
-| INBOX-02 | Phase 134 | Pending |
-| SEC-09 | Phase 134 | Pending |
-| DEPS-01 | Phase 134 | Pending |
+| INBOX-01 | Phase 134 | Complete |
+| INBOX-02 | Phase 134 | Complete |
+| SEC-09 | Phase 134 | Complete |
+| DEPS-01 | Phase 134 | Complete |
 | CRAFT-03 | Phase 135 | Pending |
 | CRAFT-04 | Phase 135 | Pending |
 | CRAFT-05 | Phase 135 | Pending |
