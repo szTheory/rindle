@@ -305,12 +305,15 @@
     },
     {
       "disposition": "close",
-      "head_sha": "d76291a2f8d537a7fe42186bd1296ddf514b2c60",
       "ignore_policy": ".github/dependabot.yml muontrap semver-major",
       "kind": "pr",
       "number": 95,
-      "pending_action": "close",
-      "rationale": "v1-only cgroup_controllers/cgroup_sets in lib/rindle/av/subprocess.ex; MuonTrap 2 is a public-contract major"
+      "rationale": "v1-only cgroup_controllers/cgroup_sets in lib/rindle/av/subprocess.ex; MuonTrap 2 is a public-contract major; closed by Dependabot 2026-10-15 after the semver-major ignore landed, so no maintainer close was needed",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "merge",
