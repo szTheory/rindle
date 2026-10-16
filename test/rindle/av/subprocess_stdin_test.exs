@@ -12,8 +12,10 @@ defmodule Rindle.AV.SubprocessStdinTest do
   # child's output and the call stalls until its timeout. This is the main-only AV poster-frame
   # stall seen in the mux lane and Adoption Demo E2E (2026-10-16).
   #
-  # Deterministic: the reader below consumes every ACK. If MuonTrap starts giving the child its
-  # own stdin, these assertions fail; `-nostdin` is then still harmless but no longer load-bearing.
+  # The reader below races MuonTrap for every ACK; each one it wins is lost for good, so the window
+  # only shrinks and the call stalls well before the output is done. If MuonTrap starts giving the
+  # child its own stdin, these assertions fail; `-nostdin` is then still harmless but no longer
+  # load-bearing.
 
   @output_bytes 3_000_000
   # How much a stalled call delivers before the window runs dry varies (MuonTrap and the reader
