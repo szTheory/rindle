@@ -23,7 +23,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 ## Phases
 
 - [x] **Phase 133: Evidence Charter and Live Truth** - Establish immutable evidence authority and restore truthful Nightly, incident, release, and adoption signals. (completed 2026-10-15)
-- [ ] **Phase 134: Dependency, Security, and Inbox Disposition** - Give every live advisory and remote item an attributable, evidence-backed disposition.
+- [x] **Phase 134: Dependency, Security, and Inbox Disposition** - Give every live advisory and remote item an attributable, evidence-backed disposition. (completed 2026-10-16)
 - [ ] **Phase 135: Repository and Code-Craft Consolidation** - Remove only proven residue and improve candidate-backed readability under preserved contracts.
 - [ ] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed.
 - [ ] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup.
@@ -649,15 +649,15 @@ Plans:
   3. Every reported advisory records its dependency path, supported-runtime reachability, fix version, and either verified resolution or a bounded exception with an executable expiry trigger.
   4. Each landed dependency risk group is independently attributable and passes supported-toolchain, public-contract, built-package consumer, and relevant twin gates before its remote disposition can close.
 
-**Plans**: 3/6 plans executed
+**Plans**: 6/6 plans complete
 
 Plans:
 - [x] 134-01-PLAN.md — Read-only inbox collector (collect_inbox.sh) with fake-gh/mix tripwire harness (wave 1)
 - [x] 134-02-PLAN.md — dep_landing_evidence.sh, hex.audit advisory step, MuonTrap-major ignore, action-pin test decoupling (wave 1)
 - [x] 134-03-PLAN.md — Ledger validator, INBOX-LEDGER.json seed, triage pointer, ci-script-tests wiring (wave 2)
-- [ ] 134-04-PLAN.md — Baseline rerun, landing loop, batch A: tooling PR, #113, cowlib, mint, decimal (wave 3)
-- [ ] 134-05-PLAN.md — Batch B: #105, #108, #109, #112, adoption demo lock refresh (wave 4)
-- [ ] 134-06-PLAN.md — #95 close, Dependabot-alerts offer, bandit exception, live closure validation (wave 5)
+- [x] 134-04-PLAN.md — Baseline rerun, landing loop, batch A: tooling PR, #113, cowlib, mint, decimal (wave 3)
+- [x] 134-05-PLAN.md — Batch B: #105, #108, #109, #112, adoption demo lock refresh (wave 4)
+- [x] 134-06-PLAN.md — #95 close, Dependabot-alerts offer, bandit exception, live closure validation (wave 5)
 
 ### Phase 135: Repository and Code-Craft Consolidation
 
@@ -740,7 +740,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
-| 134. Dependency, Security, and Inbox Disposition | 3/6 | In Progress | - |
+| 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 0/TBD | Not started | - |
 | 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |

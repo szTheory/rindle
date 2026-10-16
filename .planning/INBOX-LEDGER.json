@@ -501,7 +501,7 @@
         "mint",
         "req"
       ],
-      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 went red only at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), so no landings[] record; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
+      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 is a regression by dep_landing_evidence.sh: the package-consumer legs failed at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), which skipped the built-package proof, and Proof was cancelled, so no landings[] record; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
       "terminal": {
         "merged": true,
         "state": "closed",
@@ -595,6 +595,83 @@
       "risk_group": "none",
       "group_packages": [],
       "rationale": "Nightly fix: drop unreachable StrictConnAdapter clauses and wait for incident mutation visibility; test/ci only, no release; squash-merged after PR CI green on de102815; Nightly confirmation pending the next scheduled run",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 134,
+      "rationale": "planning-only ledger PR for batch B landings and live validation; docs subject, no release",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 135,
+      "rationale": "AV subprocess stall fix outside the landing queue: -nostdin on ffmpeg plus dead-port detection in run_isolated; fix: is release-bearing and cut 0.4.9 (#136). Its own main run 38924866493 was red in Quality (1.17, 27) because MuonTrap #98 :epipe dropped exit statuses on both tries; superseded functionally by #137",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 136,
+      "rationale": "release-please rindle 0.4.9 cut by the #135 fix: commit (expected; fix: is release-bearing); auto-merged after main run 38927977967 on 2b08b42d was green; published to Hex",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 137,
+      "rationale": "AV fix outside the landing queue: Rindle.AV.Subprocess.ack_free_cmd/3 runs the MuonTrap wrapper without stdout ACKs so #98 cannot drop exit statuses; AV hygiene gate allows exactly that Port.open; squash-merged as 9d046059 after PR CI green on 26922a36",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 138,
+      "rationale": "release-train bot recording the 0.4.9 baseline in RELEASE-TRAIN.md; chore subject, no release",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 139,
+      "rationale": "release-please rindle 0.4.10 cut by the #137 fix: commit (expected; fix: is release-bearing); auto-merged as ca0b674c after main run 38940010020 on 9d046059 was green",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 141,
+      "rationale": "release-train bot recording the 0.4.10 baseline in RELEASE-TRAIN.md; chore subject, no release",
       "terminal": {
         "merged": true,
         "state": "closed",
