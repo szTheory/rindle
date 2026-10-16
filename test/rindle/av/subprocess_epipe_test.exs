@@ -82,6 +82,69 @@ defmodule Rindle.AV.SubprocessEpipeTest do
     refute_received {:EXIT, _, :epipe}
   end
 
+  # (2b) Deterministic synthetic — the port dies mid-call (#98 :epipe before {:exit_status, _}).
+  # The trap_exit'd worker holds {:EXIT, port, :epipe} while MuonTrap waits for an exit status
+  # that never comes; run_isolated must notice, kill the stuck worker, and retry well before the
+  # command timeout instead of sitting there for it.
+  @tag :regression
+  @tag :av
+  test "run_isolated retries a call whose port died before its exit status" do
+    {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+    run_fun = fn _cmd, _args, _opts ->
+      n = Agent.get_and_update(counter, fn count -> {count, count + 1} end)
+
+      if n == 0 do
+        send(self(), {:EXIT, dead_port(), :epipe})
+        Process.sleep(:infinity)
+      else
+        {"OK", 0}
+      end
+    end
+
+    {elapsed_us, result} =
+      :timer.tc(fn ->
+        capture_log(fn ->
+          send(
+            self(),
+            {:result, Subprocess.run_isolated("ffmpeg", [], [timeout: 30_000], 1, run_fun)}
+          )
+        end)
+      end)
+
+    assert_received {:result, {"OK", 0}}
+    assert is_binary(result)
+    assert result =~ "port died before its exit status"
+    assert Agent.get(counter, & &1) == 2
+    assert elapsed_us < 5_000_000
+  end
+
+  @tag :regression
+  @tag :av
+  test "run_isolated exits :epipe when the dead-port retry is exhausted" do
+    run_fun = fn _cmd, _args, _opts ->
+      send(self(), {:EXIT, dead_port(), :epipe})
+      Process.sleep(:infinity)
+    end
+
+    capture_log(fn ->
+      assert catch_exit(Subprocess.run_isolated("ffmpeg", [], [timeout: 30_000], 0, run_fun)) ==
+               :epipe
+    end)
+  end
+
+  @tag :regression
+  @tag :av
+  test "run_isolated ignores a normal port exit while the worker is still finishing" do
+    run_fun = fn _cmd, _args, _opts ->
+      send(self(), {:EXIT, dead_port(), :normal})
+      Process.sleep(500)
+      {"OK", 0}
+    end
+
+    assert {"OK", 0} = Subprocess.run_isolated("ffmpeg", [], [timeout: 30_000], 0, run_fun)
+  end
+
   @tag :regression
   @tag :av
   test "run_isolated bounds and retries a worker that never replies" do
@@ -165,5 +228,12 @@ defmodule Rindle.AV.SubprocessEpipeTest do
            end)
 
     refute_received {:EXIT, _, :epipe}
+  end
+
+  # A real (already closed) port, so the synthetic EXIT carries a genuine port identifier.
+  defp dead_port do
+    port = :erlang.open_port({:spawn_executable, System.find_executable("true")}, [:binary])
+    Port.close(port)
+    port
   end
 end

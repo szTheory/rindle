@@ -1,3 +1,4 @@
+completed: 2026-10-16
 ---
 created: 2026-10-16T12:40:00.000Z
 title: De-flake the AV poster-frame subprocess stall (mux lane + adoption demo E2E)
@@ -41,3 +42,29 @@ without a PR signal and costs a rerun per occurrence.
    subprocess timeout still bounding each attempt.
 
 Fix in the merge-blocking path first if it can be reproduced in a PR lane.
+
+## Solution
+
+Resolved 2026-10-16. Root cause: MuonTrap 1.7 forks the child without redirecting stdin, so ffmpeg
+inherits the pipe the BEAM writes stdout flow-control ACKs to. ffmpeg polls stdin for keyboard
+commands ("Press [q] to stop") and swallows ACK bytes; once MuonTrap's output window is spent it
+stops draining the child, which then blocks on its own stderr until the MuonTrap timeout. ffmpeg
+polls only about every 100 ms, so it wins the race against MuonTrap's own ACK read mainly under CPU
+contention, which explains why it shows up only on shared runners and only intermittently. The 600 s
+watchdog and the held DB connection were symptoms, not causes.
+
+`Rindle.AV.Subprocess.build_args/3` now prepends `-nostdin` to every ffmpeg call (poster, strip,
+transcode, audio, waveform all go through it).
+
+## Verification
+
+- `test/rindle/av/subprocess_stdin_test.exs` (default suite, deterministic): a stdin-reading MuonTrap
+  child stalls at the window (timeout, partial output); the same 3 MB output drains in full when stdin
+  is left alone; real ffmpeg through `Subprocess.run` no longer prints "Press [q]", while bare
+  `MuonTrap.cmd` still does.
+- Negative control: removing `-nostdin` fails 3 tests (two `build_args` unit tests plus the ffmpeg
+  test).
+- Full `mix test` on 2026-10-16: green on the committed tree (LiveTruthParityTest needs a clean
+  tree; DoctorThresholdsTest needs a fresh build dir, not one shared across worktrees).
+- Live signal: the main-only mux lane and Adoption Demo E2E stop failing at
+  `Rindle.AV.Subprocess.run_isolated/5`.
