@@ -372,12 +372,16 @@
     {
       "disposition": "merge",
       "group_packages": [],
-      "head_sha": "cf9f80c46eaf683c79c6a4fe165ce5494b35ab0b",
+      "head_sha": "10002be0366cea0dc3739b1019252f3deab71dd1",
       "kind": "pr",
       "number": 113,
-      "pending_action": "rebase",
-      "rationale": "workflow-only actions group; rebase after the SHA-literal test decoupling landed",
-      "risk_group": "actions"
+      "rationale": "workflow-only actions group; rebase after the SHA-literal test decoupling landed; squash-merged as 346754fe after PR CI green on 10002be0; landing recorded from its own main run 38836352011",
+      "risk_group": "actions",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "merge",
@@ -539,6 +543,23 @@
           "to": "0.42.0"
         }
       ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 113,
+      "group": "actions",
+      "group_packages": [],
+      "lock": "mix.lock",
+      "merge_sha": "346754fe1e3d60992c643f27e325f7cd6f39f10e",
+      "ci_run_id": 38836352011,
+      "baseline_run_id": 38834034396,
+      "subject": "ci(deps): bump the actions group with 4 updates (#113)",
+      "lock_delta": [],
       "gates": {
         "package_consumer": "pass",
         "public_contract": "pass",
