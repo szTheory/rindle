@@ -9,13 +9,13 @@ PR lane in `.planning/DEVELOPMENT-TRAIN.md`.
 
 ## Current Baseline
 
-- Latest released version: `0.4.8` (Hex.pm, 2026-10-15)
+- Latest released version: `0.4.9` (Hex.pm, 2026-10-16)
 - Catch-up release: none (published)
 - GSD posture: `demand-gated-pause` (formalized 2026-05-27)
 - Release automation: Release Please + exact-ref dispatch publish (see `.github/workflows/release.yml`)
-- Last publish workflow: https://github.com/szTheory/rindle/actions/runs/38806586167
-- Last publish CI gate: https://github.com/szTheory/rindle/actions/runs/38806584139
-- Last public verify: https://github.com/szTheory/rindle/actions/runs/38806586167 (Hex index + `scripts/public_smoke.sh` passed)
+- Last publish workflow: https://github.com/szTheory/rindle/actions/runs/38927980232
+- Last publish CI gate: https://github.com/szTheory/rindle/actions/runs/38927977967
+- Last public verify: https://github.com/szTheory/rindle/actions/runs/38927980232 (Hex index + `scripts/public_smoke.sh` passed)
 
 Update this section after each successful Hex publish with run ID, version, and public-smoke proof.
 
