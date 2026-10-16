@@ -27,7 +27,9 @@ defmodule Rindle.AV.SubprocessStdinTest do
   test "Subprocess.run gives ffmpeg -nostdin, so it never polls the ACK pipe for keys" do
     args = ["-hide_banner", "-f", "lavfi", "-i", "testsrc=duration=0.2", "-f", "null", "-"]
 
-    {bare_output, 0} = muontrap("ffmpeg", args, stderr_to_stdout: true)
+    # Bare ffmpeg may itself stall on the stolen ACKs (it did on CI), so bound it and check only
+    # that keyboard polling is on; the banner line lands well inside the first window.
+    {bare_output, _status} = muontrap("ffmpeg", args, stderr_to_stdout: true, timeout: 5_000)
     assert bare_output =~ "Press [q]"
 
     {output, 0} = Subprocess.run("ffmpeg", args)
