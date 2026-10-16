@@ -5,71 +5,67 @@ defmodule Rindle.AV.SubprocessStdinTest do
 
   @moduletag :av
 
-  # Locks the reason Rindle.AV.Subprocess.build_args/3 prepends `-nostdin` to every ffmpeg call.
+  # Locks why Rindle runs AV commands through Subprocess.ack_free_cmd/3 with `-nostdin` on ffmpeg.
   # MuonTrap 1.7 forks the child without redirecting stdin, so the child inherits the pipe the
   # BEAM writes stdout flow-control ACKs to. A child that reads stdin (ffmpeg polls it for
-  # keyboard commands) eats those ACKs; once the window is spent MuonTrap stops draining the
-  # child's output and the call stalls until its timeout. This is the main-only AV poster-frame
-  # stall seen in the mux lane and Adoption Demo E2E (2026-10-16).
+  # keyboard commands) races MuonTrap for those ACKs; each one it wins is lost for good, so plain
+  # MuonTrap.cmd/3 stops draining the child and the call stalls until its timeout. This was the
+  # main-only AV poster-frame stall in the mux lane and Adoption Demo E2E (2026-10-16).
   #
-  # The reader below races MuonTrap for every ACK; each one it wins is lost for good, so the window
-  # only shrinks and the call stalls well before the output is done. If MuonTrap starts giving the
-  # child its own stdin, these assertions fail; `-nostdin` is then still harmless but no longer
-  # load-bearing.
+  # If MuonTrap starts giving the child its own stdin, the inheritance and raw-stall assertions
+  # fail; the ACK-free runner and `-nostdin` are then still harmless but no longer load-bearing.
 
   @output_bytes 3_000_000
-  # How much a stalled call delivers before the window runs dry varies (MuonTrap and the reader
-  # race for each ACK), so the stall is asserted by the timeout. A drained call delivers nearly all
-  # of it (MuonTrap may drop the last unacked chunk at child exit, so not an exact count).
-  @drained_floor 2_000_000
   @producer "head -c #{@output_bytes} /dev/zero | tr '\\0' a 2>/dev/null"
+  @stdin_reader "#{@producer} & cat >/dev/null"
 
   test "Subprocess.run gives ffmpeg -nostdin, so it never polls the ACK pipe for keys" do
     args = ["-hide_banner", "-f", "lavfi", "-i", "testsrc=duration=0.2", "-f", "null", "-"]
 
-    # Bare ffmpeg may itself stall on the stolen ACKs (it did on CI), so bound it and check only
-    # that keyboard polling is on; the banner line lands well inside the first window.
-    {bare_output, _status} = muontrap("ffmpeg", args, stderr_to_stdout: true, timeout: 5_000)
+    {bare_output, 0} = Subprocess.ack_free_cmd("ffmpeg", args, stderr_to_stdout: true)
     assert bare_output =~ "Press [q]"
 
     {output, 0} = Subprocess.run("ffmpeg", args)
     refute output =~ "Press [q]"
   end
 
-  test "a MuonTrap child inherits the ACK pipe as stdin" do
+  test "a MuonTrap child inherits the parent's pipe as stdin" do
     assert {"pipe\n", 0} =
-             muontrap(
+             Subprocess.ack_free_cmd(
                "sh",
                ["-c", "if [ -p /dev/stdin ]; then echo pipe; else echo other; fi"],
                timeout: 10_000
              )
   end
 
-  test "a child that reads stdin starves MuonTrap output until the timeout" do
+  test "plain MuonTrap.cmd/3 stalls when the child reads stdin" do
+    # The reader never exits, so no end-of-run #98 :epipe can intervene; only the stall can.
     {output, status} =
-      muontrap("sh", ["-c", "#{@producer} & cat >/dev/null"],
-        into: "",
-        timeout: 1_000
+      Subprocess.run_isolated(
+        "sh",
+        ["-c", @stdin_reader],
+        [into: "", timeout: 1_000],
+        1,
+        &MuonTrap.cmd/3
       )
 
     assert status == :timeout
     assert byte_size(output) < @output_bytes
   end
 
-  test "the same output drains in full when the child leaves stdin alone" do
-    {output, status} =
-      muontrap("sh", ["-c", "#{@producer}; exec </dev/null"],
-        into: "",
-        timeout: 10_000
-      )
+  test "the ACK-free runner drains everything even when the child reads stdin" do
+    # Same child: nothing is written to the pipe, so there is nothing to steal. The reader keeps
+    # the command alive until the timeout, by which point all output has arrived.
+    {output, status} = Subprocess.ack_free_cmd("sh", ["-c", @stdin_reader], timeout: 3_000)
 
-    assert status == 0
-    assert byte_size(output) > @drained_floor
+    assert status == :timeout
+    assert byte_size(output) == @output_bytes
   end
 
-  # Bare MuonTrap.cmd/3, but owned by a throwaway trap_exit'd worker so MuonTrap #98's async
-  # :epipe exit (see the NOTE above Subprocess.run_isolated/5) cannot kill the test process.
-  defp muontrap(cmd, args, opts) do
-    Subprocess.run_isolated(cmd, args, opts, 1, &MuonTrap.cmd/3)
+  test "the ACK-free runner returns the exit status of short commands" do
+    for _ <- 1..50 do
+      assert {"ok\n", 0} = Subprocess.ack_free_cmd("sh", ["-c", "echo ok"], timeout: 10_000)
+      assert {"", 3} = Subprocess.ack_free_cmd("sh", ["-c", "exit 3"], timeout: 10_000)
+    end
   end
 end

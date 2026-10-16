@@ -22,9 +22,14 @@ search() {
 check_absent() {
   local label=$1
   local pattern=$2
+  local allowed=${3:-}
   local matches
 
   matches=$(search "$pattern")
+
+  if [ -n "$allowed" ]; then
+    matches=$(printf '%s\n' "$matches" | grep -vE "$allowed" || true)
+  fi
 
   if [ -n "$matches" ]; then
     echo "FAIL: banned AV invocation surface detected (${label})" >&2
@@ -36,7 +41,10 @@ check_absent() {
 
 check_absent "System.shell/2" 'System\.shell\s*\('
 check_absent ":os.cmd/1" ':os\.cmd\s*\('
-check_absent "raw Port.open/2" 'Port\.open\s*\('
+# The one sanctioned port: Rindle.AV.Subprocess.ack_free_cmd/3 opens MuonTrap's own wrapper
+# without stdout ACKs (MuonTrap #98). Every other Port.open in lib/rindle still fails the gate.
+check_absent "raw Port.open/2" 'Port\.open\s*\(' \
+  '^[^:]*lib/rindle/av/subprocess\.ex:[0-9]+:\s*port = Port\.open\(\{:spawn_executable, to_charlist\(MuonTrap\.muontrap_path\(\)\)\}, port_opts\)$'
 check_absent "string-interpolated ffmpeg/ffprobe argv" '"[^"\n]*(ffmpeg|ffprobe)[^"\n]*#\{[^"\n]*"|\"[^\"\n]*#\{[^\"\n]*(ffmpeg|ffprobe)[^\"\n]*\"'
 
 echo "OK: AV hygiene gate passed for $SCAN_DIR"
