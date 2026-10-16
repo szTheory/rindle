@@ -6,6 +6,8 @@ defmodule Rindle.AV.Subprocess do
   require Logger
 
   @cgroup_base "rindle_av"
+  @port_check_ms 200
+  @dead_port_grace_ms 100
 
   @doc """
   Runs a command wrapped in MuonTrap with configured cgroups and 4-cap limits.
@@ -49,6 +51,17 @@ defmodule Rindle.AV.Subprocess do
         end
       end)
 
+    deadline = System.monotonic_time(:millisecond) + watchdog_timeout(muon_opts)
+    await_worker(pid, mon, ref, deadline, {cmd, args, muon_opts, retries_left, run_fun})
+  end
+
+  # A #98 :epipe can also kill the port mid-call, before MuonTrap sees {:exit_status, _}. The
+  # trap_exit'd worker then just holds {:EXIT, port, :epipe} in its mailbox while MuonTrap's
+  # receive waits for an exit status that never comes, so the call would sit until the MuonTrap
+  # timeout (600 s by default). Poll for that dead-port state and retry like a pre-reply :epipe.
+  defp await_worker(pid, mon, ref, deadline, {cmd, args, muon_opts, retries_left, run_fun} = call) do
+    remaining = max(deadline - System.monotonic_time(:millisecond), 0)
+
     receive do
       {^ref, result} ->
         Process.demonitor(mon, [:flush])
@@ -78,18 +91,73 @@ defmodule Rindle.AV.Subprocess do
             exit(reason)
         end
     after
-      watchdog_timeout(muon_opts) ->
-        terminate_worker(pid, mon, ref)
+      min(remaining, @port_check_ms) ->
+        cond do
+          remaining == 0 ->
+            terminate_worker(pid, mon, ref)
 
-        if retries_left > 0 do
-          Logger.warning(
-            "Rindle.AV.Subprocess: MuonTrap worker exceeded its command timeout; retrying the AV call once"
-          )
+            if retries_left > 0 do
+              Logger.warning(
+                "Rindle.AV.Subprocess: MuonTrap worker exceeded its command timeout; retrying the AV call once"
+              )
 
-          run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
-        else
-          {"", :timeout}
+              run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
+            else
+              {"", :timeout}
+            end
+
+          port_died_before_exit_status?(pid) ->
+            handle_dead_port(pid, mon, ref, deadline, call)
+
+          true ->
+            await_worker(pid, mon, ref, deadline, call)
         end
+    end
+  end
+
+  defp handle_dead_port(
+         pid,
+         mon,
+         ref,
+         deadline,
+         {cmd, args, muon_opts, retries_left, run_fun} = call
+       ) do
+    # A late :epipe can land just after MuonTrap returned; give the worker a moment to reply.
+    receive do
+      {^ref, result} ->
+        Process.demonitor(mon, [:flush])
+        result
+    after
+      @dead_port_grace_ms ->
+        if port_died_before_exit_status?(pid) do
+          terminate_worker(pid, mon, ref)
+
+          if retries_left > 0 do
+            Logger.warning(
+              "Rindle.AV.Subprocess: MuonTrap port died before its exit status (#98 :epipe); " <>
+                "retrying the AV call once (see https://github.com/fhunleth/muontrap/issues/98)"
+            )
+
+            run_isolated(cmd, args, muon_opts, retries_left - 1, run_fun)
+          else
+            exit(:epipe)
+          end
+        else
+          await_worker(pid, mon, ref, deadline, call)
+        end
+    end
+  end
+
+  defp port_died_before_exit_status?(pid) do
+    case Process.info(pid, :messages) do
+      {:messages, messages} ->
+        Enum.any?(messages, fn
+          {:EXIT, port, reason} when is_port(port) -> reason != :normal
+          _other -> false
+        end)
+
+      nil ->
+        false
     end
   end
 

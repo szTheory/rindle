@@ -38,10 +38,11 @@ defmodule Rindle.AV.SubprocessStdinTest do
 
   test "a MuonTrap child inherits the ACK pipe as stdin" do
     assert {"pipe\n", 0} =
-             muontrap("sh", [
-               "-c",
-               "if [ -p /dev/stdin ]; then echo pipe; else echo other; fi"
-             ])
+             muontrap(
+               "sh",
+               ["-c", "if [ -p /dev/stdin ]; then echo pipe; else echo other; fi"],
+               timeout: 10_000
+             )
   end
 
   test "a child that reads stdin starves MuonTrap output until the timeout" do
@@ -68,7 +69,7 @@ defmodule Rindle.AV.SubprocessStdinTest do
 
   # Bare MuonTrap.cmd/3, but owned by a throwaway trap_exit'd worker so MuonTrap #98's async
   # :epipe exit (see the NOTE above Subprocess.run_isolated/5) cannot kill the test process.
-  defp muontrap(cmd, args, opts \\ []) do
+  defp muontrap(cmd, args, opts) do
     Subprocess.run_isolated(cmd, args, opts, 1, &MuonTrap.cmd/3)
   end
 end
