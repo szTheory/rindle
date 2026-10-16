@@ -600,6 +600,68 @@
         "state": "closed",
         "state_reason": null
       }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 134,
+      "rationale": "planning-only ledger PR for batch B landings and live validation; docs subject, no release",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 135,
+      "rationale": "AV subprocess stall fix outside the landing queue: -nostdin on ffmpeg plus dead-port detection in run_isolated; fix: is release-bearing and cut 0.4.9 (#136). Its own main run 38924866493 was red in Quality (1.17, 27) because MuonTrap #98 :epipe dropped exit statuses on both tries; superseded functionally by #137",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 136,
+      "rationale": "release-please rindle 0.4.9 cut by the #135 fix: commit (expected; fix: is release-bearing); auto-merged after main run 38927977967 on 2b08b42d was green; published to Hex",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 137,
+      "rationale": "AV fix outside the landing queue: Rindle.AV.Subprocess.ack_free_cmd/3 runs the MuonTrap wrapper without stdout ACKs so #98 cannot drop exit statuses; AV hygiene gate allows exactly that Port.open; squash-merged as 9d046059 after PR CI green on 26922a36",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 138,
+      "rationale": "release-train bot recording the 0.4.9 baseline in RELEASE-TRAIN.md; chore subject, no release",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "retain",
+      "kind": "pr",
+      "number": 139,
+      "rationale": "release-please rindle 0.4.10 cut by the #137 fix: commit (expected); the release train auto-merges it once main CI is green",
+      "head_sha": "6bb6153c5fad07a898fe8ae89b8ff5a78410012a"
     }
   ],
   "landings": [
