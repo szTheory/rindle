@@ -318,12 +318,16 @@
         "ecto",
         "ecto_sql"
       ],
-      "head_sha": "e373b3e2b3791ab4afc1d3b8a143431e33b564fc",
+      "head_sha": "ee83fc2debc96575e8b406425827bc91330da6cd",
       "kind": "pr",
       "number": 105,
-      "pending_action": "rebase",
-      "rationale": "runtime core minor; lands alone after rebase",
-      "risk_group": "ecto_sql"
+      "rationale": "runtime core minor; lands alone after rebase; squash-merged as b5e66259 after PR CI green on ee83fc2d; landing recorded from its own main run 38844854765",
+      "risk_group": "ecto_sql",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "supersede",
@@ -648,6 +652,37 @@
           "from": "2.6.1",
           "package": "ex_aws",
           "to": "2.7.0"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 105,
+      "group": "ecto_sql",
+      "group_packages": [
+        "ecto",
+        "ecto_sql"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "b5e6625954f9927c170e45d485a13e8a400ad785",
+      "ci_run_id": 38844854765,
+      "baseline_run_id": 38841683010,
+      "subject": "build(deps): bump ecto_sql from 3.13.5 to 3.14.0 (#105)",
+      "lock_delta": [
+        {
+          "from": "3.13.6",
+          "package": "ecto",
+          "to": "3.14.2"
+        },
+        {
+          "from": "3.13.5",
+          "package": "ecto_sql",
+          "to": "3.14.0"
         }
       ],
       "gates": {
