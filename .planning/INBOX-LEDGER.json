@@ -342,12 +342,16 @@
       "group_packages": [
         "ex_aws"
       ],
-      "head_sha": "a919a4d64b63130bbdc4a23eb3838bf9f3d9d90a",
+      "head_sha": "15eb10e246b44caca9ee627f6845e269e0265764",
       "kind": "pr",
       "number": 109,
-      "pending_action": "rebase",
-      "rationale": "runtime dep; lands after 108, delta shrinks to ex_aws; rebased run is the only valid evidence",
-      "risk_group": "ex_aws"
+      "rationale": "runtime dep; lands after 108, delta shrinks to ex_aws; rebased run is the only valid evidence; squash-merged as 588dd259 after PR CI green on 15eb10e2 (delta ex_aws only); main run 38841683010 attempt 1 red only at mux-lane deps.get (Hex registry :timeout on nimble_options), attempt 2 green",
+      "risk_group": "ex_aws",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "merge",
@@ -619,6 +623,31 @@
           "from": "1.9.3",
           "package": "mint",
           "to": "1.11.0"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 109,
+      "group": "ex_aws",
+      "group_packages": [
+        "ex_aws"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "588dd259fe04c61be26d89ce524845f3808ad749",
+      "ci_run_id": 38841683010,
+      "baseline_run_id": 38838770800,
+      "subject": "build(deps): bump ex_aws from 2.6.1 to 2.7.0 (#109)",
+      "lock_delta": [
+        {
+          "from": "2.6.1",
+          "package": "ex_aws",
+          "to": "2.7.0"
         }
       ],
       "gates": {
