@@ -8,6 +8,8 @@ defmodule Rindle.AV.Subprocess do
   @cgroup_base "rindle_av"
   @port_check_ms 200
   @dead_port_grace_ms 100
+  # Just under the wrapper's C int ceiling; output never gets near it.
+  @ack_free_window 2_000_000_000
 
   @doc """
   Runs a command wrapped in MuonTrap with configured cgroups and 4-cap limits.
@@ -16,7 +18,82 @@ defmodule Rindle.AV.Subprocess do
     opts = Keyword.put_new(opts, :use_cgroups, default_use_cgroups?())
     muon_opts = build_opts(opts)
     modified_args = build_args(cmd, args, opts)
-    run_isolated(cmd, modified_args, muon_opts, 1, &MuonTrap.cmd/3)
+    run_isolated(cmd, modified_args, muon_opts, 1, &ack_free_cmd/3)
+  end
+
+  # NOTE (MuonTrap #98, ACK-free): MuonTrap.cmd/3 acknowledges every stdout chunk by writing to
+  # the wrapper's stdin. When the wrapper exits right after the child, that last write fails, the
+  # port dies with :epipe and its {:exit_status, _} is never delivered, so the call is lost. On
+  # Linux runners this hits short commands routinely. This is MuonTrap.Port.cmd/1 minus the ACKs:
+  # the same wrapper binary and port options, but a window too large to run dry, so nothing is
+  # ever written to the port and the exit status always arrives. The child still inherits that
+  # (now silent) stdin pipe; build_args/3 keeps `-nostdin` on ffmpeg regardless.
+  # Removal condition: #98 fixed AND the :muontrap pin bumped; the canaries in
+  # test/rindle/av/subprocess_epipe_canary_test.exs and subprocess_stdin_test.exs are the signal.
+  @doc false
+  def ack_free_cmd(cmd, args, muon_opts) do
+    options =
+      MuonTrap.Options.validate(
+        :cmd,
+        cmd,
+        args,
+        Keyword.put(muon_opts, :stdio_window, @ack_free_window)
+      )
+
+    port_opts = MuonTrap.Port.port_options(options, ["--capture-output"])
+    {initial, collector} = Collectable.into(options.into)
+    timeout_message = {:timeout, make_ref()}
+    timer = start_timer(options[:timeout], timeout_message)
+
+    try do
+      port = Port.open({:spawn_executable, to_charlist(MuonTrap.muontrap_path())}, port_opts)
+      collect_port(port, initial, collector, timeout_message)
+    catch
+      kind, reason ->
+        collector.(initial, :halt)
+        :erlang.raise(kind, reason, __STACKTRACE__)
+    else
+      {acc, status} -> {collector.(acc, :done), status}
+    after
+      cancel_timer(timer, timeout_message)
+    end
+  end
+
+  defp collect_port(port, acc, collector, timeout_message) do
+    receive do
+      {^port, {:data, data}} ->
+        collect_port(port, collector.(acc, {:cont, data}), collector, timeout_message)
+
+      {^port, {:exit_status, status}} ->
+        {acc, status}
+
+      ^timeout_message ->
+        close_port(port)
+        {acc, :timeout}
+    end
+  end
+
+  defp close_port(port) do
+    Port.close(port)
+  rescue
+    ArgumentError -> :ok
+  end
+
+  defp start_timer(timeout, message) when is_integer(timeout),
+    do: Process.send_after(self(), message, timeout)
+
+  defp start_timer(_timeout, _message), do: nil
+
+  defp cancel_timer(nil, _message), do: :ok
+
+  defp cancel_timer(timer, message) do
+    _ = Process.cancel_timer(timer)
+
+    receive do
+      ^message -> :ok
+    after
+      0 -> :ok
+    end
   end
 
   # NOTE (EPIPE-07, MuonTrap #98): https://github.com/fhunleth/muontrap/issues/98 (OPEN as of
@@ -30,7 +107,7 @@ defmodule Rindle.AV.Subprocess do
   # is test/rindle/av/subprocess_epipe_canary_test.exs — do NOT delete that canary without deleting
   # this shim.
   #
-  # `run_fun` is a test seam (default &MuonTrap.cmd/3); it lets the deterministic regression test
+  # `run_fun` is a test seam (default &ack_free_cmd/3); it lets the deterministic regression test
   # drive the absorption path with no OS race. run/3 never passes it, so the public contract is
   # byte-identical.
   @doc false
