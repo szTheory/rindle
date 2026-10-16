@@ -657,11 +657,26 @@
       }
     },
     {
-      "disposition": "retain",
+      "disposition": "merge",
       "kind": "pr",
       "number": 139,
-      "rationale": "release-please rindle 0.4.10 cut by the #137 fix: commit (expected); the release train auto-merges it once main CI is green",
-      "head_sha": "6bb6153c5fad07a898fe8ae89b8ff5a78410012a"
+      "rationale": "release-please rindle 0.4.10 cut by the #137 fix: commit (expected; fix: is release-bearing); auto-merged as ca0b674c after main run 38940010020 on 9d046059 was green",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 141,
+      "rationale": "release-train bot recording the 0.4.10 baseline in RELEASE-TRAIN.md; chore subject, no release",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     }
   ],
   "landings": [
