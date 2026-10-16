@@ -481,25 +481,72 @@
       "disposition": "merge",
       "kind": "pr",
       "number": 123,
-      "head_sha": "998ab8db2356ed4757de6cc6930db40e9ef6c1a9",
+      "head_sha": "18780f86fb157d9f35774fefa4751ed62f11d33e",
       "risk_group": "image",
       "group_packages": [
         "color",
         "image",
         "vix"
       ],
-      "pending_action": "rebase",
-      "rationale": "runtime dep image 0.65 -> 0.72 (vix 0.38 -> 0.42); lands after #122 so its rebased delta shrinks to image/color/vix"
+      "rationale": "runtime dep image 0.65 -> 0.72 (vix 0.38 -> 0.42); lands after #122 so its rebased delta shrinks to image/color/vix; squash-merged as f05f52ce after PR CI green on 18780f86; landing recorded from its own main run 38834034396",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "disposition": "close",
       "head_sha": "3b1d8dddc3b3ea6b8770f05adbe793a7c6f6c92d",
       "kind": "pr",
       "number": 128,
-      "rationale": "cowlib 2.21.0 does not compile on OTP 26 (supported matrix); cowlib advisories carried as a dated exception instead"
+      "rationale": "cowlib 2.21.0 does not compile on OTP 26 (supported matrix); cowlib advisories carried as a dated exception instead",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": null
+      }
     }
   ],
-  "landings": [],
+  "landings": [
+    {
+      "number": 123,
+      "group": "image",
+      "group_packages": [
+        "color",
+        "image",
+        "vix"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "f05f52ced7af8fb0db880535c4980eb9fdd7fc25",
+      "ci_run_id": 38834034396,
+      "baseline_run_id": 38828155392,
+      "subject": "build(deps): bump image from 0.65.0 to 0.72.0 (#123)",
+      "lock_delta": [
+        {
+          "from": "0.12.0",
+          "package": "color",
+          "to": "0.13.0"
+        },
+        {
+          "from": "0.65.0",
+          "package": "image",
+          "to": "0.72.0"
+        },
+        {
+          "from": "0.38.0",
+          "package": "vix",
+          "to": "0.42.0"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    }
+  ],
   "repo": "szTheory/rindle",
   "schema": "rindle-inbox-ledger-v1",
   "sources": {
