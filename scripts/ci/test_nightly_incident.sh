@@ -130,6 +130,8 @@ make_fake_gh() {
     'if [ "${1-} ${2-}" = "issue list" ]; then' \
     '  [ "${FAKE_GH_FAIL-}" != list ] || exit 45' \
     '  n="$(counter issue_reads)"' \
+    '  lag=0; [ ! -f "${state}/lag_remaining" ] || lag="$(<"${state}/lag_remaining")"' \
+    '  if [ "${lag}" -gt 0 ]; then printf "%s\n" "$((lag - 1))" >"${state}/lag_remaining"; cat "${state}/issues.lagged"; exit 0; fi' \
     '  if [ "${FAKE_STALE_ONCE-}" = true ] && [ "${n}" -eq 2 ]; then' \
     '    jq '\''if length == 0 then [{number:77,title:"Nightly CI failure",state:"OPEN",body:"external drift",comments:[]}] else .[0].comments += [{body:"external drift"}] end'\'' "${state}/issues.json" >"${state}/issues.next"' \
     '    mv "${state}/issues.next" "${state}/issues.json"' \
@@ -158,6 +160,8 @@ make_fake_gh() {
     '      ;;' \
     '    *) exit 47 ;;' \
     '  esac' \
+    '  if [ -n "${FAKE_LIST_LAG-}" ]; then cp "${state}/issues.json" "${state}/issues.lagged"; printf "%s\n" "${FAKE_LIST_LAG}" >"${state}/lag_remaining"; fi' \
+    '  [ "${mutation}" != create ] || counter creates >/dev/null' \
     '  mv "${state}/issues.next" "${state}/issues.json"' \
     '  [ "${uncertain}" = false ] || exit 48' \
     '  exit 0' \
@@ -372,6 +376,26 @@ restart_case() {
   rm -rf "${temp}"
 }
 
+lagged_list_case() {
+  local name="$1" lag="$2" reads="$3" want="$4" temp output got=0 creates
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  run_manager "${temp}" "${output}" FAKE_LIST_LAG="${lag}" NIGHTLY_REPLAY_VISIBILITY_READS="${reads}" || got=$?
+  creates=0
+  [ ! -f "${temp}/state/creates" ] || creates="$(<"${temp}/state/creates")"
+  if [ "${want}" = converge ] && [ "${got}" -eq 0 ] && [ "${creates}" -eq 1 ] &&
+    [ "$(mutation_effects "${temp}")" -eq 3 ] &&
+    [ "$(jq '[.[] | select(.state == "OPEN")] | length' "${temp}/state/issues.json")" -eq 0 ]; then
+    record "${name}" true ""
+  elif [ "${want}" = fail ] && [ "${got}" -ne 0 ] && [ "${creates}" -eq 1 ] &&
+    grep -q 'not visible after' "${output}"; then
+    record "${name}" true ""
+  else
+    record "${name}" false "exit=${got} creates=${creates}; $(<"${output}")"
+  fi
+  rm -rf "${temp}"
+}
+
 permanent_mutation_failure_case() {
   local temp output got=0 attempts
   temp="$(new_fixture)"
@@ -536,6 +560,8 @@ fail_closed_case "workflow-run API failure performs no issue mutation" none FAKE
 restart_case "stale mutation preimage restarts full replay" stale
 restart_case "uncertain mutation outcome restarts and converges" uncertain
 permanent_mutation_failure_case
+lagged_list_case "lagging issue list after a mutation does not duplicate the create" 3 15 converge
+lagged_list_case "mutation never visible fails closed without a second create" 50 3 fail
 two_attempts_case
 skipped_attempt_case
 checkpoint_case "expired evidence before authenticated checkpoint permits replay" expired-pre-epoch

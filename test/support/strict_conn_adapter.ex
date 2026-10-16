@@ -43,10 +43,8 @@ defmodule Rindle.StrictConnAdapter do
   def chunk(state, body) do
     {inner, key, gen} = validate!(state)
 
-    case TestConn.chunk(inner, body) do
-      {:ok, sent, inner} -> {:ok, sent, bump(inner, key, gen)}
-      other -> other
-    end
+    {:ok, sent, inner} = TestConn.chunk(inner, body)
+    {:ok, sent, bump(inner, key, gen)}
   end
 
   @impl true
@@ -56,7 +54,6 @@ defmodule Rindle.StrictConnAdapter do
     case TestConn.read_req_body(inner, opts) do
       {:ok, data, inner} -> {:ok, data, bump(inner, key, gen)}
       {:more, data, inner} -> {:more, data, bump(inner, key, gen)}
-      {:error, _} = error -> error
     end
   end
 
