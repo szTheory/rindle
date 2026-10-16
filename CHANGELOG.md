@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.9](https://github.com/szTheory/rindle/compare/rindle-v0.4.8...rindle-v0.4.9) (2026-10-16)
+
+
+### Bug Fixes
+
+* **av:** stop AV subprocess stalls from ffmpeg stdin and dead MuonTrap ports ([#135](https://github.com/szTheory/rindle/issues/135)) ([490839d](https://github.com/szTheory/rindle/commit/490839dee9e143c2e12c42b1940b794e6907f8db))
+
 ## [0.4.8](https://github.com/szTheory/rindle/compare/rindle-v0.4.7...rindle-v0.4.8) (2026-10-15)
 
 
