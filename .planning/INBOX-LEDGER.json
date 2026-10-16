@@ -284,7 +284,7 @@
       "status": "resolved"
     },
     {
-      "fix_version": null,
+      "fix_version": "1.13.0",
       "id": "EEF-CVE-2026-105659",
       "locked": "1.12.5",
       "package": "bandit",
@@ -293,7 +293,19 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
+    },
+    {
+      "fix_version": "1.13.0",
+      "id": "EEF-CVE-2026-105660",
+      "locked": "1.12.5",
+      "package": "bandit",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -543,6 +555,45 @@
         "state": "closed",
         "state_reason": null
       }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 130,
+      "risk_group": "demo-bandit",
+      "group_packages": [
+        "bandit",
+        "thousand_island"
+      ],
+      "rationale": "maintainer lock-only demo bump bandit 1.12.5 -> 1.13.1 (thousand_island via bandit); fixes EEF-CVE-2026-105659/105660 (fixed 1.13.0), replacing Plan 06's planned bounded exception; squash-merged as d6074a4c; main run 38898465466 attempt 1 red only in the mux-lane AV subprocess timeout (todos/pending/2026-10-16-mux-lane-av-subprocess-timeout.md), attempt 2 green",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "retain",
+      "kind": "issue",
+      "number": 131,
+      "rationale": "Nightly incident for scheduled run 38868181351 on f5ae9442 (Compat 1.18 warnings-as-errors + fresh-PLT Dialyzer on test/support/strict_conn_adapter.ex from #124); fix in #133; the incident lifecycle closes it on the next green scheduled Nightly"
+    },
+    {
+      "disposition": "close",
+      "kind": "issue",
+      "number": 132,
+      "pending_action": "close",
+      "rationale": "duplicate of #131 created by the same lifecycle run (issue-list lag after create, fixed in #133); must be closed before the next scheduled Nightly or the competing-inventory check fails it"
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 133,
+      "head_sha": "de102815da0423715699d732ca77a2a28b6bb18e",
+      "pending_action": "merge",
+      "risk_group": "none",
+      "group_packages": [],
+      "rationale": "Nightly fix: drop unreachable StrictConnAdapter clauses and wait for incident mutation visibility; test/ci only, no release"
     }
   ],
   "landings": [
@@ -763,6 +814,37 @@
           "from": "1.2.0",
           "package": "mox",
           "to": "1.3.2"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 130,
+      "group": "demo-bandit",
+      "group_packages": [
+        "bandit",
+        "thousand_island"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "d6074a4c2eb7a925364ee7b8b70f1448a6f43f20",
+      "ci_run_id": 38898465466,
+      "baseline_run_id": 38847763013,
+      "subject": "build(deps): bump adoption demo bandit to 1.13.1 for EEF advisories (#130)",
+      "lock_delta": [
+        {
+          "from": "1.12.5",
+          "package": "bandit",
+          "to": "1.13.1"
+        },
+        {
+          "from": "1.5.0",
+          "package": "thousand_island",
+          "to": "1.6.0"
         }
       ],
       "gates": {
