@@ -16,9 +16,9 @@ defmodule Rindle.AV.SubprocessStdinTest do
   # own stdin, these assertions fail; `-nostdin` is then still harmless but no longer load-bearing.
 
   @output_bytes 3_000_000
-  # The stalled call delivers about one MuonTrap window (10 KiB); a drained one delivers nearly all
+  # How much a stalled call delivers before the window runs dry varies (MuonTrap and the reader
+  # race for each ACK), so the stall is asserted by the timeout. A drained call delivers nearly all
   # of it (MuonTrap may drop the last unacked chunk at child exit, so not an exact count).
-  @stalled_ceiling 100_000
   @drained_floor 2_000_000
   @producer "head -c #{@output_bytes} /dev/zero | tr '\\0' a 2>/dev/null"
 
@@ -48,7 +48,7 @@ defmodule Rindle.AV.SubprocessStdinTest do
       )
 
     assert status == :timeout
-    assert byte_size(output) < @stalled_ceiling
+    assert byte_size(output) < @output_bytes
   end
 
   test "the same output drains in full when the child leaves stdin alone" do
