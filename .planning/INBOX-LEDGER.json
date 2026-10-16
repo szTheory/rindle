@@ -582,8 +582,11 @@
       "disposition": "close",
       "kind": "issue",
       "number": 132,
-      "pending_action": "close",
-      "rationale": "duplicate of #131 created by the same lifecycle run (issue-list lag after create, fixed in #133); must be closed before the next scheduled Nightly or the competing-inventory check fails it"
+      "rationale": "duplicate of #131 created by the same lifecycle run (issue-list lag after create, fixed in #133); must be closed before the next scheduled Nightly or the competing-inventory check fails it; closed 2026-10-16 as a duplicate",
+      "terminal": {
+        "merged": false,
+        "state": "closed"
+      }
     },
     {
       "disposition": "merge",
