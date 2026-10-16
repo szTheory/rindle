@@ -1,6 +1,6 @@
 ---
 created: 2026-10-16T12:40:00.000Z
-title: De-flake the Package Consumer Full (mux) generated-app AV variant timeout
+title: De-flake the AV poster-frame subprocess stall (mux lane + adoption demo E2E)
 area: ci-flake
 trigger: "Package Consumer Full Matrix + Release Preflight (mux) fails with ExUnit.TimeoutError at test/rindle_install_smoke_test.exs:68 (generated app), stack in Rindle.AV.Subprocess.run_isolated/5"
 files:
@@ -17,11 +17,18 @@ The main-only mux lane intermittently times out (60 s ExUnit default) in the gen
 `Rindle.AV.Subprocess.run_isolated/5` <- `Rindle.Processor.AV.Video.run_fallback_attempts/2`
 (`video.ex:78`) <- `image_output/3`, i.e. the ffmpeg poster-frame subprocess.
 
-Seen twice in five main runs, both on lock-only commits that the generated app never reads, and both passed on a
+Seen three times in six main runs, both on lock-only commits that the generated app never reads, and both passed on a
 single failed-job rerun:
 
 - run 38838770800 on be7ac7e2 (#129, demo lock), attempt 1 red, attempt 2 green
-- run 38898465466 on d6074a4c (#130, demo bandit), attempt 1 red, attempt 2 rerun
+- run 38898465466 on d6074a4c (#130, demo bandit), attempt 1 red, attempt 2 green
+- run 38906151474 on 2f06d5dd (#133, test/ci only), **Adoption Demo E2E** `e2e/mux-streaming.spec.js:6` red: the
+  `Rindle.Workers.ProcessVariant` worker sat at `subprocess.ex:81` (the `run_isolated` receive) holding a checked-out
+  Postgrex connection until DBConnection timed it out. Same stack, a second lane.
+
+Two observations for the fix: the watchdog only fires at the MuonTrap `:timeout` + 250 ms (default 600 s), far above
+any test budget, so a hung ffmpeg poster-frame call is never retried in time; and the AV call runs while the worker
+holds a DB connection, so a slow call also starves the pool.
 
 The lane runs only on main push (see reference memory "CI lanes only on main"), so the flake reddens main
 without a PR signal and costs a rerun per occurrence.
