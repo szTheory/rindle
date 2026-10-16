@@ -16,6 +16,7 @@ incident_title="${INCIDENT_TITLE:-Nightly CI failure}"
 fetch_attempts="${NIGHTLY_REPLAY_FETCH_ATTEMPTS:-5}"
 max_restarts="${NIGHTLY_REPLAY_MAX_RESTARTS:-100}"
 sleep_seconds="${NIGHTLY_REPLAY_SLEEP_SECONDS:-2}"
+visibility_reads="${NIGHTLY_REPLAY_VISIBILITY_READS:-15}"
 
 fail() {
   echo "[manage-nightly-incident] $1" >&2
@@ -34,6 +35,7 @@ command -v jq >/dev/null 2>&1 || fail "jq is required"
 [[ "${fetch_attempts}" =~ ^[1-9][0-9]{0,2}$ ]] || fail "invalid fetch attempt bound"
 [[ "${max_restarts}" =~ ^[1-9][0-9]{0,3}$ ]] || fail "invalid replay restart bound"
 [[ "${sleep_seconds}" =~ ^[0-9]{1,2}$ ]] || fail "invalid replay sleep"
+[[ "${visibility_reads}" =~ ^[1-9][0-9]?$ ]] || fail "invalid replay visibility reads"
 
 expected_workflow_ref="${GH_REPO}/.github/workflows/nightly.yml@refs/heads/${DEFAULT_BRANCH}"
 [ "${WORKFLOW_REF}" = "${expected_workflow_ref}" ] || fail "unexpected WORKFLOW_REF"
@@ -620,6 +622,22 @@ mutate() {
   esac
 }
 
+# The issue list lags behind a mutation, so a restart that re-reads it too soon
+# derives the same intent again (a second create opened #132 beside #131).
+# Wait until the mutation's evidence marker is visible before restarting.
+await_marker() {
+  local marker="$1" seen="${workspace}/issues-visible.json" read
+  for ((read = 1; read <= visibility_reads; read++)); do
+    inventory "${seen}"
+    if jq -e --arg marker "${marker}" \
+      '[.[] | .body, .comments[].body] | any(contains($marker))' "${seen}" >/dev/null; then
+      return 0
+    fi
+    sleep "${sleep_seconds}"
+  done
+  return 1
+}
+
 fetch_runs
 for ((attempt = 1; attempt <= fetch_attempts; attempt++)); do
   fetch_artifacts
@@ -653,10 +671,14 @@ for ((restart = 1; restart <= max_restarts; restart++)); do
     continue
   fi
   mutation_body "${intent}" "${body}"
+  marker="$(jq -r .marker "${intent}")"
   if ! mutate "${intent}" "${fresh}" "${body}"; then
     echo "Nightly incident replay: mutation outcome uncertain, restarting" >&2
+    await_marker "${marker}" || true
     continue
   fi
+  await_marker "${marker}" ||
+    fail "mutation ${marker} not visible after ${visibility_reads} issue reads; refusing to re-derive"
 done
 
 fail "bounded replay exhausted before convergence"
