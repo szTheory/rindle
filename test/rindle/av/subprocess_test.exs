@@ -4,7 +4,7 @@ defmodule Rindle.AV.SubprocessTest do
   alias Rindle.AV.Subprocess
 
   describe "build_args/3" do
-    test "prepends protocol whitelist and three ffmpeg caps before input, with fs before destination" do
+    test "prepends -nostdin, protocol whitelist and three ffmpeg caps before input, with fs before destination" do
       args =
         Subprocess.build_args(
           "ffmpeg",
@@ -12,7 +12,8 @@ defmodule Rindle.AV.SubprocessTest do
           []
         )
 
-      assert Enum.take(args, 6) == [
+      assert Enum.take(args, 7) == [
+               "-nostdin",
                "-protocol_whitelist",
                "file,crypto,data",
                "-timelimit",
@@ -21,7 +22,7 @@ defmodule Rindle.AV.SubprocessTest do
                "7200"
              ]
 
-      assert Enum.slice(args, 6, 4) == ["-y", "-i", "input.mp4", "-c:v"]
+      assert Enum.slice(args, 7, 4) == ["-y", "-i", "input.mp4", "-c:v"]
 
       assert Enum.take(Enum.drop_while(args, &(&1 != "-fs")), 3) == [
                "-fs",
@@ -41,6 +42,7 @@ defmodule Rindle.AV.SubprocessTest do
         )
 
       assert args == [
+               "-nostdin",
                "-protocol_whitelist",
                "file,crypto,data",
                "-timelimit",
@@ -58,6 +60,7 @@ defmodule Rindle.AV.SubprocessTest do
     test "does not append four-cap arguments for non-ffmpeg commands" do
       args = Subprocess.build_args("echo", ["hello"], [])
       refute "-protocol_whitelist" in args
+      refute "-nostdin" in args
       assert args == ["hello"]
     end
   end

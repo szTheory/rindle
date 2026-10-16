@@ -176,7 +176,12 @@ defmodule Rindle.AV.Subprocess do
     max_duration_seconds = Keyword.get(opts, :max_duration_seconds, 7200)
     max_output_bytes = Keyword.get(opts, :max_output_bytes, 500_000_000)
 
+    # -nostdin: MuonTrap leaves the child's stdin on the pipe the BEAM writes stdout ACKs to.
+    # ffmpeg polls stdin for keyboard commands and would eat those ACKs, starving MuonTrap's
+    # flow-control window until the call stalls at its timeout (see
+    # test/rindle/av/subprocess_stdin_test.exs).
     common = [
+      "-nostdin",
       "-protocol_whitelist",
       "file,crypto,data",
       "-timelimit",
