@@ -183,7 +183,7 @@
       ],
       "reachability": "dev-test-only",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.0",
@@ -197,7 +197,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.1",
@@ -211,7 +211,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.2",
@@ -225,7 +225,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.2",
@@ -239,7 +239,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.2",
@@ -253,7 +253,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "1.10.0",
@@ -267,7 +267,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": "3.1.2",
@@ -281,7 +281,7 @@
       ],
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
-      "status": "open"
+      "status": "resolved"
     },
     {
       "fix_version": null,
@@ -510,6 +510,24 @@
         "state": "closed",
         "state_reason": null
       }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 129,
+      "risk_group": "demo-advisories",
+      "group_packages": [
+        "decimal",
+        "hpax",
+        "lazy_html",
+        "mint"
+      ],
+      "rationale": "maintainer lock-only demo refresh (B5); hpax joins as a mint dependency; squash-merged as be7ac7e2; main run 38838770800 attempt 1 red only in the Package Consumer Full mux lane (ffmpeg subprocess timeout in the generated app, which never reads the demo lock), attempt 2 green",
+      "terminal": {
+        "merged": true,
+        "state": "closed",
+        "state_reason": null
+      }
     }
   ],
   "landings": [
@@ -560,6 +578,49 @@
       "baseline_run_id": 38834034396,
       "subject": "ci(deps): bump the actions group with 4 updates (#113)",
       "lock_delta": [],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 129,
+      "group": "demo-advisories",
+      "group_packages": [
+        "decimal",
+        "hpax",
+        "lazy_html",
+        "mint"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "be7ac7e21db86b716d25dbea7f672ab66b9b748f",
+      "ci_run_id": 38838770800,
+      "baseline_run_id": 38836352011,
+      "subject": "build(deps): refresh adoption demo lock for EEF advisories (#129)",
+      "lock_delta": [
+        {
+          "from": "3.1.1",
+          "package": "decimal",
+          "to": "3.2.0"
+        },
+        {
+          "from": "1.0.4",
+          "package": "hpax",
+          "to": "1.1.0"
+        },
+        {
+          "from": "0.1.12",
+          "package": "lazy_html",
+          "to": "0.1.13"
+        },
+        {
+          "from": "1.9.3",
+          "package": "mint",
+          "to": "1.11.0"
+        }
+      ],
       "gates": {
         "package_consumer": "pass",
         "public_contract": "pass",
