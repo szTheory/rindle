@@ -13,7 +13,15 @@
       ],
       "reachability": "dev-test-only",
       "scope": "root",
-      "status": "open"
+      "status": "exception",
+      "exception": {
+        "expires": "2027-01-15",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Every fixed release (2.20.0, 2.21.0) uses the OTP 27 `maybe` expression and fails to compile on OTP 26, which the supported matrix (Elixir 1.15 / OTP 26) still covers (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Re-decide by the date or when OTP 26 leaves the matrix.",
+        "trigger": {
+          "not_after": "2027-01-15",
+          "type": "date"
+        }
+      }
     },
     {
       "fix_version": null,
@@ -28,7 +36,15 @@
       ],
       "reachability": "dev-test-only",
       "scope": "root",
-      "status": "open"
+      "status": "exception",
+      "exception": {
+        "expires": "2027-01-15",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Every fixed release (2.20.0, 2.21.0) uses the OTP 27 `maybe` expression and fails to compile on OTP 26, which the supported matrix (Elixir 1.15 / OTP 26) still covers (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Re-decide by the date or when OTP 26 leaves the matrix.",
+        "trigger": {
+          "not_after": "2027-01-15",
+          "type": "date"
+        }
+      }
     },
     {
       "fix_version": "2.21.0",
@@ -43,7 +59,15 @@
       ],
       "reachability": "dev-test-only",
       "scope": "root",
-      "status": "open"
+      "status": "exception",
+      "exception": {
+        "expires": "2027-01-15",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Every fixed release (2.20.0, 2.21.0) uses the OTP 27 `maybe` expression and fails to compile on OTP 26, which the supported matrix (Elixir 1.15 / OTP 26) still covers (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Re-decide by the date or when OTP 26 leaves the matrix.",
+        "trigger": {
+          "not_after": "2027-01-15",
+          "type": "date"
+        }
+      }
     },
     {
       "fix_version": "1.10.0",
@@ -466,6 +490,13 @@
       ],
       "pending_action": "rebase",
       "rationale": "runtime dep image 0.65 -> 0.72 (vix 0.38 -> 0.42); lands after #122 so its rebased delta shrinks to image/color/vix"
+    },
+    {
+      "disposition": "close",
+      "head_sha": "3b1d8dddc3b3ea6b8770f05adbe793a7c6f6c92d",
+      "kind": "pr",
+      "number": 128,
+      "rationale": "cowlib 2.21.0 does not compile on OTP 26 (supported matrix); cowlib advisories carried as a dated exception instead"
     }
   ],
   "landings": [],
