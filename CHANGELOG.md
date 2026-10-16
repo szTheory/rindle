@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.10](https://github.com/szTheory/rindle/compare/rindle-v0.4.9...rindle-v0.4.10) (2026-10-16)
+
+
+### Bug Fixes
+
+* **av:** run MuonTrap without stdout ACKs so [#98](https://github.com/szTheory/rindle/issues/98) cannot drop exit statuses ([#137](https://github.com/szTheory/rindle/issues/137)) ([9d04605](https://github.com/szTheory/rindle/commit/9d046059c8e321c822c52aebde8ab2071745a7bc))
+
 ## [0.4.9](https://github.com/szTheory/rindle/compare/rindle-v0.4.8...rindle-v0.4.9) (2026-10-16)
 
 
