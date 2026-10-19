@@ -20,8 +20,6 @@ defmodule Rindle.Contracts.TelemetryContractTest do
   metadata-key drift, or AV transcode event-shape drift breaks this lane.
 
   Run: `mix test --only contract`
-
-  Per D-04/D-05/D-06 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`.
   """
 
   @moduletag :contract

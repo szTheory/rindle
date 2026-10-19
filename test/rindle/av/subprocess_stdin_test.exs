@@ -13,7 +13,7 @@ defmodule Rindle.AV.SubprocessStdinTest do
   # main-only AV poster-frame stall in the mux lane and Adoption Demo E2E (2026-10-16).
   #
   # If MuonTrap starts giving the child its own stdin, the inheritance and raw-stall assertions
-  # fail; the ACK-free runner and `-nostdin` are then still harmless but no longer load-bearing.
+  # fail; the ACK-free runner and `-nostdin` are then still harmless but redundant.
 
   @output_bytes 3_000_000
   @producer "head -c #{@output_bytes} /dev/zero | tr '\\0' a 2>/dev/null"

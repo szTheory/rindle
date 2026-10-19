@@ -132,7 +132,7 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
     end
   end
 
-  describe "changeset last_sync_error truncation (D-09)" do
+  describe "changeset last_sync_error truncation" do
     test "rejects last_sync_error longer than 4096 chars" do
       asset = insert_media_asset!()
       long = String.duplicate("x", 4097)
@@ -155,7 +155,7 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
     end
   end
 
-  describe "unique constraints (D-10)" do
+  describe "unique constraints" do
     setup do
       {:ok, asset: insert_media_asset!()}
     end
@@ -206,7 +206,7 @@ defmodule Rindle.Domain.MediaProviderAssetTest do
     end
   end
 
-  describe "Inspect redaction (security invariant 14, D-14)" do
+  describe "Inspect redaction (security invariant 14)" do
     test "redacts provider_asset_id to last 4 chars when length >= 4" do
       record = %MediaProviderAsset{provider_asset_id: "abc-123-XYZ-9999"}
       output = inspect(record)

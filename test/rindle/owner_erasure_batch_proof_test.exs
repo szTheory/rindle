@@ -16,7 +16,7 @@ defmodule Rindle.OwnerErasureBatchProofTest do
   setup :set_mox_from_context
   setup :verify_on_exit!
 
-  describe "PROOF-05: shared assets" do
+  describe "shared assets" do
     test "batch preview with shared asset aggregates retained_shared_assets" do
       owner1 = %User{id: Ecto.UUID.generate()}
       owner2 = %User{id: Ecto.UUID.generate()}
@@ -72,7 +72,7 @@ defmodule Rindle.OwnerErasureBatchProofTest do
     end
   end
 
-  describe "PROOF-05: partial failure" do
+  describe "partial failure" do
     test "second owner fails after first owner commits" do
       owner1 = %User{id: Ecto.UUID.generate()}
       owner2 = %User{id: Ecto.UUID.generate()}

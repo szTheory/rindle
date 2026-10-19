@@ -202,7 +202,7 @@ defmodule Rindle.RuntimeStatusTaskTest do
     refute output =~ "REPORT_QUERY_REACHED"
   end
 
-  describe "--provider-stuck (MUX-14)" do
+  describe "--provider-stuck" do
     test "the --provider-stuck flag is parsed and surfaces in filters" do
       RuntimeStatusTask.run(["--provider-stuck", "--limit", "1"])
 

@@ -320,7 +320,7 @@ defmodule Rindle.Admin.QueriesTest do
     refute inspect(model) =~ "REPORT_QUERY_REACHED"
   end
 
-  test "actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)" do
+  test "actions_directory/0 keeps only contextless cross-cutting ops" do
     assert {:ok, model} = Queries.actions_directory()
 
     # The "Actions" verb-bucket is distributed to its contextual surfaces

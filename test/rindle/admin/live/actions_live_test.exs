@@ -65,9 +65,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Owner erasure"
       assert html =~ "Batch erasure"
 
-      # Default action panel is rendered. The verb-bucket actions were
-      # DISTRIBUTED to their contextual surfaces (UI-SPEC §E, D-98-10); only the
-      # contextless erasure ops remain on Maintenance.
+      # Default action panel is rendered. The verb-bucket actions live on their
+      # contextual surfaces; only the contextless erasure ops remain on
+      # Maintenance.
       assert html =~ ~s(data-rindle-admin-action="owner_erasure")
       assert html =~ ~s(data-rindle-admin-action="batch_erasure")
       refute html =~ ~s(data-rindle-admin-action="lifecycle_repair")
@@ -369,14 +369,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              )
     end
 
-    # CR-03 regression: batch-erasure preview sets dialog_open (action_state ==
-    # :preview), which inerts <main>. Previously the batch confirmation was a plain
-    # inline <form> rendered inside <main>, so it was inerted with no overlay to host
-    # it — the confirmation gate could never be satisfied and the surface was
-    # announced aria-hidden with no dialog. The form must now render through the
-    # shared confirm_dialog primitive in the shell :overlay slot (sibling of <main>).
-    # Fails against the prior inline-form markup (form nested inside the inerted main).
-    test "batch erasure preview confirmation stays interactive outside inert <main> (CR-03 regression)",
+    # Batch-erasure preview sets dialog_open (action_state == :preview), which
+    # inerts <main>. A confirmation form rendered inline inside <main> would be
+    # inerted with no overlay to host it: the confirmation gate could never be
+    # satisfied and the surface would be announced aria-hidden with no dialog. The
+    # form must render through the shared confirm_dialog primitive in the shell
+    # :overlay slot (sibling of <main>); this test fails if the form is nested
+    # inside the inerted main.
+    test "batch erasure preview confirmation stays interactive outside inert <main>",
          %{conn: conn} do
       {:ok, view, _html} = live(conn, "/admin/rindle/actions")
 
@@ -434,9 +434,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
              "#{inspect(marker)} must render AFTER </main> (sibling overlay), not inside the inerted <main>"
     end
 
-    # Distributed verbs (UI-SPEC §E, D-98-10): the regenerate / reconcile /
-    # release-quarantine workflows moved off this Maintenance junk-drawer to their
-    # contextual surfaces. Their behavior is exercised on those surfaces:
+    # The regenerate / reconcile / release-quarantine workflows live on their
+    # contextual surfaces rather than on Maintenance. Their behavior is exercised
+    # on those surfaces:
     #   * regenerate (confirm_dialog) → Processing — variants_runtime_actions_test
     #   * reconcile / verify storage → Doctor — variants_runtime_actions_test
     #   * quarantine review → asset detail — home_assets_upload_test

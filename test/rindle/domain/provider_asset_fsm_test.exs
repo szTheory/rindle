@@ -5,7 +5,7 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
 
   alias Rindle.Domain.ProviderAssetFSM
 
-  describe "transition matrix — nominal happy path (D-13)" do
+  describe "transition matrix — nominal happy path" do
     test "pending → uploading → processing → ready" do
       assert :ok == ProviderAssetFSM.transition("pending", "uploading")
       assert :ok == ProviderAssetFSM.transition("uploading", "processing")
@@ -13,7 +13,7 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
     end
   end
 
-  describe "transition matrix — errored branches (D-13)" do
+  describe "transition matrix — errored branches" do
     test "pending → errored is allowed (create_asset failure before upload)" do
       assert :ok == ProviderAssetFSM.transition("pending", "errored")
     end
@@ -31,7 +31,7 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
     end
   end
 
-  describe "transition matrix — terminal-delete (D-13)" do
+  describe "transition matrix — terminal-delete" do
     test "ready → deleted is allowed" do
       assert :ok == ProviderAssetFSM.transition("ready", "deleted")
     end
@@ -48,7 +48,7 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
     end
   end
 
-  describe "transition matrix — direct-upload cancel (Phase 64)" do
+  describe "transition matrix — direct-upload cancel" do
     test "pending → deleted is allowed" do
       assert :ok == ProviderAssetFSM.transition("pending", "deleted")
     end
@@ -63,13 +63,13 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
     end
   end
 
-  describe "transition matrix — re-ingest re-entry edge (D-13 critical)" do
-    test "errored → processing is allowed (Phase 34 MuxIngestVariant retry path)" do
+  describe "transition matrix — re-ingest re-entry edge (critical)" do
+    test "errored → processing is allowed (MuxIngestVariant retry path)" do
       assert :ok == ProviderAssetFSM.transition("errored", "processing")
     end
   end
 
-  describe "transition matrix — rejection coverage (D-13)" do
+  describe "transition matrix — rejection coverage" do
     test "pending → ready (skips intermediate states) is rejected" do
       assert {:error, {:invalid_transition, "pending", "ready"}} =
                ProviderAssetFSM.transition("pending", "ready")
@@ -106,7 +106,7 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
     end
   end
 
-  describe "telemetry on accepted transitions (D-12)" do
+  describe "telemetry on accepted transitions" do
     setup do
       handler = String.to_atom("provider_asset_fsm_test_#{:erlang.unique_integer([:positive])}")
       parent = self()
@@ -178,7 +178,7 @@ defmodule Rindle.Domain.ProviderAssetFSMTest do
   end
 
   describe "introspection" do
-    test "allowed_transitions/0 returns the locked D-13 map" do
+    test "allowed_transitions/0 returns the locked transition map" do
       transitions = ProviderAssetFSM.allowed_transitions()
 
       assert transitions["pending"] == ["uploading", "errored", "deleted"]
