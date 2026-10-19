@@ -192,7 +192,7 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     assert asset.byte_size == @one_gib
 
     # The convergence proof: the final PATCH drove the adapter's tus sink into the
-    # UNCHANGED Broker.verify_completion/2 lane (D-08), which enqueues PromoteAsset
+    # UNCHANGED Broker.verify_completion/2 lane, which enqueues PromoteAsset
     # for the freshly-validated asset. `testing: :inline` runs the job; assert it
     # was enqueued for THIS asset (not merely that some job exists).
     assert_enqueued(worker: Rindle.Workers.PromoteAsset, args: %{asset_id: asset.id})
@@ -219,11 +219,10 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     refute Enum.any?(uploads, fn upload -> upload.key == abandoned_key end)
   end
 
-  # ── SC5 / IN-04 gap-closure: the DELETE termination path (CR-01) ─────────────
+  # ── The DELETE termination path ──────────────────────────────────────────────
   #
   # The headline test above proves zero-leak only on the TIMEOUT-expiry reaper
-  # path. Verification flagged the DELETE path as a BLOCKER: a tus DELETE on an
-  # S3-backed session must ALSO abort the multipart so an explicitly-cancelled
+  # path. A tus DELETE on an S3-backed session must ALSO abort the multipart so an explicitly-cancelled
   # upload never leaks. This case drives a real >= 5 MiB PATCH (forcing a live
   # multipart + >= 1 committed part), DELETEs THROUGH `TusPlug.call` (the real
   # handler — not a direct `abort_multipart_upload`), then asserts
@@ -258,7 +257,7 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
 
     # 4. DELETE through the REAL handler (TusPlug.call), not a direct abort. This
     #    is the load-bearing assertion: it proves the DELETE PATH ITSELF is
-    #    leak-free (CR-01), aborting the backing multipart before the transition.
+    #    leak-free, aborting the backing multipart before the transition.
     d = conn(:delete, "/uploads/tus/" <> token) |> TusPlug.call(opts)
     assert d.status == 204
     assert repo().get!(MediaUploadSession, sid).state == "aborted"
@@ -270,13 +269,13 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
     refute Enum.any?(uploads, fn upload -> upload.key == upload_key end)
   end
 
-  # ── SC5 / IN-04 gap-closure: post-reap tail-gone (CR-02 + CR-03) ─────────────
+  # ── Post-reap tail-gone ──────────────────────────────────────────────────────
   #
   # Proves the reaper's on-disk tail cleanup fires end-to-end against real
   # storage: an abandoned session leaves a sub-5-MiB remainder buffered in the
   # `tus/<encoded id>.tail` file; after the reaper runs, that file is gone. The
   # assertion path is computed via `S3.tus_tail_path/2` (the adapter's OWN
-  # source-of-truth, base64url-encoded — CR-02), at the SAME root the write path
+  # source-of-truth, base64url-encoded), at the SAME root the write path
   # used, so a divergent-path false pass is impossible.
   @tag :minio
   test "after reaping an abandoned tus session, the on-disk tail file is removed" do
@@ -316,7 +315,7 @@ defmodule Rindle.Upload.TusS3IntegrationTest do
 
     {:ok, _report} = UploadMaintenance.abort_incomplete_uploads([])
 
-    # 3. CR-02 + CR-03 end-to-end: the reaper removed the REAL tail file at the
+    # 3. End-to-end: the reaper removed the REAL tail file at the
     #    SAME resolved root the write path used (the encoding-correct path made it
     #    deletable; the Rindle.tmp sweeper backstops any residue).
     refute File.exists?(tail_path),

@@ -121,9 +121,8 @@ defmodule Rindle.Storage.GCSTest do
                  )
 
         # The S3-shape parity assertion (test/rindle/storage/s3_test.exs:117).
-        # Proves RESEARCH §Section 2 size-as-string parse mirror is fixed AND
-        # D-03 (content-type as object metadata) is wired end-to-end against a
-        # real GCS bucket.
+        # Proves the size-as-string parse mirrors S3 AND content-type is stored
+        # as object metadata end-to-end against a real GCS bucket.
         assert {:ok, %{size: 20, content_type: "image/jpeg"}} = GCS.head(key, [])
 
         assert {:ok, signed_url} = GCS.url(key, [])

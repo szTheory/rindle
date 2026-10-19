@@ -3,14 +3,14 @@ defmodule Rindle.Streaming.Provider.Mux.EventTest do
 
   alias Rindle.Streaming.Provider.Mux.Event
 
-  # Existing :ready / :errored / :created (BL-03) regression coverage lives
+  # Existing :ready / :errored / :created regression coverage lives
   # in `test/rindle/streaming/provider/mux/mux_test.exs` (the
   # `verify_webhook/3` end-to-end paths exercise normalize/1 transitively).
-  # This file owns the D-29 typed-branch contract: `video.upload.asset_created`
+  # This file owns the typed-branch contract: `video.upload.asset_created`
   # must read `data.asset_id` for `provider_asset_id` and `data.id` for
   # `upload_id` — not the other way around (silent data corruption).
 
-  describe "normalize/1 — video.upload.asset_created (D-29 typed branch)" do
+  describe "normalize/1 — video.upload.asset_created typed branch" do
     test "reads data.asset_id for provider_asset_id, NOT data.id" do
       upload_id = "upload-id-fixture-aaaa1111"
       asset_id = "asset-id-fixture-bbbb2222"
@@ -27,8 +27,8 @@ defmodule Rindle.Streaming.Provider.Mux.EventTest do
 
       assert {:ok, evt} = Event.normalize(raw)
       assert evt.type == :upload_asset_created
-      assert evt.provider_asset_id == asset_id, "MUST be data.asset_id (D-29)"
-      assert evt.upload_id == upload_id, "MUST be data.id (D-29)"
+      assert evt.provider_asset_id == asset_id, "MUST be data.asset_id"
+      assert evt.upload_id == upload_id, "MUST be data.id"
 
       refute evt.provider_asset_id == upload_id,
              "MUST NOT mis-attribute upload-id to provider_asset_id (silent corruption)"
@@ -54,7 +54,7 @@ defmodule Rindle.Streaming.Provider.Mux.EventTest do
       assert {:ok, evt} = Event.normalize(raw)
       assert evt.type == :upload_asset_created
       # `provider_asset_id` and `upload_id` are realistic 36-char Mux-style
-      # ids in the fixture (Plan 03 — D-36); they MUST be distinct.
+      # ids in the fixture; they MUST be distinct.
       assert is_binary(evt.provider_asset_id)
       assert is_binary(evt.upload_id)
       refute evt.provider_asset_id == evt.upload_id

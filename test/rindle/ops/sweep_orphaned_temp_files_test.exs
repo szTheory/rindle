@@ -170,7 +170,7 @@ defmodule Rindle.Ops.SweepOrphanedTempFilesTest do
     refute File.exists?(worker_dir)
   end
 
-  describe "tus/ regular-file aging (CR-03 safety net)" do
+  describe "tus/ regular-file aging safety net" do
     test "removes an aged tus/<id>.tail file on a non-dry-run pass", %{root_dir: root_dir} do
       tail = build_tus_file!(root_dir, "aged-session.tail", 5 * 3600)
 

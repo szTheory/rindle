@@ -12,10 +12,10 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
   setup :verify_on_exit!
 
   defmodule TestProfile do
-    # Plan-level test profile. Phase 33 DSL nests delivery options under
-    # `:delivery`; the top-level `streaming:` key is invalid (Plan 01 deviation).
+    # Test profile. The profile DSL nests delivery options under
+    # `:delivery`; the top-level `streaming:` key is invalid.
     # Variant DSL uses the AV shape `[kind: :video, preset: :web_720p]` which
-    # the validator routes through `@video_variant_schema` (Phase 24 / AV-02).
+    # the validator routes through `@video_variant_schema`.
     use Rindle.Profile,
       storage: Rindle.StorageMock,
       variants: [hero: [kind: :video, preset: :web_720p]],
@@ -105,7 +105,7 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
   test "ingests variant, persists provider_asset_id + playback_ids (PLURAL), advances FSM to :processing",
        ctx do
     expect(ClientMock, :create_asset, fn params ->
-      # D-04 memo correction: PLURAL keys at SDK boundary.
+      # The Mux SDK boundary takes PLURAL keys.
       assert [%{"url" => url}] = params["inputs"]
       assert is_binary(url) and url =~ "https://signed.example/v.mp4"
       assert params["playback_policies"] == ["signed"]
@@ -124,7 +124,7 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
 
     assert row.state == "processing"
     assert is_binary(row.provider_asset_id)
-    # B1 fix: row.playback_ids is a PLURAL ARRAY (Phase 33 schema field).
+    # row.playback_ids is a PLURAL ARRAY (schema field).
     assert is_list(row.playback_ids)
     assert [first | _] = row.playback_ids
     assert is_binary(first)
@@ -381,13 +381,13 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
   end
 
   # ===========================================================
-  # WR-09 (POLISH-01/D-13) — :exception telemetry redacts the error reason
+  # :exception telemetry redacts the error reason
   # via safe_reason/1 (atoms pass; everything else inspect |> slice(0,200)).
   # invariant-14-adjacent: prevents a raw struct/string error reason (which
   # could carry a provider_asset_id) from leaking into telemetry metadata.
   # ===========================================================
 
-  describe "WR-09: :exception telemetry routes reason through safe_reason/1" do
+  describe ":exception telemetry routes reason through safe_reason/1" do
     setup do
       test_pid = self()
       handler_id = "ingest-wr09-#{System.unique_integer([:positive])}"

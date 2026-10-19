@@ -12,7 +12,8 @@ defmodule Rindle.Upload.BrokerTest do
   import Mox
 
   # why: swaps :rindle, :repo to an adopter/probe repo to exercise Config.repo/0
-  # resolution — not the counting-double cross-pollution; see Phase 110 D-09.
+  # resolution itself, not to inject a counting double (the cross-pollution case
+  # the async-safety guard rejects).
   @moduletag async_safety_allow: [:global_repo_swap]
 
   alias Ecto.Adapters.SQL.Sandbox
@@ -706,7 +707,7 @@ defmodule Rindle.Upload.BrokerTest do
     end
   end
 
-  describe "telemetry emission (Plan 05-01 / TEL-01)" do
+  describe "telemetry emission" do
     setup do
       ref =
         :telemetry_test.attach_event_handlers(self(), [

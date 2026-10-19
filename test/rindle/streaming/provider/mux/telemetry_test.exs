@@ -2,9 +2,8 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
   @moduledoc """
   Cross-cutting telemetry-redaction parity test (security invariant 14, MUX-08).
 
-  This is the phase-gate test for Phase 34: if any `[:rindle, :provider, _, _]`
-  event leaks a raw `provider_asset_id` (any 20+ char alnum string instead of
-  the last-4-char tag), this test fails and the phase does not ship.
+  If any `[:rindle, :provider, _, _]` event leaks a raw `provider_asset_id`
+  (any 20+ char alnum string instead of the last-4-char tag), this test fails.
 
   It also serves as the end-to-end integration smoke for the full ingest →
   sync → signed-URL flow.
@@ -27,10 +26,10 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
 
   defmodule TestProfile do
     @moduledoc false
-    # Per Plan 01 deviation #1: Phase 33 DSL nests delivery TTL under `:delivery`;
+    # The profile DSL nests delivery TTL under `:delivery`;
     # top-level `signed_url_ttl_seconds:` and `streaming:` keys are invalid.
     # AV variant DSL `[kind: :video, preset: :web_720p]` validates through
-    # `@video_variant_schema` (Phase 24 / AV-02).
+    # `@video_variant_schema`.
     use Rindle.Profile,
       storage: Rindle.StorageMock,
       variants: [hero: [kind: :video, preset: :web_720p]],
@@ -142,9 +141,9 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
   # ===========================================================
   # CROSS-CUTTING PARITY — SECURITY INVARIANT 14
   # ===========================================================
-  # This test is the phase-gate. If it fails, Phase 34 does not ship.
+  # A raw provider_asset_id in any provider event metadata fails this test.
 
-  test "every Phase 34 telemetry event redacts asset_id (no raw provider_asset_id leaks)",
+  test "every provider telemetry event redacts asset_id (no raw provider_asset_id leaks)",
        ctx do
     expect(ClientMock, :create_asset, fn _params -> {:ok, fixture("asset_create_201.json")} end)
 
@@ -221,12 +220,12 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
 
     assert row.state == "processing"
     assert is_binary(row.provider_asset_id)
-    # B1 fix: playback_ids is a PLURAL ARRAY (Phase 33 schema field).
+    # playback_ids is a PLURAL ARRAY (schema field).
     assert is_list(row.playback_ids)
     assert [first_playback_id | _] = row.playback_ids
     assert is_binary(first_playback_id)
 
-    # 2. Simulate sync to ready (would also be webhook-driven in Phase 35)
+    # 2. Simulate sync to ready (a webhook can drive the same transition)
     expect(ClientMock, :get_asset, fn _id ->
       {:ok,
        %{
@@ -243,14 +242,14 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
 
     ready = Repo.get!(MediaProviderAsset, row.id)
     assert ready.state == "ready"
-    # B1 fix: read from PLURAL `playback_ids` list, not singular column.
+    # Read from PLURAL `playback_ids` list, not singular column.
     assert is_list(ready.playback_ids)
     [ready_first_id | _] = ready.playback_ids
 
     # 3. Sign a playback URL — JWT exp claim must respect profile TTL (Pitfall 1 guard).
     before_unix = DateTime.utc_now() |> DateTime.to_unix()
 
-    # B1 fix: signed_playback_url/3 takes ONE playback_id; extract via List.first.
+    # signed_playback_url/3 takes ONE playback_id; extract via List.first.
     assert {:ok, %{url: url, kind: :hls, mime: "application/vnd.apple.mpegurl"}} =
              Adapter.signed_playback_url(TestProfile, ready_first_id)
 

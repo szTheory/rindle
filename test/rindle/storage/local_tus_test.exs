@@ -1,6 +1,6 @@
 defmodule Rindle.Storage.LocalTusTest do
   @moduledoc """
-  Proves the Phase 42 tus foundation that `TusPlug` (Plans 02/03) stands on:
+  Proves the tus foundation that `TusPlug` stands on:
   the `:tus_upload` capability, the additive `resumable_protocol` column,
   `Broker.initiate_tus_upload/2`, and the Local tmp-append/atomic-rename helpers.
   """
@@ -13,7 +13,8 @@ defmodule Rindle.Storage.LocalTusTest do
   use Rindle.DataCase, async: false
 
   # why: swaps :rindle, :repo to an adopter/probe repo to exercise Config.repo/0
-  # resolution — not the counting-double cross-pollution; see Phase 110 D-09.
+  # resolution itself, not to inject a counting double (the cross-pollution case
+  # the async-safety guard rejects).
   @moduletag async_safety_allow: [:global_repo_swap]
 
   alias Ecto.Adapters.SQL.Sandbox
@@ -55,7 +56,7 @@ defmodule Rindle.Storage.LocalTusTest do
     {:ok, root: root}
   end
 
-  describe "capability honesty (D-09)" do
+  describe "capability honesty" do
     test ":tus_upload is registered and advertised by Local only" do
       assert Capabilities.supports?(Local, :tus_upload)
       refute Capabilities.supports?(GCS, :tus_upload)
@@ -63,7 +64,7 @@ defmodule Rindle.Storage.LocalTusTest do
     end
   end
 
-  describe "Broker.initiate_tus_upload/2 (D-10/D-11)" do
+  describe "Broker.initiate_tus_upload/2" do
     test "creates a signed/resumable session stamped with the tus protocol" do
       assert {:ok, %{session: session}} =
                Broker.initiate_tus_upload(TusProfile, filename: "clip.jpg")
@@ -91,7 +92,7 @@ defmodule Rindle.Storage.LocalTusTest do
     end
   end
 
-  describe "Local tmp-append + atomic-rename backing (D-01/Pitfall 5)" do
+  describe "Local tmp-append + atomic-rename backing" do
     test "tus_append/3 grows the .part file by the chunk size across calls", %{root: root} do
       opts = [root: root]
       session_id = Ecto.UUID.generate()
@@ -126,12 +127,12 @@ defmodule Rindle.Storage.LocalTusTest do
     end
   end
 
-  describe "upload_part_stream/5 + complete_part_stream/4 (TUS-06 Local, Plan 04)" do
-    # The polymorphic tus-sink callbacks wrap the Phase-42 helpers so the Plug can
+  describe "upload_part_stream/5 + complete_part_stream/4 (Local)" do
+    # The polymorphic tus-sink callbacks wrap the Local tus helpers so the Plug can
     # dispatch through the behaviour (adapter.upload_part_stream/5 +
     # adapter.complete_part_stream/4) without hard-wiring Local. part_number
     # semantics do not exist for Local; the return is %{offset: n} with NO
-    # :upload_id/:parts keys (Pitfall 5).
+    # :upload_id/:parts keys.
 
     test "upload_part_stream/5 appends the temp-file bytes and returns %{offset: base + n}", %{
       root: root
@@ -148,7 +149,7 @@ defmodule Rindle.Storage.LocalTusTest do
                )
 
       assert state.offset == 10
-      # Local has no part semantics — no :upload_id/:parts keys (Pitfall 5).
+      # Local has no part semantics — no :upload_id/:parts keys.
       refute Map.has_key?(state, :upload_id)
       refute Map.has_key?(state, :parts)
 
@@ -244,7 +245,7 @@ defmodule Rindle.Storage.LocalTusTest do
     end
   end
 
-  describe "resumable_protocol column (D-10)" do
+  describe "resumable_protocol column" do
     test "a row persisted with the tus protocol reads back as tus" do
       assert {:ok, %{session: session}} =
                Broker.initiate_tus_upload(TusProfile, filename: "clip.jpg")

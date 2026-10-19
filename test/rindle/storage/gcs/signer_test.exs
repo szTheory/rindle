@@ -17,7 +17,7 @@ defmodule Rindle.Storage.GCS.SignerTest do
       assert String.contains?(url, "X-Goog-Expires=600")
     end
 
-    test "URL never contains response-content-disposition or response-content-type query params (D-03)" do
+    test "URL never contains response-content-disposition or response-content-type query params" do
       opts = [signing_key: SigningKeyFixture.fixture_json(), expires_in: 600]
       assert {:ok, url} = Signer.url(@bucket, @key, opts)
       refute String.contains?(url, "response-content-disposition")
@@ -25,7 +25,7 @@ defmodule Rindle.Storage.GCS.SignerTest do
     end
   end
 
-  describe "url/3 — TTL fallback (D-04)" do
+  describe "url/3 — TTL fallback" do
     test "falls back to Rindle.Config.signed_url_ttl_seconds/0 when :expires_in is absent (default 900)" do
       opts = [signing_key: SigningKeyFixture.fixture_json()]
       assert {:ok, url} = Signer.url(@bucket, @key, opts)

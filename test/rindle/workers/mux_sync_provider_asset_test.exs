@@ -13,7 +13,7 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
 
   defmodule TestProfile do
     @moduledoc false
-    # Image-shape profile (mirrors Plan 01 mux_test.exs deviation #1 — the
+    # Image-shape profile (mirrors mux_test.exs — the
     # AV variant DSL would require a real video setup; the per-row sync
     # worker doesn't consult variant shape, so the image variant is fine).
     use Rindle.Profile,
@@ -192,7 +192,7 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
   test "no-op transition when live state matches local row state" do
     row = insert_row("processing", 60, provider_asset_id: "Idem1234EfGh5678IjKl9012MnOp34")
 
-    # Plan 01 `get_asset/1` reshapes "preparing" -> "processing".
+    # `get_asset/1` reshapes "preparing" -> "processing".
     expect(ClientMock, :get_asset, fn _ ->
       {:ok, %{"id" => row.provider_asset_id, "status" => "preparing", "playback_ids" => []}}
     end)
@@ -211,16 +211,16 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
   end
 
   # ===========================================================
-  # WR-04 (POLISH-01/D-13) — invalid FSM transition reconciles to :errored
+  # An invalid FSM transition reconciles to :errored
   # instead of burning Oban retries on a structurally-impossible edge.
   # ===========================================================
 
-  test "WR-04: forbidden live transition reconciles row to :errored (no infinite retry)" do
+  test "forbidden live transition reconciles row to :errored (no infinite retry)" do
     # Local row is :ready (a terminal-ish state); Mux reports it back to
     # :processing ("preparing"). `ready -> processing` is NOT a permitted FSM
-    # edge, so pre-WR-04 this returned {:error, {:invalid_transition, _, _}} and
-    # Oban retried the same impossible transition every attempt. WR-04 catches
-    # the rejection and force-resolves to :errored with a diagnostic reason.
+    # edge. Returning {:error, {:invalid_transition, _, _}} would make Oban retry
+    # the same impossible transition every attempt, so the worker catches the
+    # rejection and force-resolves to :errored with a diagnostic reason.
     row = insert_row("ready", 60, provider_asset_id: "BadEdge1234EfGh5678IjKl9012Mn")
 
     expect(ClientMock, :get_asset, fn _ ->
@@ -241,16 +241,16 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
   end
 
   # ===========================================================
-  # WR-06 (POLISH-01/D-13) — adapter failure persists last_sync_error
+  # Adapter failure persists last_sync_error
   # (inspect-truncated to 4096) before propagating {:error, _}.
   # ===========================================================
 
-  test "WR-06: adapter error persists last_sync_error breadcrumb before returning {:error, _}" do
+  test "adapter error persists last_sync_error breadcrumb before returning {:error, _}" do
     row = insert_row("processing", 60, provider_asset_id: "AdapterErr1234EfGh5678IjKl90")
 
-    # A non-:not_found adapter failure (transport/5xx). Pre-WR-06 the worker
-    # propagated {:error, reason} to Oban with no row-level breadcrumb, leaving
-    # operators no diagnostic after retries exhausted.
+    # A non-:not_found adapter failure (transport/5xx). The worker records a
+    # row-level breadcrumb before propagating {:error, reason} to Oban, so
+    # operators keep a diagnostic after retries are exhausted.
     expect(ClientMock, :get_asset, fn _ ->
       {:error, :provider_sync_failed}
     end)

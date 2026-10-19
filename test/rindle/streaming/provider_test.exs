@@ -18,7 +18,7 @@ defmodule Rindle.Streaming.ProviderTest do
     {:cancel_direct_upload, 1}
   ]
 
-  describe "behaviour_info(:callbacks) (D-04 lock)" do
+  describe "behaviour_info(:callbacks) lock" do
     test "declares the locked 6 required + 2 optional callbacks (8 total)" do
       callbacks = Provider.behaviour_info(:callbacks)
 
@@ -28,11 +28,11 @@ defmodule Rindle.Streaming.ProviderTest do
       assert Enum.sort(callbacks) == expected_all
     end
 
-    test "declares create_direct_upload/2 and cancel_direct_upload/1 as optional (D-04)" do
+    test "declares create_direct_upload/2 and cancel_direct_upload/1 as optional" do
       assert Provider.behaviour_info(:optional_callbacks) == @expected_optional_callbacks
     end
 
-    test "does NOT declare streaming_url/3 as a callback (D-05 — Rindle.Delivery owns dispatch)" do
+    test "does NOT declare streaming_url/3 as a callback (Rindle.Delivery owns dispatch)" do
       refute {:streaming_url, 3} in Provider.behaviour_info(:callbacks)
     end
 
@@ -65,8 +65,8 @@ defmodule Rindle.Streaming.ProviderTest do
     # (Rindle.Domain.ProviderAssetFSM.@allowed_transitions) are strings, and
     # adapter implementations (e.g. Rindle.Streaming.Provider.Mux.normalize_state/1)
     # return strings. The behaviour typespec must mirror that surface — atom
-    # states would be a contract drift that Dialyzer would (correctly) flag as
-    # soon as adopter callers land in Phase 36.
+    # states would be a contract drift that Dialyzer would (correctly) flag in
+    # adopter callers.
     test "provider_state type spec resolves to a String.t() / binary form" do
       # We can't introspect @type definitions cheaply at runtime, so this test
       # locks behavior end-to-end: the Mux adapter returns strings, and the

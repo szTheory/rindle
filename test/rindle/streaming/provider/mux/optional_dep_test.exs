@@ -2,13 +2,13 @@ defmodule Rindle.Streaming.Provider.Mux.OptionalDepTest do
   alias Rindle.Streaming.Provider.Mux.Client
   use ExUnit.Case, async: true
 
-  # MUX-01 smoke test (D-31, D-33). The :mux and :jose deps are loaded in the
+  # Optional-dependency smoke test. The :mux and :jose deps are loaded in the
   # Rindle test environment via `optional: true` in mix.exs; the adapter module
   # `Rindle.Streaming.Provider.Mux` is wrapped in
   # `if Code.ensure_loaded?(Mux.Video.Assets) do ... end` so it is present in
   # tests but absent for adopters who do not opt in.
 
-  test "Rindle.Streaming.Provider.Mux is loaded with all required Phase 33 callbacks (test env)" do
+  test "Rindle.Streaming.Provider.Mux is loaded with all required provider callbacks (test env)" do
     assert Code.ensure_loaded?(Rindle.Streaming.Provider.Mux),
            "Rindle.Streaming.Provider.Mux module must compile when :mux is loaded"
 

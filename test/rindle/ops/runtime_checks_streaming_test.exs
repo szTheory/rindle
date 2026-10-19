@@ -59,7 +59,7 @@ defmodule Rindle.Ops.RuntimeChecksStreamingTest do
 
   defp fetch(report, id), do: Enum.find(report.checks, &(&1.id == id))
 
-  describe "profile-discovery gate (D-06)" do
+  describe "profile-discovery gate" do
     test "all four streaming checks return vacuous-OK when no streaming-enabled profile exists" do
       report = run(profiles: [ImageProfile], env: %{})
 
@@ -155,7 +155,7 @@ defmodule Rindle.Ops.RuntimeChecksStreamingTest do
     end
   end
 
-  describe "doctor.streaming_smoke_ping flag-gate (D-07)" do
+  describe "doctor.streaming_smoke_ping flag-gate" do
     test "skipped without --streaming flag" do
       report = run(profiles: [MuxStreamingProfile], env: @full_env, streaming: false)
       check = fetch(report, "doctor.streaming_smoke_ping")
@@ -172,7 +172,7 @@ defmodule Rindle.Ops.RuntimeChecksStreamingTest do
     end
   end
 
-  describe "doctor.oban_required_queues with streaming profiles (Phase 36 WR-03)" do
+  describe "doctor.oban_required_queues with streaming profiles" do
     test "PASS when streaming-enabled profile is present and rindle_provider queue is declared" do
       report =
         run(

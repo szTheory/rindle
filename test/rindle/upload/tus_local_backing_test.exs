@@ -1,7 +1,7 @@
 defmodule Rindle.Upload.TusLocalBackingTest do
   @moduledoc """
   Proves the Local tmp-append → atomic-rename → UNCHANGED `verify_completion/2`
-  promotion lane that `TusPlug` completion converges into (D-08): append grows the
+  promotion lane that `TusPlug` completion converges into: append grows the
   `.part` file, `tus_complete/3` atomic-renames it into the final key, and the
   existing `verify_completion/2` promotes the asset (byte_size set, PromoteAsset
   enqueued) via the legal `signed → verifying → completed` FSM edge.
@@ -11,7 +11,8 @@ defmodule Rindle.Upload.TusLocalBackingTest do
   use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
   # why: swaps :rindle, :repo to an adopter/probe repo to exercise Config.repo/0
-  # resolution — not the counting-double cross-pollution; see Phase 110 D-09.
+  # resolution itself, not to inject a counting double (the cross-pollution case
+  # the async-safety guard rejects).
   @moduletag async_safety_allow: [:global_repo_swap]
 
   alias Ecto.Adapters.SQL.Sandbox

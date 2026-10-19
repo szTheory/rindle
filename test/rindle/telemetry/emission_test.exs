@@ -3,8 +3,8 @@ defmodule Rindle.Telemetry.EmissionTest do
   FSM-level telemetry emission tests for AssetFSM and VariantFSM.
 
   Broker, delivery, and worker telemetry coverage lives alongside their
-  existing unit-test files (per Plan 05-01 Step 4 — keep cross-cutting
-  emission proofs here, but do not re-stub broker/delivery/worker tests).
+  existing unit-test files. Cross-cutting emission proofs live here; this file
+  does not re-stub broker/delivery/worker tests.
   """
 
   use ExUnit.Case, async: true
