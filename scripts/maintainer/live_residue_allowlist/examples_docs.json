@@ -59,78 +59,6 @@
       "reason": "The agent instructions name the demand signals that gate reopening a milestone."
     },
     {
-      "path": "CONTRIBUTING.md",
-      "class": "requirement-id",
-      "text": "4. `quality_signals` — curated Credo, measured public-doc health, and SAFE-01",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "class": "requirement-id",
-      "text": "| Operations, runtime checks, migration diagnostics | `mix test test/rindle/ops test/rindle/migration_fast_test.exs` | SAFE-01 + Integration migration proofs |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "class": "requirement-id",
-      "text": "| Public facade, profiles, domain schemas/FSMs | `mix test test/rindle/api_surface_boundary_test.exs test/rindle/domain` | SAFE-01 + Quality |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "RUNNING.md",
-      "class": "requirement-id",
-      "text": "### Reproducing the coverage step locally (COV-04)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "RUNNING.md",
-      "class": "requirement-id",
-      "text": "| `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "RUNNING.md",
-      "class": "requirement-id",
-      "text": "| `contract` — Run AV hygiene gate, contract tests, SAFE-01 | merge-blocking | Starts independently; installs FFmpeg before its proof | AV hygiene plus deterministic `--only contract` tests and `scripts/maintainer/refactor_contract.sh`; the telemetry contract exercises the real AV path |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "RUNNING.md",
-      "class": "requirement-id",
-      "text": "| `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/README.md",
-      "class": "phase-ref",
-      "text": "| `assets/logo/candidates/` | Phase-82 exploration provenance: the five directions + Confluence refinement variants + comparison sheets |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/README.md",
-      "class": "planning-path",
-      "text": "the original AI-research seed lives at `.planning/research/b1.0-brand-audit.md`; the seed",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "examples/adoption_demo/AGENTS.md",
       "class": "milestone-ref",
       "text": "### Phoenix v1.8 guidelines",
@@ -145,38 +73,6 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "Phoenix framework version in the phx.new-generated agent guidelines, not a planning milestone."
-    },
-    {
-      "path": "guides/admin_console.md",
-      "class": "milestone-ref",
-      "text": "- **Owner erasure** — preview and execute single-owner erasure via the v1.10",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "guides/admin_console_architecture.md",
-      "class": "milestone-ref",
-      "text": "permitted by the v1.18 charter is the mountable console boundary; read helpers stay behind",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "guides/admin_console_architecture.md",
-      "class": "requirement-id",
-      "text": "| CI no-LiveView proof | ADMIN-06 proves no unguarded Phoenix/LiveView aliases leak. |",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "guides/rindle_admin_css.md",
-      "class": "spec-ref",
-      "text": "## UI-SPEC Values",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     }
   ]
 }
