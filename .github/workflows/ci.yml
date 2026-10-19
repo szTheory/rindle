@@ -1489,6 +1489,8 @@ jobs:
         run: bash scripts/ci/test_validate_artifact_ledger.sh
       - name: Artifact ledger partition (offline)
         run: bash scripts/maintainer/validate_artifact_ledger.sh --offline --ledger scripts/maintainer/artifact_ledger.json
+      - name: Repo hygiene harness
+        run: bash scripts/ci/test_repo_hygiene_check.sh
 
   ci-summary:
     name: CI Summary

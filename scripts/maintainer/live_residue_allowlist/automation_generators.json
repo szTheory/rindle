@@ -1091,6 +1091,30 @@
       "reason": ""
     },
     {
+      "path": "scripts/ci/test_repo_hygiene_check.sh",
+      "class": "planning-path",
+      "text": "cat >\"${d}/.planning/RELEASE-TRAIN.md\" <<EOF",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "The harness builds a temp maintainer tree; these lines write and classify its planning files, not the live tree."
+    },
+    {
+      "path": "scripts/ci/test_repo_hygiene_check.sh",
+      "class": "planning-path",
+      "text": "cls(\"planning\"; \"hand-authored\"; \"excluded\"; [\":(glob).planning/**\"]),",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "The harness builds a temp maintainer tree; these lines write and classify its planning files, not the live tree."
+    },
+    {
+      "path": "scripts/ci/test_repo_hygiene_check.sh",
+      "class": "planning-path",
+      "text": "printf '# Development train\\n\\nBranch shape: milestone/vNEXT-short-slug\\n' >\"${d}/.planning/DEVELOPMENT-TRAIN.md\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "The harness builds a temp maintainer tree; these lines write and classify its planning files, not the live tree."
+    },
+    {
       "path": "scripts/ci/test_setup_branch_protection.sh",
       "class": "decision-id",
       "text": "# Regression matrix for the setup_branch_protection.sh pending-forever guard (D-12),",
