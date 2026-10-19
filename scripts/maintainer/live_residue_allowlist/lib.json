@@ -929,14 +929,6 @@
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
-    },
-    {
-      "path": "mix.exs",
-      "class": "requirement-id",
-      "text": "# these via the `optional: true` deps, but 1.15/1.17 do not — so the ADMIN-06",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     }
   ]
 }
