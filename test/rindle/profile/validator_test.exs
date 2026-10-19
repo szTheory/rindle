@@ -21,13 +21,13 @@ defmodule Rindle.Profile.ValidatorTest do
       thumb = mod.variants()[:thumb]
 
       refute Map.has_key?(thumb, :kind),
-             "default :image must omit :kind from validated map (D-14)"
+             "default :image must omit :kind from validated map"
 
       assert thumb.mode == :fit
       assert thumb.width == 64
     end
 
-    test "explicit :kind => :image compiles and ALSO omits :kind from validated map (D-14 invariant)" do
+    test "explicit :kind => :image compiles and ALSO omits :kind from validated map" do
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,
@@ -39,7 +39,7 @@ defmodule Rindle.Profile.ValidatorTest do
       thumb = mod.variants()[:thumb]
 
       refute Map.has_key?(thumb, :kind),
-             "explicit :image must ALSO omit :kind for digest parity with default :image (D-14)"
+             "explicit :image must ALSO omit :kind for digest parity with default :image"
     end
 
     test ":kind => :video persists into validated map" do
@@ -90,7 +90,7 @@ defmodule Rindle.Profile.ValidatorTest do
       assert Map.keys(peaks) |> Enum.sort() == [:kind, :preset]
     end
 
-    test ":kind => :unknown raises with allowed-list fix hint (D-13)" do
+    test ":kind => :unknown raises with allowed-list fix hint" do
       assert_raise ArgumentError, ~r/allowed: :image \| :video \| :audio \| :waveform/, fn ->
         Code.compile_string("""
         defmodule #{unique_module_name("InvalidKind")} do
@@ -105,7 +105,7 @@ defmodule Rindle.Profile.ValidatorTest do
     end
   end
 
-  describe "validate_variant! :from_variant rejection (AV-02-08, D-15)" do
+  describe "validate_variant! :from_variant rejection" do
     test ":from_variant in any variant spec raises with cross-variant-chaining message" do
       assert_raise ArgumentError, ~r/cross-variant chaining is not supported/, fn ->
         Code.compile_string("""
@@ -312,7 +312,7 @@ defmodule Rindle.Profile.ValidatorTest do
   end
 
   describe "image dimension regression (AV-02-07 backward compat)" do
-    test "mode: :crop without width AND height still raises (existing v1.0 behavior preserved)" do
+    test "mode: :crop without width AND height still raises" do
       assert_raise ArgumentError, ~r/requires both :width and :height/, fn ->
         Code.compile_string("""
         defmodule #{unique_module_name("CropMissingDim")} do
@@ -341,8 +341,8 @@ defmodule Rindle.Profile.ValidatorTest do
     end
   end
 
-  describe "validate_delivery! :streaming key (Phase 33 STREAM-05; D-15..D-18)" do
-    test "full valid :streaming config compiles and produces all 4 keys (D-15)" do
+  describe "validate_delivery! :streaming key" do
+    test "full valid :streaming config compiles and produces all 4 keys" do
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,
@@ -366,7 +366,7 @@ defmodule Rindle.Profile.ValidatorTest do
       assert streaming.source_variant == :web
     end
 
-    test "no :streaming key → delivery.streaming is nil (D-17)" do
+    test "no :streaming key → delivery.streaming is nil" do
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,
@@ -379,7 +379,7 @@ defmodule Rindle.Profile.ValidatorTest do
       assert Map.get(mod.delivery_policy(), :streaming) == nil
     end
 
-    test "explicit streaming: nil → delivery.streaming is nil (D-17)" do
+    test "explicit streaming: nil → delivery.streaming is nil" do
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,
@@ -392,7 +392,7 @@ defmodule Rindle.Profile.ValidatorTest do
       assert Map.get(mod.delivery_policy(), :streaming) == nil
     end
 
-    test "image-only profile compiles without :streaming (D-17 regression)" do
+    test "image-only profile compiles without :streaming" do
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,
@@ -406,7 +406,7 @@ defmodule Rindle.Profile.ValidatorTest do
       assert Map.get(mod.delivery_policy(), :streaming) == nil
     end
 
-    test "AV-only profile (variant kind: :video) compiles without :streaming (D-17)" do
+    test "AV-only profile (variant kind: :video) compiles without :streaming" do
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,
@@ -420,7 +420,7 @@ defmodule Rindle.Profile.ValidatorTest do
       assert Map.get(mod.delivery_policy(), :streaming) == nil
     end
 
-    test "raw provider knob :max_resolution_tier raises (D-16)" do
+    test "raw provider knob :max_resolution_tier raises" do
       assert_raise ArgumentError,
                    ~r/(unknown options.*max_resolution_tier|max_resolution_tier.*unknown)/i,
                    fn ->
@@ -445,7 +445,7 @@ defmodule Rindle.Profile.ValidatorTest do
                    end
     end
 
-    test "raw provider knob :input raises (D-16)" do
+    test "raw provider knob :input raises" do
       assert_raise ArgumentError, ~r/unknown options.*input/i, fn ->
         Code.compile_string("""
         defmodule #{unique_module_name("StreamingInputKnob")} do
@@ -555,7 +555,7 @@ defmodule Rindle.Profile.ValidatorTest do
       end
     end
 
-    test "source_variant atom not declared in variants/0 raises (D-18 partial)" do
+    test "source_variant atom not declared in variants/0 raises" do
       assert_raise ArgumentError, ~r/source_variant.*:nonexistent.*not declared/i, fn ->
         Code.compile_string("""
         defmodule #{unique_module_name("StreamingMissingVariant")} do
@@ -577,9 +577,9 @@ defmodule Rindle.Profile.ValidatorTest do
       end
     end
 
-    test "source_variant points at :image-kind variant compiles in Phase 33 (D-18 deferred to Phase 34)" do
-      # Phase 33 only validates atom presence in variants/0; per-variant kind: enforcement
-      # (e.g. source_variant must be :video/:audio) is deferred to Phase 34.
+    test "source_variant pointing at an :image-kind variant compiles" do
+      # The validator only checks that source_variant names a variant declared in
+      # variants/0; it does not require that variant to be :video or :audio.
       mod =
         compile_profile("""
         storage: Rindle.StorageMock,

@@ -1,6 +1,6 @@
 # async: false — this module calls `Application.put_env(:rindle, :signed_url_ttl_seconds, ...)`
 # which is read process-globally by lib/rindle/config.ex and shared with delivery_test;
-# concurrent execution would race on that app-env key (HARD-01 async-safety guard).
+# concurrent execution would race on that app-env key.
 defmodule Rindle.Profile.ProfileTest do
   use ExUnit.Case, async: false
 
@@ -56,7 +56,7 @@ defmodule Rindle.Profile.ProfileTest do
     assert thumb.mode == :fit
 
     refute Map.has_key?(banner, :kind),
-           "image-default variant must omit :kind from validated map (D-14)"
+           "image-default variant must omit :kind from validated map"
   end
 
   test "validate_upload/1 returns tuple outcomes" do

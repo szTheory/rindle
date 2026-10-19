@@ -131,10 +131,10 @@ defmodule Rindle.Storage.S3TusTest do
     end
   end
 
-  describe "tus_tail_path/2 (CR-02): reaper-facing path matches the adapter-written tail" do
+  describe "tus_tail_path/2: reaper-facing path matches the adapter-written tail" do
     # The reaper needs the EXACT on-disk path the adapter wrote so it can delete
-    # the real tail. tus_tail_path/2 is the public source-of-truth that 43-08
-    # routes remove_tus_tail/1 through — ending the raw-UUID vs base64url mismatch.
+    # the real tail. tus_tail_path/2 is the public source-of-truth that the
+    # reaper routes remove_tus_tail/1 through — ending the raw-UUID vs base64url mismatch.
 
     test "returns the exact file the adapter wrote its tail to for a session", %{root: root} do
       # patch/5 keys the tail on `key` (no explicit session_id), so the adapter
@@ -169,7 +169,7 @@ defmodule Rindle.Storage.S3TusTest do
     end
   end
 
-  describe "cross-node resume guard (CR-04): missing tail fails loudly" do
+  describe "cross-node resume guard: missing tail fails loudly" do
     # The sub-5-MiB tail remainder is node-local disk state while
     # offset/upload_id/parts live in the shared DB. A resumed PATCH that lands on
     # a different node reads authoritative parts/upload_id from the DB but has NO
@@ -224,7 +224,7 @@ defmodule Rindle.Storage.S3TusTest do
          %{root: root} do
       key = "tus/#{System.unique_integer([:positive])}.bin"
 
-      # The CR-04 silent-corruption hole: a first PATCH under 5 MiB on the
+      # The silent-corruption hole: a first PATCH under 5 MiB on the
       # originating node set upload_id and buffered N MiB to the node-local tail
       # but committed NO part (parts: []). The DB therefore shows upload_id set,
       # parts: [], offset > 0 — but the buffered bytes live only on the other

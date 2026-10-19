@@ -57,9 +57,9 @@ defmodule Rindle.Upload.TusPlugTest do
       max_bytes: 10_485_760
   end
 
-  # Probe repo for the WR-02 update-failure path: delegates reads to AdopterRepo
+  # Probe repo for the DELETE update-failure path: delegates reads to AdopterRepo
   # (so load_active_session/1 still resolves the row) but forces the lifecycle
-  # `update/1` to return {:error, changeset}. Swapped in only for the WR-02 test
+  # `update/1` to return {:error, changeset}. Swapped in only for the update-failure test
   # so the DELETE handler exercises the {:error, _} update branch deterministically
   # without depending on a contrived DB constraint violation.
   defmodule DeleteFailRepo do
@@ -139,7 +139,7 @@ defmodule Rindle.Upload.TusPlugTest do
     {conn, location, token}
   end
 
-  # Plan-03 direct-call helpers — drive TusPlug.call/2 with opts bound to the
+  # Direct-call helpers — drive TusPlug.call/2 with opts bound to the
   # test's tmp root so PATCH/completion file IO is isolated per test.
   defp opts_for(root) do
     TusPlug.init(
@@ -220,7 +220,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Task 2 — OPTIONS advertisement + POST Creation" do
+  describe "OPTIONS advertisement + POST Creation" do
     test "OPTIONS advertises exactly the implemented extensions" do
       conn = conn(:options, "/uploads/tus") |> route()
 
@@ -300,7 +300,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Task 3 — token verify (404/401-never-200) + HEAD authoritative offset" do
+  describe "token verify (404/401-never-200) + HEAD authoritative offset" do
     test "HEAD with a valid token resolves from the forward-stripped path_info (Landmine 1)" do
       {_conn, _location, token} = create_session(500)
 
@@ -533,7 +533,7 @@ defmodule Rindle.Upload.TusPlugTest do
   end
 
   describe "DELETE termination" do
-    test "DELETE with a valid token returns 204, aborts the session AND removes the Local backing part (CR-01)",
+    test "DELETE with a valid token returns 204, aborts the session AND removes the Local backing part",
          %{root: root} do
       # DELETE actively aborts the backing store before the
       # state transition — for a Local-backed session that means the per-session
@@ -613,13 +613,13 @@ defmodule Rindle.Upload.TusPlugTest do
       {token, session}
     end
 
-    test "DELETE on an S3-backed session aborts the multipart upload then returns 204 + aborted (CR-01 success path)",
+    test "DELETE on an S3-backed session aborts the multipart upload then returns 204 + aborted",
          %{mock_opts: opts} do
       {token, session} = mock_create_s3(opts, 100)
       upload_key = session.upload_key
       upload_id = session.multipart_upload_id
 
-      # The load-bearing CR-01 assertion: DELETE invokes the backing abort with
+      # The load-bearing assertion: DELETE invokes the backing abort with
       # the session's upload_key + multipart upload id (idempotent {:ok,_}).
       expect(Rindle.StorageMock, :abort_multipart_upload, fn key, id, _opts ->
         assert key == upload_key
@@ -634,7 +634,7 @@ defmodule Rindle.Upload.TusPlugTest do
       assert AdopterRepo.get!(MediaUploadSession, session.id).state == "aborted"
     end
 
-    test "DELETE returns 5xx (not 204) when the state update fails AND the backing abort already fired (WR-02 + CR-01 ordering)",
+    test "DELETE returns 5xx (not 204) when the state update fails AND the backing abort already fired (abort-before-update ordering)",
          %{mock_opts: opts} do
       {token, session} = mock_create_s3(opts, 100)
       upload_key = session.upload_key
@@ -644,7 +644,7 @@ defmodule Rindle.Upload.TusPlugTest do
       Application.put_env(:rindle, :repo, DeleteFailRepo)
       on_exit(fn -> Application.put_env(:rindle, :repo, AdopterRepo) end)
 
-      # CR-01 ordering proof: even though the DB update will fail, the backing
+      # Ordering proof: even though the DB update will fail, the backing
       # abort MUST already have fired — proving the abort precedes the update at
       # runtime, not merely in source order. verify_on_exit! enforces this.
       expect(Rindle.StorageMock, :abort_multipart_upload, fn key, _id, _opts ->
@@ -662,7 +662,7 @@ defmodule Rindle.Upload.TusPlugTest do
       assert AdopterRepo.get!(MediaUploadSession, session.id).state == "signed"
     end
 
-    test "a tampered token returns 404 and NEVER invokes abort_multipart_upload (auth not weakened, CR-01 negative)",
+    test "a tampered token returns 404 and NEVER invokes abort_multipart_upload (auth not weakened)",
          %{mock_opts: opts} do
       {token, _session} = mock_create_s3(opts, 100)
 
@@ -675,15 +675,14 @@ defmodule Rindle.Upload.TusPlugTest do
     end
 
     # -------------------------------------------------------------------------
-    # CR-01 (Plug half): a DELETE whose backing abort fails transiently must
-    # persist a retryable `tus_abort_failed:%` marker on the row so the
-    # reaper query re-aborts the orphaned multipart) while STILL returning 204 to
-    # the client (the cancel is accepted; the cost-leak compensation is the
-    # reaper can retry it. The client-facing cancellation remains accepted while
-    # maintenance compensates for the backing-store failure.
+    # A DELETE whose backing abort fails transiently persists a retryable
+    # `tus_abort_failed:%` marker on the row so the reaper query can re-abort
+    # the orphaned multipart, while STILL returning 204 to the client. The
+    # cancellation is accepted and maintenance compensates for the
+    # backing-store failure.
     # -------------------------------------------------------------------------
 
-    test "DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails (CR-01 Plug half)",
+    test "DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails",
          %{mock_opts: opts} do
       {token, session} = mock_create_s3(opts, 100)
 
@@ -874,7 +873,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Phase 57 — Checksum & Defer Length" do
+  describe "Checksum & Defer Length" do
     test "POST with Upload-Defer-Length: 1 creates a session without length" do
       conn =
         conn(:post, "/uploads/tus")
@@ -1009,7 +1008,7 @@ defmodule Rindle.Upload.TusPlugTest do
     end
   end
 
-  describe "Phase 58 - Concatenation" do
+  describe "Concatenation" do
     test "POST with Upload-Concat: partial creates session with is_partial: true", %{root: root} do
       opts = opts_for(root)
 

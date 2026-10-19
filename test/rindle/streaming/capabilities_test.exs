@@ -24,7 +24,7 @@ defmodule Rindle.Streaming.CapabilitiesTest do
   end
 
   describe "known/0" do
-    test "returns the locked 5-atom vocabulary in D-02 order" do
+    test "returns the locked 5-atom vocabulary in its declared order" do
       assert Capabilities.known() == [
                :signed_playback,
                :public_playback,
@@ -59,7 +59,7 @@ defmodule Rindle.Streaming.CapabilitiesTest do
     end
   end
 
-  describe "absence of require_streaming/2 (D-03 — Phase 37 / MUX-22)" do
+  describe "absence of require_streaming/2" do
     test "Rindle.Streaming.Capabilities does NOT export require_streaming/2" do
       Code.ensure_loaded!(Rindle.Streaming.Capabilities)
       refute function_exported?(Rindle.Streaming.Capabilities, :require_streaming, 2)

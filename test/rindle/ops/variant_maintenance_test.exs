@@ -143,7 +143,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     end
 
     test "rejects unknown filter keys instead of silently ignoring them" do
-      # WR-08: typo'd filter keys (`prof` instead of `profile`, `variant`
+      # Typo'd filter keys (`prof` instead of `profile`, `variant`
       # instead of `variant_name`) must surface as errors so a destructive
       # caller does not accidentally target every variant in the system.
       assert {:error, {:unknown_filters, [:prof]}} =
@@ -157,7 +157,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     end
 
     test "second call does not enqueue duplicate jobs (Oban uniqueness)" do
-      # CR-03 regression: back-to-back runs must not double-enqueue
+      # Back-to-back runs must not double-enqueue
       # ProcessVariant work for the same (asset_id, variant_name).
       #
       # This test exercises the REAL Oban uniqueness path:
@@ -200,7 +200,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     end
 
     test "uniqueness rejection produces an Oban.Job{conflict?: true} (real engine path)" do
-      # CR-03 contract lock: the orchestration code in `enqueue_job/2` keys
+      # Contract lock: the orchestration code in `enqueue_job/2` keys
       # off `%Oban.Job{conflict?: true}` to differentiate "already enqueued"
       # from "freshly inserted". If Oban ever changed the contract (or the
       # uniqueness keyword shape silently stopped matching), this test would
@@ -326,7 +326,7 @@ defmodule Rindle.Ops.VariantMaintenanceTest do
     end
 
     test "does not silently flip a failed variant to missing (FSM forbids)" do
-      # CR-07 regression: VariantFSM allows ready -> missing but NOT
+      # VariantFSM allows ready -> missing but NOT
       # failed -> missing. The verifier must classify a failed variant
       # whose object disappeared as :fsm_blocked (informational, not an
       # infrastructure failure), leaving its state untouched.

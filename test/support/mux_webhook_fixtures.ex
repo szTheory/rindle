@@ -6,9 +6,9 @@ defmodule Rindle.Test.MuxWebhookFixtures do
   # Mirrors `Mux.Webhooks.TestUtils.generate_signature/2` with one critical
   # addition: a `:timestamp` override. The SDK helper hardcodes
   # `System.system_time(:second)` — useless for replay-attack tests that
-  # need to forge stale signatures (D-34).
+  # need to forge stale signatures.
   #
-  # HMAC recipe (D-35, byte-accurate against SDK):
+  # HMAC recipe (byte-accurate against SDK):
   # HMAC-SHA256 over signed_payload `"<ts>.<body>"`, hex-encoded lowercase.
   #
   # Header format: `"t=<unix_ts>,v1=<hex>"` (matches Mux's documented format

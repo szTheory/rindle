@@ -42,11 +42,11 @@ defmodule Rindle.Profile.Presets.MuxWebTest do
   end
 
   describe "compile" do
-    test "inherits Web's web_720p + poster variants verbatim (D-01, D-04)" do
+    test "inherits Web's web_720p + poster variants verbatim" do
       assert MuxWebProfile.variants() == WebProfileForCompare.variants()
     end
 
-    test "writes the locked streaming block to delivery_policy/0 (D-02)" do
+    test "writes the locked streaming block to delivery_policy/0" do
       assert MuxWebProfile.delivery_policy().streaming == %{
                provider: Rindle.Streaming.Provider.Mux,
                playback_policy: :signed,
@@ -55,7 +55,7 @@ defmodule Rindle.Profile.Presets.MuxWebTest do
              }
     end
 
-    test "scrub_strip flag passes through to Web.variants/1 (D-01 passthrough)" do
+    test "scrub_strip flag passes through to Web.variants/1" do
       assert {:scrub_strip, _} =
                List.keyfind(MuxWebProfileWithStrip.variants(), :scrub_strip, 0)
     end

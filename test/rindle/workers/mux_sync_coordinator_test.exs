@@ -145,16 +145,14 @@ defmodule Rindle.Workers.MuxSyncCoordinatorTest do
   end
 
   # ===========================================================
-  # WR-08 (POLISH-01/D-13) — distinguish fresh / dedup'd / failed inserts.
-  # Pre-WR-08 the coordinator counted only {:ok, _} and silently swallowed the
-  # dedup'd-vs-failed distinction, logging "N of M enqueued" with no signal.
+  # Distinguish fresh / dedup'd / failed inserts so the completion log carries
+  # a signal beyond "N of M enqueued".
   # ===========================================================
 
-  describe "WR-08: insert outcomes are distinguished (fresh vs dedup'd)" do
+  describe "insert outcomes are distinguished (fresh vs dedup'd)" do
     # The completed line is `Logger.info` with the fresh/conflicted counts in
     # STRUCTURED metadata. Capture both via a temporary primary-logger handler
-    # so we can assert the fresh-vs-dedup'd distinction WR-08 introduced
-    # (pre-WR-08 only `{:ok, _}` was counted; dedup'd vs failed was lost).
+    # so we can assert the fresh-vs-dedup'd distinction.
     defp completed_meta(fun) do
       test_pid = self()
       ref = make_ref()

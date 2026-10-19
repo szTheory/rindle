@@ -17,7 +17,7 @@ defmodule Rindle.Processor.AVTest do
   end
 
   describe "capabilities/0" do
-    test "returns the exact Phase 25 AV capability list" do
+    test "returns the exact AV capability list" do
       assert AV.capabilities() == [
                :video_transcode,
                :video_frame_extract,

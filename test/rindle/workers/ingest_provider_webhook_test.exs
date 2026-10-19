@@ -325,7 +325,7 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
   end
 
   # ============================================================
-  # 7. video.upload.asset_created — no matching row (Phase 37 forward-compat)
+  # 7. video.upload.asset_created — no matching row
   # ============================================================
 
   test "video.upload.asset_created with no matching row: uses the normal race-snooze path",

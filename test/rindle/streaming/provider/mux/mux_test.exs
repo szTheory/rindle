@@ -59,7 +59,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
 
   test "create_asset/3 sends PLURAL Mux keys and reshapes response with PLURAL playback_ids" do
     expect(ClientMock, :create_asset, fn params ->
-      # D-04 memo correction: PLURAL keys at SDK boundary.
+      # The Mux SDK boundary takes PLURAL keys.
       assert params["inputs"] == [%{"url" => "https://signed.example/v.mp4"}]
       assert params["playback_policies"] == ["signed"]
       assert params["mp4_support"] == "standard"
@@ -67,7 +67,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
       {:ok, fixture("asset_create_201.json")}
     end)
 
-    # Phase 33 contract: playback_ids is a LIST of strings (matches schema field
+    # Contract: playback_ids is a LIST of strings (matches schema field
     # `field :playback_ids, {:array, :string}`).
     assert {:ok, %{provider_asset_id: pid, playback_ids: playback_ids}} =
              Adapter.create_asset(TestProfile, "https://signed.example/v.mp4",
@@ -81,7 +81,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     assert first == "playback-id-test-fixture-1234"
   end
 
-  test "create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)" do
+  test "create_asset/3 forwards :passthrough to the SDK request body (soak cleanup contract)" do
     # The soak install-smoke lane sets `RINDLE_MUX_PASSTHROUGH_TAG=rindle_soak`
     # so every Mux asset created during the lane carries
     # `passthrough: "rindle_soak"`. The layer-3 cleanup script
@@ -207,7 +207,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     assert :ok = Adapter.delete_asset("AbCd1234EfGh5678IjKl9012MnOp3456QrSt")
   end
 
-  test "delete_asset/1 is idempotent on 404 (Phase 33 contract)" do
+  test "delete_asset/1 is idempotent on 404" do
     # The HTTP impl absorbs 404 to :ok internally; if a mock simulates the
     # post-HTTP shape directly with :ok, the adapter passes it through.
     expect(ClientMock, :delete_asset, fn _ -> :ok end)
@@ -233,7 +233,7 @@ defmodule Rindle.Streaming.Provider.MuxTest do
     secret = "test-webhook-secret"
     body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
 
-    # HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures (D-34).
+    # HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures.
     headers = %{"mux-signature" => MuxWebhookFixtures.sign_header(body, secret)}
 
     # Multi-secret rotation: verify_webhook/3 loops the list and OR-s results.
@@ -286,11 +286,11 @@ defmodule Rindle.Streaming.Provider.MuxTest do
       secret = "test-webhook-secret"
       body = File.read!("test/fixtures/mux/webhook_video_asset_created.json")
 
-      # HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures (D-34).
+      # HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures.
       headers = %{"mux-signature" => MuxWebhookFixtures.sign_header(body, secret)}
 
-      # End-to-end: previously this path raised Protocol.UndefinedError;
-      # the regression locks in the {:ok, _} happy path.
+      # End-to-end: this path returns {:ok, _} instead of raising
+      # Protocol.UndefinedError.
       assert {:ok,
               %{
                 type: :created,
@@ -302,17 +302,17 @@ defmodule Rindle.Streaming.Provider.MuxTest do
   end
 
   # ===========================================================
-  # WR-02 (POLISH-01/D-13) — case-insensitive signature header lookup
+  # Case-insensitive signature header lookup
   # ===========================================================
 
-  describe "WR-02: case-insensitive Mux-Signature header lookup (RFC 7230)" do
+  describe "case-insensitive Mux-Signature header lookup (RFC 7230)" do
     test "verify_webhook/3 resolves a mixed-case `Mux-Signature` header" do
       secret = "test-webhook-secret"
       body = File.read!("test/fixtures/mux/webhook_video_asset_ready.json")
 
       # Title-case header — an edge proxy or adopter wrapper may emit any
-      # casing. Pre-WR-02 the hardcoded "mux-signature" lookup would miss this
-      # and reject a valid signature with {:error, :provider_webhook_invalid}.
+      # casing. A hardcoded "mux-signature" lookup would miss this and reject
+      # a valid signature with {:error, :provider_webhook_invalid}.
       headers = %{"Mux-Signature" => MuxWebhookFixtures.sign_header(body, secret)}
 
       assert {:ok, %{type: :ready}} =
@@ -331,10 +331,10 @@ defmodule Rindle.Streaming.Provider.MuxTest do
   end
 
   # ===========================================================
-  # WR-05 (POLISH-01/D-13) — unknown Mux status -> nil + Logger.warning
+  # Unknown Mux status -> nil + Logger.warning
   # ===========================================================
 
-  describe "WR-05: normalize_state/1 allowlists known Mux statuses" do
+  describe "normalize_state/1 allowlists known Mux statuses" do
     test "get_asset/1 maps an unknown status to nil and logs a warning" do
       import ExUnit.CaptureLog
 
