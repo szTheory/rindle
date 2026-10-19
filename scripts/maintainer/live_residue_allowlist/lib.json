@@ -153,14 +153,6 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
-    },
-    {
-      "path": "mix.exs",
-      "class": "duplicated-prose",
-      "text": "# clone without a running MinIO. The full-parity storage command is documented",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     }
   ]
 }

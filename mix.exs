@@ -302,9 +302,8 @@ defmodule Rindle.MixProject do
       # MinIO/integration legs are deliberately ABSENT: the final `test` task runs
       # the default-tag suite, which test/test_helper.exs already excludes
       # :integration/:minio/:contract/:adopter from — so `mix ci` runs on a fresh
-      # clone WITHOUT a running MinIO and never hard-fails for its absence
-      # clone without a running MinIO. The full-parity storage command is documented
-      # in CONTRIBUTING.
+      # clone WITHOUT a running MinIO and never hard-fails for its absence. The
+      # full-parity storage command is documented in CONTRIBUTING.
       # The Playwright browser gallery proof is omitted to keep `mix ci`
       # Elixir-toolchain-only (covered by `brandbook-tokens` in CI +
       # scripts/ci/e2e_local.sh locally).

@@ -3,7 +3,7 @@ phase: 135-repository-and-code-craft-consolidation
 plan: 04
 subsystem: lib-residue
 tags: [craft, residue, comments, refactor]
-status: partial
+status: complete
 requires: ["135-01", "135-02"]
 provides:
   - "lib/config/root tool-config comments free of planning-era ids (97 of 98 pending-removal entries removed)"
@@ -131,3 +131,7 @@ None.
 
 - Commits bc3df27f, e13c0ef6 and 3b7f960c are on `refactor/135-04-lib-residue`.
 - `jq '[.entries[]|select(.reason_class=="pending-removal")]|length' lib.json` returns 1, the mix.exs entry documented above.
+
+## Orchestrator follow-up (2026-10-19)
+
+The orchestrator joined the duplicated mix.exs "clone without a running MinIO" line, flipped the scanner test's seeded-entry assertion to `refute` (the duplicate must stay gone), and regenerated the baseline. `--check --require-no-pending lib` now passes (618 files, 1249 hits, 1215 entries); scan test 28/28.
