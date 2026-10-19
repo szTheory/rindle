@@ -293,6 +293,8 @@ RC=0; bash "${VALIDATOR}" --ledger "${T}/base_ledger.json" >/dev/null 2>&1 || RC
 [ "${RC}" = 64 ] && ok "cli: missing --offline exits 64" || bad "cli: missing --offline exits 64 (got ${RC})"
 RC=0; bash "${VALIDATOR}" --offline --ledger "${T}/base_ledger.json" --bogus >/dev/null 2>&1 || RC=$?
 [ "${RC}" = 64 ] && ok "cli: unknown flag exits 64" || bad "cli: unknown flag exits 64 (got ${RC})"
+RC=0; (cd "${ROOT}" && bash "${VALIDATOR}" --offline) >"${T}/out" 2>"${T}/err" || RC=$?
+verdict "cli: --ledger defaults to the committed ledger under --root" 0 ""
 echo "{ not json" >"${T}/broken.json"
 run "${BASE}" "${T}/broken.json"
 verdict "cli: malformed ledger rejected" 1 "REJECT: unreadable"

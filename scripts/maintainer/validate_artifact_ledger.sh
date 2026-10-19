@@ -15,7 +15,9 @@
 #   settled     with --require-settled, no class may still have disposition delete
 #
 # Usage:
-#   validate_artifact_ledger.sh --ledger FILE --offline [--require-settled] [--root DIR]
+#   validate_artifact_ledger.sh --offline [--ledger FILE] [--require-settled] [--root DIR]
+#
+# --ledger defaults to scripts/maintainer/artifact_ledger.json under --root (default: .).
 #
 # Exit codes: 0 valid | 1 rejected (each reason on stderr, prefixed REJECT:, sorted) | 64 usage.
 #
@@ -33,7 +35,7 @@ ROOT_DIR="."
 
 usage() {
   cat >&2 <<'USAGE'
-usage: validate_artifact_ledger.sh --ledger FILE --offline [--require-settled] [--root DIR]
+usage: validate_artifact_ledger.sh --offline [--ledger FILE] [--require-settled] [--root DIR]
 USAGE
   exit 64
 }
@@ -49,8 +51,8 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-[ -n "${LEDGER}" ] || usage
 [ "${OFFLINE}" = true ] || usage
+[ -n "${LEDGER}" ] || LEDGER="${ROOT_DIR}/scripts/maintainer/artifact_ledger.json"
 
 if [ ! -f "${LEDGER}" ] || ! jq -e 'type == "object"' "${LEDGER}" >/dev/null 2>&1; then
   echo "REJECT: unreadable: ledger ${LEDGER} is missing or not a JSON object" >&2
