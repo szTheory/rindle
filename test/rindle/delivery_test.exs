@@ -251,7 +251,7 @@ defmodule Rindle.DeliveryTest do
                Rindle.Delivery.streaming_url(UnsupportedProfile, key)
     end
 
-    test "Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)" do
+    test "Provider is callback-only and does not declare streaming_url/3" do
       behaviours =
         Provider.module_info(:attributes)
         |> Keyword.get(:behaviour, [])
@@ -259,19 +259,16 @@ defmodule Rindle.DeliveryTest do
       assert behaviours == []
       assert function_exported?(Provider, :behaviour_info, 1)
 
-      # D-05 (Phase 33): streaming_url/3 dispatch lives on Rindle.Delivery only,
-      # NOT on the Provider behaviour. The v1.4 reservation
-      # callback was removed when the behaviour was promoted (see D-08 — the
-      # replacement is non-breaking because no v1.4 implementations existed).
+      # streaming_url/3 dispatch lives on Rindle.Delivery only, NOT on the
+      # Provider behaviour.
       refute {:streaming_url, 3} in Provider.behaviour_info(:callbacks)
 
-      # capabilities/0 remains a callback on the promoted Phase 33 behaviour
-      # (it is one of the 6 required callbacks per D-04).
+      # capabilities/0 is one of the Provider behaviour's required callbacks.
       assert {:capabilities, 0} in Provider.behaviour_info(:callbacks)
     end
   end
 
-  describe "telemetry emission (Plan 05-01 / TEL-04)" do
+  describe "telemetry emission" do
     setup do
       ref =
         :telemetry_test.attach_event_handlers(self(), [

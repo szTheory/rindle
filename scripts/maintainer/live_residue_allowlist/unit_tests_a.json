@@ -291,38 +291,6 @@
       "reason": ""
     },
     {
-      "path": "test/rindle/api_surface_boundary_test.exs",
-      "class": "decision-id",
-      "text": "test \"D-03 reconciliation keeps storage adapters public alongside the facade allowlist\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/api_surface_boundary_test.exs",
-      "class": "decision-id",
-      "text": "test \"D-05 domain invariants resolve to hidden module docs\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/api_surface_boundary_test.exs",
-      "class": "decision-id",
-      "text": "test \"D-05 helper modules resolve to hidden module docs\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/api_surface_boundary_test.exs",
-      "class": "decision-id",
-      "text": "test \"D-06 ops and internal workers resolve to hidden module docs\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/rindle/av/metadata_sanitizer_test.exs",
       "class": "decision-id",
       "text": "test \"strips \\\\n and \\\\r (literal D-19; see RESEARCH.md A3)\" do",
@@ -483,78 +451,6 @@
       "reason": ""
     },
     {
-      "path": "test/rindle/behaviour_docs_test.exs",
-      "class": "decision-id",
-      "text": "D-19 backstop: every @callback on a public behaviour module MUST have a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/behaviour_docs_test.exs",
-      "class": "decision-id",
-      "text": "See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/behaviour_docs_test.exs",
-      "class": "planning-path",
-      "text": "See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/behaviour_docs_test.exs",
-      "class": "spec-ref",
-      "text": "See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/capability_test.exs",
-      "class": "decision-id",
-      "text": "# Must NOT raise — D-30 mandates Application.get_env/2 (returns []), not",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/capability_test.exs",
-      "class": "phase-ref",
-      "text": "# Phase 36 WR-07: configured_streaming_profiles/1 is a public seam for the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/capability_test.exs",
-      "class": "phase-ref",
-      "text": "describe \"configured_streaming_profiles/1 (Phase 36 WR-07)\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/capability_test.exs",
-      "class": "spec-ref",
-      "text": "# Phase 36 WR-07: configured_streaming_profiles/1 is a public seam for the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/capability_test.exs",
-      "class": "spec-ref",
-      "text": "describe \"configured_streaming_profiles/1 (Phase 36 WR-07)\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/rindle/config/config_test.exs",
       "class": "decision-id",
       "text": "# Application-env resolution path of Config.repo/0 itself (D-10) — MUST keep put_env",
@@ -627,14 +523,6 @@
       "reason": ""
     },
     {
-      "path": "test/rindle/convenience_api_test.exs",
-      "class": "plan-ref",
-      "text": "# signal until Plan 19-02 ships the module.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/rindle/delivery/webhook_plug_test.exs",
       "class": "decision-id",
       "text": "# D-37 — synthetic conns don't run Plug.Parsers, so we pre-populate the",
@@ -646,94 +534,6 @@
       "path": "test/rindle/delivery/webhook_plug_test.exs",
       "class": "decision-id",
       "text": "# an empty binary, which the Plug treats as body_reader_missing (D-16).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "decision-id",
-      "text": "# (it is one of the 6 required callbacks per D-04).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "decision-id",
-      "text": "# D-05 (Phase 33): streaming_url/3 dispatch lives on Rindle.Delivery only,",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "decision-id",
-      "text": "# callback was removed when the behaviour was promoted (see D-08 — the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "decision-id",
-      "text": "test \"Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "milestone-ref",
-      "text": "# NOT on the Provider behaviour. The v1.4 reservation",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "milestone-ref",
-      "text": "# replacement is non-breaking because no v1.4 implementations existed).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "phase-ref",
-      "text": "# D-05 (Phase 33): streaming_url/3 dispatch lives on Rindle.Delivery only,",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "phase-ref",
-      "text": "# capabilities/0 remains a callback on the promoted Phase 33 behaviour",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "phase-ref",
-      "text": "test \"Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery_test.exs",
-      "class": "plan-ref",
-      "text": "describe \"telemetry emission (Plan 05-01 / TEL-04)\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/doctor_thresholds_test.exs",
-      "class": "decision-id",
-      "text": "test \"the configured Doctor ratchet remains at the D-07 target\", %{config: config} do",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -935,72 +735,48 @@
       "class": "milestone-ref",
       "text": "For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message."
     },
     {
       "path": "test/rindle/error_streaming_freeze_test.exs",
       "class": "milestone-ref",
       "text": "This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message."
     },
     {
       "path": "test/rindle/error_streaming_freeze_test.exs",
       "class": "milestone-ref",
       "text": "This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message."
     },
     {
       "path": "test/rindle/error_streaming_freeze_test.exs",
       "class": "phase-ref",
       "text": "Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message."
     },
     {
       "path": "test/rindle/error_test.exs",
       "class": "milestone-ref",
       "text": "1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message."
     },
     {
       "path": "test/rindle/error_test.exs",
       "class": "milestone-ref",
       "text": "In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/owner_erasure_batch_proof_test.exs",
-      "class": "narration",
-      "text": "# Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, which previously swapped the GLOBAL",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/owner_erasure_batch_proof_test.exs",
-      "class": "narration",
-      "text": "# override via Config.put_repo_override/1, visible only to its own process tree, so it can no longer",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/owner_erasure_batch_proof_test.exs",
-      "class": "phase-ref",
-      "text": "# async: true — root-caused in Phase 110. This suite uses",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message."
     }
   ]
 }

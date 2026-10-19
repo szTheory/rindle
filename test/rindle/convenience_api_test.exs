@@ -154,10 +154,9 @@ defmodule Rindle.ConvenienceApiTest do
 
   describe "Rindle.Error.message/1" do
     test "formats :not_found reason" do
-      # Use struct!/2 (runtime resolution) instead of %Rindle.Error{} literal
-      # so this test file compiles before Rindle.Error exists. The runtime
-      # call below still raises UndefinedFunctionError, preserving the RED
-      # signal until Plan 19-02 ships the module.
+      # struct!/2 resolves Rindle.Error at runtime instead of a
+      # %Rindle.Error{} literal, so this file has no compile-time dependency
+      # on the struct definition.
       err = struct!(Rindle.Error, action: :attach, reason: :not_found)
       assert Rindle.Error.message(err) == "could not attach: not found"
     end

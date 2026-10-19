@@ -1,11 +1,9 @@
 defmodule Rindle.BehaviourDocsTest do
   @moduledoc """
-  D-19 backstop: every @callback on a public behaviour module MUST have a
+  Backstop: every @callback on a public behaviour module MUST have a
   visible @doc. Doctor does not analyze callback declarations
   (akoutmos/doctor module_information.ex), so this test asserts the
   convention via Code.fetch_docs/1.
-
-  See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).
   """
 
   use ExUnit.Case, async: true

@@ -86,28 +86,28 @@ defmodule Rindle.ApiSurfaceBoundaryTest do
   ]
 
   describe "compiled docs boundary" do
-    test "D-03 reconciliation keeps storage adapters public alongside the facade allowlist" do
+    test "storage adapters stay public alongside the facade allowlist" do
       for module <- @public_modules do
         assert visible_module?(module),
                "#{inspect(module)} should stay visible in compiled docs"
       end
     end
 
-    test "D-05 helper modules resolve to hidden module docs" do
+    test "helper modules resolve to hidden module docs" do
       for module <- @helper_hidden_modules do
         assert hidden_module?(module),
                "#{inspect(module)} should be hidden from compiled docs"
       end
     end
 
-    test "D-05 domain invariants resolve to hidden module docs" do
+    test "domain invariant modules resolve to hidden module docs" do
       for module <- @domain_hidden_modules do
         assert hidden_module?(module),
                "#{inspect(module)} should be hidden from compiled docs"
       end
     end
 
-    test "D-06 ops and internal workers resolve to hidden module docs" do
+    test "ops and internal worker modules resolve to hidden module docs" do
       for module <- @ops_hidden_modules do
         assert hidden_module?(module),
                "#{inspect(module)} should be hidden from compiled docs"
