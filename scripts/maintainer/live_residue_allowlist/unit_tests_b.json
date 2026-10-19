@@ -1,46 +1,5 @@
 {
   "schema": "rindle-live-residue-allowlist-v1",
   "area": "unit_tests_b",
-  "entries": [
-    {
-      "path": "test/support/gcs_signing_key_fixture.ex",
-      "class": "phase-ref",
-      "text": "# RESEARCH Q5 LOCKED: Phase 37 accepts decoded JSON map AND bare PEM",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/support/gcs_signing_key_fixture.ex",
-      "class": "plan-ref",
-      "text": "Returns the literal client_email used by `fixture_json/0`. Plan 02 Signer",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/support/host_oban_migration.ex",
-      "class": "narration",
-      "text": "# separate from Rindle's packaged migrations, which intentionally no longer",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/support/mux_webhook_fixtures.ex",
-      "class": "decision-id",
-      "text": "# HMAC recipe (D-35, byte-accurate against SDK):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/support/mux_webhook_fixtures.ex",
-      "class": "decision-id",
-      "text": "# need to forge stale signatures (D-34).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    }
-  ]
+  "entries": []
 }

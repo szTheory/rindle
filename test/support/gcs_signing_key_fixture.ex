@@ -8,7 +8,7 @@ defmodule Rindle.Storage.GCS.SigningKeyFixture do
   # Each ExUnit run produces a fresh key; the key is NEVER from a real
   # GCP account and has no production trust.
   #
-  # RESEARCH Q5 LOCKED: Phase 37 accepts decoded JSON map AND bare PEM
+  # The GCS signer accepts a decoded JSON map AND a bare PEM
   # string only. File-path loading is adopter responsibility; this fixture
   # therefore exposes `fixture_json/0` (map) and `fixture_pem/0` (bare PEM)
   # but NO file-path helper.
@@ -40,8 +40,8 @@ defmodule Rindle.Storage.GCS.SigningKeyFixture do
   def fixture_pem, do: fixture_json()["private_key"]
 
   @doc """
-  Returns the literal client_email used by `fixture_json/0`. Plan 02 Signer
-  Test 7 sets `:client_email` config to this value when exercising the bare-PEM
+  Returns the literal client_email used by `fixture_json/0`. The signer tests
+  set `:client_email` config to this value when exercising the bare-PEM
   dispatch path.
   """
   @spec fixture_client_email() :: String.t()
