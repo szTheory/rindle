@@ -1461,10 +1461,50 @@
     {
       "path": "scripts/maintainer/artifact_ledger.json",
       "class": "planning-path",
+      "text": "\"file\": \".planning/ui-reviews/.gitignore\",",
+      "count": 7,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
       "text": "\"root\": \".planning/phases/133-evidence-charter-and-live-truth\"",
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The artifact ledger records the retained evidence receipt directory, which must never be archived."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/.gsd-archive-latest\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/GSD1-RECOVERY.md\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/research/.cache/\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/tmp_*.json\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
     },
     {
       "path": "scripts/maintainer/async_isolation_evidence.sh",

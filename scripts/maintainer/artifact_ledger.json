@@ -16,7 +16,7 @@
     {
       "authority": "hand-authored",
       "consumer": [
-        "lib/mix/tasks/rindle.install.ex"
+        "lib/rindle/migration.ex"
       ],
       "disposition": "retain",
       "id": "package-migrations",
@@ -556,7 +556,7 @@
         ],
         "drift_check": "none",
         "drift_paths": [
-          "brandbook/assets/logo/candidates/sheet-light.svg"
+          "brandbook/assets/logo/candidates/sheet.html"
         ],
         "reason": "Generators need npm ci for opentype.js; the set is frozen provenance."
       }
@@ -737,8 +737,421 @@
       }
     }
   ],
-  "ignore_rules": [],
+  "ignore_rules": [
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix compile",
+      "rule": "/_build/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix test --cover",
+      "rule": "/cover/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix deps.get",
+      "rule": "/deps/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix docs",
+      "rule": "/doc/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix deps.get with local dependency overrides",
+      "rule": "/.fetch"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "BEAM crash dumps",
+      "rule": "erl_crash.dump"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix archive.build",
+      "rule": "*.ez"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "Erlang compiler output",
+      "rule": "*.beam"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "dialyxir PLT cache",
+      "rule": "/priv/plts/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "local environment secrets",
+      "rule": ".env"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "local environment secrets",
+      "rule": ".env.*"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "re-includes a committed environment template",
+      "rule": "!.env.example"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "macOS Finder",
+      "rule": ".DS_Store"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "Windows Explorer",
+      "rule": "Thumbs.db"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "vim swap files",
+      "rule": "*.swp"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "vim swap files",
+      "rule": "*.swo"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "editor backup files",
+      "rule": "*~"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "JetBrains IDE settings",
+      "rule": ".idea/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "VS Code settings",
+      "rule": ".vscode/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "Sublime Text project files",
+      "rule": "*.sublime-*"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD tooling runtime state",
+      "rule": ".bg-shell/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD tooling runtime state",
+      "rule": ".recovery/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD tooling runtime state",
+      "rule": ".gsd/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD archive staging",
+      "rule": ".gsd-archive-*/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD archive pointer",
+      "rule": ".planning/.gsd-archive-latest"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD recovery notes",
+      "rule": ".planning/GSD1-RECOVERY.md"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD scratch JSON",
+      "rule": ".planning/tmp_*.json"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD research cache",
+      "rule": ".planning/research/.cache/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD CLI scratch output",
+      "rule": "/init.json"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD CLI scratch output",
+      "rule": "/progress.txt"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD CLI scratch output",
+      "rule": "/recent.txt"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD CLI scratch output",
+      "rule": "/roadmap.json"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "GSD CLI scratch output",
+      "rule": "/state.json"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "local credo report output",
+      "rule": "/credo.json"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "local credo report output",
+      "rule": "/credo.txt"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "mix hex.build --unpack output",
+      "rule": "/rindle-*/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "Claude Code runtime state and worktrees",
+      "rule": ".claude/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "Codex runtime state",
+      "rule": ".codex/*"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "re-includes committed Codex project skills",
+      "rule": "!.codex/skills/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "re-includes committed Codex project skills",
+      "rule": "!.codex/skills/**"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "ExUnit tmp_dir test scratch",
+      "rule": "/tmp/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
+      "produced_by": "npm ci in brandbook/src",
+      "rule": "brandbook/src/node_modules/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".cursor/.gitignore",
+      "produced_by": "Cursor plan scratch files",
+      "rule": "plans/"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.png"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.webp"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.jpg"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.jpeg"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.gif"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.bmp"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".planning/ui-reviews/.gitignore",
+      "produced_by": "UI review screenshots",
+      "rule": "*.tiff"
+    },
+    {
+      "disposition": "ignore",
+      "file": "brandbook/admin-gallery/.gitignore",
+      "produced_by": "admin gallery browser proof screenshots",
+      "rule": "screenshots/*.png"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix compile",
+      "rule": "/_build/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix test --cover",
+      "rule": "/cover/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix deps.get",
+      "rule": "/deps/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix docs",
+      "rule": "/doc/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix deps.get with local dependency overrides",
+      "rule": "/.fetch"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "BEAM crash dumps",
+      "rule": "erl_crash.dump"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix archive.build",
+      "rule": "*.ez"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "ExUnit tmp_dir test scratch",
+      "rule": "/tmp/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "npm ci",
+      "rule": "/node_modules/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "Playwright HTML report",
+      "rule": "/playwright-report/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "Playwright test artifacts",
+      "rule": "/test-results/"
+    },
+    {
+      "disposition": "ignore",
+      "file": "examples/adoption_demo/.gitignore",
+      "produced_by": "mix hex.build",
+      "rule": "adoption_demo-*.tar"
+    }
+  ],
   "schema": "rindle-artifact-ledger-v1",
-  "tracked_junk_patterns": [],
-  "verification_ignored_roots": []
+  "tracked_junk_patterns": [
+    ":(glob)**/.DS_Store",
+    ":(glob)**/Thumbs.db",
+    ":(glob)**/erl_crash.dump",
+    ":(glob)**/*.beam",
+    ":(glob)**/*.ez",
+    ":(glob)**/*.log",
+    ":(glob)**/*.orig",
+    ":(glob)**/*.rej",
+    ":(glob)**/*.swp",
+    ":(glob)**/*.swo",
+    ":(glob)**/*~",
+    ":(glob)**/.env",
+    "init.json",
+    "progress.txt",
+    "recent.txt",
+    "roadmap.json",
+    "state.json",
+    "credo.json",
+    "credo.txt"
+  ],
+  "verification_ignored_roots": [
+    "_build/",
+    "deps/",
+    "cover/",
+    "doc/",
+    "tmp/",
+    "priv/plts/",
+    "brandbook/src/node_modules/",
+    "examples/adoption_demo/_build/",
+    "examples/adoption_demo/deps/",
+    "examples/adoption_demo/node_modules/",
+    "examples/adoption_demo/playwright-report/",
+    "examples/adoption_demo/test-results/",
+    "examples/adoption_demo/tmp/"
+  ]
 }
