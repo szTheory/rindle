@@ -1,0 +1,1230 @@
+{
+  "schema": "rindle-live-residue-allowlist-v1",
+  "area": "unit_tests_b",
+  "entries": [
+    {
+      "path": "test/rindle/ops/runtime_checks_streaming_test.exs",
+      "class": "decision-id",
+      "text": "describe \"doctor.streaming_smoke_ping flag-gate (D-07)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/runtime_checks_streaming_test.exs",
+      "class": "decision-id",
+      "text": "describe \"profile-discovery gate (D-06)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/runtime_checks_streaming_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"doctor.oban_required_queues with streaming profiles (Phase 36 WR-03)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/runtime_checks_streaming_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"doctor.oban_required_queues with streaming profiles (Phase 36 WR-03)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/sweep_orphaned_temp_files_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"tus/ regular-file aging (CR-03 safety net)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/variant_maintenance_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-03 contract lock: the orchestration code in `enqueue_job/2` keys",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/variant_maintenance_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-03 regression: back-to-back runs must not double-enqueue",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/variant_maintenance_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-07 regression: VariantFSM allows ready -> missing but NOT",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/variant_maintenance_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-08: typo'd filter keys (`prof` instead of `profile`, `variant`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/processor/av_test.exs",
+      "class": "phase-ref",
+      "text": "test \"returns the exact Phase 25 AV capability list\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/presets/mux_web_test.exs",
+      "class": "decision-id",
+      "text": "test \"inherits Web's web_720p + poster variants verbatim (D-01, D-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/presets/mux_web_test.exs",
+      "class": "decision-id",
+      "text": "test \"scrub_strip flag passes through to Web.variants/1 (D-01 passthrough)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/presets/mux_web_test.exs",
+      "class": "decision-id",
+      "text": "test \"writes the locked streaming block to delivery_policy/0 (D-02)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/profile_test.exs",
+      "class": "decision-id",
+      "text": "\"image-default variant must omit :kind from validated map (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/profile_test.exs",
+      "class": "requirement-id",
+      "text": "# concurrent execution would race on that app-env key (HARD-01 async-safety guard).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "\"default :image must omit :kind from validated map (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "\"explicit :image must ALSO omit :kind for digest parity with default :image (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "describe \"validate_delivery! :streaming key (Phase 33 STREAM-05; D-15..D-18)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "describe \"validate_variant! :from_variant rejection (AV-02-08, D-15)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \":kind => :unknown raises with allowed-list fix hint (D-13)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"AV-only profile (variant kind: :video) compiles without :streaming (D-17)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"explicit :kind => :image compiles and ALSO omits :kind from validated map (D-14 invariant)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"explicit streaming: nil → delivery.streaming is nil (D-17)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"full valid :streaming config compiles and produces all 4 keys (D-15)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"image-only profile compiles without :streaming (D-17 regression)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"no :streaming key → delivery.streaming is nil (D-17)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"raw provider knob :input raises (D-16)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"raw provider knob :max_resolution_tier raises (D-16)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"source_variant atom not declared in variants/0 raises (D-18 partial)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"source_variant points at :image-kind variant compiles in Phase 33 (D-18 deferred to Phase 34)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "milestone-ref",
+      "text": "test \"mode: :crop without width AND height still raises (existing v1.0 behavior preserved)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "phase-ref",
+      "text": "# (e.g. source_variant must be :video/:audio) is deferred to Phase 34.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "phase-ref",
+      "text": "# Phase 33 only validates atom presence in variants/0; per-variant kind: enforcement",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"validate_delivery! :streaming key (Phase 33 STREAM-05; D-15..D-18)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "phase-ref",
+      "text": "test \"source_variant points at :image-kind variant compiles in Phase 33 (D-18 deferred to Phase 34)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "requirement-id",
+      "text": "describe \"validate_delivery! :streaming key (Phase 33 STREAM-05; D-15..D-18)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/gcs/signer_test.exs",
+      "class": "decision-id",
+      "text": "describe \"url/3 — TTL fallback (D-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/gcs/signer_test.exs",
+      "class": "decision-id",
+      "text": "test \"URL never contains response-content-disposition or response-content-type query params (D-03)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/gcs_test.exs",
+      "class": "decision-id",
+      "text": "# D-03 (content-type as object metadata) is wired end-to-end against a",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_test.exs",
+      "class": "requirement-id",
+      "text": "# the file_mutation primitive is allow-listed here. (HARD-01 async-safety guard)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Broker.initiate_tus_upload/2 (D-10/D-11)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Local tmp-append + atomic-rename backing (D-01/Pitfall 5)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"capability honesty (D-09)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"resumable_protocol column (D-10)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "phase-ref",
+      "text": "# The polymorphic tus-sink callbacks wrap the Phase-42 helpers so the Plug can",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "phase-ref",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "phase-ref",
+      "text": "Proves the Phase 42 tus foundation that `TusPlug` (Plans 02/03) stands on:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "plan-ref",
+      "text": "describe \"upload_part_stream/5 + complete_part_stream/4 (TUS-06 Local, Plan 04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/s3_tus_test.exs",
+      "class": "spec-ref",
+      "text": "# The CR-04 silent-corruption hole: a first PATCH under 5 MiB on the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/s3_tus_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"cross-node resume guard (CR-04): missing tail fails loudly\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/s3_tus_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"tus_tail_path/2 (CR-02): reaper-facing path matches the adapter-written tail\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/capabilities_test.exs",
+      "class": "decision-id",
+      "text": "describe \"absence of require_streaming/2 (D-03 — Phase 37 / MUX-22)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/capabilities_test.exs",
+      "class": "decision-id",
+      "text": "test \"returns the locked 5-atom vocabulary in D-02 order\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/capabilities_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"absence of require_streaming/2 (D-03 — Phase 37 / MUX-22)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "# This file owns the D-29 typed-branch contract: `video.upload.asset_created`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "# ids in the fixture (Plan 03 — D-36); they MUST be distinct.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "assert evt.provider_asset_id == asset_id, \"MUST be data.asset_id (D-29)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "assert evt.upload_id == upload_id, \"MUST be data.id (D-29)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "describe \"normalize/1 — video.upload.asset_created (D-29 typed branch)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "plan-ref",
+      "text": "# ids in the fixture (Plan 03 — D-36); they MUST be distinct.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/http_cancel_upload_test.exs",
+      "class": "requirement-id",
+      "text": "# app-env key (HARD-01 async-safety guard).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# D-04 memo correction: PLURAL keys at SDK boundary.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures (D-34).",
+      "count": 2,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# WR-02 (POLISH-01/D-13) — case-insensitive signature header lookup",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# WR-05 (POLISH-01/D-13) — unknown Mux status -> nil + Logger.warning",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "narration",
+      "text": "# End-to-end: previously this path raised Protocol.UndefinedError;",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "phase-ref",
+      "text": "# Phase 33 contract: playback_ids is a LIST of strings (matches schema field",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "phase-ref",
+      "text": "test \"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "phase-ref",
+      "text": "test \"delete_asset/1 is idempotent on 404 (Phase 33 contract)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-02 (POLISH-01/D-13) — case-insensitive signature header lookup",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-05 (POLISH-01/D-13) — unknown Mux status -> nil + Logger.warning",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "spec-ref",
+      "text": "# casing. Pre-WR-02 the hardcoded \"mux-signature\" lookup would miss this",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"WR-02: case-insensitive Mux-Signature header lookup (RFC 7230)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"WR-05: normalize_state/1 allowlists known Mux statuses\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "spec-ref",
+      "text": "test \"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/optional_dep_test.exs",
+      "class": "decision-id",
+      "text": "# MUX-01 smoke test (D-31, D-33). The :mux and :jose deps are loaded in the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/optional_dep_test.exs",
+      "class": "phase-ref",
+      "text": "test \"Rindle.Streaming.Provider.Mux is loaded with all required Phase 33 callbacks (test env)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "# 2. Simulate sync to ready (would also be webhook-driven in Phase 35)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "# B1 fix: playback_ids is a PLURAL ARRAY (Phase 33 schema field).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "# Per Plan 01 deviation #1: Phase 33 DSL nests delivery TTL under `:delivery`;",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "# This test is the phase-gate. If it fails, Phase 34 does not ship.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "# `@video_variant_schema` (Phase 24 / AV-02).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "This is the phase-gate test for Phase 34: if any `[:rindle, :provider, _, _]`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "test \"every Phase 34 telemetry event redacts asset_id (no raw provider_asset_id leaks)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "plan-ref",
+      "text": "# Per Plan 01 deviation #1: Phase 33 DSL nests delivery TTL under `:delivery`;",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "decision-id",
+      "text": "describe \"behaviour_info(:callbacks) (D-04 lock)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "decision-id",
+      "text": "test \"declares create_direct_upload/2 and cancel_direct_upload/1 as optional (D-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "decision-id",
+      "text": "test \"does NOT declare streaming_url/3 as a callback (D-05 — Rindle.Delivery owns dispatch)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "phase-ref",
+      "text": "# soon as adopter callers land in Phase 36.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/telemetry/emission_test.exs",
+      "class": "plan-ref",
+      "text": "existing unit-test files (per Plan 05-01 Step 4 — keep cross-cutting",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/broker_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/broker_test.exs",
+      "class": "phase-ref",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/broker_test.exs",
+      "class": "plan-ref",
+      "text": "describe \"telemetry emission (Plan 05-01 / TEL-01)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/lifecycle_integration_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/lifecycle_integration_test.exs",
+      "class": "phase-ref",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_local_backing_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_local_backing_test.exs",
+      "class": "decision-id",
+      "text": "promotion lane that `TusPlug` completion converges into (D-08): append grows the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_local_backing_test.exs",
+      "class": "phase-ref",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"Phase 57 — Checksum & Defer Length\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"Phase 58 - Concatenation\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "plan-ref",
+      "text": "# Plan-03 direct-call helpers — drive TusPlug.call/2 with opts bound to the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-01 (Plug half): a DELETE whose backing abort fails transiently must",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-01 ordering proof: even though the DB update will fail, the backing",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "# Probe repo for the WR-02 update-failure path: delegates reads to AdopterRepo",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "# The load-bearing CR-01 assertion: DELETE invokes the backing abort with",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "# `update/1` to return {:error, changeset}. Swapped in only for the WR-02 test",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "test \"DELETE on an S3-backed session aborts the multipart upload then returns 204 + aborted (CR-01 success path)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "test \"DELETE persists the tus_abort_failed marker (and still returns 204) when the backing abort fails (CR-01 Plug half)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "test \"DELETE returns 5xx (not 204) when the state update fails AND the backing abort already fired (WR-02 + CR-01 ordering)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "test \"DELETE with a valid token returns 204, aborts the session AND removes the Local backing part (CR-01)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_plug_test.exs",
+      "class": "spec-ref",
+      "text": "test \"a tampered token returns 404 and NEVER invokes abort_multipart_upload (auth not weakened, CR-01 negative)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "decision-id",
+      "text": "# UNCHANGED Broker.verify_completion/2 lane (D-08), which enqueues PromoteAsset",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "spec-ref",
+      "text": "# 3. CR-02 + CR-03 end-to-end: the reaper removed the REAL tail file at the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "spec-ref",
+      "text": "# leak-free (CR-01), aborting the backing multipart before the transition.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "spec-ref",
+      "text": "# source-of-truth, base64url-encoded — CR-02), at the SAME root the write path",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "spec-ref",
+      "text": "# ── SC5 / IN-04 gap-closure: post-reap tail-gone (CR-02 + CR-03) ─────────────",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "spec-ref",
+      "text": "# ── SC5 / IN-04 gap-closure: the DELETE termination path (CR-01) ─────────────",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/ingest_provider_webhook_test.exs",
+      "class": "phase-ref",
+      "text": "# 7. video.upload.asset_created — no matching row (Phase 37 forward-compat)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/maintenance_workers_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/maintenance_workers_test.exs",
+      "class": "phase-ref",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/maintenance_workers_test.exs",
+      "class": "plan-ref",
+      "text": "# Telemetry emission (Plan 05-01 / TEL-05)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/maintenance_workers_test.exs",
+      "class": "plan-ref",
+      "text": "describe \"telemetry emission (Plan 05-01 / TEL-05)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "decision-id",
+      "text": "# D-04 memo correction: PLURAL keys at SDK boundary.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "decision-id",
+      "text": "# WR-09 (POLISH-01/D-13) — :exception telemetry redacts the error reason",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "phase-ref",
+      "text": "# B1 fix: row.playback_ids is a PLURAL ARRAY (Phase 33 schema field).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "phase-ref",
+      "text": "# Plan-level test profile. Phase 33 DSL nests delivery options under",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "phase-ref",
+      "text": "# the validator routes through `@video_variant_schema` (Phase 24 / AV-02).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "plan-ref",
+      "text": "# `:delivery`; the top-level `streaming:` key is invalid (Plan 01 deviation).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-09 (POLISH-01/D-13) — :exception telemetry redacts the error reason",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"WR-09: :exception telemetry routes reason through safe_reason/1\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "decision-id",
+      "text": "# WR-08 (POLISH-01/D-13) — distinguish fresh / dedup'd / failed inserts.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "spec-ref",
+      "text": "# (pre-WR-08 only `{:ok, _}` was counted; dedup'd vs failed was lost).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "spec-ref",
+      "text": "# Pre-WR-08 the coordinator counted only {:ok, _} and silently swallowed the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-08 (POLISH-01/D-13) — distinguish fresh / dedup'd / failed inserts.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "spec-ref",
+      "text": "# so we can assert the fresh-vs-dedup'd distinction WR-08 introduced",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"WR-08: insert outcomes are distinguished (fresh vs dedup'd)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "# WR-04 (POLISH-01/D-13) — invalid FSM transition reconciles to :errored",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "# WR-06 (POLISH-01/D-13) — adapter failure persists last_sync_error",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "plan-ref",
+      "text": "# Image-shape profile (mirrors Plan 01 mux_test.exs deviation #1 — the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "plan-ref",
+      "text": "# Plan 01 `get_asset/1` reshapes \"preparing\" -> \"processing\".",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "# A non-:not_found adapter failure (transport/5xx). Pre-WR-06 the worker",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "# Oban retried the same impossible transition every attempt. WR-04 catches",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-04 (POLISH-01/D-13) — invalid FSM transition reconciles to :errored",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-06 (POLISH-01/D-13) — adapter failure persists last_sync_error",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "# edge, so pre-WR-04 this returned {:error, {:invalid_transition, _, _}} and",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "test \"WR-04: forbidden live transition reconciles row to :errored (no infinite retry)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "spec-ref",
+      "text": "test \"WR-06: adapter error persists last_sync_error breadcrumb before returning {:error, _}\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/gcs_signing_key_fixture.ex",
+      "class": "phase-ref",
+      "text": "# RESEARCH Q5 LOCKED: Phase 37 accepts decoded JSON map AND bare PEM",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/gcs_signing_key_fixture.ex",
+      "class": "plan-ref",
+      "text": "Returns the literal client_email used by `fixture_json/0`. Plan 02 Signer",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/host_oban_migration.ex",
+      "class": "narration",
+      "text": "# separate from Rindle's packaged migrations, which intentionally no longer",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/mux_webhook_fixtures.ex",
+      "class": "decision-id",
+      "text": "# HMAC recipe (D-35, byte-accurate against SDK):",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/mux_webhook_fixtures.ex",
+      "class": "decision-id",
+      "text": "# need to forge stale signatures (D-34).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    }
+  ]
+}
