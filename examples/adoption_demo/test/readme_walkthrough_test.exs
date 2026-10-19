@@ -1,6 +1,6 @@
 defmodule AdoptionDemo.ReadmeWalkthroughTest do
   @moduledoc """
-  Docs-parity gate for the Phase 91 deliverable: the demo README's "Admin Console
+  Docs-parity gate: the demo README's "Admin Console
   Walkthrough" must keep matching reality. It documents the console URL, the seed
   command, and the click-around items — and the documented URL must actually
   resolve. Mirrors the library's `test/install_smoke/docs_parity_test.exs` pattern.

@@ -1,10 +1,8 @@
 defmodule AdoptionDemoWeb.AdminMountTest do
   @moduledoc """
-  Locks in the Phase 91 deliverable: the Rindle Admin Console is mounted at
-  `/admin/rindle` and every top-level surface resolves to the admin shell.
+  Proves the Rindle Admin Console is mounted at `/admin/rindle` and every top-level surface resolves to the admin shell.
 
-  Discharges UAT checkpoint "Admin Console Mounted at /admin/rindle". The
-  disconnected LiveView render is enough to prove the route is wired and the
+  The disconnected LiveView render is enough to prove the route is wired and the
   shell renders — no browser or storage required.
   """
   use AdoptionDemoWeb.ConnCase

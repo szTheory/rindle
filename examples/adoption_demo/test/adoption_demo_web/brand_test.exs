@@ -1,11 +1,10 @@
 defmodule AdoptionDemoWeb.BrandTest do
   @moduledoc """
-  Locks in the Phase 91 brand deliverable: the Cohort demo presents its own
-  green mortarboard mark and "Cohort · Rindle demo" wordmark — never the default
-  Phoenix placeholder logo or page title.
+  Proves the Cohort demo presents its own green mortarboard mark and
+  "Cohort · Rindle demo" wordmark — never the default Phoenix placeholder logo or
+  page title.
 
-  Discharges UAT checkpoint "Logo Rendering" (formerly human-verified in
-  91-HUMAN-UAT.md). No browser, no storage — fast and deterministic.
+  No browser, no storage — fast and deterministic.
   """
   use AdoptionDemoWeb.ConnCase
 

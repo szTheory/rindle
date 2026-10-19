@@ -149,7 +149,7 @@
     },
   };
 
-  // WAI-ARIA APG tabs keyboard handler (D-96-17). The hook owns KEYBOARD ONLY —
+  // WAI-ARIA APG tabs keyboard handler. The hook owns KEYBOARD ONLY —
   // ArrowLeft/ArrowRight move focus + roving tabindex across the tabs, Home/End
   // jump to the first/last; selection (aria-selected, panel visibility) stays
   // server-owned via phx-click. No JS framework, no new dep.

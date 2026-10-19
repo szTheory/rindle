@@ -1,12 +1,11 @@
 defmodule AdoptionDemoWeb.AdminLifecycleDisplayTest do
   @moduledoc """
-  Locks in the Phase 91 deliverable: edge-case lifecycle states (quarantined and
-  degraded assets, failed/expired/aborted upload sessions) render gracefully in
-  the admin console — no 500, no error state.
+  Proves that edge-case lifecycle states (quarantined and degraded assets,
+  failed/expired/aborted upload sessions) render gracefully in the admin
+  console — no 500, no error state.
 
-  Discharges UAT checkpoint "Admin Console Lifecycle Display" (formerly human-
-  verified in 91-HUMAN-UAT.md). Rows are inserted directly (no MinIO upload), so
-  the test stays in the fast, storage-free ExUnit lane.
+  Rows are inserted directly (no MinIO upload), so the test stays in the fast,
+  storage-free ExUnit lane.
   """
   use AdoptionDemoWeb.ConnCase
 

@@ -30,12 +30,12 @@
 }
 
 /* ---- tokens -------------------------------------------------------------- */
-/* Theme contract (D-96-11): the light set is the default `:root` AND the
+/* Theme contract: the light set is the default `:root` AND the
    explicit `[data-theme="light"]` attribute; `[data-theme="dark"]` is the
    switchable dark set; `@media (prefers-color-scheme: dark)` is the auto
    fallback only (the dark block below, scoped to :root:not([data-theme])).
    `color-scheme` is set per theme so native controls/scrollbars match.
-   Elevation = lightness (D-96-12): the surface ladder
+   Elevation = lightness: the surface ladder
    --ck-bg -> --ck-surface-2 -> --ck-surface -> --ck-surface-overlay is the
    primary separator; shadows/glows derive from one per-theme ink channel
    token (--ck-shadow-ink / --ck-glow-ink), so the --ck-shadow-* / --ck-bg-glow
@@ -108,7 +108,7 @@
   --ck-maxw: 64rem;
 }
 
-/* Dark token set — explicit, switchable attribute contract (D-96-11).
+/* Dark token set — explicit, switchable attribute contract.
    Dark is semantic elevation, not color-inversion: surfaces step LIGHTER with
    elevation (--ck-bg -> --ck-surface-2 -> --ck-surface -> --ck-surface-overlay)
    and shadows go "barely there" by flipping --ck-shadow-ink to pure black at
@@ -148,8 +148,8 @@
   --ck-info: #60a5fa;
 }
 
-/* Controlled dark-token duplication (parity-checked by cohort-contrast.mjs,
-   D-96-18). This is the AUTO FALLBACK only — it applies the dark set when the
+/* Controlled dark-token duplication (parity-checked by cohort-contrast.mjs).
+   This is the AUTO FALLBACK only — it applies the dark set when the
    OS prefers dark AND the page has set no explicit [data-theme]. The values
    below MUST stay byte-equal to [data-theme="dark"] above; the contrast
    data-module parity check fails the build on drift. */
@@ -498,8 +498,8 @@ body {
 }
 
 /* ---- code / debug-output panel ----------------------------------------- */
-/* Token-only surface for the ops/account `<pre>` inspect-output panels
-   (D-96-09/20). Mirrors the `.ck-cred__value` code-surface token set; every
+/* Token-only surface for the ops/account `<pre>` inspect-output panels.
+   Mirrors the `.ck-cred__value` code-surface token set; every
    value is a `var(--ck-*)` — no hex/rgb/named-color or raw measure literal. */
 .ck-output {
   font-family: var(--ck-font-mono);
@@ -697,7 +697,7 @@ body {
   to { background-position: -200% 0; }
 }
 
-/* ---- table (.ck-table, D-96-15) ----------------------------------------- */
+/* ---- table (.ck-table) ------------------------------------------------- */
 .ck-table-wrap {
   border: 1px solid var(--ck-border);
   border-radius: var(--ck-radius);
@@ -771,7 +771,7 @@ body {
   background: var(--ck-surface-2);
 }
 .ck-table__body .ck-table__row:hover {
-  /* hover = background only, NO layout shift (D-96-22) */
+  /* hover = background only, NO layout shift */
   background: var(--ck-tint);
 }
 .ck-table__body .ck-table__row:last-child .ck-table__cell {
@@ -888,7 +888,7 @@ body {
   min-height: 44px;
 }
 
-/* ---- form set (.ck-field / .ck-input / .ck-select, D-96-15) ------------- */
+/* ---- form set (.ck-field / .ck-input / .ck-select) ---------------------- */
 .ck-field {
   display: flex;
   flex-direction: column;
@@ -1129,7 +1129,7 @@ body {
   border: 1px solid var(--ck-border);
 }
 
-/* ---- flash / alert notifications (D-101-04) ----------------------------- */
+/* ---- flash / alert notifications ---------------------------------------- */
 .ck-flash {
   position: fixed;
   inset-block-start: var(--ck-5);
@@ -1205,7 +1205,7 @@ body {
   background: var(--ck-surface-2);
 }
 
-/* ---- tabs (.ck-tabs, WAI-ARIA APG, D-96-17) ----------------------------- */
+/* ---- tabs (.ck-tabs, WAI-ARIA APG) -------------------------------------- */
 .ck-tabs {
   display: flex;
   flex-direction: column;
@@ -1237,7 +1237,7 @@ body {
 }
 .ck-tabs__tab[aria-selected="true"],
 .ck-tabs__tab[aria-current="page"] {
-  /* non-color cue: underline + weight, in addition to color (D-96-17/22) */
+  /* non-color cue: underline + weight, in addition to color */
   color: var(--ck-ink);
   font-weight: 700;
   border-bottom-color: var(--ck-brand);
@@ -1342,8 +1342,8 @@ body {
   }
 }
 
-/* ---- motion: reduced-motion contract (D-96-13) -------------------------- */
-/* Net-new reduce block. Scoped to .ck * so it covers every present/future
+/* ---- motion: reduced-motion contract ----------------------------------- */
+/* Reduced-motion block. Scoped to .ck * so it covers every present/future
    primitive without touching daisyUI chrome. Uses .001ms (NOT 0) so
    transitionend/animationend still fire and LiveView JS does not hang.
    Color/border/state changes are intentionally KEPT (they convey state, not

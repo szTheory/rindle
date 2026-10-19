@@ -127,11 +127,11 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     |> Kernel.-(1)
   end
 
-  # --- Wave-0 smoke test ----------------------------------------------------
+  # --- Shared-helper smoke test ---------------------------------------------
   # Proves the shared helpers compile and run against /styleguide — which already
   # renders the .ck shell (data-ck-root) + .ck-* primitives and carries no
   # daisyUI body utilities. The 7 real per-page contract tests are added in P2–P5.
-  test "shared helpers run green against /styleguide (Wave-0 smoke)", %{conn: conn} do
+  test "shared helpers run green against /styleguide", %{conn: conn} do
     html = render_route(conn, ~p"/styleguide")
 
     assert_frozen_contract(html, [

@@ -1,6 +1,6 @@
-// Cohort /styleguide visual-contract e2e (Phase 96, Plan 05).
+// Cohort /styleguide visual-contract e2e.
 //
-// Drives the net-new /styleguide gallery in the EXACT D-96-21 order:
+// Drives the /styleguide gallery in this EXACT order:
 //   goto -> waitForLiveSocket
 //     -> emulateMedia(reduce) -> reduced-motion computed probe (BEFORE any freeze)
 //     -> emulateMedia(no-preference)
@@ -8,13 +8,13 @@
 //     -> toggle dark  -> assertAdminPolish
 //     -> emulateMedia(colorScheme: dark) -> auto-fallback probe (distinct from [data-theme]).
 //
-// Reuses the already-parameterized `assertAdminPolish` UNCHANGED (D-94-07 seam, D-96-06)
-// against `[data-ck-root]` / `.ck-*`. Phase 102 promotes this proof to a hard-fail gate:
+// Reuses the parameterized `assertAdminPolish` UNCHANGED (explicit root and selector
+// options) against `[data-ck-root]` / `.ck-*`. This proof is a hard-fail gate:
 // polish and rendered-contrast offenders fail the spec instead of warning.
 //
-// Also satisfies UI-SPEC acceptance gate 1 (component-existence loop over the 6 L1 + 4 L2
-// primitives via their stable `data-ck-section` markers — never on `.ck-*` styling classes,
-// D-96-16/19) and adds a rendered-contrast assertion over the root (catches cascade bugs the
+// Also runs the component-existence loop (gate 1) over the 6 L1 + 4 L2
+// primitives via their stable `data-ck-section` markers — never on `.ck-*` styling classes)
+// and adds a rendered-contrast assertion over the root (catches cascade bugs the
 // token-pair node gate misses).
 //
 // CommonJS / Chromium-only, matching the sibling specs in this directory.
@@ -23,11 +23,11 @@ const { test, expect } = require("@playwright/test");
 const { assertAdminPolish, assertReadableContrast } = require("./support/admin-polish");
 const { waitForLiveSocket } = require("./support/liveview");
 
-// D-96-06: the FIXED interactive-selector list the polish gate measures over the Cohort root.
+// The FIXED interactive-selector list the polish gate measures over the Cohort root.
 const interactiveSelectors = [".ck-btn", ".ck-tab", ".ck-input", ".ck-select", "[data-ck-theme]"];
 const COHORT_FOCUS_CONTRACT = { width: "2px", color: "--ck-focus", offset: "2px" };
 
-// D-96-19 / gate 1: the required component-existence matrix — 6 Level-1 + 4 Level-2 primitives,
+// Gate 1: the required component-existence matrix — 6 Level-1 + 4 Level-2 primitives,
 // each asserted via its stable `data-ck-section` test marker (not its styling class).
 const REQUIRED_SECTIONS = [
   // Level-1
@@ -45,7 +45,7 @@ const REQUIRED_SECTIONS = [
 ];
 
 // Mirrors `selectAdminTheme` (support/admin.js:57-62): click the toggle, assert the root's
-// `data-theme` flipped AND the control reports `aria-pressed="true"` (D-96-07).
+// `data-theme` flipped AND the control reports `aria-pressed="true"`.
 async function selectCohortTheme(page, theme) {
   const control = page.locator(`[data-ck-theme="${theme}"]`);
   await control.click();
@@ -91,7 +91,7 @@ test("cohort /styleguide: reduced-motion probe, theme toggle + polish (light+dar
   // passes the same Cohort focus contract as the route matrix and opts out of admin-specific
   // backstops; Cohort-specific motion/fallback/component checks remain in this spec below.
 
-  // Light theme polish run (call kept inline so the D-96-06 reuse is greppable per-theme).
+  // Light theme polish run (call kept inline so the shared-gate reuse is greppable per-theme).
   await selectCohortTheme(page, "light");
   await assertAdminPolish(page, {
     viewport: "desktop",
@@ -143,9 +143,9 @@ test("cohort /styleguide: reduced-motion probe, theme toggle + polish (light+dar
   // the media query flipped while the explicit contract held.
   await expect(page.locator("[data-ck-root]")).toHaveAttribute("data-theme", "light");
 
-  // -- Gate 1: component-existence loop (D-96-19) --------------------------------------------
+  // -- Gate 1: component-existence loop ------------------------------------------------------
   // Assert each of the 6 L1 + 4 L2 primitives is visible at /styleguide via its `data-ck-section`
-  // marker (the test seam, never the `.ck-*` styling class — D-96-16).
+  // marker (the test seam, never the `.ck-*` styling class).
   for (const section of REQUIRED_SECTIONS) {
     await expect(
       page.locator(`[data-ck-section="${section}"]`).first(),

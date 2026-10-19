@@ -59,10 +59,10 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
-  Page scaffold — the Cohort analog of Phase 98's `page/1` (D-98-01). Renders the
+  Page scaffold — the Cohort analog of the admin console's `page/1`. Renders the
   per-page `.ck` shell that all migrated inner pages share: the `.ck` div carrying
-  `data-ck-root` (the polish-gate / theme root — on this div, NEVER on `<body>`,
-  D-96-05) and a SERVER-owned `data-theme`. The theme is tri-state: `"light"`/`"dark"`
+  `data-ck-root` (the polish-gate / theme root — on this div, NEVER on `<body>`)
+  and a SERVER-owned `data-theme`. The theme is tri-state: `"light"`/`"dark"`
   render an explicit `data-theme` (deterministic for e2e), while `"auto"` (the default)
   OMITS the attribute so the page follows `prefers-color-scheme` like the home page —
   keeping every Cohort surface consistent with the OS by default while still allowing a
@@ -389,7 +389,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   defp status_meta(_), do: %{state: "info", badge: "info", label: "Status", note: ""}
 
   @doc """
-  Level-1 data table (D-96-15). Uses the `core_components` `:col`/`:rows` model
+  Level-1 data table. Uses the `core_components` `:col`/`:rows` model
   extended with per-column `sort_key`/`num`. Sort state is SERVER-owned: pass
   `sort_by`/`sort_dir` (the current LiveView assigns) and a `sort_event`; the
   sortable header is a real `<button>` carrying `aria-sort`. Numeric columns get
@@ -494,7 +494,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   defp ck_table_sort_glyph(_key, _sort_by, _dir), do: "↕"
 
   @doc """
-  Stat tile (D-96-22). `value` renders with `tabular-nums`; an empty/nil value
+  Stat tile. `value` renders with `tabular-nums`; an empty/nil value
   renders an em dash. Optional `delta` and a `status` accent. A loading skeleton
   replaces the value while `loading`.
   """
@@ -525,7 +525,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   defp ck_delta_glyph(_), do: "•"
 
   @doc """
-  Detail block (D-96-22): a real `<dl>` of term/description rows. Each `:item`
+  Detail block: a real `<dl>` of term/description rows. Each `:item`
   slot carries a `term`. Supports an empty state.
   """
   attr :empty_title, :string, default: "Nothing here yet"
@@ -550,7 +550,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
-  Toolbar (D-96-22): a `role="group"` row of controls. Default content goes in
+  Toolbar: a `role="group"` row of controls. Default content goes in
   the inner block (filters, title); an `:actions` slot is pinned to the trailing
   edge for buttons. Wraps on narrow viewports.
   """
@@ -572,7 +572,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
-  Form field wrapper (D-96-15). Derives `id`/`name`/`errors` from a
+  Form field wrapper. Derives `id`/`name`/`errors` from a
   `Phoenix.HTML.FormField`, renders a `.ck-label`, the control (an `:inner_block`
   control such as `ck_input`/`ck_select`, or a raw control), optional `.ck-help`,
   and a conditional non-color `.ck-error` (warning icon + message). Wires
@@ -608,7 +608,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
-  Text input bound to a `Phoenix.HTML.FormField` (D-96-15). Wires
+  Text input bound to a `Phoenix.HTML.FormField`. Wires
   `aria-describedby` (help + error) and `aria-invalid` from the field errors;
   supports `disabled` (→ `aria-disabled` + sunken styling). Render inside
   `ck_field` so the label/help/error ids line up.
@@ -638,7 +638,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   end
 
   @doc """
-  Select bound to a `Phoenix.HTML.FormField` (D-96-15). Same aria wiring as
+  Select bound to a `Phoenix.HTML.FormField`. Same aria wiring as
   `ck_input`. Pass `options` in the `Phoenix.HTML.Form.options_for_select/2`
   shape; render inside `ck_field`.
   """
@@ -668,7 +668,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
     """
   end
 
-  # Shared aria contract for the form controls (D-96-15): aria-invalid from the
+  # Shared aria contract for the form controls: aria-invalid from the
   # field errors, aria-describedby pointing at the help + error element ids.
   defp field_meta(%Phoenix.HTML.FormField{} = field, _disabled) do
     invalid? = Phoenix.Component.used_input?(field) and field.errors != []
@@ -688,7 +688,7 @@ defmodule AdoptionDemoWeb.CohortComponents do
   defp translate_ck_error(msg) when is_binary(msg), do: msg
 
   @doc """
-  WAI-ARIA APG tabs (D-96-17). Renders the full `role=tablist/tab/tabpanel`
+  WAI-ARIA APG tabs. Renders the full `role=tablist/tab/tabpanel`
   structure with `aria-selected`, `aria-controls`, roving `tabindex` (0 on the
   selected tab, -1 on others), the selected cue as `aria-selected` + underline +
   weight (non-color). Click is server-owned via `phx-click`; KEYBOARD
