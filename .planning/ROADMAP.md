@@ -671,7 +671,40 @@ Plans:
   3. Every readability change traces to the frozen candidate ledger and passes behavioral and boundary checks proving improved naming, cohesion, ownership, or failure semantics without public API, schema/migration, telemetry, error, or release-contract drift.
   4. Repository hygiene fails on fetch failure, wrong branch, tracked junk, generated drift, incomplete `mix ci`, or post-verification worktree residue, while narrow ignore rules preserve intentional history and generated authority.
 
-**Plans**: TBD
+**Plans:** 13 plans
+
+Plans:
+**Wave 1**
+- [ ] 135-01-PLAN.md — Live residue scanner with seven-shard removal-only allowlist (CRAFT-04, CRAFT-06; wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 135-02-PLAN.md — Readability trace, craft boundary check and public surface snapshot (CRAFT-05; wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 135-03-PLAN.md — Artifact ledger, partition validator, retained-receipt guard, package-set check, .mcp.json removal (CRAFT-03; wave 3)
+- [ ] 135-04-PLAN.md — Residue tranche A: lib, config, mix.exs (CRAFT-04, CRAFT-06; wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 135-05-PLAN.md — Honest repo hygiene gate with real-git harness (HYGIENE-03; wave 4)
+- [ ] 135-06-PLAN.md — CRAFT-05 pilot: five mechanical-trigger complexity identities (CRAFT-05; wave 4)
+- [ ] 135-07-PLAN.md — Residue tranche D1a: core unit tests, unit_tests_a shard (CRAFT-04, CRAFT-06; wave 4)
+- [ ] 135-08-PLAN.md — Residue tranche D2: examples, adopter/brandbook tests, docs (CRAFT-04, CRAFT-06; wave 4)
+- [ ] 135-12-PLAN.md — Residue tranche D1b: runtime and provider unit tests, unit_tests_b shard (CRAFT-04, CRAFT-06; wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 135-09-PLAN.md — Residue tranche B1: scripts/ci, brandbook generators, fingerprint fixture (CRAFT-04, CRAFT-06; wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 135-13-PLAN.md — Residue tranche B2: workflows, maintainer scripts, docker, closure-script deletion (CRAFT-04, CRAFT-06; wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 135-10-PLAN.md — Residue tranche C: install_smoke policy tests and mojibake (CRAFT-04, CRAFT-06; wave 7)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 135-11-PLAN.md — Closure: zero-pending ratchet, evidence collector, docs command map, archive simulations (all; wave 8)
+
+**Cross-cutting constraints:**
+- Test names (test and describe strings) that carry requirement or decision ids are renamed to the behavior they assert; ids remain only where the shard records a policy reason that the id is the present-tense contract (D-135-07)
 
 ### Phase 136: Measured Quality and CI Ratchets
 
