@@ -173,7 +173,7 @@ defmodule Rindle.Delivery do
     streaming_config = Map.get(profile.delivery_policy(), :streaming)
 
     cond do
-      # Branch 1: no streaming configured → v1.4 progressive path verbatim.
+      # Branch 1: no streaming configured → the progressive path, unchanged.
       is_nil(streaming_config) ->
         do_progressive_streaming_url(profile, asset_or_key, opts)
 
@@ -226,7 +226,7 @@ defmodule Rindle.Delivery do
   # When the caller passed an asset struct/map, Branch 1 / Branch 6's progressive
   # path needs a storage key. Pull from the struct.
   #
-  # WR-03: guard the recursive call. If the caller passes a map that has no
+  # Guard the recursive call. If the caller passes a map that has no
   # :storage_key (or a non-binary one), `key_for/2` returns `nil` and the
   # binary clause above does NOT match (it requires `is_binary(key)`). Falling
   # through would raise FunctionClauseError from inside core dispatch; surface
@@ -272,7 +272,7 @@ defmodule Rindle.Delivery do
 
       %MediaProviderAsset{state: "ready", playback_ids: [playback_id | _]} = row ->
         # Branch 5 — but first cross-check the row's persisted playback_policy
-        # and ingest_mode against the live streaming_config (WR-04). When
+        # and ingest_mode against the live streaming_config. When
         # they disagree, refuse to mint and emit a config_drift warning so
         # operators can see the divergence without it surfacing as a silent
         # successful URL.
@@ -326,7 +326,7 @@ defmodule Rindle.Delivery do
         {:error, _} = err ->
           err
 
-        # WR-01: defensive catch-all. The Rindle.Streaming.Provider behaviour
+        # Defensive catch-all. The Rindle.Streaming.Provider behaviour
         # requires kind: :hls in the success shape; any other shape (including
         # bare :ok, kind: :progressive, or missing :kind / :url / :mime) is
         # treated as a misbehaving adapter and surfaced as a typed
@@ -352,7 +352,7 @@ defmodule Rindle.Delivery do
     |> Macro.underscore()
   end
 
-  # WR-04 — cross-check the persisted policy/mode on a :ready row against the
+  # Cross-check the persisted policy/mode on a :ready row against the
   # live streaming_config. nil row fields are treated as "not yet recorded"
   # and skipped (no drift). When BOTH the row and the config carry a
   # value AND they disagree, return drift metadata so the dispatch layer can

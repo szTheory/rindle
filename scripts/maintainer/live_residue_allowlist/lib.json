@@ -3,100 +3,12 @@
   "area": "lib",
   "entries": [
     {
-      "path": ".dialyzer_ignore.exs",
-      "class": "phase-ref",
-      "text": "# Phase 34 PLT regen with :mux + :jose. Not Phase 34 surface; tracked",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".dialyzer_ignore.exs",
-      "class": "planning-path",
-      "text": "# in .planning/phases/34-mux-rest-adapter-server-push-sync/deferred-items.md.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".doctor.exs",
-      "class": "decision-id",
-      "text": "# D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".doctor.exs",
-      "class": "decision-id",
-      "text": "# per the D-22 baseline-then-ratchet pattern. The ratchet harness at",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".doctor.exs",
-      "class": "decision-id",
-      "text": "# test/rindle/doctor_thresholds_test.exs (D-23) asserts these exact values and",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".doctor.exs",
-      "class": "plan-ref",
-      "text": "# D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "config/test.exs",
-      "class": "phase-ref",
-      "text": "# Existing test fixtures use the legacy public schema until Phase 118 provisions",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "config/test.exs",
-      "class": "phase-ref",
-      "text": "# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md). Phase 06 uses it to",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "config/test.exs",
-      "class": "plan-ref",
-      "text": "# Adopter Repo for CI-08 lane (Plan 05-04).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "config/test.exs",
-      "class": "spec-ref",
-      "text": "# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md). Phase 06 uses it to",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "lib/rindle.ex",
       "class": "milestone-ref",
       "text": "The recommended `v1.10` owner/account erasure facade is",
       "count": 1,
       "reason_class": "contract",
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
-    },
-    {
-      "path": "lib/rindle.ex",
-      "class": "narration",
-      "text": "# For now, we return the error",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "lib/rindle/admin/queries.ex",
@@ -121,54 +33,6 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
-    },
-    {
-      "path": "lib/rindle/av/subprocess.ex",
-      "class": "requirement-id",
-      "text": "# NOTE (EPIPE-07, MuonTrap #98): https://github.com/fhunleth/muontrap/issues/98 (OPEN as of",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/delivery.ex",
-      "class": "milestone-ref",
-      "text": "# Branch 1: no streaming configured → v1.4 progressive path verbatim.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/delivery.ex",
-      "class": "spec-ref",
-      "text": "# WR-01: defensive catch-all. The Rindle.Streaming.Provider behaviour",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/delivery.ex",
-      "class": "spec-ref",
-      "text": "# WR-03: guard the recursive call. If the caller passes a map that has no",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/delivery.ex",
-      "class": "spec-ref",
-      "text": "# WR-04 — cross-check the persisted policy/mode on a :ready row against the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/delivery.ex",
-      "class": "spec-ref",
-      "text": "# and ingest_mode against the live streaming_config (WR-04). When",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "lib/rindle/error.ex",
@@ -243,124 +107,12 @@
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
     },
     {
-      "path": "lib/rindle/processor/image.ex",
-      "class": "narration",
-      "text": "# For now, let's use thumbnail which is close",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "milestone-ref",
-      "text": "# AND explicit-:image, so v1.0 image profiles digest identically to v1.4",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "milestone-ref",
-      "text": "# explicit-:image profiles AND to v1.0 (no :kind) profiles. The :kind",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "lib/rindle/profile/validator.ex",
       "class": "milestone-ref",
       "text": "doc: \"Ingest path. `:direct_creator_upload` uses browser→Mux direct upload (v1.8+).\"",
       "count": 1,
       "reason_class": "contract",
       "reason": "NimbleOptions option doc text is rendered in public profile docs; wording stays unchanged."
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: NimbleOptions does not officially document `nil` as a stand-alone",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: no `default: nil` (see @profile_schema note above). Downstream",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: no `default: nil` because NimbleOptions 1.1+ validates defaults",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: optional pos_integer keys — no schema default, absent → nil.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: pre-filter `nil` values out of a keyword list before NimbleOptions",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: signed_url_ttl_seconds and authorizer are optional pos_integer",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/profile/validator.ex",
-      "class": "spec-ref",
-      "text": "# WR-02: width/height are optional pos_integer keys with no schema",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/storage/gcs/signer.ex",
-      "class": "milestone-ref",
-      "text": "# IAM SignBlob mode (OAuthConfig) is deferred to v1.7+ behind a config flag.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/storage/local.ex",
-      "class": "phase-ref",
-      "text": "# chunks via the Phase-42 tus_append helper. Local has no part-number",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/storage/local.ex",
-      "class": "phase-ref",
-      "text": "# key (wraps the Phase-42 tus_complete helper). The companion completion",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/storage/s3.ex",
-      "class": "spec-ref",
-      "text": "# Cross-node resume guard (CR-04, threat T-43-06-01). The sub-5-MiB tail",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "lib/rindle/storage/s3.ex",
@@ -395,68 +147,12 @@
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
     },
     {
-      "path": "lib/rindle/streaming/provider/mux.ex",
-      "class": "milestone-ref",
-      "text": "# DROP table — events Rindle v1.6 does not act on (Mux 2026 catalog).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/streaming/provider/mux.ex",
-      "class": "narration",
-      "text": "# filter on a tag that the producer actually writes (the previously-used",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/streaming/provider/mux.ex",
-      "class": "spec-ref",
-      "text": "# `:passthrough` (CR-01) — when supplied, stamped onto the create-asset",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "lib/rindle/upload/tus_plug.ex",
       "class": "milestone-ref",
       "text": "edge over the v1.7 resumable-session substrate.",
       "count": 1,
       "reason_class": "contract",
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
-    },
-    {
-      "path": "lib/rindle/upload/tus_plug.ex",
-      "class": "spec-ref",
-      "text": "# (2) THEN persist the abort transition and honour the result (WR-02): a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/upload/tus_plug.ex",
-      "class": "spec-ref",
-      "text": "# Termination order is load-bearing (CR-01): the backing store is aborted",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/upload/tus_plug.ex",
-      "class": "spec-ref",
-      "text": "# abort failure (CR-01) the abort is NOT silently swallowed: the row carries",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "lib/rindle/workers/cleanup_orphans.ex",
-      "class": "spec-ref",
-      "text": "# WR-06: surface adapter-load errors via the documented `…failed` event",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "mix.exs",

@@ -64,8 +64,8 @@ defmodule Rindle.Processor.Image do
   end
 
   defp apply_resize(image, width, height, :fill) do
-    # Fill often implies resize then crop to fill exactly
-    # For now, let's use thumbnail which is close
+    # Fill covers the box and crops the overflow; a center-cropped thumbnail
+    # does both in one libvips pass.
     Image.thumbnail(image, "#{width}x#{height}", crop: :center)
   end
 

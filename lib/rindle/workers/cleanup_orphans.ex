@@ -76,7 +76,7 @@ defmodule Rindle.Workers.CleanupOrphans do
         storage_mod
       )
     else
-      # WR-06: surface adapter-load errors via the documented `…failed` event
+      # Surface adapter-load errors via the documented `…failed` event
       # so operators who alert on it see the failure (the helper already emits
       # the more specific `…storage_load_failed` / `…storage_not_found` events).
       {:error, reason} ->

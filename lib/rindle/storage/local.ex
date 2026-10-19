@@ -89,7 +89,7 @@ defmodule Rindle.Storage.Local do
     session_id = Keyword.fetch!(opts, :session_id)
 
     # Stream the per-PATCH temp file onto the per-session .part file in bounded
-    # chunks via the Phase-42 tus_append helper. Local has no part-number
+    # chunks via the shared tus_append helper. Local has no part-number
     # semantics (it is a single growing file), so `part_number`/`:upload_id`/
     # `:parts` are meaningless here — the return is `%{offset: n}` with NO
     # `:upload_id`/`:parts` keys (Pitfall 5; the optional-map @type accommodates
@@ -115,7 +115,7 @@ defmodule Rindle.Storage.Local do
     session_id = Keyword.fetch!(opts, :session_id)
 
     # Atomic same-filesystem rename of the per-session .part file onto the final
-    # key (wraps the Phase-42 tus_complete helper). The companion completion
+    # key (wraps the shared tus_complete helper). The companion completion
     # callback to `upload_part_stream/5`: the edge calls it once, polymorphically,
     # with no `if adapter == Local` branch. `temp_path` is unused for Local —
     # the final PATCH bytes were already appended during the matching

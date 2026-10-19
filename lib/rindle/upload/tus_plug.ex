@@ -366,7 +366,7 @@ defmodule Rindle.Upload.TusPlug do
 
   # ── DELETE (Termination) ─────────────────────────────────────────────────────
 
-  # Termination order is load-bearing (CR-01): the backing store is aborted
+  # Termination order is load-bearing: the backing store is aborted
   # BEFORE the state transition, so an explicitly-cancelled S3-backed upload never
   # leaks its multipart upload — even if the subsequent DB update fails. The abort
   # runs ONLY after token verification + session load succeed (auth order is
@@ -379,14 +379,14 @@ defmodule Rindle.Upload.TusPlug do
       # Local tmp removal) via the shared PUBLIC helper, using the adapter + root
       # the Plug already holds in `opts` — no DB profile re-resolution on the hot
       # DELETE path and no adapter-specific branch. On a transient
-      # abort failure (CR-01) the abort is NOT silently swallowed: the row carries
+      # abort failure the abort is NOT silently swallowed: the row carries
       # a retryable `tus_abort_failed:<reason>` marker (folded into the aborted
       # changeset below) so the reaper re-aborts the orphaned multipart on the
       # next cron via `fetch_retryable_tus_abort_sessions/0`. A clean abort leaves
       # `failure_reason: nil` so the reaper never re-selects a cleanly cancelled row.
       abort_attrs = TusTermination.abort_attrs(session, opts)
 
-      # (2) THEN persist the abort transition and honour the result (WR-02): a
+      # (2) THEN persist the abort transition and honour the result: a
       # failed update returns 5xx so the client is never falsely told 204 while the
       # row remains re-PATCHable / mis-reaped. The DELETE still returns 204 on a
       # successful update even when the backing abort failed (client-facing cancel
