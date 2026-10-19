@@ -1419,6 +1419,94 @@
       "reason": "This script reads a maintained planning document as part of its present-tense contract."
     },
     {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\".planning/ui-reviews/.gitignore\",",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger classifies tracked planning history and its ignore rule file."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\":(exclude).planning/ui-reviews/.gitignore\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger classifies tracked planning history and its ignore rule file."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\":(glob).planning/**\",",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger classifies tracked planning history and its ignore rule file."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\":(glob).planning/phases/133-evidence-charter-and-live-truth/**\"",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "The artifact ledger records the retained evidence receipt directory, which must never be archived."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\":(glob,exclude).planning/phases/133-evidence-charter-and-live-truth/**\",",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "The artifact ledger records the retained evidence receipt directory, which must never be archived."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"file\": \".planning/ui-reviews/.gitignore\",",
+      "count": 7,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"root\": \".planning/phases/133-evidence-charter-and-live-truth\"",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "The artifact ledger records the retained evidence receipt directory, which must never be archived."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/.gsd-archive-latest\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/GSD1-RECOVERY.md\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/research/.cache/\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
+      "path": "scripts/maintainer/artifact_ledger.json",
+      "class": "planning-path",
+      "text": "\"rule\": \".planning/tmp_*.json\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The artifact ledger records every effective ignore rule, including the planning tooling ones."
+    },
+    {
       "path": "scripts/maintainer/async_isolation_evidence.sh",
       "class": "planning-path",
       "text": "echo \"usage: $0 --validate | --report .planning/evidence/async-isolation/<new-report>.jsonl\" >&2",

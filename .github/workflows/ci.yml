@@ -1485,6 +1485,10 @@ jobs:
         run: bash scripts/ci/test_craft_contract_tools.sh
       - name: Readability trace shape (offline)
         run: bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json
+      - name: Artifact ledger validator harness
+        run: bash scripts/ci/test_validate_artifact_ledger.sh
+      - name: Artifact ledger partition (offline)
+        run: bash scripts/maintainer/validate_artifact_ledger.sh --offline --ledger scripts/maintainer/artifact_ledger.json
 
   ci-summary:
     name: CI Summary

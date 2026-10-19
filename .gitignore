@@ -14,6 +14,7 @@ erl_crash.dump
 # Environment
 .env
 .env.*
+!.env.example
 
 # OS
 .DS_Store
@@ -47,6 +48,9 @@ Thumbs.db
 
 # Claude Code runtime (worktrees, scheduled-task locks, etc.)
 .claude/
+
+# Machine-local MCP server configuration (absolute local paths)
+/.mcp.json
 
 # Codex: commit project skills only (see .cursor/rules/GSD.md)
 .codex/*

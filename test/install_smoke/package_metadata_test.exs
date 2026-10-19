@@ -1,5 +1,9 @@
+Code.require_file("support/package_build_helper.ex", __DIR__)
+
 defmodule Rindle.InstallSmoke.PackageMetadataTest do
   use ExUnit.Case, async: true
+
+  alias Rindle.InstallSmoke.PackageBuild
 
   # async-safety: justified — the only File mutation is `File.rm_rf(cleanup_root)` in on_exit,
   # where `cleanup_root` is a unique per-build tmp root returned by `build_package!()`. The
@@ -37,7 +41,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   @prohibited_paths ["_build", ".planning", "test", ".github", "coveralls.json"]
 
   setup_all do
-    {package_root, cleanup_root} = build_package!()
+    {package_root, cleanup_root} = PackageBuild.build_package!()
     metadata_path = Path.join(package_root, "hex_metadata.config")
 
     if cleanup_root do
@@ -305,37 +309,6 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
           docs_assertion_script
         ] do
       assert script =~ "RINDLE_PROJECT_ROOT"
-    end
-  end
-
-  defp build_package! do
-    case System.get_env("RINDLE_INSTALL_SMOKE_PACKAGE_ROOT") do
-      package_root when is_binary(package_root) and package_root != "" ->
-        assert File.exists?(package_root)
-        {package_root, nil}
-
-      _ ->
-        output_root =
-          Path.join(
-            System.tmp_dir!(),
-            "rindle-package-metadata-#{System.unique_integer([:positive])}"
-          )
-
-        package_root = Path.join(output_root, "rindle-#{Mix.Project.config()[:version]}")
-
-        File.mkdir_p!(output_root)
-
-        {output, 0} =
-          System.cmd("mix", ["hex.build", "--unpack", "--output", package_root],
-            cd: @repo_root,
-            env: [{"MIX_ENV", "dev"}],
-            stderr_to_stdout: true
-          )
-
-        assert output =~ "Building rindle"
-        assert output =~ "Saved to"
-
-        {package_root, output_root}
     end
   end
 
