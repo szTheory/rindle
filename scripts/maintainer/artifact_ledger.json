@@ -1,0 +1,744 @@
+{
+  "classes": [
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "package-lib",
+      "package": "shipped",
+      "pathspecs": [
+        ":(glob)lib/**"
+      ],
+      "reason": "Library source compiled into every adopter application."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "lib/mix/tasks/rindle.install.ex"
+      ],
+      "disposition": "retain",
+      "id": "package-migrations",
+      "package": "shipped",
+      "pathspecs": [
+        ":(glob)priv/repo/migrations/**"
+      ],
+      "reason": "Schema migrations the install task copies into adopter repositories."
+    },
+    {
+      "authority": "generated",
+      "consumer": [
+        "lib/rindle/admin/router.ex"
+      ],
+      "disposition": "retain",
+      "id": "package-admin-css",
+      "package": "shipped",
+      "pathspecs": [
+        "priv/static/rindle_admin/rindle-admin.css"
+      ],
+      "reason": "Shipped admin console stylesheet, a byte copy of the brandbook admin CSS.",
+      "regenerate": {
+        "commands": [
+          "node brandbook/src/sync-admin-css.mjs"
+        ],
+        "drift_check": "hygiene",
+        "drift_paths": [
+          "priv/static/rindle_admin/rindle-admin.css"
+        ]
+      }
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "lib/rindle/admin/router.ex"
+      ],
+      "disposition": "retain",
+      "id": "package-admin-static",
+      "package": "shipped",
+      "pathspecs": [
+        "priv/static/rindle_admin/rindle-admin.js",
+        "priv/static/rindle_admin/logo.svg",
+        "priv/static/rindle_admin/favicon.svg"
+      ],
+      "reason": "Admin console script and brand marks served by the admin router."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "retain",
+      "id": "package-manifest",
+      "package": "shipped",
+      "pathspecs": [
+        "mix.exs"
+      ],
+      "reason": "Mix project manifest; its package files list defines the shipped set."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "package-docs",
+      "package": "shipped",
+      "pathspecs": [
+        "README.md",
+        "RUNNING.md",
+        "LICENSE"
+      ],
+      "reason": "Root documentation and license shipped with the package and rendered on HexDocs."
+    },
+    {
+      "authority": "history",
+      "consumer": [
+        "release-please-config.json"
+      ],
+      "disposition": "retain",
+      "id": "package-changelog",
+      "package": "shipped",
+      "pathspecs": [
+        "CHANGELOG.md"
+      ],
+      "reason": "Release history appended by release-please and shipped with the package."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "package-guides",
+      "package": "shipped",
+      "pathspecs": [
+        ":(glob)guides/**"
+      ],
+      "reason": "Guides shipped with the package and listed as HexDocs extras."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "README.md"
+      ],
+      "disposition": "retain",
+      "id": "community-docs",
+      "package": "excluded",
+      "pathspecs": [
+        "AGENTS.md",
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md"
+      ],
+      "reason": "Repository contributor, agent and security policy documents."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "mix.exs",
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "retain",
+      "id": "tool-config",
+      "package": "excluded",
+      "pathspecs": [
+        ".credo.exs",
+        ".dialyzer_ignore.exs",
+        ".doctor.exs",
+        ".formatter.exs",
+        ".tool-versions",
+        ".dockerignore",
+        "coveralls.json"
+      ],
+      "reason": "Lint, format, docs-coverage, toolchain, docker-context and coverage configuration."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/release.yml"
+      ],
+      "disposition": "retain",
+      "id": "release-config",
+      "package": "excluded",
+      "pathspecs": [
+        ".release-please-manifest.json",
+        "release-please-config.json"
+      ],
+      "reason": "release-please configuration and version manifest."
+    },
+    {
+      "authority": "tool-lockfile",
+      "consumer": [
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "root-lockfile",
+      "package": "excluded",
+      "pathspecs": [
+        "mix.lock"
+      ],
+      "reason": "Mix dependency lockfile, checked in for reproducible CI."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "scripts/maintainer/validate_artifact_ledger.sh"
+      ],
+      "disposition": "retain",
+      "id": "vcs-ignore-files",
+      "package": "excluded",
+      "pathspecs": [
+        ".gitignore",
+        ".cursor/.gitignore",
+        ".planning/ui-reviews/.gitignore",
+        "brandbook/admin-gallery/.gitignore",
+        "examples/adoption_demo/.gitignore"
+      ],
+      "reason": "Ignore rule files; every effective line is recorded in ignore_rules. Listed explicitly because an unanchored ** exclude pathspec does not combine reliably with other pathspecs."
+    },
+    {
+      "authority": "agent-tooling",
+      "consumer": [],
+      "disposition": "delete",
+      "id": "machine-local-junk",
+      "package": "excluded",
+      "pathspecs": [
+        ".mcp.json"
+      ],
+      "reason": "Machine-specific MCP server configuration with absolute local paths and no consumer in the repository."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "app-config",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)config/*.exs"
+      ],
+      "reason": "Mix configuration for dev, test and CI runs of the library."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "scripts/ci/check_required_checks.sh"
+      ],
+      "disposition": "retain",
+      "id": "ci-required-checks",
+      "package": "excluded",
+      "pathspecs": [
+        "config/ci_required_checks.json"
+      ],
+      "reason": "Required status check contract read by the branch protection scripts."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "config/ci_required_checks.json"
+      ],
+      "disposition": "retain",
+      "id": "github-workflows",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob).github/workflows/**"
+      ],
+      "reason": "GitHub Actions workflows."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "retain",
+      "id": "github-actions",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob).github/actions/**"
+      ],
+      "reason": "Composite actions used by the workflows."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/release-train-drift.yml"
+      ],
+      "disposition": "retain",
+      "id": "github-meta",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob).github/ISSUE_TEMPLATE/**",
+        ".github/PULL_REQUEST_TEMPLATE.md",
+        ".github/dependabot.yml"
+      ],
+      "reason": "Issue and pull request templates and the Dependabot configuration."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "retain",
+      "id": "scripts-ci",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)scripts/ci/**",
+        ":(glob,exclude)scripts/ci/fixtures/**"
+      ],
+      "reason": "CI gate scripts and their fixture harnesses."
+    },
+    {
+      "authority": "fixture",
+      "consumer": [
+        "scripts/ci/test_nightly_dialyzer.sh"
+      ],
+      "disposition": "retain",
+      "id": "scripts-ci-fixtures",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)scripts/ci/fixtures/**"
+      ],
+      "reason": "Fixture inputs for the CI script harnesses; new fixtures land here without a ledger edit."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "RUNNING.md"
+      ],
+      "disposition": "retain",
+      "id": "scripts-maintainer",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)scripts/maintainer/*.sh",
+        ":(glob)scripts/maintainer/*.exs",
+        ":(exclude)scripts/maintainer/check_phase_133_landing_closure.sh"
+      ],
+      "reason": "Maintainer validators, collectors and release helpers."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "scripts/maintainer/validate_artifact_ledger.sh",
+        "scripts/maintainer/scan_live_residue.exs",
+        "scripts/maintainer/validate_readability_trace.sh",
+        "scripts/maintainer/credo_quality.sh"
+      ],
+      "disposition": "retain",
+      "id": "scripts-maintainer-ledgers",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)scripts/maintainer/*.json",
+        ":(glob)scripts/maintainer/live_residue_allowlist/**"
+      ],
+      "reason": "Ratchet baselines, allowlists, traces and this ledger, each read by its validator."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [],
+      "disposition": "delete",
+      "id": "scripts-maintainer-retired",
+      "package": "excluded",
+      "pathspecs": [
+        "scripts/maintainer/check_phase_133_landing_closure.sh"
+      ],
+      "reason": "Closure checker for a finished landing; no live consumer remains and the closure plan removes it."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "retain",
+      "id": "scripts-root",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)scripts/*",
+        ":(glob)scripts/demo/**"
+      ],
+      "reason": "Release, smoke, demo and environment helper scripts."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "tests",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)test/**",
+        ":(glob,exclude)test/fixtures/**",
+        ":(glob,exclude)test/support/fixtures/**"
+      ],
+      "reason": "ExUnit suites and test support modules."
+    },
+    {
+      "authority": "fixture",
+      "consumer": [
+        "test/test_helper.exs"
+      ],
+      "disposition": "retain",
+      "id": "test-fixtures",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)test/fixtures/**",
+        ":(glob)test/support/fixtures/**"
+      ],
+      "reason": "Recorded payloads, keys, media samples and snapshots read by tests."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "guides/admin_design_system.md"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-book",
+      "package": "excluded",
+      "pathspecs": [
+        "brandbook/index.html",
+        "brandbook/brand.css",
+        "brandbook/README.md"
+      ],
+      "reason": "Brand book page and its stylesheet."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/ci.yml",
+        "mix.exs"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-sources",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)brandbook/src/*.mjs",
+        "brandbook/src/package.json"
+      ],
+      "reason": "Brand pipeline: token, admin CSS, gallery, contrast and logo generators."
+    },
+    {
+      "authority": "tool-lockfile",
+      "consumer": [
+        "brandbook/src/package.json"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-lockfile",
+      "package": "excluded",
+      "pathspecs": [
+        "brandbook/src/package-lock.json"
+      ],
+      "reason": "npm lockfile for the logo generators."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "brandbook/src/tokens-build.mjs"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-token-source",
+      "package": "excluded",
+      "pathspecs": [
+        "brandbook/tokens/tokens.json"
+      ],
+      "reason": "Design token source of truth."
+    },
+    {
+      "authority": "generated",
+      "consumer": [
+        "brandbook/index.html"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-tokens-css",
+      "package": "excluded",
+      "pathspecs": [
+        "brandbook/tokens/tokens.css"
+      ],
+      "reason": "Custom properties generated from tokens.json.",
+      "regenerate": {
+        "commands": [
+          "node brandbook/src/tokens-build.mjs"
+        ],
+        "drift_check": "hygiene",
+        "drift_paths": [
+          "brandbook/tokens/tokens.css"
+        ]
+      }
+    },
+    {
+      "authority": "generated",
+      "consumer": [
+        "brandbook/src/sync-admin-css.mjs"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-admin-css",
+      "package": "excluded",
+      "pathspecs": [
+        "brandbook/tokens/rindle-admin.css"
+      ],
+      "reason": "Admin console stylesheet generated from the tokens and the admin CSS builder.",
+      "regenerate": {
+        "commands": [
+          "node brandbook/src/admin-css-build.mjs"
+        ],
+        "drift_check": "hygiene",
+        "drift_paths": [
+          "brandbook/tokens/rindle-admin.css"
+        ]
+      }
+    },
+    {
+      "authority": "generated",
+      "consumer": [
+        "brandbook/src/admin-gallery-check.mjs"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-admin-gallery",
+      "package": "excluded",
+      "pathspecs": [
+        "brandbook/admin-gallery/index.html"
+      ],
+      "reason": "Admin design system gallery page.",
+      "regenerate": {
+        "commands": [
+          "node brandbook/src/admin-gallery.mjs"
+        ],
+        "drift_check": "none",
+        "drift_paths": [
+          "brandbook/admin-gallery/index.html"
+        ],
+        "reason": "Not in the merge-blocking regeneration set; the gallery browser proof covers its behavior."
+      }
+    },
+    {
+      "authority": "generated",
+      "consumer": [
+        "brandbook/index.html"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-logo",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)brandbook/assets/logo/*"
+      ],
+      "reason": "Final logo system: lockups, marks, favicons and avatar.",
+      "regenerate": {
+        "commands": [
+          "node brandbook/src/logo.mjs",
+          "node brandbook/src/render-derived.mjs"
+        ],
+        "drift_check": "none",
+        "drift_paths": [
+          "brandbook/assets/logo/rindle-logo.svg",
+          "brandbook/assets/logo/rindle-mark.svg"
+        ],
+        "reason": "Generators need npm ci for opentype.js, Playwright and ImageMagick."
+      }
+    },
+    {
+      "authority": "generated",
+      "consumer": [
+        "brandbook/README.md"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-logo-candidates",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)brandbook/assets/logo/candidates/**"
+      ],
+      "reason": "Logo exploration provenance kept as history.",
+      "regenerate": {
+        "commands": [
+          "node brandbook/src/build.mjs",
+          "node brandbook/src/confluence-variants.mjs",
+          "node brandbook/src/sheet.mjs"
+        ],
+        "drift_check": "none",
+        "drift_paths": [
+          "brandbook/assets/logo/candidates/sheet-light.svg"
+        ],
+        "reason": "Generators need npm ci for opentype.js; the set is frozen provenance."
+      }
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "README.md"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-social",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)brandbook/assets/social/**"
+      ],
+      "reason": "Social card source page and its rendered preview image."
+    },
+    {
+      "authority": "third-party",
+      "consumer": [
+        "brandbook/brand.css",
+        "brandbook/src/build.mjs"
+      ],
+      "disposition": "retain",
+      "id": "brandbook-fonts",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)brandbook/fonts/**",
+        ":(glob)brandbook/src/fonts/**"
+      ],
+      "reason": "SIL OFL webfonts and outline sources with their license texts."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "retain",
+      "id": "example-app",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)examples/adoption_demo/**",
+        ":(glob,exclude)examples/adoption_demo/priv/static/assets/vendor/**",
+        ":(glob,exclude)examples/adoption_demo/priv/static/assets/fonts/**",
+        ":(glob,exclude)examples/adoption_demo/priv/fixtures/**",
+        ":(exclude)examples/adoption_demo/mix.lock",
+        ":(exclude)examples/adoption_demo/package-lock.json",
+        ":(exclude)examples/adoption_demo/.gitignore"
+      ],
+      "reason": "Adoption demo Phoenix application, its tests and Playwright specs."
+    },
+    {
+      "authority": "third-party",
+      "consumer": [
+        "examples/adoption_demo/lib/adoption_demo_web/components/layouts/root.html.heex"
+      ],
+      "disposition": "retain",
+      "id": "example-vendor",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)examples/adoption_demo/priv/static/assets/vendor/**"
+      ],
+      "reason": "Minified Phoenix, LiveView and tus client bundles served by the demo."
+    },
+    {
+      "authority": "third-party",
+      "consumer": [
+        "examples/adoption_demo/priv/static/assets/cohort.css"
+      ],
+      "disposition": "retain",
+      "id": "example-fonts",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)examples/adoption_demo/priv/static/assets/fonts/**"
+      ],
+      "reason": "SIL OFL webfonts served by the demo with their license texts."
+    },
+    {
+      "authority": "fixture",
+      "consumer": [
+        "examples/adoption_demo/playwright.config.js"
+      ],
+      "disposition": "retain",
+      "id": "example-fixtures",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)examples/adoption_demo/priv/fixtures/**"
+      ],
+      "reason": "Image and video samples uploaded by the demo end-to-end specs."
+    },
+    {
+      "authority": "tool-lockfile",
+      "consumer": [
+        "examples/adoption_demo/mix.exs",
+        "examples/adoption_demo/package.json"
+      ],
+      "disposition": "retain",
+      "id": "example-lockfiles",
+      "package": "excluded",
+      "pathspecs": [
+        "examples/adoption_demo/mix.lock",
+        "examples/adoption_demo/package-lock.json"
+      ],
+      "reason": "Demo Mix and npm lockfiles."
+    },
+    {
+      "authority": "hand-authored",
+      "consumer": [
+        "scripts/ci/cohort_demo_smoke.sh",
+        "guides/docker_demo_dx.md"
+      ],
+      "disposition": "retain",
+      "id": "docker",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)docker/**"
+      ],
+      "reason": "Cohort demo images, compose files and the adopter docker template."
+    },
+    {
+      "authority": "history",
+      "consumer": [
+        "brandbook/README.md"
+      ],
+      "disposition": "retain",
+      "id": "prompts",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob)prompts/**"
+      ],
+      "reason": "Original bootstrap and research prompts kept as history."
+    },
+    {
+      "authority": "agent-tooling",
+      "consumer": [
+        "AGENTS.md"
+      ],
+      "disposition": "retain",
+      "id": "agent-tooling",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob).codex/skills/**",
+        ":(glob).cursor/**",
+        ":(exclude).cursor/.gitignore"
+      ],
+      "reason": "Project skills and editor rules for coding agents."
+    },
+    {
+      "authority": "history",
+      "consumer": [
+        "scripts/gsd_cleanup.sh"
+      ],
+      "disposition": "retain",
+      "id": "planning-history",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob).planning/**",
+        ":(glob,exclude).planning/phases/133-evidence-charter-and-live-truth/**",
+        ":(exclude).planning/ui-reviews/.gitignore"
+      ],
+      "reason": "Planning history; phase directories are archived at milestone close."
+    },
+    {
+      "authority": "immutable-receipt",
+      "consumer": [
+        "scripts/ci/verify_nightly_run.sh"
+      ],
+      "disposition": "retain",
+      "id": "planning-evidence-receipt",
+      "package": "excluded",
+      "pathspecs": [
+        ":(glob).planning/phases/133-evidence-charter-and-live-truth/**"
+      ],
+      "reason": "Evidence census receipt whose path is baked into the Nightly verifier; never archived.",
+      "retained_receipt": {
+        "identity": "verify_nightly_run.sh census identity",
+        "root": ".planning/phases/133-evidence-charter-and-live-truth"
+      }
+    }
+  ],
+  "ignore_rules": [],
+  "schema": "rindle-artifact-ledger-v1",
+  "tracked_junk_patterns": [],
+  "verification_ignored_roots": []
+}
