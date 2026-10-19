@@ -50,6 +50,26 @@ case "${1-}" in
     fi
     exit 1
     ;;
+  ci)
+    # FAKE_MIX_CI: ok | fail | partial | untracked | build | ignored | sleep
+    credo='[credo-quality] blocking warnings, public contract, and complexity inventory passed'
+    sync='synced rindle-admin.css -> priv/static/rindle_admin/rindle-admin.css (42 bytes)'
+    summary='3 doctests, 120 tests, 0 failures, 2 excluded'
+    case "${FAKE_MIX_CI:-ok}" in
+      fail) echo "compile failed"; exit 2 ;;
+      partial) printf '%s\n%s\n' "${credo}" "${sync}"; exit 0 ;;
+      sleep)
+        : >"${FAKE_DIR}/mix-ci-started"
+        sleep 30
+        exit 0
+        ;;
+      untracked) echo stray >stray-output.txt ;;
+      build) mkdir -p _build/test && echo beam >_build/test/fixture.beam ;;
+      ignored) echo stray >stray-output.cache ;;
+    esac
+    printf 'Compiling\n%s\n%s\nFinished in 1.0 seconds\n%s\n' "${credo}" "${sync}" "${summary}"
+    exit 0
+    ;;
 esac
 exit 0
 FAKE_MIX
@@ -58,6 +78,11 @@ cat >"${BIN}/node" <<'FAKE_NODE'
 #!/usr/bin/env bash
 set -u
 printf '%s\n' "$*" >>"${FAKE_DIR}/node.log"
+# FAKE_NODE: noop | rewrite | untracked
+case "${FAKE_NODE:-noop}" in
+  rewrite) echo '/* drift */' >>priv/static/rindle_admin/rindle-admin.css ;;
+  untracked) echo '/* new */' >priv/static/rindle_admin/rindle-admin.extra.css ;;
+esac
 exit 0
 FAKE_NODE
 
@@ -245,7 +270,15 @@ new_case
 run_hygiene
 expect "clean clone on main equal to origin/main: safe" 0 \
   present "[PASS] fetch" present "[PASS] branch: main" present "[PASS] head vs origin" \
+  present "[PASS] artifact ledger" present "[PASS] tracked junk" \
+  present "[PASS] generated drift: 1 generator(s) rerun" present "[PASS] post-verification residue" \
   absent "[BLOCK]" present "Result: safe to start release prep"
+if grep -Fxq "brandbook/src/sync-admin-css.mjs" "${C}/fake/node.log" 2>/dev/null && [ ! -e "${C}/fake/mix-ci-started" ] &&
+  ! grep -q '^ci' "${C}/fake/mix.log" 2>/dev/null; then
+  ok "clean clone: the vetted generator ran as argv and mix ci did not run without --with-mix-ci"
+else
+  bad "clean clone generator/mix ci calls: node=$(tr '\n' ' ' <"${C}/fake/node.log" 2>/dev/null) mix=$(tr '\n' ' ' <"${C}/fake/mix.log" 2>/dev/null)"
+fi
 
 new_case
 run_hygiene --release-prep
@@ -305,6 +338,170 @@ expect "RINDLE_HYGIENE_BRANCH selects the expected branch" 0 \
 new_case
 run_hygiene --bogus
 expect "unknown argument: usage exit 64" 64 present "Unknown argument: --bogus"
+
+new_case
+run_hygiene --ci --with-mix-ci
+expect "--ci with --with-mix-ci: usage exit 64" 64 present "cannot be combined"
+
+# --- tracked junk ------------------------------------------------------------------------------
+# force_commit_push FILE CONTENT: commits FILE (even when ignored) on main and pushes it, so
+# HEAD still equals origin/main.
+force_commit_push() {
+  mkdir -p "$(dirname "${C}/work/$1")"
+  printf '%s\n' "$2" >"${C}/work/$1"
+  git_q -C "${C}/work" add -f -- "$1"
+  git_q -C "${C}/work" commit -q -m "add $1"
+  git_q -C "${C}/work" push -q origin main
+}
+
+new_case
+force_commit_push lib/.DS_Store junk
+run_hygiene
+expect "committed .DS_Store: BLOCK tracked junk" 1 present "[BLOCK] tracked junk: lib/.DS_Store"
+
+new_case
+force_commit_push lib/.DS_Store junk
+run_hygiene --ci
+expect "committed .DS_Store under --ci: BLOCK tracked junk" 1 present "[BLOCK] tracked junk: lib/.DS_Store"
+
+new_case
+force_commit_push lib/data.cache cached
+run_hygiene --ci
+expect "committed file an ignore rule matches: BLOCK tracked junk" 1 \
+  present "[BLOCK] tracked junk: lib/data.cache"
+
+new_case
+force_commit_push lib/debug.log "log line"
+run_hygiene --ci
+expect "committed file matching a ledger junk pattern only: BLOCK tracked junk" 1 \
+  present "[BLOCK] tracked junk: lib/debug.log"
+
+# --- generated drift ---------------------------------------------------------------------------
+new_case
+FAKE_NODE=rewrite run_hygiene
+expect "generator rewrites a drift path: BLOCK generated drift" 1 \
+  present "[BLOCK] generated drift: regenerated files differ from HEAD: priv/static/rindle_admin/rindle-admin.css"
+
+new_case
+FAKE_NODE=rewrite run_hygiene --release-prep
+expect "generator rewrites a drift path in release-prep: BLOCK generated drift" 1 \
+  present "[BLOCK] generated drift: regenerated files differ from HEAD"
+
+new_case
+FAKE_NODE=untracked run_hygiene
+expect "generator creates an untracked file beside a drift path: BLOCK generated drift" 1 \
+  present "[BLOCK] generated drift: generators created untracked files: priv/static/rindle_admin/rindle-admin.extra.css"
+
+new_case
+FAKE_NODE=rewrite run_hygiene --ci
+expect "--ci skips generated drift (brandbook-tokens proves it on PRs)" 0 \
+  absent "generated drift" absent "[BLOCK]"
+if [ ! -s "${C}/fake/node.log" ]; then ok "--ci runs no generator"; else bad "--ci ran node: $(tr '\n' ' ' <"${C}/fake/node.log")"; fi
+
+new_case
+git_q -C "${C}/work" checkout -q -b feature
+FAKE_NODE=rewrite run_hygiene
+expect "unverified branch: generators are not run" 1 \
+  present "[BLOCK] generated drift: not run" absent "regenerated files differ"
+if [ ! -s "${C}/fake/node.log" ]; then ok "unverified branch runs no generator"; else bad "unverified branch ran node"; fi
+
+new_case
+INJ="${C}/pwned"
+write_ledger "${C}/work/scripts/maintainer/artifact_ledger.json" "node brandbook/src/sync-admin-css.mjs; touch ${INJ}"
+git_q -C "${C}/work" commit -q -am "unvetted generator"
+git_q -C "${C}/work" push -q origin main
+run_hygiene
+expect "ledger lists an unvetted generator command: BLOCK generated drift" 1 \
+  present "[BLOCK] generated drift: class admin-css lists a command outside the vetted set; it was not run"
+if [ ! -e "${INJ}" ] && [ ! -s "${C}/fake/node.log" ]; then
+  ok "unvetted ledger command is data: not executed"
+else
+  bad "unvetted ledger command ran (pwned: $([ -e "${INJ}" ] && echo yes || echo no))"
+fi
+
+# --- mix ci ------------------------------------------------------------------------------------
+new_case
+FAKE_MIX_CI=fail run_hygiene --with-mix-ci
+expect "mix ci exits non-zero: BLOCK mix ci" 1 present "[BLOCK] mix ci: mix ci exited 2" \
+  absent "compile failed"
+
+new_case
+FAKE_MIX_CI=partial run_hygiene --with-mix-ci
+expect "mix ci exits 0 with two of three sentinels: BLOCK mix ci incomplete" 1 \
+  present "[BLOCK] mix ci incomplete: mix ci exited 0 without completion sentinel(s): exunit-summary"
+
+new_case
+FAKE_MIX_CI=ok run_hygiene --with-mix-ci
+expect "mix ci with every sentinel: PASS mix ci, log not printed" 0 \
+  present "[PASS] mix ci: full alias completed" absent "[BLOCK]" absent "Compiling" absent "doctests"
+
+new_case
+FAKE_MIX_CI=ok run_hygiene --release-prep --with-mix-ci
+expect "release-prep with mix ci: PASS mix ci" 0 present "[PASS] mix ci" absent "[BLOCK]"
+
+# --- post-verification residue -----------------------------------------------------------------
+new_case
+FAKE_MIX_CI=untracked run_hygiene --with-mix-ci
+expect "verification leaves an untracked file: BLOCK post-verification residue" 1 \
+  present "[BLOCK] post-verification residue: stray-output.txt"
+
+new_case
+FAKE_MIX_CI=build run_hygiene --with-mix-ci
+expect "verification writes under _build/: no residue BLOCK" 0 \
+  present "[PASS] post-verification residue" absent "[BLOCK]"
+
+new_case
+FAKE_MIX_CI=ignored run_hygiene --with-mix-ci
+expect "verification leaves an ignored file outside the roots: BLOCK post-verification residue" 1 \
+  present "[BLOCK] post-verification residue: stray-output.cache"
+
+# --- interruption ------------------------------------------------------------------------------
+new_case
+git -C "${C}/work" -c core.excludesFile=/dev/null status --porcelain=v1 -uall --ignored >"${C}/status-before"
+(
+  cd "${C}/work" &&
+    exec env RINDLE_HYGIENE_ROOT="${C}/work" FAKE_DIR="${C}/fake" TMPDIR="${C}/tmpdir" \
+      FAKE_MIX_CI=sleep PATH="${BIN}:${PATH}" bash "${SCRIPT}" --with-mix-ci
+) >"${C}/out" 2>&1 &
+PID=$!
+n=0
+while [ ! -e "${C}/fake/mix-ci-started" ] && [ "${n}" -lt 200 ]; do
+  sleep 0.1
+  n=$((n + 1))
+done
+START="$(date +%s)"
+kill -TERM "${PID}" 2>/dev/null
+RC=0
+wait "${PID}" || RC=$?
+ELAPSED=$(($(date +%s) - START))
+git -C "${C}/work" -c core.excludesFile=/dev/null status --porcelain=v1 -uall --ignored >"${C}/status-after"
+LEFT="$(ls -A "${C}/tmpdir")"
+if [ -e "${C}/fake/mix-ci-started" ] && [ "${RC}" = 143 ] && [ -z "${LEFT}" ] && [ "${ELAPSED}" -lt 10 ] &&
+  cmp -s "${C}/status-before" "${C}/status-after"; then
+  ok "SIGTERM during mix ci: exits 143 promptly, no log left in TMPDIR, checkout unchanged"
+else
+  bad "SIGTERM during mix ci: rc=${RC} elapsed=${ELAPSED}s left='${LEFT}' status-diff=$(diff "${C}/status-before" "${C}/status-after" | tr '\n' ' ')"
+fi
+
+# --- hex baseline publish race -----------------------------------------------------------------
+# mix.exs is 0.5.1 and Hex already lists it; RELEASE-TRAIN still records 0.5.0.
+build_seed "0.5.1" "0.5.0"
+
+new_case
+FAKE_HEX_VERSION=0.5.1 run_hygiene --ci
+expect "publish race under --ci: WARN hex baseline, exit 0" 0 \
+  present "[WARN] hex baseline: Hex.pm (0.5.1) matches mix.exs" present "release workflow baseline record" \
+  absent "[BLOCK]" present "Result: proceed with caution"
+
+new_case
+FAKE_HEX_VERSION=0.5.1 run_hygiene --release-prep
+expect "publish race under --release-prep: BLOCK hex baseline" 1 \
+  present "[BLOCK] hex baseline: Hex.pm (0.5.1) matches mix.exs"
+
+new_case
+FAKE_HEX_VERSION=0.5.0 run_hygiene --ci
+expect "before publish under --ci: PASS hex baseline" 0 \
+  present "[PASS] hex baseline: mix.exs (0.5.1) ahead of baseline (0.5.0) until publish completes"
 
 echo ""
 echo "${PASS} passed, ${FAIL} failed"
