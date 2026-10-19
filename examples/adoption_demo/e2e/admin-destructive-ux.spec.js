@@ -12,7 +12,7 @@ const {
 // destructive action; the layout of the receipt and warnings is clear") with deterministic
 // assertions. The fast ExUnit suite guards the *markup* contract (which classes are present);
 // this browser suite proves the classes actually *paint* destructively with the stylesheet
-// loaded, in both light and dark themes — the dimension a human was previously asked to eyeball.
+// loaded, in both light and dark themes.
 
 function rgbChannels(color) {
   const match = String(color).match(/rgba?\(([^)]+)\)/);

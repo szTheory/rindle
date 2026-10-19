@@ -68,8 +68,8 @@ const expectedScreenshots = [
   "mobile/light/actions.png",
   "mobile/dark/home-status.png",
   "mobile/dark/actions.png",
-  // Phase 98 net-new band/stacked states (D-98-06, Pitfall 9): the §A<->§C 760-1023 two
-  // -pane band and the <760 stacked-card flip are net-new VIEWPORT states that need their
+  // Band/stacked states: the 760-1023 two-pane band and the <760 stacked-card flip
+  // are VIEWPORT states that need their
   // own capture (the other backstops — reduced-motion / dialog-inert / focus-visible-vs
   // -pointer — are computed-style reads that RIDE existing captures, so they add no entry).
   "band/light/assets-760-1023.png",
@@ -167,18 +167,18 @@ test("captures admin-screenshots light and dark matrix", async ({ page }) => {
     (relativePath) => !fs.existsSync(path.join(screenshotsDir, relativePath))
   );
   expect(missing, `missing screenshots: ${missing.join(", ")}`).toEqual([]);
-  // Bumped 22 -> 24 in LOCKSTEP with the two net-new band/stacked viewport states above
-  // (D-98-06, Pitfall 9 — deliberately, exactly as 97-04 bumped 10 -> 18). The length and
-  // the expectedScreenshots array are changed together in the same commit.
+  // The count moves in LOCKSTEP with the expectedScreenshots array above (including the
+  // two band/stacked viewport states). Change the length and the array together in the
+  // same commit.
   expect(expectedScreenshots).toHaveLength(24);
 });
 
-// Phase 98 — the five computed-style backstops at real viewports / focus-states / media
-// (D-98-05/06, RESEARCH backstops 1-5). DialogInert + the per-state runner checks ride the
+// The five computed-style backstops at real viewports / focus-states / media.
+// DialogInert + the per-state runner checks ride the
 // matrix test above; this dedicated test drives the viewport/media/keyboard-vs-pointer
 // states that the per-capture runner cannot (it mutates viewport + emulateMedia + focus).
-// All checks are admin-root-only; no warn->fail flip, no Cohort generalization (Phase 102).
-test("phase-98 computed-style backstops (band, stacked, reduced-motion, dialog, focus-visible)", async ({
+// All checks are admin-root-only; the Cohort polish matrix lives in cohort-pages.spec.js.
+test("admin computed-style backstops (band, stacked, reduced-motion, dialog, focus-visible)", async ({
   page,
 }) => {
   await page.goto("/dashboard");
@@ -242,7 +242,7 @@ test("phase-98 computed-style backstops (band, stacked, reduced-motion, dialog, 
   fail("dialog-open", await assertDialogInert(page, { expectOpen: true }));
 
   // Reconnect with the dialog CLOSED: reload re-renders server state; main must NOT be left
-  // inert (the D-98-11 landmine). A fresh visit re-renders dialog_open=false from the server.
+  // inert (a stale inert main locks the whole page). A fresh visit re-renders dialog_open=false from the server.
   await visitAdmin(page, "actions");
   await expectAdminShell(page, "actions");
   fail("dialog-reset-on-reconnect", await assertDialogInert(page, { expectOpen: false }));

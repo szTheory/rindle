@@ -3,9 +3,9 @@ const { waitForLiveSocket } = require("./support/liveview");
 
 // Regression guard for the split-horizon presign endpoint (RINDLE_MINIO_PUBLIC_URL /
 // Rindle.Storage.S3 :public_endpoint). A community-post image is served by a browser-facing S3
-// presigned URL. The Docker demo previously signed it for `host.docker.internal:<port>`, which
-// the host browser cannot resolve, so the <img> silently failed to load even though the asset
-// was healthy and `ready`.
+// presigned URL. If the Docker demo signs it for `host.docker.internal:<port>`, the host
+// browser cannot resolve that host, so the <img> silently fails to load even though the asset
+// is healthy and `ready`.
 //
 // `.toBeVisible()` does NOT catch this — a broken <img> element is still "visible" in the DOM —
 // so this spec asserts the image actually DECODED (naturalWidth > 0) and that no <img src> on

@@ -89,7 +89,7 @@ Locked status examples:
 <span class="rindle-admin-status-chip rindle-admin-status-chip--danger">Danger</span>
 ```
 
-## UI-SPEC Values
+## Design Contract Values
 
 These values are constraints from the admin UI design contract:
 

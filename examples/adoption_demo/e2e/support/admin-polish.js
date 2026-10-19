@@ -1,7 +1,6 @@
 // Deterministic, in-browser "visual polish" gate for the Rindle admin console.
 //
-// This module replaces a former human screenshot-review checkpoint (Phase 92) with
-// computed-style assertions that run on the exact rendered state of every screenshot
+// This module proves screenshot-level polish with computed-style assertions that run on the exact rendered state of every screenshot
 // capture. It runs inside the already merge-blocking `adoption-demo-e2e` CI lane, so
 // adding it adds no CI jobs — only assertions to an existing spec.
 //
@@ -13,11 +12,11 @@
 // brandbook/src/admin-gallery-check.mjs, matching the repo convention of per-script
 // copies (see contrast.mjs / admin-contrast.mjs) rather than cross-package imports.
 
-// Default surface targeting for the admin console. Callers (e.g. a future Cohort
-// spec in Phase 102) may override `root` / `interactiveSelectors` via assertAdminPolish
+// Default surface targeting for the admin console. Callers (e.g. the Cohort
+// specs) may override `root` / `interactiveSelectors` via assertAdminPolish
 // options to run this SAME gate over another surface (e.g. `[data-ck-root]` / `.ck-*`).
 // The root is ALWAYS explicit (passed or defaulted) — there is no auto-detection
-// (D-94-07: a page mounting both surfaces would match both roots and weaken the gate).
+// (a page mounting both surfaces would match both roots and weaken the gate).
 const DEFAULT_ROOT = "[data-rindle-admin-root]";
 const MIN_TARGET_PX = 44; // mirrors brandbook/src/admin-design-system-data.mjs MIN_TARGET_PX
 const SUBPIXEL_TOLERANCE = 0.5; // rect-rounding slack for target sizes
@@ -31,8 +30,8 @@ const RASTER_HEIGHT_TOLERANCE = 3; // Chromium full-page screenshot rounding sla
 const OVERLAP_ENFORCED = true;
 
 // Union of interactive-control selectors (all confirmed present in the admin shell).
-// Phase 98 added the disclosure button, the sort-th control, and the stacked-row tap
-// target so assertFocusVisibleTokens / assertTargetSizes / assertFocusVisibleVsPointer
+// The disclosure button, the sort-th control, and the stacked-row tap target are
+// included so assertFocusVisibleTokens / assertTargetSizes / assertFocusVisibleVsPointer
 // cover the Level-3 controls too.
 const DEFAULT_INTERACTIVE_SELECTORS = [
   "[data-rindle-admin-submit]",
@@ -115,7 +114,7 @@ function outlineScopeHints(root) {
 // ring. This helper is the ONLY place in the repo that may call `.focus(...)` with the
 // `focusVisible` option — all former call sites (admin-polish.js x2, admin-gallery-check.mjs x1)
 // route through it,
-// so a future copy that forgets the Tab press cannot reintroduce the original flake (LOCK-03/04).
+// so a future copy that forgets the Tab press cannot reintroduce the focus-visible flake.
 //
 // The blur-first-if-active step is LOAD-BEARING (site 1 / assertFocusVisibleTokens relies on
 // re-focusing an already-focused element); making the helper always blur-first is idempotent
@@ -670,7 +669,7 @@ async function assertConsistentRhythm(page, root = DEFAULT_ROOT) {
 // it here). This iterates each `[data-rindle-admin-meta]` unit root and flags one
 // whose `scrollWidth` exceeds its `clientWidth` (a unit that overflows its own box).
 // A unit that legitimately owns an internal scroll region (the sticky data table)
-// opts out via the explicit `[data-rindle-admin-scroll-region]` marker — D-94-07:
+// opts out via the explicit `[data-rindle-admin-scroll-region]` marker:
 // explicit opt-in, never auto-detected. RETURNS offenders `"{slug} x(sw>cw)"`;
 // never throws.
 async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
@@ -691,7 +690,7 @@ async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
 }
 
 // ===========================================================================
-// Phase 98 — the five NON-INFERABLE computed-style backstops (D-98-05/06).
+// The five NON-INFERABLE computed-style backstops.
 // Each is offender-returning (never throws); admin-root-only against DEFAULT_ROOT /
 // DEFAULT_INTERACTIVE_SELECTORS. `assertAdminPolish` runs only the dialog-inert backstop by
 // default, and only for admin callers; Cohort callers must explicitly opt into admin
@@ -703,7 +702,7 @@ async function assertNoHorizontalScroll(page, root = DEFAULT_ROOT) {
 // ===========================================================================
 
 // ---------------------------------------------------------------------------
-// Backstop 1 — two-pane track count + 760-1023px band (§A<->§C, D-98-15, checker note 2)
+// Backstop 1 — two-pane track count + 760-1023px band
 // ---------------------------------------------------------------------------
 // At >=1024px the two-pane region's computed grid-template-columns resolves to TWO
 // tracks; below 1024 it is ONE. Inside the 760-1023 band (safe literal ~900px) the shell
@@ -860,7 +859,7 @@ async function assertReducedMotion(page, mode, root = DEFAULT_ROOT) {
 }
 
 // ---------------------------------------------------------------------------
-// Backstop 4 — dialog inert / aria-hidden reset-on-close + survives reconnect (§D, D-98-11)
+// Backstop 4 — dialog inert / aria-hidden reset-on-close + survives reconnect
 // ---------------------------------------------------------------------------
 // With a confirm dialog OPEN: main+nav carry inert AND aria-hidden; the dialog has
 // role dialog|alertdialog + aria-modal + aria-labelledby. This reads the CURRENTLY-open
@@ -1080,7 +1079,7 @@ async function assertAdminPolish(
   await run("stableDimensions", "stable-dimensions", () => assertStableDimensions(page));
 
   if (enabledAdminBackstops.dialogInert) {
-    // Phase 98 backstop 4 (dialog inert reset): rides EVERY admin capture as a read-only DOM
+    // Backstop 4 (dialog inert reset): rides EVERY admin capture as a read-only DOM
     // check. It is admin-only: Cohort has no rindle-admin landmarks/dialog contract.
     const dialogOpen = await page.evaluate(
       () => {
@@ -1125,7 +1124,7 @@ module.exports = {
   focusVisibly,
   assertNoInteractiveOverlap,
   assertStableDimensions,
-  // Phase 98 computed-style backstops (D-98-05/06).
+  // Computed-style backstops.
   assertTwoPaneBand,
   assertStackedCard,
   assertReducedMotion,

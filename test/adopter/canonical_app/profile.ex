@@ -3,8 +3,8 @@ defmodule Rindle.Adopter.CanonicalApp.Profile do
   Canonical adopter profile fixture.
 
   This module is the source of truth for the snippet shown in
-  `guides/getting_started.md` (DOC-01). If this file changes, that guide
-  must be updated to match (D-16; CI-08 adopter lane is the parity check).
+  `guides/getting_started.md`. If this file changes, that guide must be
+  updated to match (the adopter CI lane is the parity check).
 
   Storage: `Rindle.Storage.S3` pointed at MinIO in CI / local dev.
   """

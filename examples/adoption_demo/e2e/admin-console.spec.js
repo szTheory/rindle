@@ -40,8 +40,8 @@ test("admin console top-level surfaces render the shell and seeded rows", async 
 });
 
 test("seeded lifecycle edge states render gracefully across surfaces", async ({ page }) => {
-  // Phase 91 deliverable: quarantined/degraded assets and failed/expired upload
-  // sessions must display without 500s. Full-stack complement to the ExUnit
+  // Quarantined/degraded assets and failed/expired upload sessions must display
+  // without 500s. Full-stack complement to the ExUnit
   // admin_lifecycle_display_test — proves the seeded edge states reach the browser.
   await visitAdmin(page, "assets");
   await expectAdminShell(page, "assets");

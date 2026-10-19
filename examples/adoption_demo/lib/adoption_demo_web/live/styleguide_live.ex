@@ -1,19 +1,18 @@
 defmodule AdoptionDemoWeb.StyleguideLive do
   @moduledoc """
-  Developer-facing `/styleguide` gallery (COHORT-06). Renders every Cohort
+  Developer-facing `/styleguide` gallery. Renders every Cohort
   Level-1 `.ck-*` primitive and the four Level-2 compositions across light and
   dark, on a per-LiveView `.ck` shell carrying the `data-ck-root` /
-  `data-theme` polish seam (D-96-05 — on the `.ck` div, never on `<body>`).
+  `data-theme` polish seam (on the `.ck` div, never on `<body>`).
 
   Theme is SERVER state (`assign(:theme)` + `phx-click`), no client-side
-  storage, so the Plan 05 Playwright spec drives themes deterministically
-  (D-96-07/16). Sort
-  state is likewise SERVER-owned (D-96-15). Stable `data-ck-section` /
-  `data-ck-state` markers are emitted SEPARATE from the BEM styling classes
-  (D-96-16) — the spec asserts on those, never on `.ck-*` styling classes.
+  storage, so the `cohort-styleguide.spec.js` Playwright spec drives themes
+  deterministically. Sort state is likewise SERVER-owned. Stable
+  `data-ck-section` / `data-ck-state` markers are emitted SEPARATE from the BEM
+  styling classes — the spec asserts on those, never on `.ck-*` styling classes.
 
-  This is the VIS-04 audit reference and the route the Plan 05 spec + the Plan
-  04 component-existence loop drive; it composes only from the Plan 02
+  This is the Cohort visual audit reference and the route the styleguide spec and
+  its component-existence loop drive; it composes only from the shared Cohort
   primitives (`AdoptionDemoWeb.CohortComponents`).
   """
   use AdoptionDemoWeb, :live_view
@@ -24,7 +23,7 @@ defmodule AdoptionDemoWeb.StyleguideLive do
   # invalid/forged param is ignored, not reflected (T-96-06 mitigation).
   @sort_keys ~w(lesson status duration)
 
-  # Real Cohort fiction seeded into the gallery (D-96-22): a lesson-video row
+  # Real Cohort fiction seeded into the gallery: a lesson-video row
   # going `processing`, a quarantined upload, and (separately) an empty member
   # list with two distinct empty-state copy variants. Real domain rows, not
   # placeholder filler text.
@@ -385,7 +384,7 @@ defmodule AdoptionDemoWeb.StyleguideLive do
     """
   end
 
-  # Server-owned sort (D-96-15). Numeric column sorts on the backing seconds.
+  # Server-owned sort. Numeric column sorts on the backing seconds.
   defp sort_rows(rows, "duration", dir) do
     sorted = Enum.sort_by(rows, & &1.duration_s)
     if dir == "desc", do: Enum.reverse(sorted), else: sorted

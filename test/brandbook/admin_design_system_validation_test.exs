@@ -1,23 +1,24 @@
 defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   use ExUnit.Case, async: false
 
-  # Phase 98 §A/§B/§D/§E/§F gate clauses render pure admin function components
+  # The admin design-system gate clauses render pure admin function components
   # (shell/theme_picker/live_indicator/page) via render_component — these are stateless
-  # Phoenix.Components needing no DB/endpoint. Data-driven §E/§F structure (nav order,
+  # Phoenix.Components needing no DB/endpoint. Data-driven IA and microcopy structure (nav order,
   # triage DOM order, deep-link params, microcopy) is asserted by scanning the
   # *_live.ex / components.ex SOURCE, matching the existing @implementation_files idiom.
   #
   # render_component is a macro requiring a module-level import (a conditional import
   # inside an `if` block does NOT establish it). This is safe: `test/` only compiles in
   # the test-running CI jobs (quality/integration), all of which install the optional
-  # phoenix_live_view dep. The ADMIN-06 `--no-optional-deps` job only `mix compile`s lib/.
+  # phoenix_live_view dep. The Optional Dependencies `--no-optional-deps` job only
+  # `mix compile`s lib/.
   import Phoenix.LiveViewTest, only: [render_component: 2]
 
   @moduletag :integration
 
   @repo_root Path.expand("../..", __DIR__)
 
-  # The six task-first nav labels in canonical §E order (D-98-03). Slugs/suffixes are
+  # The six task-first nav labels in canonical order. Slugs/suffixes are
   # frozen behavior contracts; only the human label changed off the legacy slashed names.
   @nav_labels ["Overview", "Assets", "Upload sessions", "Processing", "Doctor", "Maintenance"]
   @admin_navigation_guides [
@@ -119,7 +120,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
           ".rindle-admin-button:focus-visible",
           ".rindle-admin-nav__item[aria-current=\"page\"]",
           ".rindle-admin-confirm-dialog",
-          # WR-01: the overlay primitive's positioning + backdrop must be generated,
+          # The overlay primitive's positioning + backdrop must be generated,
           # or modal/1 + confirm_dialog/1 render with no fixed positioning, no scrim,
           # and no z-index. The generator's requiredSelectors guards this fail-closed;
           # this clause is the ExUnit backstop.
@@ -257,7 +258,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     ])
   end
 
-  test "ADMIN-02 boundary guide and implementation avoid host UI dependencies" do
+  test "admin boundary guide and implementation avoid host UI dependencies" do
     guide = read!("guides/admin_design_system.md")
 
     for command <- [
@@ -312,12 +313,12 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
   end
 
   # ===========================================================================
-  # Phase 98 merge-gate clauses over the REAL migrated surfaces (D-98-04/05).
-  # The static / substring / render_component-grep half (D-98-05); the five
+  # Merge-gate clauses over the REAL admin surfaces.
+  # The static / substring / render_component-grep half; the five
   # non-inferable computed-style backstops live in Playwright (admin-polish.js).
   # ===========================================================================
 
-  describe "§A page-composition scaffold (D-98-01/12)" do
+  describe "page-composition scaffold" do
     test "page/1 renders the canonical slot order in DOM order" do
       html =
         render_component(&Rindle.Admin.Components.page/1, %{
@@ -357,7 +358,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
             do: file
 
       assert offenders == [],
-             "page-local display:grid found (D-98-12 forbids inline layout): #{inspect(offenders)}"
+             "page-local display:grid found (layout belongs in generated CSS): #{inspect(offenders)}"
     end
 
     test "generated CSS consumes --rindle-shadow-card (the :summary first-order surface)" do
@@ -365,7 +366,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     end
   end
 
-  describe "§B motion catalog (GPU-only, D-98-14)" do
+  describe "motion catalog (GPU-only)" do
     # §B forbids LAYOUT-REFLOW transitions (the costly, jank-prone ones). The enter/exit
     # motion catalog (popover/toast/drawer/dialog/skeleton/status-chip) animates GPU-only
     # opacity/transform; micro-interaction hover/press paint feedback (background-color,
@@ -401,7 +402,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     test "the enter/exit motion catalog selectors animate opacity/transform only" do
       css = read!("brandbook/tokens/rindle-admin.css")
 
-      # The catalog selectors whose ENTER/EXIT must be GPU-only (98-01 §B).
+      # The catalog selectors whose ENTER/EXIT must be GPU-only.
       for selector <- [
             ".rindle-admin-theme-picker__option",
             ".rindle-admin-toast",
@@ -429,7 +430,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     end
   end
 
-  describe "§D a11y dead-markup + structure (D-98-06/07/08)" do
+  describe "a11y dead-markup + structure" do
     test "theme_picker renders server-owned aria-pressed in dead markup" do
       # HEEx serializes a true boolean attr as the bare attribute name and OMITS it when
       # false — so the SERVER-RENDERED (dead) markup is the only place the pressed option is
@@ -487,7 +488,7 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     end
   end
 
-  describe "§E task-first IA (D-98-03/10)" do
+  describe "task-first IA" do
     test "nav renders exactly the six task-first labels in canonical order" do
       assert rendered_nav_labels() == @nav_labels
     end
@@ -557,8 +558,8 @@ defmodule Rindle.Brandbook.AdminDesignSystemValidationTest do
     end
   end
 
-  describe "§F voice + microcopy (D-98-05)" do
-    test "no R4 hype word or R5 vague label appears in admin surface source" do
+  describe "voice + microcopy" do
+    test "no hype word or vague standalone label appears in admin surface source" do
       offenders =
         for file <- @admin_surface_files,
             word <- @denylist_words,

@@ -143,7 +143,7 @@ actions require a **typed confirmation** (you type an explicit token before the
 action executes), and every action reuses an existing public facade or ops verb
 — the console adds no new lifecycle semantics:
 
-- **Owner erasure** — preview and execute single-owner erasure via the v1.10
+- **Owner erasure** — preview and execute single-owner erasure via the
   owner-erasure facade, gated behind a typed `ERASE type:id` confirmation.
 - **Batch owner erasure** — typed `ERASE N OWNERS` confirmation, with
   per-owner partial-failure receipts.

@@ -67,9 +67,9 @@ applied GitHub branch-protection state remains remote. The `name: CI` and `ci.ym
 | `quality` — Verify AV runtime with public doctor task | advisory | Same job | Requires DB, Oban, and canonical profile readiness that this job intentionally does not prepare |
 | `quality` — Run focused AV behavior tests | merge-blocking | Same job, after FFmpeg/libvips installation | Real FFmpeg/ffprobe fixture and Vix/libvips behavior proof; no `vips` CLI is required |
 | `quality` — Run tests with coverage | merge-blocking | Same job | Default `mix test` suite run **once** via `mix coveralls.multiple --type local --type json` (single run → console gate + `cover/excoveralls.json`); both matrix cells must pass |
-| `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |
+| `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | Optional-dependency proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |
 | `integration` | merge-blocking | Starts independently; `CI Summary` waits for it | Lifecycle + MinIO adapter tests plus the disposable-database migration E2E suite (documented Ecto.Migrator path, lock contention, and real-role privilege refusals) |
-| `contract` — Run AV hygiene gate, contract tests, SAFE-01 | merge-blocking | Starts independently; installs FFmpeg before its proof | AV hygiene plus deterministic `--only contract` tests and `scripts/maintainer/refactor_contract.sh`; the telemetry contract exercises the real AV path |
+| `contract` — Run AV hygiene gate, contract tests, preservation contract | merge-blocking | Starts independently; installs FFmpeg before its proof | AV hygiene plus deterministic `--only contract` tests and `scripts/maintainer/refactor_contract.sh`; the telemetry contract exercises the real AV path |
 | `proof` | merge-blocking | `needs: [quality, optional-dependencies]` | docs-parity install/migrations, onboarding/capabilities, operations, and product/admin domain suites; adoption proof matrix drift gate; `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer-full` — repo hygiene gate | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | `scripts/maintainer/repo_hygiene_check.sh --ci`; release/main gate, not merge-blocking on PRs |
 | `package-consumer` (lean, PR) | merge-blocking | Starts independently; `CI Summary` waits for it | Representative `image`-only install-smoke + version alignment; full profile breadth remains on main/release |
@@ -78,7 +78,7 @@ applied GitHub branch-protection state remains remote. The `name: CI` and `ci.ym
 | `adoption-demo-e2e-smoke` | merge-blocking | Every PR; starts independently with Postgres + MinIO-local | Lean Chromium smoke (`e2e/smoke.spec.js` + `e2e/admin-console.spec.js` only, no screenshot spec) in the pinned Playwright container. No secrets or repo/event gate, so it runs on forks and is included in `CI Summary.needs`. |
 | `adoption-demo-e2e` | off-critical-path | `push:main` only (repo `szTheory/rindle` + `if: github.event_name != 'pull_request'`); `needs: [quality, optional-dependencies]` | Full Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys, admin lifecycle render, homepage cold-start smoke + screenshot specs). **NOT** in `CI Summary.needs`; its PR-side proxy is the lean `adoption-demo-e2e-smoke` lane above. |
 | `cohort-demo-smoke` | off-critical-path | `push:main` only (repo `szTheory/rindle` + `if: github.event_name != 'pull_request'`); `needs: [quality, optional-dependencies]` | Docker-compose cold-start gate (`scripts/ci/cohort_demo_smoke.sh`) that builds the demo image, boots the stack, and asserts the seeded homepage and admin console serve 200. **NOT** in `CI Summary.needs`; it is a push:main/release signal. |
-| `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
+| `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Generated-artifact drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets are absent. |
 | `compat-matrix` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Broad OTP×Elixir compatibility; not a required PR check, but every matrix cell feeds strict `Nightly Summary`. |
@@ -95,7 +95,7 @@ Nightly evidence receipt committed with the maintainer evidence, authenticated a
 run/job/log state and detached local authorities by the repository's
 `bash scripts/ci/verify_nightly_run.sh verify-receipt` contract.
 
-### Reproducing the coverage step locally (COV-04)
+### Reproducing the coverage step locally
 
 The full CI coverage step — the `quality` — Run tests with coverage row above — is
 reproduced locally with a single command:

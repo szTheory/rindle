@@ -120,7 +120,7 @@ posture.
 | Default install without `phoenix_live_view` | Rindle compiles; admin modules compile away cleanly. |
 | Install with `phoenix_live_view` | `Rindle.Admin.Router.rindle_admin/2` and console LiveViews compile. |
 | Cohort host with LiveView | Demo can mount the console inside host auth routes. |
-| CI no-LiveView proof | ADMIN-06 proves no unguarded Phoenix/LiveView aliases leak. |
+| CI no-LiveView proof | The Optional Dependencies CI job proves no unguarded Phoenix/LiveView aliases leak. |
 
 Any module that aliases Phoenix or LiveView APIs must live behind `Code.ensure_loaded?/1`
 gates before Phoenix/LiveView aliases are expanded. The existing `Rindle.LiveView` pattern
@@ -131,8 +131,8 @@ is the source pattern.
 Console reads belong in `Rindle.Admin.Queries`. They should compose existing domain,
 runtime, and repair truth over the configured repo, including `Rindle.Ops.RuntimeStatus`.
 
-Do not promote admin convenience reads to `lib/rindle.ex`. The only new public surface
-permitted by the v1.18 charter is the mountable console boundary; read helpers stay behind
+Do not promote admin convenience reads to `lib/rindle.ex`. The only admin public surface
+is the mountable console boundary; read helpers stay behind
 `Rindle.Admin.Queries`.
 
 ## Boundary Constraints

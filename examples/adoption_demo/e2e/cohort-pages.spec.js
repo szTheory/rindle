@@ -1,13 +1,13 @@
-// Cohort per-page visual-contract harness (Phase 99, Plan 01).
+// Cohort per-page visual-contract harness.
 //
-// The shared Wave-0 home for the 7 small-page migrations. Models on
-// `cohort-styleguide.spec.js` (Phase 96, Plan 05) and reuses the already
-// parameterized `assertAdminPolish` (D-94-07 seam, D-96-06) against
-// `[data-ck-root]` / `.ck-*`. Phase 102 promotes Cohort to hard-fail:
+// The shared home for the 7 small Cohort pages. Models on
+// `cohort-styleguide.spec.js` and reuses the parameterized `assertAdminPolish`
+// (explicit root and selector options) against
+// `[data-ck-root]` / `.ck-*`. Cohort polish is a hard-fail gate:
 // polish offender aggregates and helper crashes both fail the Playwright test.
 //
 // `assertCohortPagePolish` + `interactiveSelectors` stay exported for any
-// existing imports, while this file owns the Phase 102 visual matrix.
+// existing imports, while this file owns the Cohort visual matrix.
 //
 // CommonJS / Chromium-only, matching the sibling specs in this directory.
 
@@ -16,7 +16,7 @@ const { assertAdminPolish } = require("./support/admin-polish");
 const { waitForLiveSocket } = require("./support/liveview");
 const { MEMBERS, memberId } = require("./support/cohort");
 
-// D-96-06: the FIXED interactive-selector list the polish gate measures over the
+// The FIXED interactive-selector list the polish gate measures over the
 // Cohort root for the migrated pages.
 const interactiveSelectors = [".ck-btn", ".ck-tab", ".ck-input", ".ck-select"];
 
@@ -180,11 +180,11 @@ for (const routeCase of COHORT_VISUAL_MATRIX) {
   }
 }
 
-// Chrome brand-typography continuity (post-0.3.0 gap closure — COHORT-02 re-audit).
+// Chrome brand-typography continuity.
 //
 // The shared nav (`cohort_nav`) and footer (`cohort_footer`) are rendered by
 // `Layouts.app` OUTSIDE the `.ck` / `[data-ck-root]` shell, so `assertAdminPolish`
-// — which measures strictly over `[data-ck-root]` (D-96-06) — structurally cannot
+// — which measures strictly over `[data-ck-root]` — structurally cannot
 // see them. That blind spot let the chrome ship in a system font on every inner
 // page while the polish gate passed. This chrome-scoped assertion closes it:
 // the nav brand mark and the footer must resolve the Cohort brand font

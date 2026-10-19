@@ -109,5 +109,5 @@ and where. The matrix is drift-checked by `scripts/maintainer/check_adoption_pro
 
 ## Charter
 
-Sustaining adoption-evidence work — no demand-gated feature milestones. See
-[`.planning/threads/adoption-evidence-lab.md`](../../.planning/threads/adoption-evidence-lab.md).
+This demo exists to prove Rindle's adoption paths end to end. It carries no product
+features of its own; new demo surface lands only when it proves a library behavior.

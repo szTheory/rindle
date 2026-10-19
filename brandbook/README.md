@@ -12,7 +12,7 @@ no build step).
 | `tokens/tokens.json` | **Source of truth**: raw palette, semantic roles (light + dark), type scale, spacing, radii, focus, motion, and the WCAG contrast-pair declarations |
 | `tokens/tokens.css` | Generated custom properties (`--rindle-*`) — never edit by hand |
 | `assets/logo/` | Final logo system: lockups (primary/dark/mono/subtitle), icon-only marks, favicon set (`.svg`/16/32/`.ico`), social avatar |
-| `assets/logo/candidates/` | Phase-82 exploration provenance: the five directions + Confluence refinement variants + comparison sheets |
+| `assets/logo/candidates/` | Logo exploration provenance: the five directions + Confluence refinement variants + comparison sheets |
 | `fonts/` | Committed woff2 webfonts (Space Grotesk, Atkinson Hyperlegible, JetBrains Mono) + SIL OFL license texts |
 | `src/` | Generation pipeline (Node, zero system deps beyond the repo's existing Playwright install) |
 
@@ -45,7 +45,7 @@ Committed SVGs are build artifacts (like a lockfile): edit `src/candidates.mjs` 
 
 ## Provenance
 
-Built in milestone **b1.0 Brand Foundations** (phases 81–85). The pressure-test audit of
-the original AI-research seed lives at `.planning/research/b1.0-brand-audit.md`; the seed
-itself (`prompts/rindle-brand-book.md`) is preserved untouched as history. Logo direction
-and execution were user-selected (decisions D-b1.0-04/05).
+The original AI-research seed (`prompts/rindle-brand-book.md`) is preserved untouched as
+history; the shipped system was pressure-tested against it rather than copied from it. Logo
+direction and execution were chosen by the maintainer from the exploration candidates in
+`assets/logo/candidates/`.

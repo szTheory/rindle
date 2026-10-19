@@ -25,7 +25,8 @@ It executes, in order:
 1. `deps.get --check-locked` and `deps.unlock --check-unused` — lockfile drift gates
 2. `compile --warnings-as-errors`
 3. `format --check-formatted`
-4. `quality_signals` — curated Credo, measured public-doc health, and SAFE-01
+4. `quality_signals` — curated Credo, measured public-doc health, and the
+   behavior-preservation contract (`scripts/maintainer/refactor_contract.sh`)
 5. the four brandbook token→CSS drift gates
    (`brandbook/src/tokens-build.mjs`, `admin-css-build.mjs`, `admin-contrast.mjs`,
    `sync-admin-css.mjs`)
@@ -156,11 +157,11 @@ broader lane named in the last column before handoff.
 
 | Changed area | Fast local proof | Broader boundary |
 |--------------|------------------|------------------|
-| Public facade, profiles, domain schemas/FSMs | `mix test test/rindle/api_surface_boundary_test.exs test/rindle/domain` | SAFE-01 + Quality |
+| Public facade, profiles, domain schemas/FSMs | `mix test test/rindle/api_surface_boundary_test.exs test/rindle/domain` | Preservation contract + Quality |
 | Upload broker and tus protocol/Plug | `mix test test/rindle/upload` | Contract + Integration |
 | Storage adapters and resumable clients | `mix test test/rindle/storage` | Integration; live GCS remains nightly |
 | Streaming provider, webhook, and workers | `mix test test/rindle/streaming test/rindle/workers` | Contract; live Mux remains label-gated |
-| Operations, runtime checks, migration diagnostics | `mix test test/rindle/ops test/rindle/migration_fast_test.exs` | SAFE-01 + Integration migration proofs |
+| Operations, runtime checks, migration diagnostics | `mix test test/rindle/ops test/rindle/migration_fast_test.exs` | Preservation contract + Integration migration proofs |
 | Generated adopter/package behavior | `mix test test/install_smoke/generated_app_smoke_test.exs --include minio` | Required image consumer proof; five-profile main/release proof |
 | CI scripts and workflow policy | `mix test test/install_smoke/ci_*_test.exs test/install_smoke/quality_signal_policy_test.exs` | Exact-head `CI Summary` |
 

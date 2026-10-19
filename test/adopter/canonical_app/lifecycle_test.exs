@@ -4,16 +4,16 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   consumer of Rindle. Runs against MinIO (via Rindle.Storage.S3) and the
   shared test PostgreSQL.
 
-  This file is the source of truth for `guides/getting_started.md` (D-16).
+  This file is the source of truth for `guides/getting_started.md`.
   The snippet shown in that guide must match the public API calls below;
-  drift between this file and the guide breaks DOC-01 acceptance.
+  drift between this file and the guide makes the guide wrong.
   """
 
   use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Adopter.CanonicalApp.Repo
 
   # why: swaps :rindle, :repo to an adopter/probe repo to exercise Config.repo/0
-  # resolution — not the counting-double cross-pollution; see Phase 110 D-09.
+  # resolution — not the counting-double cross-pollution.
   @moduletag async_safety_allow: [:global_repo_swap]
 
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
@@ -25,7 +25,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   alias Rindle.Workers.{ProcessVariant, PromoteAsset, PurgeStorage}
 
   @multipart_min_part_size 5 * 1024 * 1024
-  @v13_thumb_digest "3a9ab2f60b2d26217471f22cc329252acba546c6341111a3ef89a8d9978d30a7"
+  @image_only_thumb_digest "3a9ab2f60b2d26217471f22cc329252acba546c6341111a3ef89a8d9978d30a7"
 
   @moduletag :adopter
   @moduletag sandbox_repo: Rindle.Adopter.CanonicalApp.Repo
@@ -53,7 +53,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     end
 
     # Start the adopter Repo (Sandbox-wrapped). Uses the same test DB as
-    # Rindle.Repo per A3 in 05-RESEARCH.md. start_supervised handles
+    # Rindle.Repo. start_supervised handles
     # cleanup automatically on test exit.
     case start_supervised(Rindle.Adopter.CanonicalApp.Repo) do
       {:ok, _pid} -> :ok
@@ -122,7 +122,7 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
       assert String.starts_with?(presigned.url, "http")
 
       # ── Step 3: Client PUTs the file BYTES to the presigned URL ──────────
-      # Per Blocker 5 / D-08: this MUST exercise the actual presigned PUT
+      # This MUST exercise the actual presigned PUT
       # path, NOT bypass it via Rindle.Storage.S3.store/3. The adopter's
       # production app does an HTTPS PUT directly from the client to the
       # presigned URL; we mirror that here using Erlang's :httpc.
@@ -434,26 +434,26 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
     end
   end
 
-  describe "v1.0 → v1.4 backward-compat parity (AV-02-11, D-22)" do
+  describe "image-only profile backward-compat parity" do
     alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
 
-    test "image-only canonical profile compiles unchanged on v1.4 (D-22 condition 1)" do
+    test "image-only canonical profile compiles unchanged" do
       assert Code.ensure_loaded?(AdopterProfile)
       assert function_exported?(AdopterProfile, :variants, 0)
       assert function_exported?(AdopterProfile, :recipe_digest, 1)
     end
 
-    test "Profile.variants()[:thumb] does NOT contain :kind key (D-14 + D-22 condition 2)" do
+    test "Profile.variants()[:thumb] does NOT contain :kind key" do
       thumb = AdopterProfile.variants()[:thumb]
 
       refute Map.has_key?(thumb, :kind),
              "image-default canonical profile must omit :kind from validated map " <>
-               "(D-14); persisting :kind would break recipe digest stability for every " <>
+               "(the image default); persisting :kind would break recipe digest stability for every " <>
                "existing image-only adopter."
     end
 
-    test "Profile.recipe_digest(:thumb) matches v1.3 snapshot byte-for-byte (D-22 condition 3 — THE load-bearing assertion)" do
-      assert AdopterProfile.recipe_digest(:thumb) == @v13_thumb_digest
+    test "Profile.recipe_digest(:thumb) matches the pinned image-only snapshot byte-for-byte" do
+      assert AdopterProfile.recipe_digest(:thumb) == @image_only_thumb_digest
     end
   end
 
@@ -462,15 +462,14 @@ defmodule Rindle.Adopter.CanonicalApp.LifecycleTest do
   # ─────────────────────────────────────────────────────────────────────────
 
   # PUT the body to the presigned URL using Erlang's :httpc (no extra dep).
-  # Per Blocker 5 / D-08: the adopter-facing path uses HTTP PUT to the
+  # The adopter-facing path uses HTTP PUT to the
   # presigned URL the broker issued; we MUST exercise that here, not
   # bypass via Rindle.Storage.S3.store/3.
   #
-  # If the adopter lane discovers MinIO presigned PUT semantics differ
-  # enough to require workarounds (e.g., specific signature-version
-  # header behaviors), document the gap explicitly in the SUMMARY as
-  # "DEFERRED to v1.1: full presigned PUT verification requires X" rather
-  # than silently falling back to the S3 adapter store path.
+  # If MinIO presigned PUT semantics ever differ enough to require
+  # workarounds (e.g., specific signature-version header behaviors), fail
+  # loudly and document the gap rather than silently falling back to the S3
+  # adapter store path.
   defp put_to_presigned_url(presigned_url, body)
        when is_binary(presigned_url) and is_binary(body) do
     url_charlist = String.to_charlist(presigned_url)
