@@ -220,35 +220,43 @@ defmodule Rindle.Ops.RuntimeChecks do
                """,
                [prefix, inspected_tables]
              ) do
-        present_tables = Enum.map(table_rows, fn [table_name] -> table_name end)
-        marker_versions = marker_versions(started_repo, prefix, marker_table, present_tables)
-        missing_tables = Map.fetch!(requirements, :tables) -- present_tables
-
-        %{
-          marker_versions: marker_versions,
-          tables: present_tables -- [marker_table],
-          missing_tables: missing_tables,
-          legacy_packaged_install?: marker_versions == [] and missing_tables == [],
-          prefix: prefix
-        }
+        schema_catalog(started_repo, prefix, marker_table, requirements, table_rows)
       end
     end)
   end
 
+  defp schema_catalog(repo, prefix, marker_table, requirements, table_rows) do
+    present_tables = Enum.map(table_rows, fn [table_name] -> table_name end)
+    marker_versions = marker_versions(repo, prefix, marker_table, present_tables)
+    missing_tables = Map.fetch!(requirements, :tables) -- present_tables
+
+    %{
+      marker_versions: marker_versions,
+      tables: present_tables -- [marker_table],
+      missing_tables: missing_tables,
+      legacy_packaged_install?: marker_versions == [] and missing_tables == [],
+      prefix: prefix
+    }
+  end
+
   defp marker_versions(repo, prefix, marker_table, present_tables) do
     if marker_table in present_tables do
-      sql = """
-      SELECT version
-      FROM #{qualified_table(prefix, marker_table)}
-      ORDER BY version
-      """
-
-      case repo.query(sql, []) do
-        {:ok, %{rows: rows}} -> Enum.map(rows, fn [version] -> version end)
-        {:error, _reason} -> []
-      end
+      query_marker_versions(repo, prefix, marker_table)
     else
       []
+    end
+  end
+
+  defp query_marker_versions(repo, prefix, marker_table) do
+    sql = """
+    SELECT version
+    FROM #{qualified_table(prefix, marker_table)}
+    ORDER BY version
+    """
+
+    case repo.query(sql, []) do
+      {:ok, %{rows: rows}} -> Enum.map(rows, fn [version] -> version end)
+      {:error, _reason} -> []
     end
   end
 

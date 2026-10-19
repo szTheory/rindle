@@ -77,20 +77,22 @@ defmodule Rindle.Upload.TusProtocol do
           {:ok, String.t() | nil, binary() | nil} | {:error, :invalid_checksum}
   def parse_upload_checksum(conn) do
     case get_req_header(conn, "upload-checksum") do
-      [value] ->
-        case String.split(value, " ", parts: 2) do
-          [algorithm, hash] when algorithm in ["sha1", "sha256"] ->
-            case Base.decode64(hash) do
-              {:ok, decoded} -> {:ok, algorithm, decoded}
-              :error -> {:error, :invalid_checksum}
-            end
+      [value] -> parse_checksum_value(value)
+      _ -> {:ok, nil, nil}
+    end
+  end
 
-          _ ->
-            {:error, :invalid_checksum}
-        end
+  defp parse_checksum_value(value) do
+    case String.split(value, " ", parts: 2) do
+      [algorithm, hash] when algorithm in ["sha1", "sha256"] -> decode_checksum(algorithm, hash)
+      _ -> {:error, :invalid_checksum}
+    end
+  end
 
-      _ ->
-        {:ok, nil, nil}
+  defp decode_checksum(algorithm, hash) do
+    case Base.decode64(hash) do
+      {:ok, decoded} -> {:ok, algorithm, decoded}
+      :error -> {:error, :invalid_checksum}
     end
   end
 
@@ -164,17 +166,21 @@ defmodule Rindle.Upload.TusProtocol do
   defp decode_upload_metadata(header) when is_binary(header) do
     header
     |> String.split(",", trim: true)
-    |> Enum.reduce(%{}, fn pair, acc ->
-      case String.split(pair, " ", parts: 2) do
-        [key, encoded] when key != "" ->
-          case Base.decode64(encoded, padding: false) do
-            {:ok, value} -> Map.put(acc, key, value)
-            :error -> acc
-          end
+    |> Enum.reduce(%{}, &put_metadata_pair/2)
+  end
 
-        _ ->
-          acc
-      end
-    end)
+  # Malformed pairs and values that are not valid unpadded base64 are skipped.
+  defp put_metadata_pair(pair, metadata) do
+    case String.split(pair, " ", parts: 2) do
+      [key, encoded] when key != "" -> put_decoded_metadata(metadata, key, encoded)
+      _ -> metadata
+    end
+  end
+
+  defp put_decoded_metadata(metadata, key, encoded) do
+    case Base.decode64(encoded, padding: false) do
+      {:ok, value} -> Map.put(metadata, key, value)
+      :error -> metadata
+    end
   end
 end

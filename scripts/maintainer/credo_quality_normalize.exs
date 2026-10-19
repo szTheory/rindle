@@ -59,8 +59,8 @@ defmodule Rindle.CredoQualityNormalize do
   defp captured_metric(_, _), do: raise(ArgumentError, "Credo issue message must be a string")
 
   defp normalize_baseline(%{"entries" => entries}) when is_list(entries) do
-    if length(entries) != 24 or Enum.sum(Enum.map(entries, &Map.get(&1, "count", 0))) != 28 do
-      raise ArgumentError, "baseline must contain 24 identities and 28 occurrences"
+    if length(entries) != 22 or Enum.sum(Enum.map(entries, &Map.get(&1, "count", 0))) != 24 do
+      raise ArgumentError, "baseline must contain 22 identities and 24 occurrences"
     end
 
     entries

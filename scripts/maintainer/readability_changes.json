@@ -89,6 +89,54 @@
         "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
       ],
       "summary": "Move the per-variant AV runtime check out of the profile_runtime_failures/2 nested closures into variant_runtime_failures/4; failure messages unchanged."
+    },
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.Nesting",
+        "file": "lib/rindle/ops/runtime_checks.ex",
+        "observed_metric": 3,
+        "trigger": "fn"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/ops/runtime_checks.ex"
+      ],
+      "id": "craft-runtime-checks-nesting",
+      "intent": "cohesion",
+      "pr": null,
+      "proof": [
+        "bash scripts/maintainer/credo_quality.sh",
+        "bash scripts/maintainer/refactor_contract.sh",
+        "mix test test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_checks_gcs_test.exs test/rindle/ops/runtime_checks_streaming_test.exs test/rindle/public_surface_snapshot_test.exs test/install_smoke/credo_policy_test.exs",
+        "bash scripts/maintainer/craft_boundary_check.sh origin/main",
+        "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Move the schema catalog report out of the rindle_schema_catalog/1 repo closure into schema_catalog/5 and the marker-version query out of marker_versions/4 into query_marker_versions/3; catalog map unchanged."
+    },
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.Nesting",
+        "file": "lib/rindle/upload/tus_protocol.ex",
+        "observed_metric": 3,
+        "trigger": "case"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/upload/tus_protocol.ex"
+      ],
+      "id": "craft-tus-protocol-nesting",
+      "intent": "failure-semantics",
+      "pr": null,
+      "proof": [
+        "bash scripts/maintainer/credo_quality.sh",
+        "bash scripts/maintainer/refactor_contract.sh",
+        "mix test test/rindle/upload/tus_plug_test.exs test/rindle/api_surface_boundary_test.exs test/rindle/public_surface_snapshot_test.exs test/install_smoke/credo_policy_test.exs",
+        "bash scripts/maintainer/craft_boundary_check.sh origin/main",
+        "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Split Upload-Checksum parsing into parse_checksum_value/1 and decode_checksum/2 and Upload-Metadata decoding into put_metadata_pair/2 and put_decoded_metadata/3; every error atom, status and header unchanged."
     }
   ],
   "schema": "rindle-readability-changes-v1"
