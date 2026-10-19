@@ -1,0 +1,22 @@
+{
+  "candidate_ledger": {
+    "candidate_ids": [
+      "quality-ci-required-topology",
+      "quality-compatibility-supported-toolchain",
+      "quality-correctness-default-suite",
+      "quality-documentation-accessibility",
+      "quality-maintainability-curated-complexity",
+      "quality-packaging-generated-consumer",
+      "quality-performance-required-pr-timing",
+      "quality-release-exact-sha",
+      "quality-reliability-nightly",
+      "quality-repository-hygiene",
+      "quality-security-dependency-policy",
+      "quality-testing-automation-first"
+    ],
+    "sha256": "a56c8b6e68e68a84c1355247359733e60be9596a6582a4525488b5d23880bde4",
+    "subject_sha": "3858267b4837d04367f1d26b1ee74651e507ea77"
+  },
+  "changes": [],
+  "schema": "rindle-readability-changes-v1"
+}
