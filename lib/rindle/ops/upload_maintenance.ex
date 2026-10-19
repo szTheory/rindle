@@ -175,7 +175,7 @@ defmodule Rindle.Ops.UploadMaintenance do
     end
   end
 
-  # CR-01 (reaper half): re-select aborted tus sessions whose DELETE-time backing
+  # Reaper half: re-select aborted tus sessions whose DELETE-time backing
   # abort failed transiently. The tus DELETE handler stamps a retryable
   # `tus_abort_failed:<reason>` marker on the row (instead of silently swallowing
   # the abort error), leaving the row in state="aborted" with the orphaned S3
@@ -446,8 +446,8 @@ defmodule Rindle.Ops.UploadMaintenance do
     gated_expire(session, acc)
   end
 
-  # Shared gated-expire helper used by BOTH the standard and tus expiry branches
-  # (WR-01). Gate the persistence on the FSM so any future expansion of the query
+  # Shared gated-expire helper used by BOTH the standard and tus expiry branches.
+  # Gate the persistence on the FSM so any future expansion of the query
   # set (e.g. expiring `uploaded`/`verifying` rows, or surfacing a tus session in
   # an `aborted`/forbidden state via the retryable-abort query) is caught at the
   # invariant boundary instead of silently violating the FSM contract.
@@ -494,7 +494,7 @@ defmodule Rindle.Ops.UploadMaintenance do
           reason: inspect(reason)
         )
 
-        # CR-01: a DELETE-time-failure retry row stays state="aborted" with its
+        # A DELETE-time-failure retry row stays state="aborted" with its
         # `tus_abort_failed:%` marker intact so the NEXT cron re-selects it (still
         # recoverable — never a new permanent orphan). The timeout-expiry path
         # likewise leaves its row untouched on failure for the next cron.
@@ -502,7 +502,7 @@ defmodule Rindle.Ops.UploadMaintenance do
     end
   end
 
-  # WR-03 reconciliation. The FSM declares `"aborted" => []` (terminal), so a tus
+  # Retry-row reconciliation. The FSM declares `"aborted" => []` (terminal), so a tus
   # session re-selected from the DELETE-time-failure retry query (already in
   # state "aborted" with a `tus_abort_failed:%` marker) MUST NOT be routed back
   # through `gated_expire/2` — that would attempt the FSM-forbidden
@@ -512,7 +512,7 @@ defmodule Rindle.Ops.UploadMaintenance do
   # that mirrors `persist_resumable_abort_success/3` — clearing the marker and
   # bypassing the FSM gate — exactly how the GCS retryable path settles `aborted`
   # rows without an illegal transition. The timeout-expiry path (non-terminal
-  # state) keeps the FSM-gated `gated_expire/2` call (WR-01).
+  # state) keeps the FSM-gated `gated_expire/2` call.
   defp settle_tus_abort_success(
          %MediaUploadSession{state: "aborted", failure_reason: failure_reason} = session,
          acc
@@ -524,13 +524,13 @@ defmodule Rindle.Ops.UploadMaintenance do
       # Not a tus DELETE-failure retry marker (e.g. a GCS
       # `resumable_cancel_failed:%` marker surfaced by the other query). Preserve
       # the FSM-gated behavior so an FSM-forbidden aborted->expired is rejected
-      # (WR-01 invariant boundary), never silently settled.
+      # at the invariant boundary, never silently settled.
       gated_expire(session, acc)
     end
   end
 
   defp settle_tus_abort_success(session, acc) do
-    # WR-01: gate the tus timeout-expiry persistence through the SAME FSM-gated
+    # Gate the tus timeout-expiry persistence through the SAME FSM-gated
     # helper the standard branch uses, so a future query-set expansion can never
     # silently flip a tus session from an FSM-forbidden state.
     gated_expire(session, acc)
@@ -538,8 +538,8 @@ defmodule Rindle.Ops.UploadMaintenance do
 
   # Mirrors `persist_resumable_abort_success/3`: settle a recovered aborted-tus
   # row directly through the repo (NOT the FSM gate) to `state: "expired"` with
-  # the retryable marker cleared, so it is no longer re-selected by
-  # `fetch_retryable_tus_abort_sessions/0`.
+  # the retryable marker cleared, so `fetch_retryable_tus_abort_sessions/0`
+  # stops re-selecting it.
   defp persist_tus_abort_retry_success(session, acc) do
     repo = Config.repo()
     changeset = MediaUploadSession.changeset(session, %{state: "expired", failure_reason: nil})
@@ -575,7 +575,7 @@ defmodule Rindle.Ops.UploadMaintenance do
       {:ok, adapter} ->
         # The S3 tail buffer lives under the adapter's default tail root
         # (`TempRunDir.root_dir()`); thread it explicitly so the delete path
-        # computes against the SAME root the write path used (CR-02).
+        # computes against the SAME root the write path used.
         abort_tus_backing(session, adapter: adapter, root: nil, upload_id: id)
 
       {:error, _reason} = err ->
@@ -587,7 +587,7 @@ defmodule Rindle.Ops.UploadMaintenance do
   end
 
   # Local-backed tus session (no multipart_upload_id): resolve the upload's
-  # ACTUAL Local root (IN-03) and remove the tmp part + tail at that root.
+  # ACTUAL Local root and remove the tmp part + tail at that root.
   defp abort_tus_backing(%MediaUploadSession{} = session) do
     root = resolve_local_root(session)
     abort_tus_backing(session, adapter: nil, root: root, upload_id: nil)
@@ -634,7 +634,7 @@ defmodule Rindle.Ops.UploadMaintenance do
 
       _ ->
         # Local-backed (no multipart upload id): remove the tmp part file at the
-        # SAME resolved root the write path used (IN-03). The orphan reaper
+        # SAME resolved root the write path used. The orphan reaper
         # sweeps `Rindle.tmp` anyway, so failures here are non-fatal.
         _ = File.rm(Rindle.Storage.Local.tus_part_path(session.id, root_opt(root)))
         :ok
@@ -662,11 +662,11 @@ defmodule Rindle.Ops.UploadMaintenance do
   defp root_opt(nil), do: []
   defp root_opt(root), do: [root: root]
 
-  # Resolve the Local root for a Local-backed tus session (IN-03). The Local
+  # Resolve the Local root for a Local-backed tus session. The Local
   # adapter owns its own root resolution (`Local.root/1` reads the profile/
   # app-env `:root` config); resolving it here and threading it explicitly into
-  # `tus_part_path/2` removes the previous bare empty-opts call that left the
-  # part file at a mismatched root. There is no remote backing to abort for a
+  # `tus_part_path/2` keeps the delete path on the same root as the write path,
+  # so the part file is never left behind. There is no remote backing to abort for a
   # Local session, so no adapter/capability probe is needed.
   defp resolve_local_root(_session) do
     Rindle.Storage.Local.root([])

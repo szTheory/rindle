@@ -28,8 +28,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        |> tap(&Support.subscribe_admin_lifecycle/1)}
     end
 
-    # Distributed "Regenerate variants" action (UI-SPEC §E, D-98-10/11): the
-    # regenerate verb moved off the Maintenance junk-drawer onto Processing and
+    # "Regenerate variants" lives on Processing, next to the variant counts, and
     # confirms through the shared confirm_dialog/1 primitive. `dialog_open` is the
     # server-assign source of truth for the shell inert/aria-hidden contract.
     @impl true
@@ -141,10 +140,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               <p :if={@regenerate_receipt} data-rindle-admin-receipt="variant_regeneration">
                 Variant regeneration queued. Enqueued: {@regenerate_receipt.enqueued} · Skipped: {@regenerate_receipt.skipped} · Errors: {@regenerate_receipt.errors}
               </p>
-              <%!-- CR-01: counts come from `RuntimeStatus.count_map/1`, which is
-                    ATOM-keyed (`String.to_atom(state)`). Reading with string keys
-                    (the prior bug) always returned the 0 fallback — read with atoms
-                    so the Processing summary counters reflect real bucket counts. --%>
+              <%!-- Counts come from `RuntimeStatus.count_map/1`, which is
+                    ATOM-keyed (`String.to_atom(state)`). String keys would always
+                    hit the 0 fallback, so read with atoms to show real bucket
+                    counts in the Processing summary. --%>
               <.metadata_list items={[
                 {"Total", count_value(@model, :total)},
                 {"failed", count_value(@model, :failed)},
@@ -224,7 +223,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </section>
           </:work>
         </.page>
-        <%!-- CR-02: the regenerate confirm_dialog renders into the shell `:overlay`
+        <%!-- The regenerate confirm_dialog renders into the shell `:overlay`
               slot — a SIBLING of the inerted `<main>`, never a descendant — so when
               `@dialog_open` inerts `<main>` the dialog and its buttons stay
               interactive. --%>

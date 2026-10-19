@@ -292,9 +292,9 @@ defmodule Rindle.Ops.RuntimeChecks.OwnershipChecks do
     # Streaming-enabled profiles must declare
     # `:rindle_provider` (the queue MuxSyncCoordinator and MuxIngestVariant
     # workers enqueue onto). The streaming guide instructs adopters to
-    # configure `queues: [rindle_provider: 4]`, but the doctor check
-    # previously did not enforce it — adopters who mistyped the queue
-    # name got a green doctor while their Mux ingestion silently failed.
+    # configure `queues: [rindle_provider: 4]`, and the doctor check enforces
+    # it so an adopter who mistypes the queue name gets a failing doctor
+    # rather than a green one while Mux ingestion silently fails.
     queues =
       if streaming_profiles == [] do
         queues

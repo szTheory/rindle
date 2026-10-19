@@ -38,7 +38,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       <.shell active="home-status" base_path={@admin_base_path} title="Overview" live_status={@live_status}>
         <.page state={if(@error?, do: :error, else: :ok)} error_surface="Overview">
           <:work>
-            <%!-- (1) Needs attention — problems FIRST (GDS task-list, §E / D-98-10).
+            <%!-- (1) Needs attention — problems FIRST (GDS task-list pattern).
                   Only non-zero problem counts; each entry deep-links to an
                   ALREADY-PARSED handle_params filter (pure <a>, no new routes). --%>
             <section data-rindle-admin-section="needs-attention">
@@ -103,9 +103,9 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
     defp count_value(model, path), do: get_in(model, path) || 0
 
     # Build the needs-attention task-list: ONLY non-zero problem counts, each a
-    # deep-link to an already-parsed filter (D-98-10, no new routes).
+    # deep-link to an already-parsed filter (no new routes).
     defp needs_attention(model, base_path) do
-      # CR-01: `RuntimeStatus.count_map/1` keys every state-count map with ATOMS
+      # `RuntimeStatus.count_map/1` keys every state-count map with ATOMS
       # (`String.to_atom(state)`), so these buckets MUST be read with atom keys —
       # `:failed`/`:stale`/`:quarantined`/`:expired` are real state-enum values.
       # `:orphaned` is NOT a provider_asset state; orphans come from the Doctor
@@ -146,10 +146,10 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       %{count: count, href: href, label: "#{count} #{noun}"}
     end
 
-    # CR-01: there is no `:orphaned` provider_asset state — orphan signal is the
+    # There is no `:orphaned` provider_asset state — orphan signal is the
     # Doctor's `:orphan_suspect` finding count (finding_counts/1 is atom-keyed by
-    # finding class). Reading a non-existent `[:counts, :provider_assets, :orphaned]`
-    # bucket would always be 0, so it is dropped entirely.
+    # finding class). A `[:counts, :provider_assets, :orphaned]` bucket would
+    # always read 0, so it is never consulted.
     defp orphan_count(model) do
       count_value(model, [:runtime_status, :runtime_checks, :counts, :orphan_suspect])
     end

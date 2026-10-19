@@ -5,11 +5,10 @@ if Code.ensure_loaded?(Phoenix.Component) do
     use Phoenix.Component
     alias Phoenix.LiveView.JS
 
-    # Task-first nav labels/order (UI-SPEC §E, D-98-03): relabel for task-scent,
-    # drop slashes, problems-first ordering. Slugs/suffixes are FROZEN behavior
-    # contracts (route suffixes + aria-current keys the surfaces pass via
-    # `active=`); only the human `name` changes. The relabel drops every legacy
-    # slashed/verb-bucket name in favor of the six task-first labels below.
+    # Task-first nav labels and order: plain task names, no slashes, problems
+    # first. Slugs/suffixes are FROZEN behavior contracts (route suffixes +
+    # aria-current keys the surfaces pass via `active=`); only the human `name`
+    # is presentation, so the six labels below can change without breaking links.
     @surfaces [
       %{name: "Overview", slug: "home-status", suffix: ""},
       %{name: "Assets", slug: "assets", suffix: "assets"},
@@ -23,19 +22,19 @@ if Code.ensure_loaded?(Phoenix.Component) do
     attr(:base_path, :string, default: "/admin/rindle")
     attr(:title, :string, required: true)
     attr(:live_status, :string, default: "Waiting for lifecycle events")
-    # Server-owned theme (D-98-07): shell learns the current theme at mount
+    # Server-owned theme: shell learns the current theme at mount
     # (session value / LiveView connect param) and threads it down so
     # `theme_picker` renders `aria-pressed` server-side and the root carries the
     # correct `data-theme` even on a dead-render/reconnect. `JS.set_attribute`
     # (select_theme/1) remains progressive enhancement ONLY.
     attr(:theme, :string, default: "auto", values: ["light", "dark", "auto"])
-    # Server-assign-driven dialog state (D-98-11 critical landmine): when a modal
+    # Server-assign-driven dialog state (load-bearing): when a modal
     # is open, `main`+`nav` get `inert` AND `aria-hidden`. Rendering this off an
     # assign (not solely client JS) means a LiveView reconnect/dead-render
     # re-renders the correct state — `main` is NEVER left inert.
     attr(:dialog_open, :boolean, default: false)
     slot(:inner_block, required: true)
-    # CR-02 overlay focus contract (D-98-11): `inert`/`aria-hidden` are applied to
+    # Overlay focus contract: `inert`/`aria-hidden` are applied to
     # `main`+`nav` when a dialog is open, so the live modal MUST be a SIBLING of
     # those regions, never a descendant — otherwise `inert` disables the dialog and
     # its destructive-confirmation inputs the instant it opens. Surfaces render their
@@ -89,13 +88,13 @@ if Code.ensure_loaded?(Phoenix.Component) do
           </header>
           {render_slot(@inner_block)}
         </main>
-        <%!-- CR-02: overlay host rendered as a SIBLING of (and AFTER) the inerted
+        <%!-- Overlay host rendered as a SIBLING of (and AFTER) the inerted
               `<main>`/`<nav>`. The live dialog lives here so it is NEVER a descendant
               of the inerted subtree — focus can move into it when `@dialog_open`. --%>
         <div :if={@overlay != []} data-rindle-admin-overlay-host>
           {render_slot(@overlay)}
         </div>
-        <%!-- Persistent ASSERTIVE live region (D-98-07): present at mount, empty
+        <%!-- Persistent ASSERTIVE live region: present at mount, empty
               until an async run-failure / action-error banner is announced into
               it. The POLITE region is `live_indicator`. --%>
         <div
@@ -112,11 +111,11 @@ if Code.ensure_loaded?(Phoenix.Component) do
       """
     end
 
-    # Server-owned `aria-pressed` (D-98-07): the attribute is rendered from the
+    # Server-owned `aria-pressed`: the attribute is rendered from the
     # `@theme` assign threaded from `shell/1` mount, so it is correct in
     # server-rendered (dead) markup and survives reconnect. `select_theme/1`
-    # (`JS.set_attribute`) is progressive enhancement only — no longer the source
-    # of truth.
+    # (`JS.set_attribute`) is progressive enhancement only, never the source of
+    # truth.
     attr(:theme, :string, default: "auto", values: ["light", "dark", "auto"])
 
     def theme_picker(assigns) do
@@ -131,9 +130,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
 
     attr(:copy, :string, default: "Waiting for lifecycle events")
 
-    # POLITE live region (D-98-07): routine state flips ("Variant ready") are
-    # announced here. Dropped the dead `tabindex="0"` (non-interactive <p>) and
-    # added role=status + aria-live=polite + aria-atomic. Decorative span keeps
+    # POLITE live region: routine state flips ("Variant ready") are announced
+    # here via role=status + aria-live=polite + aria-atomic. The <p> is
+    # non-interactive, so it takes no tabindex; the decorative span keeps
     # aria-hidden.
     def live_indicator(assigns) do
       ~H"""
@@ -254,11 +253,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Shared overlay primitive (D-98-11, UI-SPEC §D overlay focus contract). The
-    # ONE modal/dialog grammar the six admin surfaces compose for confirm /
-    # destructive flows — it REPLACES the inline confirm panels in actions_live.ex
-    # (no trap, no ESC, no return-focus). P2a ships ONLY the primitive; surfaces
-    # adopt it in P3.
+    # Shared overlay primitive (overlay focus contract). The ONE modal/dialog
+    # grammar the six admin surfaces compose for confirm / destructive flows, so
+    # every dialog gets the same focus trap, ESC handling and return-focus.
     #
     # Focus contract:
     #   * `Phoenix.Component.focus_wrap` traps Tab/Shift-Tab (NOT a hand-rolled
@@ -266,13 +263,13 @@ if Code.ensure_loaded?(Phoenix.Component) do
     #   * Open command (`show_modal/2`): `JS.push_focus()` stashes the trigger,
     #     the dialog is shown via `JS.transition` held for the 300ms token
     #     duration, then `JS.focus_first` moves focus into the trap. Reduced-motion
-    #     users wait the same 300ms but see no animation (CSS collapses duration —
-    #     acceptable, RESEARCH A2).
+    #     users wait the same 300ms but see no animation (CSS collapses the
+    #     duration), which keeps one code path for both preferences.
     #   * Close command (`hide_modal/2`): `JS.pop_focus()` returns focus to the
     #     stashed trigger; the dialog is hidden after the transition.
     #   * ESC closes via `phx-window-keydown` + `phx-key="escape"`.
     #
-    # CRITICAL inert/aria-hidden (D-98-11 landmine): `inert` AND `aria-hidden` on
+    # CRITICAL inert/aria-hidden: `inert` AND `aria-hidden` on
     # `main`+`nav` are SERVER-ASSIGN-DRIVEN via `shell/1`'s `@dialog_open` assign —
     # NOT toggled solely by client JS — so a LiveView dead-render/reconnect
     # re-renders the correct state and `main` is NEVER left inert. The caller's
@@ -282,7 +279,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     # `modal/1` renders `role="dialog"`; `confirm_dialog/1` renders
     # `role="alertdialog"` (destructive/confirm). Both carry `aria-modal="true"`
     # and `aria-labelledby`->the title element id. The dialog container keeps a
-    # permanent visible border (.rindle-admin-confirm-dialog, CSS authored in P1)
+    # permanent visible border (.rindle-admin-confirm-dialog in the generated CSS)
     # because a programmatically-focused container may not trigger :focus-visible.
     attr(:id, :string, required: true)
     attr(:show, :boolean, default: false)
@@ -338,9 +335,9 @@ if Code.ensure_loaded?(Phoenix.Component) do
 
     @doc false
     # Destructive/confirming overlay (role="alertdialog"). Same focus contract as
-    # modal/1. Body/heading copy follows UI-SPEC §F ("{Verb} this {noun}?", plain
-    # consequence sentence, no "!") — but per-surface confirm strings are wired in
-    # P3 via the slots; the primitive ships slots, not hard-coded surface copy.
+    # modal/1. Body/heading copy follows the admin confirm grammar ("{Verb} this
+    # {noun}?", plain consequence sentence, no "!"); each surface supplies its own
+    # confirm strings through the slots, so the primitive holds no surface copy.
     attr(:id, :string, required: true)
     attr(:show, :boolean, default: false)
     attr(:on_cancel, JS, default: %JS{})
@@ -389,7 +386,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Open command (D-98-11). Caller chains the server phx event that flips
+    # Open command. Caller chains the server phx event that flips
     # `dialog_open=true` (assign-driven inert is the source of truth); this helper
     # adds the focus/visibility progressive enhancement: stash the trigger via the
     # framework focus stack, show the overlay over the 300ms token duration, then
@@ -406,7 +403,7 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Close command (D-98-11): hide the overlay, return focus to the stashed
+    # Close command: hide the overlay, return focus to the stashed
     # trigger via the framework focus stack, and chain the caller's `on_cancel`
     # (the server event that flips `dialog_open=false`, restoring main+nav).
     def hide_modal(js \\ %JS{}, id) when is_binary(id) do
@@ -420,16 +417,15 @@ if Code.ensure_loaded?(Phoenix.Component) do
     end
 
     @doc false
-    # Level-3 page composition scaffold (D-98-01, UI-SPEC §A). The single page
-    # grammar that makes all six admin surfaces one system and structurally
-    # forbids page-local styling: NO grid/measure is declared here — every layout
-    # rule lives in the generated CSS (`.rindle-admin-page*` selectors authored in
-    # brandbook/src/admin-css-build.mjs, D-98-12). Slots render in canonical DOM
-    # order; `:work` is required (compile-time error if omitted). `:state` drives
-    # the existing empty/error/loading primitives so surfaces never re-implement
-    # them. The scaffold root carries a `data-rindle-admin-*` seam so both the
-    # gallery-check and Playwright homes can target it. Ends this plan
-    # existing-but-UNUSED (no surface is migrated onto it yet).
+    # Level-3 page composition scaffold. The single page grammar that makes all
+    # six admin surfaces one system and structurally forbids page-local styling:
+    # NO grid/measure is declared here — every layout rule lives in the generated
+    # CSS (`.rindle-admin-page*` selectors authored in
+    # brandbook/src/admin-css-build.mjs, the only CSS source). Slots render in
+    # canonical DOM order; `:work` is required (compile-time error if omitted).
+    # `:state` drives the existing empty/error/loading primitives so surfaces
+    # never re-implement them. The scaffold root carries a `data-rindle-admin-*`
+    # seam so both the gallery-check and Playwright homes can target it.
     attr(:state, :atom, default: :ok)
     attr(:error_surface, :string, default: "surface")
     slot(:summary)

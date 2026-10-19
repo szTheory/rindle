@@ -117,9 +117,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
               </a>
             </section>
 
-            <%!-- Distributed reconcile action (UI-SPEC §E, D-98-10): the
-                  reconcile/verify-storage verb moved off the Maintenance
-                  junk-drawer onto Doctor, where the operator diagnoses. --%>
+            <%!-- The reconcile/verify-storage action lives on Doctor, where the
+                  operator diagnoses, rather than on Maintenance. --%>
             <section data-rindle-admin-section="reconcile">
               <h2>Reconcile</h2>
               <p>Run a fresh Doctor pass to reconcile storage reachability and recorded runtime state.</p>
