@@ -198,17 +198,6 @@
       "reason": "Ignore rule files; every effective line is recorded in ignore_rules. Listed explicitly because an unanchored ** exclude pathspec does not combine reliably with other pathspecs."
     },
     {
-      "authority": "agent-tooling",
-      "consumer": [],
-      "disposition": "delete",
-      "id": "machine-local-junk",
-      "package": "excluded",
-      "pathspecs": [
-        ".mcp.json"
-      ],
-      "reason": "Machine-specific MCP server configuration with absolute local paths and no consumer in the repository."
-    },
-    {
       "authority": "hand-authored",
       "consumer": [
         "mix.exs"
@@ -963,6 +952,12 @@
     {
       "disposition": "ignore",
       "file": ".gitignore",
+      "produced_by": "machine-local MCP server configuration",
+      "rule": "/.mcp.json"
+    },
+    {
+      "disposition": "ignore",
+      "file": ".gitignore",
       "produced_by": "Codex runtime state",
       "rule": ".codex/*"
     },
@@ -1137,7 +1132,8 @@
     "roadmap.json",
     "state.json",
     "credo.json",
-    "credo.txt"
+    "credo.txt",
+    ".mcp.json"
   ],
   "verification_ignored_roots": [
     "_build/",
