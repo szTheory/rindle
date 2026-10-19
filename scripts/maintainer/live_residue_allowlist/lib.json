@@ -1,0 +1,198 @@
+{
+  "schema": "rindle-live-residue-allowlist-v1",
+  "area": "lib",
+  "entries": [
+    {
+      "path": ".doctor.exs",
+      "class": "decision-id",
+      "text": "# D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": ".doctor.exs",
+      "class": "decision-id",
+      "text": "# per the D-22 baseline-then-ratchet pattern. The ratchet harness at",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": ".doctor.exs",
+      "class": "decision-id",
+      "text": "# test/rindle/doctor_thresholds_test.exs (D-23) asserts these exact values and",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# CR-02 overlay focus contract (D-98-11): `inert`/`aria-hidden` are applied to",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# CRITICAL inert/aria-hidden (D-98-11 landmine): `inert` AND `aria-hidden` on",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Close command (D-98-11): hide the overlay, return focus to the stashed",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Level-3 page composition scaffold (D-98-01, UI-SPEC §A). The single page",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Open command (D-98-11). Caller chains the server phx event that flips",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# POLITE live region (D-98-07): routine state flips (\"Variant ready\") are",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Server-assign-driven dialog state (D-98-11 critical landmine): when a modal",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Server-owned `aria-pressed` (D-98-07): the attribute is rendered from the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Server-owned theme (D-98-07): shell learns the current theme at mount",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Shared overlay primitive (D-98-11, UI-SPEC §D overlay focus contract). The",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# Task-first nav labels/order (UI-SPEC §E, D-98-03): relabel for task-scent,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "# brandbook/src/admin-css-build.mjs, D-98-12). Slots render in canonical DOM",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "decision-id",
+      "text": "<%!-- Persistent ASSERTIVE live region (D-98-07): present at mount, empty",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "decision-id",
+      "text": "# NOTE (UI-SPEC §E, D-98-10): the lifecycle-repair (reconcile) and",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/assets_live.ex",
+      "class": "decision-id",
+      "text": "<%!-- Distributed quarantine review (UI-SPEC §E, D-98-10): the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/home_live.ex",
+      "class": "decision-id",
+      "text": "# deep-link to an already-parsed filter (D-98-10, no new routes).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/home_live.ex",
+      "class": "decision-id",
+      "text": "<%!-- (1) Needs attention — problems FIRST (GDS task-list, §E / D-98-10).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/runtime_doctor_live.ex",
+      "class": "decision-id",
+      "text": "<%!-- Distributed reconcile action (UI-SPEC §E, D-98-10): the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/variants_jobs_live.ex",
+      "class": "decision-id",
+      "text": "# Distributed \"Regenerate variants\" action (UI-SPEC §E, D-98-10/11): the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/queries.ex",
+      "class": "decision-id",
+      "text": "Maintenance directory (UI-SPEC §E, D-98-10): the \"Actions\" verb-bucket is a",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/queries.ex",
+      "class": "decision-id",
+      "text": "`variants-jobs/:id` `:show` route (D-98-09).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    }
+  ]
+}

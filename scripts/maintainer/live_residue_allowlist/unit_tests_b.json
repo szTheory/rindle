@@ -1,0 +1,462 @@
+{
+  "schema": "rindle-live-residue-allowlist-v1",
+  "area": "unit_tests_b",
+  "entries": [
+    {
+      "path": "test/rindle/ops/runtime_checks_streaming_test.exs",
+      "class": "decision-id",
+      "text": "describe \"doctor.streaming_smoke_ping flag-gate (D-07)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/ops/runtime_checks_streaming_test.exs",
+      "class": "decision-id",
+      "text": "describe \"profile-discovery gate (D-06)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/presets/mux_web_test.exs",
+      "class": "decision-id",
+      "text": "test \"inherits Web's web_720p + poster variants verbatim (D-01, D-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/presets/mux_web_test.exs",
+      "class": "decision-id",
+      "text": "test \"scrub_strip flag passes through to Web.variants/1 (D-01 passthrough)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/presets/mux_web_test.exs",
+      "class": "decision-id",
+      "text": "test \"writes the locked streaming block to delivery_policy/0 (D-02)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/profile_test.exs",
+      "class": "decision-id",
+      "text": "\"image-default variant must omit :kind from validated map (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "\"default :image must omit :kind from validated map (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "\"explicit :image must ALSO omit :kind for digest parity with default :image (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "describe \"validate_delivery! :streaming key (Phase 33 STREAM-05; D-15..D-18)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "describe \"validate_variant! :from_variant rejection (AV-02-08, D-15)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \":kind => :unknown raises with allowed-list fix hint (D-13)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"AV-only profile (variant kind: :video) compiles without :streaming (D-17)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"explicit :kind => :image compiles and ALSO omits :kind from validated map (D-14 invariant)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"explicit streaming: nil → delivery.streaming is nil (D-17)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"full valid :streaming config compiles and produces all 4 keys (D-15)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"image-only profile compiles without :streaming (D-17 regression)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"no :streaming key → delivery.streaming is nil (D-17)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"raw provider knob :input raises (D-16)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"raw provider knob :max_resolution_tier raises (D-16)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"source_variant atom not declared in variants/0 raises (D-18 partial)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/profile/validator_test.exs",
+      "class": "decision-id",
+      "text": "test \"source_variant points at :image-kind variant compiles in Phase 33 (D-18 deferred to Phase 34)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/gcs/signer_test.exs",
+      "class": "decision-id",
+      "text": "describe \"url/3 — TTL fallback (D-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/gcs/signer_test.exs",
+      "class": "decision-id",
+      "text": "test \"URL never contains response-content-disposition or response-content-type query params (D-03)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/gcs_test.exs",
+      "class": "decision-id",
+      "text": "# D-03 (content-type as object metadata) is wired end-to-end against a",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Broker.initiate_tus_upload/2 (D-10/D-11)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Local tmp-append + atomic-rename backing (D-01/Pitfall 5)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"capability honesty (D-09)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/storage/local_tus_test.exs",
+      "class": "decision-id",
+      "text": "describe \"resumable_protocol column (D-10)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/capabilities_test.exs",
+      "class": "decision-id",
+      "text": "describe \"absence of require_streaming/2 (D-03 — Phase 37 / MUX-22)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/capabilities_test.exs",
+      "class": "decision-id",
+      "text": "test \"returns the locked 5-atom vocabulary in D-02 order\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "# This file owns the D-29 typed-branch contract: `video.upload.asset_created`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "# ids in the fixture (Plan 03 — D-36); they MUST be distinct.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "assert evt.provider_asset_id == asset_id, \"MUST be data.asset_id (D-29)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "assert evt.upload_id == upload_id, \"MUST be data.id (D-29)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/event_test.exs",
+      "class": "decision-id",
+      "text": "describe \"normalize/1 — video.upload.asset_created (D-29 typed branch)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# D-04 memo correction: PLURAL keys at SDK boundary.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# HMAC recipe centralized in Rindle.Test.MuxWebhookFixtures (D-34).",
+      "count": 2,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# WR-02 (POLISH-01/D-13) — case-insensitive signature header lookup",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "decision-id",
+      "text": "# WR-05 (POLISH-01/D-13) — unknown Mux status -> nil + Logger.warning",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/optional_dep_test.exs",
+      "class": "decision-id",
+      "text": "# MUX-01 smoke test (D-31, D-33). The :mux and :jose deps are loaded in the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "decision-id",
+      "text": "describe \"behaviour_info(:callbacks) (D-04 lock)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "decision-id",
+      "text": "test \"declares create_direct_upload/2 and cancel_direct_upload/1 as optional (D-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider_test.exs",
+      "class": "decision-id",
+      "text": "test \"does NOT declare streaming_url/3 as a callback (D-05 — Rindle.Delivery owns dispatch)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/broker_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/lifecycle_integration_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_local_backing_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_local_backing_test.exs",
+      "class": "decision-id",
+      "text": "promotion lane that `TusPlug` completion converges into (D-08): append grows the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/upload/tus_s3_integration_test.exs",
+      "class": "decision-id",
+      "text": "# UNCHANGED Broker.verify_completion/2 lane (D-08), which enqueues PromoteAsset",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/maintenance_workers_test.exs",
+      "class": "decision-id",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "decision-id",
+      "text": "# D-04 memo correction: PLURAL keys at SDK boundary.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_ingest_variant_test.exs",
+      "class": "decision-id",
+      "text": "# WR-09 (POLISH-01/D-13) — :exception telemetry redacts the error reason",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_coordinator_test.exs",
+      "class": "decision-id",
+      "text": "# WR-08 (POLISH-01/D-13) — distinguish fresh / dedup'd / failed inserts.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "# WR-04 (POLISH-01/D-13) — invalid FSM transition reconciles to :errored",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/workers/mux_sync_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "# WR-06 (POLISH-01/D-13) — adapter failure persists last_sync_error",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/mux_webhook_fixtures.ex",
+      "class": "decision-id",
+      "text": "# HMAC recipe (D-35, byte-accurate against SDK):",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/mux_webhook_fixtures.ex",
+      "class": "decision-id",
+      "text": "# need to forge stale signatures (D-34).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "schema": "rindle-live-residue-allowlist-v1",
+  "area": "unit_tests_a",
+  "entries": [
+    {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "decision-id",
+      "text": "# DISTRIBUTED to their contextual surfaces (UI-SPEC §E, D-98-10); only the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "decision-id",
+      "text": "# Distributed verbs (UI-SPEC §E, D-98-10): the regenerate / reconcile /",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "decision-id",
+      "text": "# Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "decision-id",
+      "text": "# detail, where the operator already has the asset in context (D-98-10).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "decision-id",
+      "text": "# Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "decision-id",
+      "text": "# confirms through the shared confirm_dialog/1 primitive (D-98-10/11).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "decision-id",
+      "text": "# no longer live in the Maintenance directory (D-98-10).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/queries_test.exs",
+      "class": "decision-id",
+      "text": "test \"actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-01 expands all read-surface LiveView routes\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-01 exposes the router macro when LiveView is loaded\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-02 accepts auth_guarded? acknowledgement during route expansion\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-02 accepts host on_mount auth and explicit auth_guarded? acknowledgement\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-03 allows explicit unauthenticated mounts only outside production\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-03 rejects allow_unauthenticated? as a production escape hatch\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-04 preserves host route, socket, transport, CSP, and on_mount options\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/router_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-89-05 expands exact namespaced static asset routes\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/api_surface_boundary_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-03 reconciliation keeps storage adapters public alongside the facade allowlist\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/api_surface_boundary_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-05 domain invariants resolve to hidden module docs\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/api_surface_boundary_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-05 helper modules resolve to hidden module docs\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/api_surface_boundary_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-06 ops and internal workers resolve to hidden module docs\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/metadata_sanitizer_test.exs",
+      "class": "decision-id",
+      "text": "test \"strips \\\\n and \\\\r (literal D-19; see RESEARCH.md A3)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_epipe_canary_test.exs",
+      "class": "decision-id",
+      "text": "# ADVISORY canary (D-11/D-12): probes the UNGUARDED MuonTrap.cmd/3 and asserts MuonTrap #98",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_epipe_canary_test.exs",
+      "class": "decision-id",
+      "text": "# D-12), so a bare `mix test` never runs this file. It is opted back in ONLY by the nightly lane's",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_epipe_test.exs",
+      "class": "decision-id",
+      "text": "# (2) Deterministic synthetic — pre-reply retry branch (D-05 bounded single retry + D-07 log).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_epipe_test.exs",
+      "class": "decision-id",
+      "text": "# independent of the global level (the breadcrumb is emitted at :debug, D-07).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "decision-id",
+      "text": "\"validator must omit :kind from validated map for image-default profiles (D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "decision-id",
+      "text": "image-default specs (D-14 violation) and every existing adopter's image",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "decision-id",
+      "text": "test \"image-default :thumb digest matches v1.3 snapshot (per D-14, D-22, D-23)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/behaviour_docs_test.exs",
+      "class": "decision-id",
+      "text": "D-19 backstop: every @callback on a public behaviour module MUST have a",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/behaviour_docs_test.exs",
+      "class": "decision-id",
+      "text": "See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/capability_test.exs",
+      "class": "decision-id",
+      "text": "# Must NOT raise — D-30 mandates Application.get_env/2 (returns []), not",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/config/config_test.exs",
+      "class": "decision-id",
+      "text": "# Application-env resolution path of Config.repo/0 itself (D-10) — MUST keep put_env",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/config/config_test.exs",
+      "class": "decision-id",
+      "text": "# cross-pollution. See Phase 110 D-09/D-10.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/contracts/telemetry_contract_test.exs",
+      "class": "decision-id",
+      "text": "Per D-04/D-05/D-06 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "decision-id",
+      "text": "Branch matrix (from CONTEXT.md D-19 + Plan 33-03):",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "decision-id",
+      "text": "Per-branch coverage for `Rindle.Delivery.streaming_url/3` D-19 dispatch tree",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Branch 7: no row + strict opt → :provider_asset_not_ready (D-20)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Repo.get_by lookup keys (D-21, D-22)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/webhook_plug_test.exs",
+      "class": "decision-id",
+      "text": "# D-37 — synthetic conns don't run Plug.Parsers, so we pre-populate the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/webhook_plug_test.exs",
+      "class": "decision-id",
+      "text": "# an empty binary, which the Plug treats as body_reader_missing (D-16).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "decision-id",
+      "text": "# (it is one of the 6 required callbacks per D-04).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "decision-id",
+      "text": "# D-05 (Phase 33): streaming_url/3 dispatch lives on Rindle.Delivery only,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "decision-id",
+      "text": "# callback was removed when the behaviour was promoted (see D-08 — the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "decision-id",
+      "text": "test \"Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/doctor_thresholds_test.exs",
+      "class": "decision-id",
+      "text": "test \"the configured Doctor ratchet remains at the D-07 target\", %{config: config} do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/lifecycle_fsm_test.exs",
+      "class": "decision-id",
+      "text": "test \"analyzing → quarantined is allowed (NEW; probe-failure path per AV-02-09; A4 deviation from D-09)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/media_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "describe \"Inspect redaction (security invariant 14, D-14)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/media_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "describe \"changeset last_sync_error truncation (D-09)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/media_provider_asset_test.exs",
+      "class": "decision-id",
+      "text": "describe \"unique constraints (D-10)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "describe \"telemetry on accepted transitions (D-12)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "describe \"transition matrix — errored branches (D-13)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "describe \"transition matrix — nominal happy path (D-13)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "describe \"transition matrix — re-ingest re-entry edge (D-13 critical)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "describe \"transition matrix — rejection coverage (D-13)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "describe \"transition matrix — terminal-delete (D-13)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "decision-id",
+      "text": "test \"allowed_transitions/0 returns the locked D-13 map\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    }
+  ]
+}

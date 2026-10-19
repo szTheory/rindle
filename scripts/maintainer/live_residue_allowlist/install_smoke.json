@@ -1,0 +1,470 @@
+{
+  "schema": "rindle-live-residue-allowlist-v1",
+  "area": "install_smoke",
+  "entries": [
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "# (D-11) do NOT match.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "# ISO-04 (D-07): collects every :rindle/:repo global swap in a module body. Applies",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "# ISO-04 (D-07/D-08/D-11): no test module — async:true OR async:false — may swap",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "# ISO-04 (D-07/D-11): matches `Application.put_env(:rindle, :repo, _)` /",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "# ISO-04 (D-08): mirrors `parse_async_true_modules/1` MINUS the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "# ISO-04 (D-08): the :global_repo_swap rule scans EVERY module (the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/async_safety_guard_test.exs",
+      "class": "decision-id",
+      "text": "Static async-safety guard (HARD-01, D-02).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/focus_visible_modality_guard_test.exs",
+      "class": "decision-id",
+      "text": "# Count-based dual-assert (RESEARCH Pattern 2 / Open Q1, D-03): admin-polish.js has",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/focus_visible_modality_guard_test.exs",
+      "class": "decision-id",
+      "text": "## What it asserts (dual-assert, D-03)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/focus_visible_modality_guard_test.exs",
+      "class": "decision-id",
+      "text": "LOCK-04 (Phase 111, D-03) — focus-visible keyboard-modality regression lock.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/focus_visible_modality_guard_test.exs",
+      "class": "decision-id",
+      "text": "instead of inlining the raw call-form (LOCK-04, D-03).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"#{job} must have no prerequisites: D-08 removes only quality and optional-dependencies\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"cancel-in-progress must NOT be an unconditional `true` (would cancel push:main runs, D-06 footgun, LANE-01)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"ci-summary.needs must OMIT `package-consumer-full` — it is `if: != pull_request`, so listing it would emit a green-checkmark lie about a skipped lane (D-09, LANE-02)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"gcs-soak must NOT remain a job in ci.yml — it was moved to nightly.yml (LANE-03/D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"gcs-soak must live in nightly.yml (moved off ci.yml by Phase 106, LANE-03/D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"nightly-failure-issue must NOT grant contents: write — least privilege, it cannot push code (LANE-03/D-16)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"nightly-failure-issue must declare a job-scoped permissions block (least privilege, LANE-03/D-16)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"nightly-failure-issue must grant `issues: write` to open/update the tracking issue (LANE-03/D-16)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"nightly.yml must have NO pull_request trigger — it must never become a PR-required check (LANE-03, D-12)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"nightly.yml must have NO push trigger — a `CI`/push run would fire release-please-automerge (LANE-03, D-12)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"package-consumer-full must have NO continue-on-error key — a failed leg must make the push:main conclusion non-success so the release gate blocks (LANE-02, D-08)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"package-consumer-gcs-live must NOT remain a job in ci.yml — it was moved to nightly.yml (LANE-03/D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"package-consumer-gcs-live must live in nightly.yml (moved off ci.yml by Phase 106, LANE-03/D-14)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"the nightly Dialyzer job must have NO continue-on-error key — it is the owned GATING type-contract signal (LANE-03, D-17)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"the nightly Dialyzer job must run the owned fresh-PLT analyzer (LANE-03, D-17)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "\"the nightly Dialyzer job must run the owned restored-PLT analyzer (LANE-03, D-17)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "# Guard against the D-06 footgun: a bare `cancel-in-progress: true` would",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "assert job_block(ci, job) =~ token, \"#{job} must retain #{inspect(token)} (D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-08 exact six-edge topology\", %{ci: ci} do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "test \"LANE-02: ci-summary needs the lean package-consumer but OMITS package-consumer-full (D-09)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "decision-id",
+      "text": "test \"phase 132 D-09 freezes affected job authorities and the required aggregation graph\", %{",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_observability_test.exs",
+      "class": "decision-id",
+      "text": "\"the WORKFLOW-level default must NOT become `actions: read` — that scope is granted only at the ci-observability JOB level (OBS-01 gate-unchanged, D-03)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/ci_observability_test.exs",
+      "class": "decision-id",
+      "text": "\"the WORKFLOW-level permissions must stay `contents: read` (OBS-01 gate-unchanged, D-03)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs",
+      "class": "mojibake",
+      "text": "refute Regex.match?(~r/DELETE\\s*\\|\\s*Ã¢ÂÂ/, moduledoc)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs",
+      "class": "mojibake",
+      "text": "refute Regex.match?(~r/PATCH\\s*\\|\\s*Ã¢ÂÂ/, moduledoc)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/docs_parity/operations_test.exs",
+      "class": "mojibake",
+      "text": "\"operations.md must affirm the mountable admin console in prose (TRUTH-07) ÃÂ¢ÃÂÃÂ \" <>",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/docs_parity/operations_test.exs",
+      "class": "mojibake",
+      "text": "# reworked ÃÂ¢ÃÂÃÂ re-asserting the bare denial phrase would relock the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/nightly_policy_test.exs",
+      "class": "decision-id",
+      "text": "# D-134-08: never pin an action commit SHA literally in a test. The pin is derived",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "\"ci.yml line 1 must stay exactly `name: CI` — release-please-automerge `workflows: [CI]` + gate-ci-green `workflow_id: ci.yml` are coupled to it (D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "\"ci.yml must declare the `ci-summary` job (the required-check carrier, D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "\"release-train-drift must NOT appear in the ci-summary `needs:` list — it stays OFF the sole required path (D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "\"the ci-summary job must keep the byte-stable required-check name `CI Summary` (D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "\"the token guard must be a STEP inside release-please, not a new top-level job (D-06b/D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "\"the token guard must not surface as a new job/check name (D-06b/D-09)\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "# D-09: neither guard sneaks onto the sole required CI path.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "- .github/workflows/ci.yml (D-09: guards stay OFF the required path)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "D-06 release-train recurrence guards and the D-09 release-coupling invariant.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "D-09 is the load-bearing invariant: the new guards must NEVER appear in the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-09 GATE-BYTE-STABLE: ci.yml line 1 is `name: CI` and the ci-summary job carries `name: CI Summary`\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/release_guard_meta_test.exs",
+      "class": "decision-id",
+      "text": "test \"D-09: the ci-summary `needs:` block does NOT reference release-train-drift\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/patcher.ex",
+      "class": "decision-id",
+      "text": "# Phase 36 D-21 / Pitfall 3: Mux config block is appended AFTER the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/patcher.ex",
+      "class": "decision-id",
+      "text": "# Phase 36 cassette lane (D-16): Mox mock for the Mux HTTP client behaviour.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/patcher.ex",
+      "class": "decision-id",
+      "text": "# variants verbatim (D-04 byte-identical), but with a locked streaming",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
+      "class": "decision-id",
+      "text": "# D-22 layer 1: soak-mode delete-on-finally so the asset is reaped",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
+      "class": "decision-id",
+      "text": "# Phase 36 D-15 / Pitfall 2: the `:mux` lane mirrors the `:video` lane's",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
+      "class": "decision-id",
+      "text": "# Phase 36 D-15: byte-identical to the :video lane (D-04 contract).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
+      "class": "decision-id",
+      "text": "# even if assertions fail (D-22 layer 1). In CASSETTE mode the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    }
+  ]
+}
