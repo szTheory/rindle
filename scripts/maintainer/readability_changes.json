@@ -17,6 +17,31 @@
     "sha256": "a56c8b6e68e68a84c1355247359733e60be9596a6582a4525488b5d23880bde4",
     "subject_sha": "3858267b4837d04367f1d26b1ee74651e507ea77"
   },
-  "changes": [],
+  "changes": [
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.Nesting",
+        "file": "lib/rindle/ops/sweep_orphaned_temp_files.ex",
+        "observed_metric": 3,
+        "trigger": "if"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/ops/sweep_orphaned_temp_files.ex"
+      ],
+      "id": "craft-sweep-orphaned-temp-files-nesting",
+      "intent": "cohesion",
+      "pr": null,
+      "proof": [
+        "bash scripts/maintainer/credo_quality.sh",
+        "bash scripts/maintainer/refactor_contract.sh",
+        "mix test test/rindle/ops/sweep_orphaned_temp_files_test.exs test/rindle/public_surface_snapshot_test.exs test/install_smoke/credo_policy_test.exs",
+        "bash scripts/maintainer/craft_boundary_check.sh origin/main",
+        "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Move the tus-versus-run-dir directory dispatch and run-dir ageing out of process_run_dir/4 into sweep_directory/5 and age_run_dir/5; report counts unchanged."
+    }
+  ],
   "schema": "rindle-readability-changes-v1"
 }

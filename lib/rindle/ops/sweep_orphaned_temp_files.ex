@@ -89,29 +89,37 @@ defmodule Rindle.Ops.SweepOrphanedTempFiles do
   defp process_run_dir(path, threshold_time, dry_run?, acc) do
     case File.lstat(path) do
       {:ok, %File.Stat{type: :directory, mtime: mtime}} ->
-        # The shared `tus/` subdir holds individual resumable-upload backing
-        # files whose own mtimes age, but the directory mtime is perpetually
-        # refreshed on write — so recurse and age out the files themselves
-        # instead of waiting for the whole directory to cross the
-        # threshold (which never happens on an active system).
-        if Path.basename(path) == "tus" do
-          sweep_tus_dir(path, threshold_time, dry_run?, acc)
-        else
-          run_dir_mtime = mtime_to_unix(mtime)
-          acc = %{acc | run_dirs_scanned: acc.run_dirs_scanned + 1}
-
-          if run_dir_mtime < threshold_time do
-            delete_run_dir(path, dry_run?, acc)
-          else
-            acc
-          end
-        end
+        sweep_directory(path, mtime, threshold_time, dry_run?, acc)
 
       {:ok, _stat} ->
         acc
 
       {:error, _reason} ->
         %{acc | errors: acc.errors + 1}
+    end
+  end
+
+  # The shared `tus/` subdir holds individual resumable-upload backing files
+  # whose own mtimes age, but the directory mtime is perpetually refreshed on
+  # write — so recurse and age out the files themselves instead of waiting for
+  # the whole directory to cross the threshold (which never happens on an
+  # active system). Every other directory is an AV run dir aged as a whole.
+  defp sweep_directory(path, mtime, threshold_time, dry_run?, acc) do
+    if Path.basename(path) == "tus" do
+      sweep_tus_dir(path, threshold_time, dry_run?, acc)
+    else
+      age_run_dir(path, mtime, threshold_time, dry_run?, acc)
+    end
+  end
+
+  defp age_run_dir(path, mtime, threshold_time, dry_run?, acc) do
+    run_dir_mtime = mtime_to_unix(mtime)
+    acc = %{acc | run_dirs_scanned: acc.run_dirs_scanned + 1}
+
+    if run_dir_mtime < threshold_time do
+      delete_run_dir(path, dry_run?, acc)
+    else
+      acc
     end
   end
 
