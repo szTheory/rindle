@@ -52,9 +52,37 @@ defmodule Rindle.Maintainer.LiveResidueScan do
   defp line_classes do
     [
       {"decision-id", :line, ~r/(?<![A-Za-z])D-\d{1,3}(?:-\d{2})?\b/},
+      {"requirement-id", :line, requirement_regex()},
+      {"phase-ref", :line, ~r/\bPhase[ -]?\d{1,3}\b/},
+      {"spec-ref", :line, spec_regex()},
+      {"planning-path", :line, planning_regex()},
+      {"milestone-ref", :line, ~r/(?<![A-Za-z0-9.])v1\.\d{1,2}\b/},
+      {"plan-ref", :line, ~r/\bPlan[ -]\d{1,3}(?:-\d{1,3})?\b/},
       {"mojibake", :line, mojibake_regex()}
     ]
   end
+
+  @requirement_prefixes ~w(CRAFT HYGIENE EVID TRUTH COV EPIPE GATE ISO LOCK OBS CACHE LANE HARD
+                           INBOX SEC DEPS TWIN PIPE UPLIFT COHORT VIS ADMIN SAFE META MIGRATE
+                           EVAL TRUST COMPAT STREAM LIFE DX MAINT TYPE)
+
+  defp requirement_regex do
+    Regex.compile!("\\b(?:" <> Enum.join(@requirement_prefixes, "|") <> ")-\\d{2}\\b")
+  end
+
+  defp spec_regex do
+    Regex.compile!(
+      "UI-" <>
+        "SPEC|\\b\\d{2,3}-(?:RESEARCH|CONTEXT|PLAN|SUMMARY|VALIDATION)\\.md" <>
+        "|\\b(?:CR|WR|IN)-\\d{2}\\b|Assumption A\\d"
+    )
+  end
+
+  # The internal planning directory token, assembled from fragments.
+  defp planning_regex, do: Regex.compile!("\\." <> "planning/")
+
+  # Tracked paths whose file name carries phase or plan numbering.
+  defp path_name_regex, do: ~r/(?:^|\/)[^\/]*(?:phase|plan)[_-]\d{2,3}(?:[_.-]|$)/i
 
   # Decoded-text mojibake: U+FFFD, U+00C3/U+00C2 followed by U+0080..U+00BF, or
   # U+00E2 U+20AC. Assembled with escapes so the source stays pure ASCII.
@@ -181,6 +209,16 @@ defmodule Rindle.Maintainer.LiveResidueScan do
   end
 
   defp scan_content(rel, content) do
+    path_name_hits(rel) ++ scan_text(rel, content)
+  end
+
+  defp path_name_hits(rel) do
+    if Regex.match?(path_name_regex(), rel),
+      do: [%{path: rel, class: "path-name", line: 1, text: rel}],
+      else: []
+  end
+
+  defp scan_text(rel, content) do
     cond do
       binary?(rel, content) ->
         []
@@ -273,10 +311,25 @@ defmodule Rindle.Maintainer.LiveResidueScan do
 
   defp validate_entry(_entry, _area, name), do: {:error, "#{name}: entry is not an object"}
 
-  defp validate_reason(_entry, _label), do: :ok
+  defp validate_reason(entry, label) do
+    reason_class = entry["reason_class"]
+    reason = entry["reason"]
+
+    cond do
+      reason_class not in @reason_classes ->
+        {:error, "#{label}: unknown reason_class #{inspect(reason_class)}"}
+
+      reason_class != "pending-removal" and
+          not (is_binary(reason) and String.trim(reason) != "") ->
+        {:error, "#{label}: #{reason_class} entry needs a non-empty reason"}
+
+      true ->
+        :ok
+    end
+  end
 
   def class_names do
-    ["mojibake", "decision-id"]
+    ["path-name" | Enum.map(line_classes(), &elem(&1, 0))]
   end
 
   defp key(%{} = e), do: {e["path"], e["class"], e["text"]}

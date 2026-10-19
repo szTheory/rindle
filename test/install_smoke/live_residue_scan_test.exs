@@ -130,6 +130,117 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
              ])
   end
 
+  # --------------------------------------------------------------- Task 2
+
+  @planted_classes [
+    {"requirement-id", "lib/planted.ex", "# per " <> "CRAFT" <> "-04\n"},
+    {"phase-ref", "lib/planted.ex", "# see " <> "Phase" <> " 12\n"},
+    {"spec-ref", "lib/planted.ex", "# layout " <> "UI" <> "-SPEC section\n"},
+    {"planning-path", "lib/planted.ex", "# reads " <> "." <> "planning" <> "/PROJECT.md\n"},
+    {"milestone-ref", "lib/planted.ex", "# since " <> "v1" <> ".7 only\n"},
+    {"plan-ref", "lib/planted.ex", "# from " <> "Plan" <> " 05-04\n"},
+    {"path-name", "scripts/phase_" <> "132_thing.json", "{}\n"}
+  ]
+
+  for {class, path, content} <- @planted_classes do
+    test "planted #{class} violation fails with that class" do
+      root = fixture(%{unquote(path) => unquote(content)})
+      dir = shards(root, %{})
+
+      {output, status} = run_fixture(root, dir, ["--check"])
+
+      assert status == 1
+      assert output =~ unquote(path) <> ":"
+      assert output =~ ": #{unquote(class)}: "
+    end
+  end
+
+  test "--require-no-pending AREA fails only for pending entries in that shard" do
+    text = "# per " <> "CRAFT" <> "-04"
+    root = fixture(%{"lib/planted.ex" => text <> "\n"})
+
+    pending = %{"lib" => [entry("lib/planted.ex", "requirement-id", text, 1)]}
+    dir = shards(root, pending)
+
+    {output, status} = run_fixture(root, dir, ["--check", "--require-no-pending", "lib"])
+    assert status == 1
+    assert output =~ "pending-removal entry remains in lib"
+
+    {_, other_status} =
+      run_fixture(root, dir, ["--check", "--require-no-pending", "unit_tests_b"])
+
+    assert other_status == 0
+
+    {_, all_status} = run_fixture(root, dir, ["--check", "--require-no-pending", "all"])
+    assert all_status == 1
+  end
+
+  test "--require-no-pending passes when only contract entries remain" do
+    text = "# per " <> "CRAFT" <> "-04"
+    root = fixture(%{"lib/planted.ex" => text <> "\n"})
+
+    dir =
+      shards(root, %{
+        "lib" => [
+          entry(
+            "lib/planted.ex",
+            "requirement-id",
+            text,
+            1,
+            "contract",
+            "The id is the contract."
+          )
+        ]
+      })
+
+    assert {_, 0} = run_fixture(root, dir, ["--check", "--require-no-pending", "all"])
+  end
+
+  test "a non-pending entry with an empty reason is rejected" do
+    text = "# per " <> "CRAFT" <> "-04"
+    root = fixture(%{"lib/planted.ex" => text <> "\n"})
+
+    dir =
+      shards(root, %{"lib" => [entry("lib/planted.ex", "requirement-id", text, 1, "policy", " ")]})
+
+    {output, status} = run_fixture(root, dir, ["--check"])
+    assert status == 1
+    assert output =~ "needs a non-empty reason"
+  end
+
+  test "an unknown reason_class is rejected" do
+    text = "# per " <> "CRAFT" <> "-04"
+    root = fixture(%{"lib/planted.ex" => text <> "\n"})
+
+    dir =
+      shards(root, %{
+        "lib" => [entry("lib/planted.ex", "requirement-id", text, 1, "tolerated", "x")]
+      })
+
+    {output, status} = run_fixture(root, dir, ["--check"])
+    assert status == 1
+    assert output =~ "unknown reason_class"
+  end
+
+  test "contract-classed message text is protected in the live shards" do
+    lib = live_shard("lib")
+
+    assert Enum.any?(lib["entries"], fn e ->
+             e["path"] == "lib/rindle/error.ex" and e["class"] == "milestone-ref" and
+               e["reason_class"] == "contract"
+           end)
+
+    generators = live_shard("automation_generators")
+
+    receipts =
+      for e <- generators["entries"],
+          e["path"] == "scripts/ci/verify_nightly_run.sh" and e["class"] == "planning-path",
+          do: e["reason_class"]
+
+    assert receipts != []
+    assert Enum.all?(receipts, &(&1 == "immutable-receipt"))
+  end
+
   # ----------------------------------------------------------------- helpers
 
   defp excluded_paths_in_source do
@@ -145,6 +256,12 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
 
   # Joins fragments so no source line carries a flagged identifier verbatim.
   defp d(a, b), do: a <> b
+
+  defp live_shard(area) do
+    Path.join(@repo_root, "scripts/maintainer/live_residue_allowlist/#{area}.json")
+    |> File.read!()
+    |> Jason.decode!()
+  end
 
   defp entry(path, class, text, count, reason_class \\ "pending-removal", reason \\ "") do
     %{

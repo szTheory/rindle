@@ -3,6 +3,166 @@
   "area": "examples_docs",
   "entries": [
     {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "**Automated coding agents:** honor the constraints in this file; keep edits focused, run the checks **RUNNING.md** names for your change, and update **`.planning/PROJECT.md`** when you intentionally change product scope or shipped claims.",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained planning documents."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "**Contributors:** follow [`guides/release_publish.md`](guides/release_publish.md) and [`RUNNING.md`](RUNNING.md) for CI lanes and release gates. When **`.planning/`** is present, it holds milestone context for maintainers.",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained planning documents."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "- prefer **PR-first** execution for serious milestone or feature-depth work (see [`.planning/DEVELOPMENT-TRAIN.md`](.planning/DEVELOPMENT-TRAIN.md))",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained planning documents."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "- when the release train is idle and there is no approved work item, say so plainly instead of inventing work (**silence on the wire** — see [`.planning/RELEASE-TRAIN.md`](.planning/RELEASE-TRAIN.md))",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained planning documents."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "If subagents still bill API models, fall back to manual picker only (remove `model_overrides` from `.planning/config.json`, keep `inherit` + `omit`).",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained planning documents."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "This repo uses a **Cursor-only** GSD overlay (see `.planning/config.json`):",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained planning documents."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "requirement-id",
+      "text": "- avoid speculative milestone reopening during `demand-gated-pause` unless LIFE-06 or STREAM-10 signal exists",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The agent instructions name the demand signals that gate reopening a milestone."
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "class": "requirement-id",
+      "text": "4. `quality_signals` — curated Credo, measured public-doc health, and SAFE-01",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "class": "requirement-id",
+      "text": "| Operations, runtime checks, migration diagnostics | `mix test test/rindle/ops test/rindle/migration_fast_test.exs` | SAFE-01 + Integration migration proofs |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "class": "requirement-id",
+      "text": "| Public facade, profiles, domain schemas/FSMs | `mix test test/rindle/api_surface_boundary_test.exs test/rindle/domain` | SAFE-01 + Quality |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "RUNNING.md",
+      "class": "requirement-id",
+      "text": "### Reproducing the coverage step locally (COV-04)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "RUNNING.md",
+      "class": "requirement-id",
+      "text": "| `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | PIPE-01 drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "RUNNING.md",
+      "class": "requirement-id",
+      "text": "| `contract` — Run AV hygiene gate, contract tests, SAFE-01 | merge-blocking | Starts independently; installs FFmpeg before its proof | AV hygiene plus deterministic `--only contract` tests and `scripts/maintainer/refactor_contract.sh`; the telemetry contract exercises the real AV path |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "RUNNING.md",
+      "class": "requirement-id",
+      "text": "| `optional-dependencies` | merge-blocking | Every PR/push; Elixir 1.15/OTP 26 and 1.17/OTP 27 matrix | ADMIN-06 proof: `mix deps.get --no-optional-deps` and `mix compile --no-optional-deps --warnings-as-errors` |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "brandbook/README.md",
+      "class": "phase-ref",
+      "text": "| `assets/logo/candidates/` | Phase-82 exploration provenance: the five directions + Confluence refinement variants + comparison sheets |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "brandbook/README.md",
+      "class": "planning-path",
+      "text": "the original AI-research seed lives at `.planning/research/b1.0-brand-audit.md`; the seed",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/AGENTS.md",
+      "class": "milestone-ref",
+      "text": "### Phoenix v1.8 guidelines",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/AGENTS.md",
+      "class": "milestone-ref",
+      "text": "- Phoenix v1.8 moved the `<.flash_group>` component to the `Layouts` module. You are **forbidden** from calling `<.flash_group>` outside of the `layouts.ex` module",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/README.md",
+      "class": "planning-path",
+      "text": "[`.planning/threads/adoption-evidence-lab.md`](../../.planning/threads/adoption-evidence-lab.md).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/admin-console.spec.js",
+      "class": "phase-ref",
+      "text": "// Phase 91 deliverable: quarantined/degraded assets and failed/expired upload",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "examples/adoption_demo/e2e/admin-screenshots.spec.js",
       "class": "decision-id",
       "text": "// (D-98-05/06, RESEARCH backstops 1-5). DialogInert + the per-state runner checks ride the",
@@ -35,6 +195,30 @@
       "reason": ""
     },
     {
+      "path": "examples/adoption_demo/e2e/admin-screenshots.spec.js",
+      "class": "phase-ref",
+      "text": "// All checks are admin-root-only; no warn->fail flip, no Cohort generalization (Phase 102).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/admin-screenshots.spec.js",
+      "class": "phase-ref",
+      "text": "// Phase 98 net-new band/stacked states (D-98-06, Pitfall 9): the §A<->§C 760-1023 two",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/admin-screenshots.spec.js",
+      "class": "phase-ref",
+      "text": "// Phase 98 — the five computed-style backstops at real viewports / focus-states / media",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
       "class": "decision-id",
       "text": "// D-96-06: the FIXED interactive-selector list the polish gate measures over the",
@@ -54,6 +238,62 @@
       "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
       "class": "decision-id",
       "text": "// — which measures strictly over `[data-ck-root]` (D-96-06) — structurally cannot",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "phase-ref",
+      "text": "// Cohort per-page visual-contract harness (Phase 99, Plan 01).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "phase-ref",
+      "text": "// `[data-ck-root]` / `.ck-*`. Phase 102 promotes Cohort to hard-fail:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "phase-ref",
+      "text": "// `cohort-styleguide.spec.js` (Phase 96, Plan 05) and reuses the already",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "phase-ref",
+      "text": "// existing imports, while this file owns the Phase 102 visual matrix.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "plan-ref",
+      "text": "// Cohort per-page visual-contract harness (Phase 99, Plan 01).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "plan-ref",
+      "text": "// `cohort-styleguide.spec.js` (Phase 96, Plan 05) and reuses the already",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-pages.spec.js",
+      "class": "requirement-id",
+      "text": "// Chrome brand-typography continuity (post-0.3.0 gap closure — COHORT-02 re-audit).",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -131,6 +371,38 @@
       "reason": ""
     },
     {
+      "path": "examples/adoption_demo/e2e/cohort-styleguide.spec.js",
+      "class": "phase-ref",
+      "text": "// Cohort /styleguide visual-contract e2e (Phase 96, Plan 05).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-styleguide.spec.js",
+      "class": "phase-ref",
+      "text": "// against `[data-ck-root]` / `.ck-*`. Phase 102 promotes this proof to a hard-fail gate:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-styleguide.spec.js",
+      "class": "plan-ref",
+      "text": "// Cohort /styleguide visual-contract e2e (Phase 96, Plan 05).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/cohort-styleguide.spec.js",
+      "class": "spec-ref",
+      "text": "// Also satisfies UI-SPEC acceptance gate 1 (component-existence loop over the 6 L1 + 4 L2",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "examples/adoption_demo/e2e/support/admin-polish.js",
       "class": "decision-id",
       "text": "// (D-94-07: a page mounting both surfaces would match both roots and weaken the gate).",
@@ -174,6 +446,62 @@
       "path": "examples/adoption_demo/e2e/support/admin-polish.js",
       "class": "decision-id",
       "text": "// opts out via the explicit `[data-rindle-admin-scroll-region]` marker — D-94-07:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "phase-ref",
+      "text": "// Phase 98 added the disclosure button, the sort-th control, and the stacked-row tap",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "phase-ref",
+      "text": "// Phase 98 backstop 4 (dialog inert reset): rides EVERY admin capture as a read-only DOM",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "phase-ref",
+      "text": "// Phase 98 computed-style backstops (D-98-05/06).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "phase-ref",
+      "text": "// Phase 98 — the five NON-INFERABLE computed-style backstops (D-98-05/06).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "phase-ref",
+      "text": "// This module replaces a former human screenshot-review checkpoint (Phase 92) with",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "phase-ref",
+      "text": "// spec in Phase 102) may override `root` / `interactiveSelectors` via assertAdminPolish",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/support/admin-polish.js",
+      "class": "requirement-id",
+      "text": "// so a future copy that forgets the Tab press cannot reintroduce the original flake (LOCK-03/04).",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -267,6 +595,14 @@
       "reason": ""
     },
     {
+      "path": "examples/adoption_demo/lib/adoption_demo_web/components/cohort_components.ex",
+      "class": "phase-ref",
+      "text": "Page scaffold — the Cohort analog of Phase 98's `page/1` (D-98-01). Renders the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
       "class": "decision-id",
       "text": "# Real Cohort fiction seeded into the gallery (D-96-22): a lesson-video row",
@@ -310,6 +646,46 @@
       "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
       "class": "decision-id",
       "text": "state is likewise SERVER-owned (D-96-15). Stable `data-ck-section` /",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
+      "class": "plan-ref",
+      "text": "04 component-existence loop drive; it composes only from the Plan 02",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
+      "class": "plan-ref",
+      "text": "This is the VIS-04 audit reference and the route the Plan 05 spec + the Plan",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
+      "class": "plan-ref",
+      "text": "storage, so the Plan 05 Playwright spec drives themes deterministically",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
+      "class": "requirement-id",
+      "text": "Developer-facing `/styleguide` gallery (COHORT-06). Renders every Cohort",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/lib/adoption_demo_web/live/styleguide_live.ex",
+      "class": "requirement-id",
+      "text": "This is the VIS-04 audit reference and the route the Plan 05 spec + the Plan",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -419,9 +795,177 @@
       "reason": ""
     },
     {
+      "path": "examples/adoption_demo/test/adoption_demo_web/admin_lifecycle_display_test.exs",
+      "class": "phase-ref",
+      "text": "Locks in the Phase 91 deliverable: edge-case lifecycle states (quarantined and",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/admin_mount_test.exs",
+      "class": "phase-ref",
+      "text": "Locks in the Phase 91 deliverable: the Rindle Admin Console is mounted at",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/brand_test.exs",
+      "class": "phase-ref",
+      "text": "Locks in the Phase 91 brand deliverable: the Cohort demo presents its own",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
       "class": "decision-id",
       "text": "Wave-0 home for the Phase 99 Cohort page-migration contract gates (D-96-05/06,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "phase-ref",
+      "text": "Wave-0 home for the Phase 99 Cohort page-migration contract gates (D-96-05/06,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "phase-ref",
+      "text": "chrome and flash. Phase 101 promoted the scan from the old `[data-ck-root]`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "phase-ref",
+      "text": "test \"Phase 101 source and deleted generator files stay retired\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 03: /account erasure frozen-contract + daisyUI-retirement --------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 03: /ops frozen-contract + daisyUI-retirement -------------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 04: /lessons/:id frozen-contract + daisyUI-retirement ------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 04: /members/:id frozen-contract + daisyUI-retirement ------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 05: /media/:id frozen-contract + daisyUI-retirement --------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 05: /posts/:id frozen-contract + daisyUI-retirement --------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 100-01: /upload per-tab frozen-contract + daisyUI-retirement ------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 101-01: flash retirement contract ------------------------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/live/cohort_migration_contract_test.exs",
+      "class": "plan-ref",
+      "text": "# --- Plan 101-02: layout wrapper retirement contract ----------------------",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/readme_walkthrough_test.exs",
+      "class": "phase-ref",
+      "text": "Docs-parity gate for the Phase 91 deliverable: the demo README's \"Admin Console",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "guides/admin_console.md",
+      "class": "milestone-ref",
+      "text": "- **Owner erasure** — preview and execute single-owner erasure via the v1.10",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "guides/admin_console_architecture.md",
+      "class": "milestone-ref",
+      "text": "permitted by the v1.18 charter is the mountable console boundary; read helpers stay behind",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "guides/admin_console_architecture.md",
+      "class": "requirement-id",
+      "text": "| CI no-LiveView proof | ADMIN-06 proves no unguarded Phoenix/LiveView aliases leak. |",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "guides/rindle_admin_css.md",
+      "class": "spec-ref",
+      "text": "## UI-SPEC Values",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -494,6 +1038,54 @@
       "path": "test/adopter/canonical_app/lifecycle_test.exs",
       "class": "decision-id",
       "text": "test \"image-only canonical profile compiles unchanged on v1.4 (D-22 condition 1)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/adopter/canonical_app/lifecycle_test.exs",
+      "class": "milestone-ref",
+      "text": "# \"DEFERRED to v1.1: full presigned PUT verification requires X\" rather",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/adopter/canonical_app/lifecycle_test.exs",
+      "class": "milestone-ref",
+      "text": "describe \"v1.0 → v1.4 backward-compat parity (AV-02-11, D-22)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/adopter/canonical_app/lifecycle_test.exs",
+      "class": "milestone-ref",
+      "text": "test \"Profile.recipe_digest(:thumb) matches v1.3 snapshot byte-for-byte (D-22 condition 3 — THE load-bearing assertion)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/adopter/canonical_app/lifecycle_test.exs",
+      "class": "milestone-ref",
+      "text": "test \"image-only canonical profile compiles unchanged on v1.4 (D-22 condition 1)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/adopter/canonical_app/lifecycle_test.exs",
+      "class": "phase-ref",
+      "text": "# resolution — not the counting-double cross-pollution; see Phase 110 D-09.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/adopter/canonical_app/lifecycle_test.exs",
+      "class": "spec-ref",
+      "text": "# Rindle.Repo per A3 in 05-RESEARCH.md. start_supervised handles",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -574,6 +1166,46 @@
       "path": "test/brandbook/admin_design_system_validation_test.exs",
       "class": "decision-id",
       "text": "describe \"§F voice + microcopy (D-98-05)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/brandbook/admin_design_system_validation_test.exs",
+      "class": "phase-ref",
+      "text": "# Phase 98 merge-gate clauses over the REAL migrated surfaces (D-98-04/05).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/brandbook/admin_design_system_validation_test.exs",
+      "class": "phase-ref",
+      "text": "# Phase 98 §A/§B/§D/§E/§F gate clauses render pure admin function components",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/brandbook/admin_design_system_validation_test.exs",
+      "class": "requirement-id",
+      "text": "# phoenix_live_view dep. The ADMIN-06 `--no-optional-deps` job only `mix compile`s lib/.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/brandbook/admin_design_system_validation_test.exs",
+      "class": "requirement-id",
+      "text": "test \"ADMIN-02 boundary guide and implementation avoid host UI dependencies\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/brandbook/admin_design_system_validation_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-01: the overlay primitive's positioning + backdrop must be generated,",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

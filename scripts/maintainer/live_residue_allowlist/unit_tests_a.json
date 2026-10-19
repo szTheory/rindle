@@ -19,6 +19,38 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-03 regression: batch-erasure preview sets dialog_open (action_state ==",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "spec-ref",
+      "text": "# DISTRIBUTED to their contextual surfaces (UI-SPEC §E, D-98-10); only the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "spec-ref",
+      "text": "# Distributed verbs (UI-SPEC §E, D-98-10): the regenerate / reconcile /",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "spec-ref",
+      "text": "test \"batch erasure preview confirmation stays interactive outside inert <main> (CR-03 regression)\",",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/admin/live/home_assets_upload_test.exs",
       "class": "decision-id",
       "text": "# Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.",
@@ -30,6 +62,46 @@
       "path": "test/rindle/admin/live/home_assets_upload_test.exs",
       "class": "decision-id",
       "text": "# detail, where the operator already has the asset in context (D-98-10).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-01 regression: the problems-first \"Needs attention\" task-list reads count",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "spec-ref",
+      "text": "# GDS triage home (UI-SPEC §E): task-first sections, no inspect/1 anti-pattern.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "spec-ref",
+      "text": "# Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "spec-ref",
+      "text": "test \"Asset detail hosts the distributed quarantine review (UI-SPEC §E)\", %{conn: conn} do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/home_assets_upload_test.exs",
+      "class": "spec-ref",
+      "text": "test \"Needs attention populates from atom-keyed counts (CR-01 regression)\", %{conn: conn} do",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -59,8 +131,80 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-01 regression: the Processing summary counters read variant-state buckets",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-02 helpers: the inerted <main> is the destructive-focus boundary. A live",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-02 regression: opening the regenerate dialog sets `dialog_open=true`, which",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "# Contextless cross-cutting ops stay on Maintenance (UI-SPEC §E).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "# Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "test \"Processing hosts the distributed Regenerate variants confirm dialog (UI-SPEC §E)\", %{",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "test \"Processing summary counters reflect real atom-keyed counts (CR-01 regression)\", %{",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "spec-ref",
+      "text": "test \"open regenerate dialog renders OUTSIDE the inerted <main> (CR-02 regression)\", %{",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/admin/queries_test.exs",
       "class": "decision-id",
+      "text": "test \"actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/queries_test.exs",
+      "class": "spec-ref",
       "text": "test \"actions_directory/0 keeps only contextless cross-cutting ops (UI-SPEC §E, D-98-10)\" do",
       "count": 1,
       "reason_class": "pending-removal",
@@ -187,6 +331,22 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/av/subprocess_epipe_canary_test.exs",
+      "class": "plan-ref",
+      "text": "# Gating safety: `:canary` is excluded from the default suite in test/test_helper.exs (Plan 01,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_epipe_canary_test.exs",
+      "class": "requirement-id",
+      "text": "# `# NOTE (EPIPE-07, MuonTrap #98)` block above run_isolated/5 in lib/rindle/av/subprocess.ex:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/av/subprocess_epipe_test.exs",
       "class": "decision-id",
       "text": "# (2) Deterministic synthetic — pre-reply retry branch (D-05 bounded single retry + D-07 log).",
@@ -198,6 +358,14 @@
       "path": "test/rindle/av/subprocess_epipe_test.exs",
       "class": "decision-id",
       "text": "# independent of the global level (the breadcrumb is emitted at :debug, D-07).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_epipe_test.exs",
+      "class": "requirement-id",
+      "text": "# (1) Deterministic synthetic — drain-after-reply absorption (EPIPE-01/05).",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -227,6 +395,70 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "milestone-ref",
+      "text": "# CAPTURED PRE-PHASE-24. DO NOT EDIT WITHOUT REGENERATING ON A v1.3 CHECKOUT.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "milestone-ref",
+      "text": "If this test fails on v1.4, the validator is persisting :kind into",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "milestone-ref",
+      "text": "Load-bearing snapshot of the v1.3 recipe digest for the canonical adopter",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "milestone-ref",
+      "text": "ON THE v1.3 CODEBASE, BEFORE Phase 24 validator changes (Plan 04). Do NOT",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "milestone-ref",
+      "text": "test \"adding AV siblings does not perturb the v1.3 image digest snapshot\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "milestone-ref",
+      "text": "test \"image-default :thumb digest matches v1.3 snapshot (per D-14, D-22, D-23)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "phase-ref",
+      "text": "ON THE v1.3 CODEBASE, BEFORE Phase 24 validator changes (Plan 04). Do NOT",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/backward_compat/v13_digest_snapshot_test.exs",
+      "class": "plan-ref",
+      "text": "ON THE v1.3 CODEBASE, BEFORE Phase 24 validator changes (Plan 04). Do NOT",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/behaviour_docs_test.exs",
       "class": "decision-id",
       "text": "D-19 backstop: every @callback on a public behaviour module MUST have a",
@@ -243,9 +475,57 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/behaviour_docs_test.exs",
+      "class": "planning-path",
+      "text": "See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/behaviour_docs_test.exs",
+      "class": "spec-ref",
+      "text": "See: .planning/phases/18-documentation-and-typespec-coverage/18-CONTEXT.md (D-11, D-18, D-19).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/capability_test.exs",
       "class": "decision-id",
       "text": "# Must NOT raise — D-30 mandates Application.get_env/2 (returns []), not",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/capability_test.exs",
+      "class": "phase-ref",
+      "text": "# Phase 36 WR-07: configured_streaming_profiles/1 is a public seam for the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/capability_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"configured_streaming_profiles/1 (Phase 36 WR-07)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/capability_test.exs",
+      "class": "spec-ref",
+      "text": "# Phase 36 WR-07: configured_streaming_profiles/1 is a public seam for the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/capability_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"configured_streaming_profiles/1 (Phase 36 WR-07)\" do",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -267,9 +547,65 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/config/config_test.exs",
+      "class": "phase-ref",
+      "text": "# cross-pollution. See Phase 110 D-09/D-10.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/config/repo_override_isolation_test.exs",
+      "class": "phase-ref",
+      "text": "# ISO-05 concurrency proof (Phase 110, research §8).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/config/repo_override_isolation_test.exs",
+      "class": "plan-ref",
+      "text": "# * NEW impl (Plan 01 resolver + Plan 02 process-scoped double) — the override lives in the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/config/repo_override_isolation_test.exs",
+      "class": "requirement-id",
+      "text": "# ISO-05 concurrency proof (Phase 110, research §8).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/contracts/telemetry_contract_test.exs",
       "class": "decision-id",
       "text": "Per D-04/D-05/D-06 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/contracts/telemetry_contract_test.exs",
+      "class": "planning-path",
+      "text": "Per D-04/D-05/D-06 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/contracts/telemetry_contract_test.exs",
+      "class": "spec-ref",
+      "text": "Per D-04/D-05/D-06 in `.planning/phases/05-ci-1-0-readiness/05-CONTEXT.md`.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/convenience_api_test.exs",
+      "class": "plan-ref",
+      "text": "# signal until Plan 19-02 ships the module.",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -302,6 +638,94 @@
       "path": "test/rindle/delivery/streaming_dispatch_test.exs",
       "class": "decision-id",
       "text": "describe \"Repo.get_by lookup keys (D-21, D-22)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "milestone-ref",
+      "text": "Branch 1 — no streaming configured → v1.4 progressive path (kind: :progressive)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "milestone-ref",
+      "text": "describe \"Branch 1: no streaming configured (v1.4 progressive path)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "milestone-ref",
+      "text": "test \"falls through to v1.4 progressive path and emits kind: :progressive\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "phase-ref",
+      "text": "(Phase 33 STREAM-06).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "plan-ref",
+      "text": "Branch matrix (from CONTEXT.md D-19 + Plan 33-03):",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "requirement-id",
+      "text": "(Phase 33 STREAM-06).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-01 regression: profile with BOTH :streaming AND :authorizer configured.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "spec-ref",
+      "text": "# CR-01: Branch 5 must call the configured authorizer before the provider call.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "spec-ref",
+      "text": "# WR-04: Branch 5 must cross-check the persisted playback_policy / ingest_mode",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"Branch 5: authorizer integration (CR-01 regression)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery/streaming_dispatch_test.exs",
+      "class": "spec-ref",
+      "text": "describe \"Branch 5: config drift between row and profile (WR-04)\" do",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -355,6 +779,54 @@
       "reason": ""
     },
     {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "milestone-ref",
+      "text": "# NOT on the Provider behaviour. The v1.4 reservation",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "milestone-ref",
+      "text": "# replacement is non-breaking because no v1.4 implementations existed).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "phase-ref",
+      "text": "# D-05 (Phase 33): streaming_url/3 dispatch lives on Rindle.Delivery only,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "phase-ref",
+      "text": "# capabilities/0 remains a callback on the promoted Phase 33 behaviour",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "phase-ref",
+      "text": "test \"Provider is callback-only and does not declare streaming_url/3 (Phase 33 D-05)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/delivery_test.exs",
+      "class": "plan-ref",
+      "text": "describe \"telemetry emission (Plan 05-01 / TEL-04)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "test/rindle/doctor_thresholds_test.exs",
       "class": "decision-id",
       "text": "test \"the configured Doctor ratchet remains at the D-07 target\", %{config: config} do",
@@ -366,6 +838,22 @@
       "path": "test/rindle/domain/lifecycle_fsm_test.exs",
       "class": "decision-id",
       "text": "test \"analyzing → quarantined is allowed (NEW; probe-failure path per AV-02-09; A4 deviation from D-09)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/lifecycle_fsm_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"asset transition matrix — Phase 24 additive (AV-02-03)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/lifecycle_fsm_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"variant transition matrix — Phase 24 additive (AV-02-04)\" do",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -390,6 +878,78 @@
       "path": "test/rindle/domain/media_provider_asset_test.exs",
       "class": "decision-id",
       "text": "describe \"unique constraints (D-10)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/media_schema_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"media_assets - kind/typed cols (Phase 24)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/media_schema_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"media_variants - output_kind (Phase 24)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/media_schema_test.exs",
+      "class": "plan-ref",
+      "text": "test \"transcoding is a valid state value (Plan 03 prerequisite)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/migration_test.exs",
+      "class": "phase-ref",
+      "text": "\"missing column #{required} on media_assets after Phase 24 migration\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/migration_test.exs",
+      "class": "phase-ref",
+      "text": "\"missing column #{required} on media_upload_sessions after Phase 38 migration\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/migration_test.exs",
+      "class": "phase-ref",
+      "text": "\"missing column #{required} on media_variants after Phase 24 migration\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/migration_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"add_provider_upload_id_to_media_provider_assets migration (Phase 64)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/migration_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"extend_media_for_av migration (Phase 24)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/migration_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"extend_media_upload_sessions_for_resumable migration (Phase 38)\" do",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -446,6 +1006,78 @@
       "path": "test/rindle/domain/provider_asset_fsm_test.exs",
       "class": "decision-id",
       "text": "test \"allowed_transitions/0 returns the locked D-13 map\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "phase-ref",
+      "text": "describe \"transition matrix — direct-upload cancel (Phase 64)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/domain/provider_asset_fsm_test.exs",
+      "class": "phase-ref",
+      "text": "test \"errored → processing is allowed (Phase 34 MuxIngestVariant retry path)\" do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/error_streaming_freeze_test.exs",
+      "class": "milestone-ref",
+      "text": "For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/error_streaming_freeze_test.exs",
+      "class": "milestone-ref",
+      "text": "This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/error_streaming_freeze_test.exs",
+      "class": "milestone-ref",
+      "text": "This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/error_streaming_freeze_test.exs",
+      "class": "phase-ref",
+      "text": "Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/error_test.exs",
+      "class": "milestone-ref",
+      "text": "1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/error_test.exs",
+      "class": "milestone-ref",
+      "text": "In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/owner_erasure_batch_proof_test.exs",
+      "class": "phase-ref",
+      "text": "# async: true — root-caused in Phase 110. This suite uses",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

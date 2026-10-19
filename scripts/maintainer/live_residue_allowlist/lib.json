@@ -3,6 +3,22 @@
   "area": "lib",
   "entries": [
     {
+      "path": ".dialyzer_ignore.exs",
+      "class": "phase-ref",
+      "text": "# Phase 34 PLT regen with :mux + :jose. Not Phase 34 surface; tracked",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": ".dialyzer_ignore.exs",
+      "class": "planning-path",
+      "text": "# in .planning/phases/34-mux-rest-adapter-server-push-sync/deferred-items.md.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": ".doctor.exs",
       "class": "decision-id",
       "text": "# D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline",
@@ -25,6 +41,62 @@
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
+    },
+    {
+      "path": ".doctor.exs",
+      "class": "plan-ref",
+      "text": "# D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "config/test.exs",
+      "class": "phase-ref",
+      "text": "# Existing test fixtures use the legacy public schema until Phase 118 provisions",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "config/test.exs",
+      "class": "phase-ref",
+      "text": "# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md). Phase 06 uses it to",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "config/test.exs",
+      "class": "plan-ref",
+      "text": "# Adopter Repo for CI-08 lane (Plan 05-04).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "config/test.exs",
+      "class": "spec-ref",
+      "text": "# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md). Phase 06 uses it to",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/mix/tasks/rindle.backfill_metadata.ex",
+      "class": "spec-ref",
+      "text": "# if it ever surfaces query failures via {:error, _} (see IN-02), we",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle.ex",
+      "class": "milestone-ref",
+      "text": "The recommended `v1.10` owner/account erasure facade is",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
     },
     {
       "path": "lib/rindle/admin/components.ex",
@@ -131,6 +203,54 @@
       "reason": ""
     },
     {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "spec-ref",
+      "text": "# CR-02 overlay focus contract (D-98-11): `inert`/`aria-hidden` are applied to",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "spec-ref",
+      "text": "# Level-3 page composition scaffold (D-98-01, UI-SPEC §A). The single page",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "spec-ref",
+      "text": "# Shared overlay primitive (D-98-11, UI-SPEC §D overlay focus contract). The",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "spec-ref",
+      "text": "# Task-first nav labels/order (UI-SPEC §E, D-98-03): relabel for task-scent,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "spec-ref",
+      "text": "# modal/1. Body/heading copy follows UI-SPEC §F (\"{Verb} this {noun}?\", plain",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
+      "class": "spec-ref",
+      "text": "<%!-- CR-02: overlay host rendered as a SIBLING of (and AFTER) the inerted",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "lib/rindle/admin/live/actions_live.ex",
       "class": "decision-id",
       "text": "# NOTE (UI-SPEC §E, D-98-10): the lifecycle-repair (reconcile) and",
@@ -139,8 +259,56 @@
       "reason": ""
     },
     {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "spec-ref",
+      "text": "# CR-02/CR-03: destructive-confirmation dialogs rendered into the shell `:overlay`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "spec-ref",
+      "text": "# NOTE (UI-SPEC §E, D-98-10): the lifecycle-repair (reconcile) and",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "spec-ref",
+      "text": "<%!-- CR-02/CR-03: the destructive-confirmation dialog renders into the shell",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "spec-ref",
+      "text": "<%!-- CR-02: the confirmation form lives in the shell `:overlay` slot",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "spec-ref",
+      "text": "<%!-- CR-03: batch-erasure confirmation now routes through the shared",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "lib/rindle/admin/live/assets_live.ex",
       "class": "decision-id",
+      "text": "<%!-- Distributed quarantine review (UI-SPEC §E, D-98-10): the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/assets_live.ex",
+      "class": "spec-ref",
       "text": "<%!-- Distributed quarantine review (UI-SPEC §E, D-98-10): the",
       "count": 1,
       "reason_class": "pending-removal",
@@ -163,8 +331,32 @@
       "reason": ""
     },
     {
+      "path": "lib/rindle/admin/live/home_live.ex",
+      "class": "spec-ref",
+      "text": "# CR-01: `RuntimeStatus.count_map/1` keys every state-count map with ATOMS",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/home_live.ex",
+      "class": "spec-ref",
+      "text": "# CR-01: there is no `:orphaned` provider_asset state — orphan signal is the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "lib/rindle/admin/live/runtime_doctor_live.ex",
       "class": "decision-id",
+      "text": "<%!-- Distributed reconcile action (UI-SPEC §E, D-98-10): the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/runtime_doctor_live.ex",
+      "class": "spec-ref",
       "text": "<%!-- Distributed reconcile action (UI-SPEC §E, D-98-10): the",
       "count": 1,
       "reason_class": "pending-removal",
@@ -179,9 +371,25 @@
       "reason": ""
     },
     {
-      "path": "lib/rindle/admin/queries.ex",
-      "class": "decision-id",
-      "text": "Maintenance directory (UI-SPEC §E, D-98-10): the \"Actions\" verb-bucket is a",
+      "path": "lib/rindle/admin/live/variants_jobs_live.ex",
+      "class": "spec-ref",
+      "text": "# Distributed \"Regenerate variants\" action (UI-SPEC §E, D-98-10/11): the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/variants_jobs_live.ex",
+      "class": "spec-ref",
+      "text": "<%!-- CR-01: counts come from `RuntimeStatus.count_map/1`, which is",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/variants_jobs_live.ex",
+      "class": "spec-ref",
+      "text": "<%!-- CR-02: the regenerate confirm_dialog renders into the shell `:overlay`",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -189,7 +397,479 @@
     {
       "path": "lib/rindle/admin/queries.ex",
       "class": "decision-id",
+      "text": "Maintenance directory (UI-SPEC §E, D-98-10): the \"Actions\" verb-bucket is a",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/admin/queries.ex",
+      "class": "decision-id",
       "text": "`variants-jobs/:id` `:show` route (D-98-09).",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/admin/queries.ex",
+      "class": "spec-ref",
+      "text": "Maintenance directory (UI-SPEC §E, D-98-10): the \"Actions\" verb-bucket is a",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/av/subprocess.ex",
+      "class": "requirement-id",
+      "text": "# NOTE (EPIPE-07, MuonTrap #98): https://github.com/fhunleth/muontrap/issues/98 (OPEN as of",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/delivery.ex",
+      "class": "milestone-ref",
+      "text": "# Branch 1: no streaming configured → v1.4 progressive path verbatim.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/delivery.ex",
+      "class": "spec-ref",
+      "text": "# WR-01: defensive catch-all. The Rindle.Streaming.Provider behaviour",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/delivery.ex",
+      "class": "spec-ref",
+      "text": "# WR-03: guard the recursive call. If the caller passes a map that has no",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/delivery.ex",
+      "class": "spec-ref",
+      "text": "# WR-04 — cross-check the persisted policy/mode on a :ready row against the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/delivery.ex",
+      "class": "spec-ref",
+      "text": "# and ingest_mode against the live streaming_config (WR-04). When",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/error.ex",
+      "class": "milestone-ref",
+      "text": "1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/error.ex",
+      "class": "milestone-ref",
+      "text": "For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/error.ex",
+      "class": "milestone-ref",
+      "text": "In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/error.ex",
+      "class": "milestone-ref",
+      "text": "This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/error.ex",
+      "class": "milestone-ref",
+      "text": "This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/error.ex",
+      "class": "phase-ref",
+      "text": "Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/html.ex",
+      "class": "milestone-ref",
+      "text": "not rendered in v1.4.",
+      "count": 2,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/ops/metadata_backfill.ex",
+      "class": "spec-ref",
+      "text": "# WR-01: keep cleanup_temp/1 in `after` so a raise inside the analyzer or",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/metadata_backfill.ex",
+      "class": "spec-ref",
+      "text": "# WR-05 / IN-02: distinguish a query-level infrastructure failure",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/sweep_orphaned_temp_files.ex",
+      "class": "spec-ref",
+      "text": "# (CR-03) instead of waiting for the whole directory to cross the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/sweep_orphaned_temp_files.ex",
+      "class": "spec-ref",
+      "text": "## tus/ regular-file aging (CR-03 safety net)",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# (WR-01 invariant boundary), never silently settled.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# (WR-01). Gate the persistence on the FSM so any future expansion of the query",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# ACTUAL Local root (IN-03) and remove the tmp part + tail at that root.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# CR-01 (reaper half): re-select aborted tus sessions whose DELETE-time backing",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# CR-01: a DELETE-time-failure retry row stays state=\"aborted\" with its",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# Resolve the Local root for a Local-backed tus session (IN-03). The Local",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# SAME resolved root the write path used (IN-03). The orphan reaper",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# WR-01: gate the tus timeout-expiry persistence through the SAME FSM-gated",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# WR-03 reconciliation. The FSM declares `\"aborted\" => []` (terminal), so a tus",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# computes against the SAME root the write path used (CR-02).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# state) keeps the FSM-gated `gated_expire/2` call (WR-01).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "spec-ref",
+      "text": "adapter's OWN canonical (base64url-encoded) tail-path source of truth (CR-02) —",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/ops/variant_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# WR-08: filter typos in a destructive lane should be loud. The Mix tasks",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/ops/variant_maintenance.ex",
+      "class": "spec-ref",
+      "text": "# WR-09: do NOT raise — that would abort the whole verify walk on the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "milestone-ref",
+      "text": "# AND explicit-:image, so v1.0 image profiles digest identically to v1.4",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "milestone-ref",
+      "text": "# explicit-:image profiles AND to v1.0 (no :kind) profiles. The :kind",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "milestone-ref",
+      "text": "doc: \"Ingest path. `:direct_creator_upload` uses browser→Mux direct upload (v1.8+).\"",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "NimbleOptions option doc text is rendered in public profile docs; wording stays unchanged."
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: NimbleOptions does not officially document `nil` as a stand-alone",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: no `default: nil` (see @profile_schema note above). Downstream",
+      "count": 2,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: no `default: nil` because NimbleOptions 1.1+ validates defaults",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: optional pos_integer keys — no schema default, absent → nil.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: pre-filter `nil` values out of a keyword list before NimbleOptions",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: signed_url_ttl_seconds and authorizer are optional pos_integer",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/profile/validator.ex",
+      "class": "spec-ref",
+      "text": "# WR-02: width/height are optional pos_integer keys with no schema",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/storage/gcs/signer.ex",
+      "class": "milestone-ref",
+      "text": "# IAM SignBlob mode (OAuthConfig) is deferred to v1.7+ behind a config flag.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/storage/local.ex",
+      "class": "phase-ref",
+      "text": "# chunks via the Phase-42 tus_append helper. Local has no part-number",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/storage/local.ex",
+      "class": "phase-ref",
+      "text": "# key (wraps the Phase-42 tus_complete helper). The companion completion",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/storage/s3.ex",
+      "class": "spec-ref",
+      "text": "# Cross-node resume guard (CR-04, threat T-43-06-01). The sub-5-MiB tail",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/storage/s3.ex",
+      "class": "spec-ref",
+      "text": "under the sweepable `Rindle.tmp/tus/` root — never the raw id (CR-02).",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/streaming.ex",
+      "class": "milestone-ref",
+      "text": "## Direct upload cancel (v1.13)",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/streaming/capabilities.ex",
+      "class": "milestone-ref",
+      "text": "profile enables browser→provider direct upload (shipped v1.8).",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/streaming/provider.ex",
+      "class": "milestone-ref",
+      "text": "Returns the v1.4-stable shape `%{url, kind, mime}`.",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/streaming/provider/mux.ex",
+      "class": "milestone-ref",
+      "text": "# DROP table — events Rindle v1.6 does not act on (Mux 2026 catalog).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/streaming/provider/mux.ex",
+      "class": "spec-ref",
+      "text": "# `:passthrough` (CR-01) — when supplied, stamped onto the create-asset",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/upload/tus_plug.ex",
+      "class": "milestone-ref",
+      "text": "edge over the v1.7 resumable-session substrate.",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/upload/tus_plug.ex",
+      "class": "spec-ref",
+      "text": "# (2) THEN persist the abort transition and honour the result (WR-02): a",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/upload/tus_plug.ex",
+      "class": "spec-ref",
+      "text": "# Termination order is load-bearing (CR-01): the backing store is aborted",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/upload/tus_plug.ex",
+      "class": "spec-ref",
+      "text": "# abort failure (CR-01) the abort is NOT silently swallowed: the row carries",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/workers/cleanup_orphans.ex",
+      "class": "spec-ref",
+      "text": "# WR-06: surface adapter-load errors via the documented `…failed` event",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "mix.exs",
+      "class": "requirement-id",
+      "text": "# these via the `optional: true` deps, but 1.15/1.17 do not — so the ADMIN-06",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
