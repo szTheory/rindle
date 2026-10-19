@@ -4,7 +4,8 @@ defmodule Rindle.Storage.GCS.Signer do
   # V4 signed URL generation for Rindle.Storage.GCS.
   #
   # Wraps gcs_signed_url ~> 0.6 in Client (private-key) auth mode only.
-  # IAM SignBlob mode (OAuthConfig) is deferred to v1.7+ behind a config flag.
+  # IAM SignBlob mode (OAuthConfig) is not supported; adding it would sit behind
+  # a config flag.
   #
   # The upstream library returns a bare URL, accepts decoded service-account maps
   # or raw PEM credentials, and does not load credential files on Rindle's behalf.

@@ -226,11 +226,11 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # SDK-boundary param construction — PLURAL keys, single source of truth.
     # Keep this construction at the provider boundary; workers must not duplicate it.
     #
-    # `:passthrough` (CR-01) — when supplied, stamped onto the create-asset
+    # `:passthrough` — when supplied, stamped onto the create-asset
     # request as the Mux REST `passthrough` field. The soak install-smoke
     # lane sets this to `"rindle_soak"` so the layer-3 cleanup script can
-    # filter on a tag that the producer actually writes (the previously-used
-    # `meta.rindle_soak` tag was never written by any code path).
+    # filter on a tag that the producer actually writes (no code path writes
+    # a `meta.rindle_soak` tag).
     defp build_create_params(source_url, policy_atom, opts) do
       base = %{
         "inputs" => [%{"url" => source_url}],
@@ -425,7 +425,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     def dispatch_kind("video.asset.created"), do: :dispatch
     def dispatch_kind("video.upload.asset_created"), do: :dispatch
 
-    # DROP table — events Rindle v1.6 does not act on (Mux 2026 catalog).
+    # DROP table — events Rindle does not act on (Mux 2026 catalog).
     def dispatch_kind("video.asset.updated"), do: :drop
     def dispatch_kind("video.asset.warning"), do: :drop
     def dispatch_kind("video.asset.non_standard_input_detected"), do: :drop

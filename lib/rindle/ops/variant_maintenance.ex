@@ -200,7 +200,7 @@ defmodule Rindle.Ops.VariantMaintenance do
   # Private helpers
   # ---------------------------------------------------------------------------
 
-  # WR-08: filter typos in a destructive lane should be loud. The Mix tasks
+  # Filter typos in a destructive lane should be loud. The Mix tasks
   # already constrain CLI flags via OptionParser, but the Elixir-callable API
   # needs an explicit guard so e.g. `%{prof: ...}` or `%{variant: ...}` does
   # not silently regenerate every variant in the system.
@@ -259,7 +259,7 @@ defmodule Rindle.Ops.VariantMaintenance do
         end
 
       {:error, reason} ->
-        # WR-09: do NOT raise — that would abort the whole verify walk on the
+        # Do NOT raise — that would abort the whole verify walk on the
         # first malformed profile string. Bump the :error counter and log so
         # operators can investigate without losing the rest of the run.
         Logger.warning("rindle.variant_maintenance.resolve_adapter_failed",

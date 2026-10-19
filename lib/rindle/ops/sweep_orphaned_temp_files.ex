@@ -92,7 +92,7 @@ defmodule Rindle.Ops.SweepOrphanedTempFiles do
         # The shared `tus/` subdir holds individual resumable-upload backing
         # files whose own mtimes age, but the directory mtime is perpetually
         # refreshed on write — so recurse and age out the files themselves
-        # (CR-03) instead of waiting for the whole directory to cross the
+        # instead of waiting for the whole directory to cross the
         # threshold (which never happens on an active system).
         if Path.basename(path) == "tus" do
           sweep_tus_dir(path, threshold_time, dry_run?, acc)

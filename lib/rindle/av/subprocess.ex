@@ -96,7 +96,7 @@ defmodule Rindle.AV.Subprocess do
     end
   end
 
-  # NOTE (EPIPE-07, MuonTrap #98): https://github.com/fhunleth/muontrap/issues/98 (OPEN as of
+  # NOTE (MuonTrap #98): https://github.com/fhunleth/muontrap/issues/98 (OPEN as of
   # 2026-06; reproduces in 1.7.0 / 1.8.0 / 2.0.0-rc.0). MuonTrap ACKs consumed stdout bytes by
   # writing to its wrapper's stdin (port.ex report_bytes_handled/2 -> Port.command/2). When the
   # child closes after the last chunk, that ACK write hits a dead reader and the port delivers an

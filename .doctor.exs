@@ -66,11 +66,10 @@
     Rindle.DataCase
   ],
   ignore_paths: [],
-  # D-07 target thresholds — ratcheted in Plan 18-05 from the Plan 18-01 baseline
-  # per the D-22 baseline-then-ratchet pattern. The ratchet harness at
-  # test/rindle/doctor_thresholds_test.exs (D-23) asserts these exact values and
-  # ships GREEN at this commit. Future doc/spec regressions on the public
-  # surface fail `mix doctor --raise` in CI.
+  # Target thresholds, ratcheted up from the measured baseline (baseline then
+  # ratchet: values only ever rise). The ratchet harness at
+  # test/rindle/doctor_thresholds_test.exs asserts these exact values, so any
+  # doc/spec regression on the public surface fails `mix doctor --raise` in CI.
   min_module_doc_coverage: 100,
   min_module_spec_coverage: 95,
   min_overall_doc_coverage: 100,

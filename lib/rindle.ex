@@ -896,8 +896,8 @@ defmodule Rindle do
       end
     else
       {:error, {:quarantine, reason}} ->
-        # Handle quarantine (Pitfall 2)
-        # For now, we return the error
+        # A quarantined upload surfaces as its own tagged error so callers can
+        # tell it apart from storage or validation failures.
         {:error, {:quarantine, reason}}
 
       {:error, reason} ->

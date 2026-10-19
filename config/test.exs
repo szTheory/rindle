@@ -14,19 +14,19 @@ config :rindle, Rindle.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
-# Existing test fixtures use the legacy public schema until Phase 118 provisions
-# the new default schema. This is the explicit compatibility build mode.
+# Existing test fixtures use the legacy public schema rather than the default
+# `rindle` schema. This is the explicit compatibility build mode.
 config :rindle, :rindle_prefix, "public"
 
-# Adopter Repo for CI-08 lane (Plan 05-04).
+# Adopter Repo for the adopter CI lane.
 #
 # This Repo is intentionally NOT registered in `:ecto_repos` (and is not started
 # by the application supervisor) — it exists only to prove the adopter-repo-first
 # pattern works architecturally. The adopter lifecycle test starts it explicitly
 # via `start_supervised/1`, and shares the same test database as `Rindle.Repo`
-# via Ecto SQL Sandbox (Assumption A3 in 05-RESEARCH.md). Phase 06 uses it to
-# prove the configured runtime repo boundary instead of falling back to
-# `Rindle.Repo`.
+# via Ecto SQL Sandbox, which works because both repos point at one database.
+# The lifecycle test uses it to prove the configured runtime repo boundary
+# instead of falling back to `Rindle.Repo`.
 config :rindle, Rindle.Adopter.CanonicalApp.Repo,
   username: db_user,
   password: db_password,

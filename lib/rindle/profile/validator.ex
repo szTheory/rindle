@@ -1,7 +1,7 @@
 defmodule Rindle.Profile.Validator do
   @moduledoc false
 
-  # WR-02: NimbleOptions does not officially document `nil` as a stand-alone
+  # NimbleOptions does not officially document `nil` as a stand-alone
   # type marker. Its supported nil-handling pattern is `default: nil` plus
   # nil-valued keys getting stripped BEFORE the schema sees them (so the
   # default applies). The validator pre-filters nil-valued keys via
@@ -20,7 +20,7 @@ defmodule Rindle.Profile.Validator do
       type: {:list, :string},
       default: []
     ],
-    # WR-02: no `default: nil` because NimbleOptions 1.1+ validates defaults
+    # No `default: nil` because NimbleOptions 1.1+ validates defaults
     # against the type, and `nil` is not a `:pos_integer`. Absent → key is
     # omitted post-validation; downstream uses `Keyword.get(.., nil)`.
     max_bytes: [
@@ -44,7 +44,7 @@ defmodule Rindle.Profile.Validator do
       type: :boolean,
       default: false
     ],
-    # WR-02: no `default: nil` (see @profile_schema note above). Downstream
+    # No `default: nil` (see @profile_schema note above). Downstream
     # uses `Keyword.get(.., nil)` and treats absent keys as nil.
     signed_url_ttl_seconds: [
       type: :pos_integer
@@ -86,7 +86,7 @@ defmodule Rindle.Profile.Validator do
       type: {:in, [:fit, :fill, :crop]},
       required: true
     ],
-    # WR-02: no `default: nil` (see @profile_schema note above). Downstream
+    # No `default: nil` (see @profile_schema note above). Downstream
     # uses `Keyword.get(.., nil)` and treats absent keys as nil.
     width: [
       type: :pos_integer
@@ -218,7 +218,7 @@ defmodule Rindle.Profile.Validator do
       storage: Keyword.fetch!(validated, :storage),
       allow_mime: Keyword.fetch!(validated, :allow_mime),
       allow_extensions: Keyword.fetch!(validated, :allow_extensions),
-      # WR-02: optional pos_integer keys — no schema default, absent → nil.
+      # Optional pos_integer keys — no schema default, absent → nil.
       max_bytes: Keyword.get(validated, :max_bytes),
       max_pixels: Keyword.get(validated, :max_pixels),
       variants: variants,
@@ -256,7 +256,7 @@ defmodule Rindle.Profile.Validator do
     |> NimbleOptions.validate!(@delivery_schema)
     |> Keyword.new()
     |> then(fn delivery ->
-      # WR-02: signed_url_ttl_seconds and authorizer are optional pos_integer
+      # signed_url_ttl_seconds and authorizer are optional pos_integer
       # / atom keys with no schema default (absent → nil).
       ttl =
         case Keyword.get(delivery, :signed_url_ttl_seconds) do
@@ -335,7 +335,7 @@ defmodule Rindle.Profile.Validator do
 
     if kind == :image and not Keyword.has_key?(rest, :preset) do
       mode = Keyword.fetch!(validated_kw, :mode)
-      # WR-02: width/height are optional pos_integer keys with no schema
+      # width/height are optional pos_integer keys with no schema
       # default (absent → nil), so use Keyword.get/2 here.
       width = Keyword.get(validated_kw, :width)
       height = Keyword.get(validated_kw, :height)
@@ -392,9 +392,9 @@ defmodule Rindle.Profile.Validator do
   defp schema_for_variant(:audio, _opts), do: @audio_variant_schema
   defp schema_for_variant(:waveform, _opts), do: @waveform_variant_schema
 
-  # Omit :kind from the validated map for default and explicit image variants
-  # AND explicit-:image, so v1.0 image profiles digest identically to v1.4
-  # explicit-:image profiles AND to v1.0 (no :kind) profiles. The :kind
+  # Omit :kind from the validated map for default and explicit image variants,
+  # so a profile that declares `kind: :image` digests identically to one that
+  # omits :kind (the original image-only profile shape). The :kind
   # information is recoverable from the variant SCHEMA at runtime via the
   # variant's structure (presence of :preset / :peaks / etc.); the persisted
   # spec doesn't need to carry it. For non-image kinds, :kind IS persisted
@@ -418,7 +418,7 @@ defmodule Rindle.Profile.Validator do
     |> NimbleOptions.validate!(@profile_schema)
   end
 
-  # WR-02: pre-filter `nil` values out of a keyword list before NimbleOptions
+  # Pre-filter `nil` values out of a keyword list before NimbleOptions
   # sees them. NimbleOptions does not officially accept the bare literal `nil`
   # as a stand-alone type marker in `{:or, [...]}`; the documented pattern is
   # `default: nil` plus stripped-nil keys so the default applies.

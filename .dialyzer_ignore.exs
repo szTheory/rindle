@@ -1,7 +1,7 @@
 [
-  # Pre-existing pattern_match / pattern_match_cov warnings surfaced after
-  # Phase 34 PLT regen with :mux + :jose. Not Phase 34 surface; tracked
-  # in .planning/phases/34-mux-rest-adapter-server-push-sync/deferred-items.md.
+  # Pre-existing pattern_match / pattern_match_cov warnings that surfaced once
+  # the PLT included the optional :mux and :jose deps; each filter below names
+  # the Nightly run that justified it.
   # Supported Nightly run 32642668846 / Dialyzer job 97202060703: the optional
   # MIME fallback preserves HTML rendering when an integration does not provide
   # a source type; narrowing it would remove a behaviorally valid safe fallback.

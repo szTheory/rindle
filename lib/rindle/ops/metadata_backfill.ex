@@ -79,10 +79,10 @@ defmodule Rindle.Ops.MetadataBackfill do
         {:ok, report}
 
       {:error, reason} ->
-        # WR-05 / IN-02: distinguish a query-level infrastructure failure
-        # (DB outage, missing migration, table renamed) from a clean zero-
-        # asset run. Collapsing both to {:ok, %{assets_found: 0}} silently
-        # let cron pipelines exit 0 on a broken database.
+        # Distinguish a query-level infrastructure failure (DB outage,
+        # missing migration, table renamed) from a clean zero-asset run.
+        # Collapsing both to {:ok, %{assets_found: 0}} would let cron
+        # pipelines exit 0 on a broken database.
         {:error, reason}
     end
   end
@@ -133,7 +133,7 @@ defmodule Rindle.Ops.MetadataBackfill do
   defp backfill_asset(asset, storage_mod, analyzer_mod, acc) do
     tmp_path = Path.join(System.tmp_dir!(), "rindle_backfill_#{Ecto.UUID.generate()}")
 
-    # WR-01: keep cleanup_temp/1 in `after` so a raise inside the analyzer or
+    # Keep cleanup_temp/1 in `after` so a raise inside the analyzer or
     # any other helper still removes the temp file, AND wrap in try/rescue so
     # the per-asset failure is counted and the rest of the run continues
     # (matching the moduledoc contract that promises per-asset failures are

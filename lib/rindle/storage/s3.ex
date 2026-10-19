@@ -368,7 +368,7 @@ defmodule Rindle.Storage.S3 do
   defp require_upload_id(id) when is_binary(id) and id != "", do: {:ok, id}
   defp require_upload_id(_), do: {:error, :missing_upload_id}
 
-  # Cross-node resume guard (CR-04, threat T-43-06-01). The sub-5-MiB tail
+  # Cross-node resume guard. The sub-5-MiB tail
   # remainder is node-local disk state, while offset/upload_id/parts live in the
   # shared DB. A resume is "mid-multipart" — and therefore REQUIRES the local
   # tail — whenever the persisted DB state implies bytes were buffered on another

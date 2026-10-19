@@ -12,8 +12,9 @@ defmodule Rindle.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       # Optional-dependency modules (and the Mux-gated worker) are legitimately
       # absent under `mix compile --no-optional-deps`. Elixir 1.19 auto-suppresses
-      # these via the `optional: true` deps, but 1.15/1.17 do not — so the ADMIN-06
-      # no-optional `--warnings-as-errors` gate fails there without this list.
+      # these via the `optional: true` deps, but 1.15/1.17 do not — so the
+      # Optional Dependencies CI lane (`mix compile --no-optional-deps
+      # --warnings-as-errors`) fails there without this list.
       elixirc_options: [
         no_warn_undefined: [
           Bandit,
@@ -294,16 +295,15 @@ defmodule Rindle.MixProject do
       # Ordered fast-static -> compile -> format -> truthful quality signals ->
       # brandbook drift gates -> the gating unit suite last. It mirrors ONLY the
       # merge-blocking set surfaced by the `CI Summary` gate (ci.yml `quality` +
-      # `brandbook-tokens`); it does NOT
-      # include push:main/nightly-only lanes (package-consumer-full, adoption-demo
-      # -e2e, mux-soak, the broad OTP x Elixir matrix, Dialyzer).
+      # `brandbook-tokens`); it does NOT include push:main/nightly-only lanes
+      # (package-consumer-full, adoption-demo-e2e, mux-soak, the broad OTP x
+      # Elixir matrix, Dialyzer).
       #
       # MinIO/integration legs are deliberately ABSENT: the final `test` task runs
       # the default-tag suite, which test/test_helper.exs already excludes
       # :integration/:minio/:contract/:adopter from — so `mix ci` runs on a fresh
-      # clone WITHOUT a running MinIO and never hard-fails for its absence
-      # clone without a running MinIO. The full-parity storage command is documented
-      # in CONTRIBUTING.
+      # clone WITHOUT a running MinIO and never hard-fails for its absence. The
+      # full-parity storage command is documented in CONTRIBUTING.
       # The Playwright browser gallery proof is omitted to keep `mix ci`
       # Elixir-toolchain-only (covered by `brandbook-tokens` in CI +
       # scripts/ci/e2e_local.sh locally).

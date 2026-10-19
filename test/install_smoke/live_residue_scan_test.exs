@@ -331,10 +331,10 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
     assert {_, 0} = run_fixture(template, shards(template, %{}), ["--check"])
   end
 
-  test "the live mix.exs clause and regression literal are seeded as expected" do
+  test "the removed mix.exs duplicate stays gone and the regression literal is seeded as expected" do
     lib = live_shard("lib")
 
-    assert Enum.any?(
+    refute Enum.any?(
              lib["entries"],
              &(&1["path"] == "mix.exs" and &1["class"] == "duplicated-prose")
            )

@@ -198,12 +198,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
        )}
     end
 
-    # NOTE (UI-SPEC §E, D-98-10): the lifecycle-repair (reconcile) and
-    # variant-regeneration verbs were DISTRIBUTED off this Maintenance
-    # junk-drawer to their contextual surfaces — regenerate now confirms through
-    # confirm_dialog/1 on Processing (variants_jobs_live.ex), reconcile/verify
-    # storage lives on Doctor (runtime_doctor_live.ex). Their handlers/forms were
-    # removed here; Maintenance keeps only the contextless GDPR-driven erasure ops.
+    # NOTE: the lifecycle-repair (reconcile) and variant-regeneration verbs live
+    # on their contextual surfaces, not on Maintenance — regenerate confirms
+    # through confirm_dialog/1 on Processing (variants_jobs_live.ex), and
+    # reconcile/verify storage lives on Doctor (runtime_doctor_live.ex).
+    # Maintenance holds only the contextless GDPR-driven erasure ops.
 
     defp execute_owner_erasure(socket, owner, type, id) do
       case Rindle.erase_owner(owner) do
@@ -354,7 +353,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
             </div>
           </:work>
         </.page>
-        <%!-- CR-02/CR-03: the destructive-confirmation dialog renders into the shell
+        <%!-- The destructive-confirmation dialog renders into the shell
               `:overlay` slot — a SIBLING of the inerted `<main>` — so when the
               `:preview` state inerts `<main>` the confirmation form (and its typed
               confirmation gate) stays interactive. Both owner AND batch erasure go
@@ -422,8 +421,8 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       """
     end
 
-    # CR-02/CR-03: destructive-confirmation dialogs rendered into the shell `:overlay`
-    # slot (sibling of the inerted `<main>`). Only the active erasure action in the
+    # Destructive-confirmation dialogs render into the shell `:overlay` slot
+    # (sibling of the inerted `<main>`). Only the active erasure action in the
     # `:preview` state renders a dialog; every other state renders nothing so the
     # overlay host stays empty (and `<main>` is never inerted without a live dialog).
     defp render_action_overlay(%{action_state: :preview} = assigns, %{id: :owner_erasure}) do
@@ -527,7 +526,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <h4>Preview Report</h4>
           <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
         </div>
-        <%!-- CR-02: the confirmation form lives in the shell `:overlay` slot
+        <%!-- The confirmation form lives in the shell `:overlay` slot
               (render_action_overlay/2), NOT here — rendering it inside `:work` would
               nest it under the inerted `<main>` and disable the confirmation gate. --%>
       </div>
@@ -569,11 +568,11 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
           <p>Owners to process: {@action_data.count}</p>
           <p>Attachments to detach: {@action_data.report.attachments_to_detach.count}</p>
         </div>
-        <%!-- CR-03: batch-erasure confirmation now routes through the shared
-              confirm_dialog primitive in the shell `:overlay` slot
-              (render_action_overlay/2). Previously this was a plain inline `<form>`
-              with no overlay, so when `dialog_open` (action_state == :preview) inerted
-              `<main>` the batch confirmation form was disabled with nothing to host it. --%>
+        <%!-- Batch-erasure confirmation routes through the shared confirm_dialog
+              primitive in the shell `:overlay` slot (render_action_overlay/2). An
+              inline `<form>` here would sit under `<main>`, which `dialog_open`
+              (action_state == :preview) inerts, and the confirmation gate would be
+              disabled. --%>
       </div>
       """
     end
