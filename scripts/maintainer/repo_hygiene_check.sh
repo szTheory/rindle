@@ -1,19 +1,33 @@
 #!/usr/bin/env bash
+# repo_hygiene_check.sh - release-train hygiene gate.
+#
+# Reports PASS, WARN and BLOCK results and exits 0 (safe or caution), 1 (not ready) or
+# 64 (usage). Bash 3.2 and jq 1.6 compatible. The script never mutates a remote: it may
+# fetch, and it only reads GitHub and Hex.
 set -euo pipefail
 
 MODE="local"
 RUN_MIX_CI=0
 REMOTE="${RINDLE_HYGIENE_REMOTE:-origin}"
+EXPECTED_BRANCH="${RINDLE_HYGIENE_BRANCH:-main}"
 
 usage() {
   cat <<'EOF'
-Usage: repo_hygiene_check.sh [--ci] [--with-mix-ci]
+Usage: repo_hygiene_check.sh [--ci | --release-prep] [--with-mix-ci]
 
 Checks whether the repo is in a disciplined release-prep state.
 
 Modes:
-  --ci           Run only repo-owned drift checks that GitHub can prove.
-  --with-mix-ci  Also run local mix test (slow; off by default).
+  (default)       Local release-prep checks: fetch the remote, require the expected
+                  branch with HEAD equal to REMOTE/BRANCH, then the repo-owned checks.
+  --release-prep  The same checks as the default mode, named explicitly for release prep.
+  --ci            Repo-owned checks only. No fetch, branch or mix ci checks.
+  --with-mix-ci   Also run the full `mix ci` alias (slow; default and --release-prep only).
+
+Environment:
+  RINDLE_HYGIENE_ROOT    checkout to check (default: git rev-parse --show-toplevel)
+  RINDLE_HYGIENE_REMOTE  remote to fetch and compare with (default: origin)
+  RINDLE_HYGIENE_BRANCH  expected branch (default: main)
 EOF
 }
 
@@ -21,6 +35,9 @@ for arg in "$@"; do
   case "$arg" in
     --ci)
       MODE="ci"
+      ;;
+    --release-prep)
+      MODE="release-prep"
       ;;
     --with-mix-ci)
       RUN_MIX_CI=1
@@ -32,23 +49,34 @@ for arg in "$@"; do
     *)
       echo "Unknown argument: $arg" >&2
       usage >&2
-      exit 1
+      exit 64
       ;;
   esac
 done
+
+if [[ "$MODE" == "ci" && "$RUN_MIX_CI" == "1" ]]; then
+  echo "--with-mix-ci cannot be combined with --ci" >&2
+  usage >&2
+  exit 64
+fi
 
 if ! command -v git >/dev/null 2>&1; then
   echo "[BLOCK] git: required command is not installed" >&2
   exit 1
 fi
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+REPO_ROOT="${RINDLE_HYGIENE_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+if ! git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "[BLOCK] repository: $REPO_ROOT is not a git work tree" >&2
+  exit 1
+fi
 cd "$REPO_ROOT"
 
 declare -a RESULTS=()
 PASS_COUNT=0
 WARN_COUNT=0
 BLOCK_COUNT=0
+FETCH_OK=0
 
 record_result() {
   local level="$1"
@@ -198,65 +226,95 @@ repo_owned_checks() {
   fi
 }
 
-local_checks() {
-  local branch status_output
+# Fetch the remote. A failed fetch is a BLOCK: without it HEAD cannot be compared with
+# the remote branch.
+check_fetch() {
+  if git fetch "$REMOTE" --prune >/dev/null 2>&1; then
+    FETCH_OK=1
+    record_result "PASS" "fetch" "fetched $REMOTE"
+  else
+    FETCH_OK=0
+    record_result "BLOCK" "fetch" "git fetch $REMOTE failed; cannot prove HEAD matches $REMOTE/$EXPECTED_BRANCH"
+  fi
+}
 
-  branch="$(git rev-parse --abbrev-ref HEAD)"
-  record_result "PASS" "current branch" "$branch"
+# Require the expected branch (a detached HEAD reads as DETACHED) and, after a successful
+# fetch, HEAD equal to REMOTE/BRANCH.
+check_branch() {
+  local branch behind ahead counts
 
+  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo DETACHED)"
+  if [[ "$branch" == "$EXPECTED_BRANCH" ]]; then
+    record_result "PASS" "branch" "$branch"
+  else
+    record_result "BLOCK" "branch" "on '$branch'; release prep requires '$EXPECTED_BRANCH'"
+  fi
+
+  if [[ "$FETCH_OK" != "1" ]]; then
+    return 0
+  fi
+
+  if ! git rev-parse --verify --quiet "refs/remotes/$REMOTE/$EXPECTED_BRANCH^{commit}" >/dev/null; then
+    record_result "BLOCK" "head vs origin" "$REMOTE/$EXPECTED_BRANCH does not exist after fetch"
+    return 0
+  fi
+
+  counts="$(git rev-list --left-right --count "refs/remotes/$REMOTE/$EXPECTED_BRANCH...HEAD")"
+  read -r behind ahead <<<"$counts"
+  if [[ "$behind" == "0" && "$ahead" == "0" ]]; then
+    record_result "PASS" "head vs origin" "HEAD matches $REMOTE/$EXPECTED_BRANCH"
+  else
+    record_result "BLOCK" "head vs origin" "HEAD is behind=$behind ahead=$ahead of $REMOTE/$EXPECTED_BRANCH"
+  fi
+}
+
+check_working_tree() {
+  local status_output
   status_output="$(git status --porcelain)"
   if [[ -z "$status_output" ]]; then
     record_result "PASS" "working tree" "clean"
   else
     record_result "BLOCK" "working tree" "dirty state detected; commit, stash, or discard local changes first"
   fi
+}
 
-  git fetch "$REMOTE" --prune >/dev/null 2>&1 || true
-
-  if git show-ref --verify --quiet "refs/heads/main" && git show-ref --verify --quiet "refs/remotes/$REMOTE/main"; then
-    local ahead behind
-    read -r behind ahead <<<"$(git rev-list --left-right --count "$REMOTE/main...main")"
-
-    if [[ "$behind" == "0" && "$ahead" == "0" ]]; then
-      record_result "PASS" "main divergence" "local main matches $REMOTE/main"
-    elif [[ "$behind" != "0" ]]; then
-      record_result "BLOCK" "main divergence" "local main is behind $REMOTE/main by $behind commit(s)"
-    else
-      record_result "WARN" "main divergence" "local main is ahead of $REMOTE/main by $ahead commit(s)"
-    fi
-  else
-    record_result "WARN" "main divergence" "could not compare local main to $REMOTE/main"
-  fi
-
+check_latest_ci() {
   if have_gh; then
     local latest_ci
-    latest_ci="$(gh run list --workflow ci.yml --branch main --limit 1 --json conclusion,status,url 2>/dev/null || true)"
+    latest_ci="$(gh run list --workflow ci.yml --branch "$EXPECTED_BRANCH" --limit 1 --json conclusion,status,url 2>/dev/null || true)"
     if [[ "$latest_ci" == *'"conclusion":"success"'* ]]; then
-      record_result "PASS" "latest CI" "latest main CI run succeeded"
+      record_result "PASS" "latest CI" "latest $EXPECTED_BRANCH CI run succeeded"
     elif [[ "$latest_ci" == *'"status":"in_progress"'* || "$latest_ci" == *'"status":"queued"'* ]]; then
-      record_result "WARN" "latest CI" "main CI is still in progress"
+      record_result "WARN" "latest CI" "$EXPECTED_BRANCH CI is still in progress"
     elif [[ -n "$latest_ci" && "$latest_ci" != "[]" ]]; then
-      record_result "BLOCK" "latest CI" "latest main CI run is not green"
+      record_result "BLOCK" "latest CI" "latest $EXPECTED_BRANCH CI run is not green"
     else
-      record_result "WARN" "latest CI" "could not read recent main CI history"
+      record_result "WARN" "latest CI" "could not read recent $EXPECTED_BRANCH CI history"
     fi
   else
     record_result "WARN" "GitHub checks" "gh unavailable; skipped workflow status checks"
   fi
+}
 
-  if [[ "$RUN_MIX_CI" == "1" ]]; then
-    if mix test >/dev/null; then
-      record_result "PASS" "mix test" "local test suite passed"
-    else
-      record_result "BLOCK" "mix test" "local test suite failed"
-    fi
+check_mix_ci() {
+  if mix test >/dev/null; then
+    record_result "PASS" "mix test" "local test suite passed"
+  else
+    record_result "BLOCK" "mix test" "local test suite failed"
   fi
 }
 
-repo_owned_checks
-
-if [[ "$MODE" != "ci" ]]; then
-  local_checks
+if [[ "$MODE" == "ci" ]]; then
+  repo_owned_checks
+else
+  check_fetch
+  check_branch
+  check_working_tree
+  repo_owned_checks
+  check_latest_ci
+  if [[ "$RUN_MIX_CI" == "1" ]]; then
+    check_mix_ci
+  fi
 fi
 
 printf 'Rindle repo hygiene report (%s)\n' "$MODE"
