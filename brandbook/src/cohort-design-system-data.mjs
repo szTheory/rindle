@@ -1,10 +1,10 @@
 // Cohort (`.ck-*`) WCAG contrast-pair data module — the hand-maintained literal
 // sink for the Cohort design system's contrast gate (cohort-contrast.mjs).
 //
-// Hand-authored sibling of the admin contrast data module (D-96-01), NEVER an
-// import of it (D-94-05/06: Cohort and rindle-admin share vocabulary, never a
+// Hand-authored sibling of the admin contrast data module, NEVER an
+// import of it (Cohort and rindle-admin share vocabulary, never a
 // file). The `--ck-*` values these pairs reference live ONLY in cohort.css; the
-// gate resolves them per theme and byte-equal parity-checks them (D-96-18). Each
+// gate resolves them per theme and byte-equal parity-checks them. Each
 // pair carries `theme: 'light' | 'dark'` so the resolver reads the matching
 // cohort.css block. fg/bg use BARE token names (e.g. `ck-ink`) — the resolver
 // maps them to `--ck-*`. Cohort hard-codes its own light+dark literals in
@@ -26,15 +26,15 @@ export const COHORT_CONTRAST_PAIRS = [
   { fg: 'ck-ink', bg: 'ck-surface', theme: 'light', min: WCAG_AA_NORMAL, context: 'body text on surface' },
   { fg: 'ck-ink', bg: 'ck-surface', theme: 'dark', min: WCAG_AA_NORMAL, context: 'body text on surface (dark)' },
 
-  // Readable secondary text — the D-96-23 replacement for --ck-faint as a body
+  // Readable secondary text — the replacement for --ck-faint as a body
   // pair (--ck-muted clears 4.5 in both themes; --ck-faint is decorative 3:1).
   { fg: 'ck-muted', bg: 'ck-surface', theme: 'light', min: WCAG_AA_NORMAL, context: 'table stat readable secondary text on surface' },
   { fg: 'ck-muted', bg: 'ck-surface', theme: 'dark', min: WCAG_AA_NORMAL, context: 'table stat readable secondary text on surface (dark)' },
 
   // Filled primary button text. --ck-on-brand / --ck-btn-bg are defined in the
   // light :root ONLY and are intentionally ABSENT from the dark block (white
-  // text clears AA ~4.9:1 in both themes). The dark row is REQUIRED by UI-SPEC
-  // line 167; the resolver's :root cascade fallback (D-96-23 / BLOCKER-3)
+  // text clears AA ~4.9:1 in both themes). The dark row is REQUIRED so both
+  // themes are covered; the resolver's :root cascade fallback
   // resolves both light and dark to #ffffff on #047857.
   { fg: 'ck-on-brand', bg: 'ck-btn-bg', theme: 'light', min: WCAG_AA_NORMAL, context: 'button primary text on brand fill' },
   { fg: 'ck-on-brand', bg: 'ck-btn-bg', theme: 'dark', min: WCAG_AA_NORMAL, context: 'button primary text on brand fill (dark)' },
@@ -65,15 +65,15 @@ export const COHORT_CONTRAST_PAIRS = [
   { fg: 'ck-focus', bg: 'ck-surface', theme: 'light', min: 3, context: 'focus ring on surface non-text' },
   { fg: 'ck-focus', bg: 'ck-surface', theme: 'dark', min: 3, context: 'focus ring on surface non-text (dark)' },
 
-  // Decorative-only faint role (D-96-23): NOT a body pair — card paths, nav demo
+  // Decorative-only faint role: NOT a body pair — card paths, nav demo
   // label, footer; never readable body copy. WCAG SC 1.4.3 / 1.4.11 EXEMPT
   // decorative/non-text content from a contrast minimum, so --ck-faint's stated
   // "3.0" was mis-transcribed for this decorative role; its true measured floor on
   // --ck-bg is 2.77 light / 4.74 dark. The LIGHT decorative pair is therefore
   // encoded at its real decorative floor of 2.7 (2.77 measured clears it) with the
-  // locked --ck-faint color value preserved (D-96-23: "No --ck-* color values
-  // change"). The DARK twin stays at the stronger 3.0 (passes 4.74:1) — not weakened.
-  // [Rule 1] D-96-23 decorative/non-text role — WCAG 1.4.3/1.4.11 exempt; locked
+  // locked --ck-faint color value preserved (no --ck-* color value
+  // changes). The DARK twin stays at the stronger 3.0 (passes 4.74:1) — not weakened.
+  // Decorative/non-text role — WCAG 1.4.3/1.4.11 exempt; locked
   // color value, floor set to measured.
   { fg: 'ck-faint', bg: 'ck-bg', theme: 'light', min: 2.7, context: 'decorative faint label on bg non-body' },
   { fg: 'ck-faint', bg: 'ck-bg', theme: 'dark', min: 3, context: 'decorative faint label on bg non-body (dark)' },

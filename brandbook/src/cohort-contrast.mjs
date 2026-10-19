@@ -1,10 +1,10 @@
 // WCAG 2.1 contrast + parity + literal gate for the Cohort (`.ck-*`) design
-// system. Net-new sibling of admin-contrast.mjs (D-96-01/02), but it resolves
+// system. Sibling of admin-contrast.mjs, but it resolves
 // `--ck-*` directly from cohort.css per theme — it NEVER routes through the
-// generated admin token file (D-94-05/06). Exits non-zero if any pair is below
+// generated admin token file. Exits non-zero if any pair is below
 // its declared minimum, any required {context × theme} pair is missing
-// (coverage, D-96-19), any pair value drifts from cohort.css (parity, D-96-18),
-// or any color literal lives outside a token-definition block (D-96-20).
+// (coverage), any pair value drifts from cohort.css (parity),
+// or any color literal lives outside a token-definition block (literal scan).
 //
 // Run: node brandbook/src/cohort-contrast.mjs
 
@@ -79,7 +79,7 @@ const extractBlock = (source, selectorNeedle) => {
 // The light token block is the combined `:root, [data-theme="light"]` selector;
 // the dark block is the explicit `[data-theme="dark"]` attribute set; the
 // `:root:not([data-theme])` block inside `@media (prefers-color-scheme: dark)` is
-// the controlled byte-equal duplicate of the dark block (D-96-11). The parity
+// the controlled byte-equal duplicate of the dark block. The parity
 // check below asserts that duplicate stays byte-equal to the explicit dark block,
 // so a hand-edit that drifts one block from the other hard-fails the build.
 const lightBlock = extractBlock(css, '[data-theme="light"]');
@@ -104,7 +104,7 @@ const readDecl = (block, name) => {
 };
 
 // Resolve `ck-x` -> its RAW cohort.css value for the requested theme, mirroring
-// real CSS custom-property cascade (BLOCKER-3 / D-96-23): for 'dark', look in
+// real CSS custom-property cascade: for 'dark', look in
 // the dark block FIRST, then FALL BACK to the light/:root block for
 // theme-invariant brand tokens (--ck-btn-bg, --ck-on-brand, --ck-brand, ...)
 // that live in :root only. Returns undefined ONLY when the token is absent from
@@ -168,11 +168,11 @@ const toHex = (value, theme) => {
 let failures = 0;
 const rows = [];
 
-// --- coverage loop (D-96-19): fail on a MISSING required {context × theme} ---
+// --- coverage loop: fail on a MISSING required {context × theme} -------------
 // Each required context keyword MUST be present in BOTH a light AND a dark pair.
 // The check is per-theme (filter the pair list by theme FIRST) so a missing
 // light pair is not masked by its surviving dark twin — and vice versa — which
-// is the D-94-08 "self-check green while artifact omits it" trap this guards.
+// is the "self-check green while artifact omits it" trap this guards.
 const requiredContexts = ['body text', 'readable secondary text', 'button primary text', 'detail large', 'stat tile', 'toolbar text', 'tabs label', 'form field text', 'focus ring', 'decorative faint', 'status badge ready'];
 for (const ctx of requiredContexts) {
   const lightHit = COHORT_CONTRAST_PAIRS.some((p) => p.theme === 'light' && p.context.includes(ctx));
@@ -187,7 +187,7 @@ for (const ctx of requiredContexts) {
   }
 }
 
-// --- parity check (D-96-18): each pair value byte-equals cohort.css ----------
+// --- parity check: each pair value byte-equals cohort.css -------------------
 // Two independent assertions per token a pair references (raw STRING compares,
 // so they work uniformly for hex AND non-hex rgba()/color-mix() values; never
 // routed through toHex):
@@ -196,7 +196,7 @@ for (const ctx of requiredContexts) {
 //   2. dark-duplicate-parity: every token the resolver reads from the EXPLICIT
 //      [data-theme="dark"] block must byte-equal the same token in the
 //      :root:not([data-theme]) media-fallback duplicate (the controlled
-//      duplication D-96-11; drift between the two blocks = hard fail). This is
+//      duplication; drift between the two blocks = hard fail). This is
 //      the hand-authored-file equivalent of `git diff --exit-code` and is what
 //      catches a value mutated in one block but not the other.
 // A `Set` dedups the tokens (the pair list references each token many times).
@@ -256,7 +256,7 @@ for (const p of COHORT_CONTRAST_PAIRS) {
   rows.push(`${ok ? 'PASS' : 'FAIL'}  ${r.toFixed(2).padStart(6)} >= ${p.min}  ${p.fg} on ${p.bg}  (${p.context}; ${theme})`);
 }
 
-// --- literal scanner (D-96-20): hand-rolled brace-depth pass ------------------
+// --- literal scanner: hand-rolled brace-depth pass ---------------------------
 // Hex/rgb/rgba/hsl literals are allowed ONLY inside the token-definition blocks
 // (:root, [data-theme="light"], [data-theme="dark"], and the nested
 // :root:not([data-theme]) under prefers-color-scheme). currentColor /

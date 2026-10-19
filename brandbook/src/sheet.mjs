@@ -110,7 +110,7 @@ const html = `<!doctype html>
   <h1>Rindle &mdash; logo direction candidates</h1>
   <p class="note">Five directions, all honoring the locked constraints: no background containers, logotype tight to the mark,
   no subtitle on the main lockup (the subtitle variant is shown separately), letters outlined from Space Grotesk Medium.
-  B, C and D are fully integrated typemarks. Pick a direction; Phase 83 refines the winner into the full system.</p>
+  B, C and D are fully integrated typemarks. Pick a direction; the winner is then refined into the full system.</p>
   ${CANDIDATES.map(row).join('\n')}
 </body>
 </html>

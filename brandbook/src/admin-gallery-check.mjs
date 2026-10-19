@@ -170,7 +170,7 @@ const assertFocusVisibleTokens = async (page) => {
   // in headless Chromium unless the page has seen a keyboard interaction — and `focusVisible`
   // honouring varies across Chromium builds. focusVisibly presses a real Tab then focuses so
   // the ring deterministically matches `:focus-visible` (fixes an intermittent "outline 0px"
-  // CI flake). Routing through the single helper removes the per-site modality copy (LOCK-03).
+  // CI flake). Routing through the single helper removes the per-site modality copy.
   const failures = [];
   for (const selector of selectors) {
     const locator = page.locator(selector).first();

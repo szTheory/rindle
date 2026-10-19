@@ -1,10 +1,10 @@
 // Mirrors the generated rindle-admin.css to the shipped package copy.
 //
-// This is the SINGLE committed mechanism (D-94-03) that copies the brandbook
+// This is the SINGLE committed mechanism that copies the brandbook
 // generator output (brandbook/tokens/rindle-admin.css) into the Hex-shipped
 // asset (priv/static/rindle_admin/rindle-admin.css). It replaces the previous
 // undocumented hand-mirror so the package artifact can never drift silently:
-// both CI and local developers run this one script, and the Plan 04 diff gate
+// both CI and local developers run this one script, and the brandbook-tokens diff gate
 // plus the ExUnit equality test (admin_design_system_validation_test.exs:213)
 // fail hard on any divergence.
 //
