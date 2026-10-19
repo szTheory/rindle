@@ -1481,6 +1481,10 @@ jobs:
         run: bash scripts/ci/test_dep_landing_evidence.sh
       - name: Inbox ledger shape (offline)
         run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json
+      - name: Craft contract tools harness
+        run: bash scripts/ci/test_craft_contract_tools.sh
+      - name: Readability trace shape (offline)
+        run: bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json
 
   ci-summary:
     name: CI Summary
