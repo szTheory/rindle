@@ -12,10 +12,6 @@
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"test/install_smoke/support/generated_app_helper.ex","trigger":"prove_package_install!","observed_metric":20,"count":1,"owner":"Generated-app consumer proof","removal_trigger":"Named helper is <=9."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/admin/live/actions_live.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Unassigned Admin-maintenance scope","removal_trigger":"Developer-approved phase makes this finding green."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/live_view.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Unassigned LiveView scope","removal_trigger":"Developer-approved phase makes this finding green."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/ops/lifecycle_repair.ex","trigger":"fn","observed_metric":3,"count":1,"owner":"Lifecycle repair orchestration","removal_trigger":"Finding is absent."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/ops/runtime_checks.ex","trigger":"fn","observed_metric":3,"count":2,"owner":"Runtime check orchestration","removal_trigger":"Both findings are absent."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/ops/runtime_checks/core_checks.ex","trigger":"with","observed_metric":3,"count":1,"owner":"Core runtime diagnostics","removal_trigger":"Finding is absent."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/ops/sweep_orphaned_temp_files.ex","trigger":"if","observed_metric":3,"count":1,"owner":"Temporary-file sweep","removal_trigger":"Finding is absent."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/ops/upload_maintenance.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Upload maintenance strategy","removal_trigger":"Finding is absent."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/processor/av/video.ex","trigger":"if","observed_metric":3,"count":2,"owner":"Unassigned AV-processor scope","removal_trigger":"Developer-approved AV phase makes both findings green."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/processor/ffmpeg.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Unassigned AV-processor scope","removal_trigger":"Developer-approved AV phase makes this finding green."},
@@ -25,7 +21,6 @@
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/streaming.ex","trigger":"case","observed_metric":4,"count":1,"owner":"Unassigned streaming scope","removal_trigger":"Developer-approved streaming phase makes this finding green."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/streaming/provider/mux.ex","trigger":"with","observed_metric":4,"count":1,"owner":"Unassigned streaming-provider scope","removal_trigger":"Developer-approved streaming phase makes this finding green."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/broker.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Upload broker orchestration","removal_trigger":"Finding is absent."},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/tus_protocol.ex","trigger":"case","observed_metric":3,"count":2,"owner":"Tus protocol validation","removal_trigger":"Both findings are absent."},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/workers/mux_sync_provider_asset.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Unassigned provider-worker scope","removal_trigger":"Developer-approved worker phase makes this finding green."}
   ]
 }

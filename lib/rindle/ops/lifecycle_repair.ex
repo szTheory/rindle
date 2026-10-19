@@ -77,20 +77,22 @@ defmodule Rindle.Ops.LifecycleRepair do
            %MediaAsset{} = asset <- fetch_asset(repo, asset_or_id),
            {:ok, selected_variants} <- select_variants(repo, asset.id, normalized_opts),
            {:ok, variant_specs} <- resolve_variant_specs(asset) do
-        report =
-          selected_variants
-          |> Enum.reduce(base_requeue_report(asset.id, length(selected_variants)), fn variant,
-                                                                                      report ->
-            requeue_variant(asset, variant, variant_specs, report)
-          end)
-          |> finalize_requeue_report()
-
-        {:ok, report}
+        {:ok, requeue_selected_variants(asset, selected_variants, variant_specs)}
       else
         nil -> {:error, :not_found}
         {:error, reason} -> {:error, reason}
       end
     end)
+  end
+
+  defp requeue_selected_variants(asset, selected_variants, variant_specs) do
+    initial_report = base_requeue_report(asset.id, length(selected_variants))
+
+    selected_variants
+    |> Enum.reduce(initial_report, fn variant, report ->
+      requeue_variant(asset, variant, variant_specs, report)
+    end)
+    |> finalize_requeue_report()
   end
 
   defp fetch_asset(repo, %MediaAsset{id: id}), do: repo.get(MediaAsset, id)

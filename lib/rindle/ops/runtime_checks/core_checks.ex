@@ -146,19 +146,21 @@ defmodule Rindle.Ops.RuntimeChecks.CoreChecks do
     Enum.flat_map(profiles, fn profile ->
       profile.variants()
       |> Enum.filter(fn {_name, spec} -> av_variant?(spec) end)
-      |> Enum.flat_map(fn {name, spec} ->
-        with {:ok, normalized} <- AV.normalize(spec),
-             :ok <- RuntimeGuard.check!(normalized, env: env),
-             :ok <- ensure_capability_supported(normalized) do
-          []
-        else
-          {:error, reason} ->
-            [
-              "profile #{inspect(profile)} variant #{inspect(name)} failed runtime checks: #{inspect(reason)}."
-            ]
-        end
-      end)
+      |> Enum.flat_map(fn {name, spec} -> variant_runtime_failures(profile, name, spec, env) end)
     end)
+  end
+
+  defp variant_runtime_failures(profile, name, spec, env) do
+    with {:ok, normalized} <- AV.normalize(spec),
+         :ok <- RuntimeGuard.check!(normalized, env: env),
+         :ok <- ensure_capability_supported(normalized) do
+      []
+    else
+      {:error, reason} ->
+        [
+          "profile #{inspect(profile)} variant #{inspect(name)} failed runtime checks: #{inspect(reason)}."
+        ]
+    end
   end
 
   defp ensure_capability_supported(normalized) do
