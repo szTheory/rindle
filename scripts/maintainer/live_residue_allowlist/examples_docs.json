@@ -163,6 +163,14 @@
       "reason": ""
     },
     {
+      "path": "examples/adoption_demo/e2e/admin-destructive-ux.spec.js",
+      "class": "narration",
+      "text": "// loaded, in both light and dark themes — the dimension a human was previously asked to eyeball.",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "examples/adoption_demo/e2e/admin-screenshots.spec.js",
       "class": "decision-id",
       "text": "// (D-98-05/06, RESEARCH backstops 1-5). DialogInert + the per-state runner checks ride the",
@@ -398,6 +406,14 @@
       "path": "examples/adoption_demo/e2e/cohort-styleguide.spec.js",
       "class": "spec-ref",
       "text": "// Also satisfies UI-SPEC acceptance gate 1 (component-existence loop over the 6 L1 + 4 L2",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/e2e/post-image.spec.js",
+      "class": "narration",
+      "text": "// presigned URL. The Docker demo previously signed it for `host.docker.internal:<port>`, which",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -796,6 +812,14 @@
     },
     {
       "path": "examples/adoption_demo/test/adoption_demo_web/admin_lifecycle_display_test.exs",
+      "class": "narration",
+      "text": "Discharges UAT checkpoint \"Admin Console Lifecycle Display\" (formerly human-",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/admin_lifecycle_display_test.exs",
       "class": "phase-ref",
       "text": "Locks in the Phase 91 deliverable: edge-case lifecycle states (quarantined and",
       "count": 1,
@@ -806,6 +830,14 @@
       "path": "examples/adoption_demo/test/adoption_demo_web/admin_mount_test.exs",
       "class": "phase-ref",
       "text": "Locks in the Phase 91 deliverable: the Rindle Admin Console is mounted at",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "examples/adoption_demo/test/adoption_demo_web/brand_test.exs",
+      "class": "narration",
+      "text": "Discharges UAT checkpoint \"Logo Rendering\" (formerly human-verified in",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

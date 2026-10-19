@@ -772,6 +772,14 @@
     },
     {
       "path": "scripts/ci/cohort_demo_smoke.sh",
+      "class": "narration",
+      "text": "# and a stale Elixir pin — and was previously caught only by human UAT. Nothing",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "scripts/ci/cohort_demo_smoke.sh",
       "class": "phase-ref",
       "text": "# Phase 91 UAT discharge. The docker-compose boot path",
       "count": 1,
@@ -982,6 +990,14 @@
       "path": "scripts/ci/test_ci_summary_gate.sh",
       "class": "decision-id",
       "text": "# The skip-as-pass semantics of `ci-summary` (D-05) close the fork-PR \"pending forever\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "scripts/ci/test_ci_summary_gate.sh",
+      "class": "narration",
+      "text": "# instead of hanging. Previously that behavior was \"logic-provable but observable only",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

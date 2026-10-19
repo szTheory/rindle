@@ -2660,6 +2660,14 @@
     },
     {
       "path": "test/install_smoke/support/generated_app/patcher.ex",
+      "class": "narration",
+      "text": "# silently skipping. Previously, an `if File.exists?(src)` guard",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/patcher.ex",
       "class": "phase-ref",
       "text": "# Phase 36 CR-03: raise loudly on missing fixtures rather than",
       "count": 1,
@@ -2774,6 +2782,14 @@
       "path": "test/install_smoke/support/generated_app/smoke_source.ex",
       "class": "decision-id",
       "text": "# even if assertions fail (D-22 layer 1). In CASSETTE mode the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
+      "class": "narration",
+      "text": "# Previously this called `Mox.verify_on_exit!(self())` and",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

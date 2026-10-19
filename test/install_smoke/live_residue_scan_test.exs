@@ -241,6 +241,131 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
     assert Enum.all?(receipts, &(&1 == "immutable-receipt"))
   end
 
+  # --------------------------------------------------------------- Task 3
+
+  @all_classes ~w(decision-id requirement-id phase-ref spec-ref planning-path milestone-ref
+                  plan-ref path-name mojibake duplicated-prose narration artifact-comment)
+
+  test "every one of the twelve classes is detected in one combined planted fixture" do
+    root =
+      fixture(%{
+        "lib/decision.ex" => "# tuned (" <> d("D", "-98-03") <> ")\n",
+        "lib/requirement.ex" => "# per " <> "CRAFT" <> "-04\n",
+        "lib/phase.ex" => "# see " <> "Phase" <> " 12\n",
+        "lib/spec.ex" => "# layout " <> "UI" <> "-SPEC section\n",
+        "lib/planning.ex" => "# reads " <> "." <> "planning" <> "/PROJECT.md\n",
+        "lib/milestone.ex" => "# since " <> "v1" <> ".7 only\n",
+        "lib/plan.ex" => "# from " <> "Plan" <> " 05-04\n",
+        ("scripts/phase_" <> "132_thing.json") => "{}\n",
+        "lib/moji.ex" => "# caf" <> <<0xC3::utf8, 0xA9::utf8>> <> "\n",
+        "lib/dup.ex" =>
+          "# the clone without a running store again\n# clone without a running store is stated twice\n",
+        "lib/narr.ex" => "# for now we skip the check\n",
+        "lib/art.ex" => "# " <> "FIX" <> "ME later\n"
+      })
+
+    dir = shards(root, %{})
+    {output, status} = run_fixture(root, dir, ["--check"])
+
+    assert status == 1
+
+    for class <- @all_classes do
+      assert output =~ ": #{class}: ", "class #{class} was not detected:\n#{output}"
+    end
+  end
+
+  test "repeated clause across two adjacent comment lines is duplicated-prose" do
+    root =
+      fixture(%{
+        "lib/dup.ex" =>
+          "# the clone without a running store again\n# clone without a running store is stated twice\n"
+      })
+
+    {output, status} = run_fixture(root, shards(root, %{}), ["--check"])
+
+    assert status == 1
+    assert output =~ "lib/dup.ex:2: duplicated-prose:"
+  end
+
+  test "repeated identifiers, backticks and code lines do not flag duplicated-prose" do
+    root =
+      fixture(%{
+        "lib/code.ex" =>
+          "# `alpha_beta_gamma_delta` is used here\n# `alpha_beta_gamma_delta` is used there\n" <>
+            "defp alpha_beta_gamma_delta(a), do: alpha_beta_gamma_delta(a)\n" <>
+            "defp alpha_beta_gamma_delta(b), do: alpha_beta_gamma_delta(b)\n"
+      })
+
+    assert {_, 0} = run_fixture(root, shards(root, %{}), ["--check"])
+  end
+
+  test "narration flags comments but not the same words in a string literal" do
+    flagged = fixture(%{"lib/n.ex" => "# for now we skip it\n"})
+    {output, status} = run_fixture(flagged, shards(flagged, %{}), ["--check"])
+    assert status == 1
+    assert output =~ "lib/n.ex:1: narration:"
+
+    string = fixture(%{"lib/n.ex" => "message = \"for now we skip it, previously done\"\n"})
+    assert {_, 0} = run_fixture(string, shards(string, %{}), ["--check"])
+  end
+
+  test "narration inside a multi-line block comment is detected" do
+    root =
+      fixture(%{
+        "lib/b.ex" =>
+          "<%!-- first line of the note\n     previously this was inline\n     closing --%>\n"
+      })
+
+    {output, status} = run_fixture(root, shards(root, %{}), ["--check"])
+    assert status == 1
+    assert output =~ "lib/b.ex:2: narration:"
+  end
+
+  test "artifact-comment flags a bare marker word but not a mktemp template" do
+    flagged = fixture(%{"scripts/a.sh" => "# " <> "FIX" <> "ME: tidy this\n"})
+    {output, status} = run_fixture(flagged, shards(flagged, %{}), ["--check"])
+    assert status == 1
+    assert output =~ "scripts/a.sh:1: artifact-comment:"
+
+    template = fixture(%{"scripts/a.sh" => "# mktemp template X" <> "XXXXX is fine\n"})
+    assert {_, 0} = run_fixture(template, shards(template, %{}), ["--check"])
+  end
+
+  test "the live mix.exs clause and regression literal are seeded as expected" do
+    lib = live_shard("lib")
+
+    assert Enum.any?(
+             lib["entries"],
+             &(&1["path"] == "mix.exs" and &1["class"] == "duplicated-prose")
+           )
+
+    for e <- live_shard("install_smoke")["entries"],
+        e["path"] == "test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs",
+        e["class"] == "mojibake" do
+      assert e["reason_class"] == "fixture"
+    end
+  end
+
+  test "--regen-baseline is byte-idempotent and reproduces the committed shards" do
+    live_dir = Path.join(@repo_root, "scripts/maintainer/live_residue_allowlist")
+
+    dir =
+      Path.join(System.tmp_dir!(), "rindle_residue_regen_#{System.unique_integer([:positive])}")
+
+    File.mkdir_p!(dir)
+    on_exit(fn -> File.rm_rf!(dir) end)
+
+    for file <- Path.wildcard(Path.join(live_dir, "*.json")),
+        do: File.cp!(file, Path.join(dir, Path.basename(file)))
+
+    assert {_, 0} = run_script(["--regen-baseline", "--allowlist-dir", dir])
+    first = read_dir(dir)
+    assert {_, 0} = run_script(["--regen-baseline", "--allowlist-dir", dir])
+
+    assert read_dir(dir) == first
+    assert first == read_dir(live_dir)
+  end
+
   # ----------------------------------------------------------------- helpers
 
   defp excluded_paths_in_source do
@@ -256,6 +381,14 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
 
   # Joins fragments so no source line carries a flagged identifier verbatim.
   defp d(a, b), do: a <> b
+
+  defp read_dir(dir) do
+    dir
+    |> Path.join("*.json")
+    |> Path.wildcard()
+    |> Enum.sort()
+    |> Map.new(&{Path.basename(&1), File.read!(&1)})
+  end
 
   defp live_shard(area) do
     Path.join(@repo_root, "scripts/maintainer/live_residue_allowlist/#{area}.json")

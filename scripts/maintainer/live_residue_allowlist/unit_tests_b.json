@@ -532,6 +532,14 @@
     },
     {
       "path": "test/rindle/streaming/provider/mux/mux_test.exs",
+      "class": "narration",
+      "text": "# End-to-end: previously this path raised Protocol.UndefinedError;",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/mux_test.exs",
       "class": "phase-ref",
       "text": "# Phase 33 contract: playback_ids is a LIST of strings (matches schema field",
       "count": 1,
@@ -1190,6 +1198,14 @@
       "path": "test/support/gcs_signing_key_fixture.ex",
       "class": "plan-ref",
       "text": "Returns the literal client_email used by `fixture_json/0`. Plan 02 Signer",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/support/host_oban_migration.ex",
+      "class": "narration",
+      "text": "# separate from Rindle's packaged migrations, which intentionally no longer",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

@@ -20,6 +20,14 @@
     },
     {
       "path": "test/rindle/admin/live/actions_live_test.exs",
+      "class": "narration",
+      "text": "# :preview), which inerts <main>. Previously the batch confirmation was a plain",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/actions_live_test.exs",
       "class": "spec-ref",
       "text": "# CR-03 regression: batch-erasure preview sets dialog_open (action_state ==",
       "count": 1,
@@ -125,6 +133,14 @@
     {
       "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
       "class": "decision-id",
+      "text": "# no longer live in the Maintenance directory (D-98-10).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
+      "class": "narration",
       "text": "# no longer live in the Maintenance directory (D-98-10).",
       "count": 1,
       "reason_class": "pending-removal",
@@ -366,6 +382,14 @@
       "path": "test/rindle/av/subprocess_epipe_test.exs",
       "class": "requirement-id",
       "text": "# (1) Deterministic synthetic — drain-after-reply absorption (EPIPE-01/05).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/av/subprocess_stdin_test.exs",
+      "class": "narration",
+      "text": "# fail; the ACK-free runner and `-nostdin` are then still harmless but no longer load-bearing.",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -1070,6 +1094,22 @@
       "path": "test/rindle/error_test.exs",
       "class": "milestone-ref",
       "text": "In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/owner_erasure_batch_proof_test.exs",
+      "class": "narration",
+      "text": "# Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, which previously swapped the GLOBAL",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/owner_erasure_batch_proof_test.exs",
+      "class": "narration",
+      "text": "# override via Config.put_repo_override/1, visible only to its own process tree, so it can no longer",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

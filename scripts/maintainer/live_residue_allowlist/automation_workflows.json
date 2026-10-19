@@ -588,6 +588,22 @@
     },
     {
       "path": ".github/workflows/ci.yml",
+      "class": "narration",
+      "text": "# Elixir pin) and was previously only human-verified. Builds the demo image,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "class": "narration",
+      "text": "# actually writes (the previously-used `meta.rindle_soak` tag was",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": ".github/workflows/ci.yml",
       "class": "phase-ref",
       "text": "# GATE-01/GATE-02 (Phase 112): the lean PR-side browser-render proxy. Closes",
       "count": 1,
@@ -1268,6 +1284,14 @@
     },
     {
       "path": ".github/workflows/nightly.yml",
+      "class": "narration",
+      "text": "# {:json_polyfill, ...}, OTP>=27 does not. OTP 25 is no longer claimed because",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": ".github/workflows/nightly.yml",
       "class": "requirement-id",
       "text": "# CACHE-01 (D-03): composite setup + deps/_build cache, carrying the same",
       "count": 1,
@@ -1334,6 +1358,30 @@
       "path": ".github/workflows/release.yml",
       "class": "requirement-id",
       "text": "# ci.yml. See scripts/ci/install_ffmpeg.sh (CACHE-05, D-14).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "docker/compose.cohort-demo.yml",
+      "class": "narration",
+      "text": "# Upstream MinIO no longer publishes container images; this digest-pinned",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "docker/dx-template/compose.__app__.yml",
+      "class": "narration",
+      "text": "# Upstream MinIO no longer publishes container images; this digest-pinned",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "scripts/ensure_minio.sh",
+      "class": "narration",
+      "text": "# Upstream MinIO no longer publishes container images or download-site",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -1510,6 +1558,14 @@
       "path": "scripts/maintainer/collect_inbox.sh",
       "class": "decision-id",
       "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "scripts/maintainer/collect_inbox.sh",
+      "class": "narration",
+      "text": "# Terminal lookups for ledger entries that are no longer open (--include N).",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""

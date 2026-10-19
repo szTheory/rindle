@@ -99,6 +99,14 @@
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
     },
     {
+      "path": "lib/rindle.ex",
+      "class": "narration",
+      "text": "# For now, we return the error",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "lib/rindle/admin/components.ex",
       "class": "decision-id",
       "text": "# CR-02 overlay focus contract (D-98-11): `inert`/`aria-hidden` are applied to",
@@ -204,6 +212,14 @@
     },
     {
       "path": "lib/rindle/admin/components.ex",
+      "class": "narration",
+      "text": "# (`JS.set_attribute`) is progressive enhancement only — no longer the source",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/components.ex",
       "class": "spec-ref",
       "text": "# CR-02 overlay focus contract (D-98-11): `inert`/`aria-hidden` are applied to",
       "count": 1,
@@ -254,6 +270,14 @@
       "path": "lib/rindle/admin/live/actions_live.ex",
       "class": "decision-id",
       "text": "# NOTE (UI-SPEC §E, D-98-10): the lifecycle-repair (reconcile) and",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/admin/live/actions_live.ex",
+      "class": "narration",
+      "text": "(render_action_overlay/2). Previously this was a plain inline `<form>`",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -539,6 +563,14 @@
       "reason": ""
     },
     {
+      "path": "lib/rindle/ops/runtime_checks/ownership_checks.ex",
+      "class": "narration",
+      "text": "# previously did not enforce it — adopters who mistyped the queue",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
       "path": "lib/rindle/ops/sweep_orphaned_temp_files.ex",
       "class": "spec-ref",
       "text": "# (CR-03) instead of waiting for the whole directory to cross the",
@@ -553,6 +585,14 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Public module documentation is published on hexdocs; rewording is a separate reviewed change."
+    },
+    {
+      "path": "lib/rindle/ops/upload_maintenance.ex",
+      "class": "narration",
+      "text": "# the retryable marker cleared, so it is no longer re-selected by",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
     },
     {
       "path": "lib/rindle/ops/upload_maintenance.ex",
@@ -662,6 +702,14 @@
       "path": "lib/rindle/ops/variant_maintenance.ex",
       "class": "spec-ref",
       "text": "# WR-09: do NOT raise — that would abort the whole verify walk on the",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/processor/image.ex",
+      "class": "narration",
+      "text": "# For now, let's use thumbnail which is close",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
@@ -820,6 +868,14 @@
     },
     {
       "path": "lib/rindle/streaming/provider/mux.ex",
+      "class": "narration",
+      "text": "# filter on a tag that the producer actually writes (the previously-used",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "lib/rindle/streaming/provider/mux.ex",
       "class": "spec-ref",
       "text": "# `:passthrough` (CR-01) — when supplied, stamped onto the create-asset",
       "count": 1,
@@ -862,6 +918,14 @@
       "path": "lib/rindle/workers/cleanup_orphans.ex",
       "class": "spec-ref",
       "text": "# WR-06: surface adapter-load errors via the documented `…failed` event",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "mix.exs",
+      "class": "duplicated-prose",
+      "text": "# clone without a running MinIO. The full-parity storage command is documented",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
