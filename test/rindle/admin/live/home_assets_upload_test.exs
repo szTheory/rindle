@@ -19,7 +19,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
     @endpoint __MODULE__.Endpoint
     @secret_payload "https://storage.example/raw-session-secret-token"
-    # Task-first nav labels (UI-SPEC §E, D-98-03): relabeled for task-scent.
+    # Task-first nav labels, named for what the operator is trying to do.
     @surfaces [
       "Overview",
       "Assets",
@@ -120,7 +120,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
 
       assert_shell(html, "home-status")
       assert html =~ "Rindle Admin"
-      # GDS triage home (UI-SPEC §E): task-first sections, no inspect/1 anti-pattern.
+      # Triage home: task-first sections, no inspect/1 dumps.
       assert html =~ "Overview"
       assert html =~ "Needs attention"
       assert html =~ "System health"
@@ -135,14 +135,13 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       end
     end
 
-    # CR-01 regression: the problems-first "Needs attention" task-list reads count
-    # buckets from `RuntimeStatus.count_map/1`, which is ATOM-keyed. The original
-    # code read them with STRING keys (`"failed"`, `"quarantined"`, ...), so every
-    # problem silently resolved to 0/nil and the list was permanently empty
-    # ("Nothing needs attention" even with real problems). This asserts that a
-    # quarantined asset + failed variant produce a NON-EMPTY needs-attention list.
-    # Fails against the string-key code (renders the all-clear empty state instead).
-    test "Needs attention populates from atom-keyed counts (CR-01 regression)", %{conn: conn} do
+    # The problems-first "Needs attention" task-list reads count buckets from
+    # `RuntimeStatus.count_map/1`, which is ATOM-keyed. Reading them with STRING
+    # keys (`"failed"`, `"quarantined"`, ...) resolves every problem to 0/nil and
+    # leaves the list permanently empty ("Nothing needs attention" even with real
+    # problems). This asserts that a quarantined asset + failed variant produce a
+    # NON-EMPTY needs-attention list rather than the all-clear empty state.
+    test "Needs attention populates from atom-keyed counts", %{conn: conn} do
       quarantined = insert_asset(%{state: "quarantined", profile: to_string(ImageProfile)})
       _quarantine_variant = insert_variant(quarantined, %{name: "thumb", state: "failed"})
 
@@ -211,14 +210,14 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       refute detail_html =~ "provider-secret-asset-id"
     end
 
-    test "Asset detail hosts the distributed quarantine review (UI-SPEC §E)", %{conn: conn} do
+    test "Asset detail hosts the quarantine review", %{conn: conn} do
       asset = insert_asset(%{state: "quarantined", profile: to_string(ImageProfile)})
 
       {:ok, _detail, html} =
         Phoenix.LiveViewTest.live(conn, "/admin/rindle/assets/#{asset.id}")
 
-      # The release/quarantine verb was distributed off Maintenance onto asset
-      # detail, where the operator already has the asset in context (D-98-10).
+      # The release/quarantine verb lives on asset detail rather than
+      # Maintenance, where the operator already has the asset in context.
       assert html =~ ~s(data-rindle-admin-section="quarantine-review")
       assert html =~ "Quarantine review"
       assert html =~ "permanently blocked from delivery"

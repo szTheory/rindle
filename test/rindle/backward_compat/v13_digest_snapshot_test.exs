@@ -1,19 +1,19 @@
 defmodule Rindle.BackwardCompat.V13DigestSnapshotTest do
   @moduledoc """
-  Load-bearing snapshot of the v1.3 recipe digest for the canonical adopter
-  profile's :thumb variant.
+  Load-bearing snapshot of the image-only recipe digest for the canonical
+  adopter profile's :thumb variant, as it was before audio/video variants
+  existed.
 
-  If this test fails on v1.4, the validator is persisting :kind into
-  image-default specs (D-14 violation) and every existing adopter's image
-  variants will silently flip to :stale on upgrade. This is a P0 regression
-  class per RESEARCH.md Pitfall 1.
+  If this test fails, the validator is persisting :kind into image-default
+  specs, and every existing adopter's image variants will silently flip to
+  :stale on upgrade. Treat a failure as a release-blocking regression.
 
   The expected digest below was captured via:
 
       mix run -e \\
         'IO.puts(Rindle.Adopter.CanonicalApp.Profile.recipe_digest(:thumb))'
 
-  ON THE v1.3 CODEBASE, BEFORE Phase 24 validator changes (Plan 04). Do NOT
+  ON THE IMAGE-ONLY CODEBASE, BEFORE the validator learned :kind. Do NOT
   regenerate this value casually — recapturing AFTER validator edits defeats
   the purpose of the snapshot.
 
@@ -24,10 +24,10 @@ defmodule Rindle.BackwardCompat.V13DigestSnapshotTest do
 
   alias Rindle.Adopter.CanonicalApp.Profile, as: AdopterProfile
 
-  # CAPTURED PRE-PHASE-24. DO NOT EDIT WITHOUT REGENERATING ON A v1.3 CHECKOUT.
+  # CAPTURED BEFORE AV SUPPORT. DO NOT EDIT WITHOUT REGENERATING ON AN IMAGE-ONLY CHECKOUT.
   @v13_thumb_digest "3a9ab2f60b2d26217471f22cc329252acba546c6341111a3ef89a8d9978d30a7"
 
-  test "image-default :thumb digest matches v1.3 snapshot (per D-14, D-22, D-23)" do
+  test "image-default :thumb digest matches the image-only snapshot" do
     assert AdopterProfile.recipe_digest(:thumb) == @v13_thumb_digest
   end
 
@@ -38,7 +38,7 @@ defmodule Rindle.BackwardCompat.V13DigestSnapshotTest do
     assert explicit.recipe_digest(:thumb) == omitted.recipe_digest(:thumb)
   end
 
-  test "adding AV siblings does not perturb the v1.3 image digest snapshot" do
+  test "adding AV siblings does not perturb the image-only digest snapshot" do
     profile_with_av =
       compile_profile("""
       storage: Rindle.StorageMock,
@@ -60,7 +60,7 @@ defmodule Rindle.BackwardCompat.V13DigestSnapshotTest do
     spec = AdopterProfile.variants()[:thumb]
 
     refute Map.has_key?(spec, :kind),
-           "validator must omit :kind from validated map for image-default profiles (D-14)"
+           "validator must omit :kind from validated map for image-default profiles"
   end
 
   defp compile_profile_with_explicit_image_kind do

@@ -1,11 +1,9 @@
 defmodule Rindle.OwnerErasureBatchProofTest do
-  # async: true — root-caused in Phase 110. This suite uses
-  # Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, which previously swapped the GLOBAL
-  # `:rindle, :repo` (Application.put_env) and so polluted any concurrent async test resolving
-  # Rindle.Config.repo() in its window (StreamingDispatchTest got force-failed transactions →
-  # intermittent `==` failures). The double is now process-scoped: with_counting_repo/2 installs the
-  # override via Config.put_repo_override/1, visible only to its own process tree, so it can no longer
-  # pollute a concurrent reader. The global mutation is eliminated, so this suite is clean to promote.
+  # async: true is safe here. This suite uses
+  # Rindle.Test.CountingFailingTxnRepo.with_counting_repo/2, whose repo double is process-scoped:
+  # it installs the override via Config.put_repo_override/1, visible only to its own process tree,
+  # and never mutates the global `:rindle, :repo` (Application.put_env). A global swap would leak
+  # force-failed transactions into any concurrent async test that resolves Rindle.Config.repo().
   use Rindle.DataCase, async: true
   use Oban.Testing, repo: Rindle.Repo
   import Mox
@@ -18,7 +16,7 @@ defmodule Rindle.OwnerErasureBatchProofTest do
   setup :set_mox_from_context
   setup :verify_on_exit!
 
-  describe "PROOF-05: shared assets" do
+  describe "shared assets" do
     test "batch preview with shared asset aggregates retained_shared_assets" do
       owner1 = %User{id: Ecto.UUID.generate()}
       owner2 = %User{id: Ecto.UUID.generate()}
@@ -74,7 +72,7 @@ defmodule Rindle.OwnerErasureBatchProofTest do
     end
   end
 
-  describe "PROOF-05: partial failure" do
+  describe "partial failure" do
     test "second owner fails after first owner commits" do
       owner1 = %User{id: Ecto.UUID.generate()}
       owner2 = %User{id: Ecto.UUID.generate()}

@@ -28,7 +28,7 @@ defmodule Rindle.DoctorThresholdsTest do
     {:ok, config: config, reports: reports}
   end
 
-  test "the configured Doctor ratchet remains at the D-07 target", %{config: config} do
+  test "the configured Doctor ratchet holds full doc and 95% spec coverage", %{config: config} do
     assert config.min_module_doc_coverage == 100
     assert config.min_overall_doc_coverage == 100
     assert config.min_overall_moduledoc_coverage == 100

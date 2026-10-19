@@ -1,15 +1,15 @@
 defmodule Rindle.Config.RepoOverrideIsolationTest do
-  # ISO-05 concurrency proof (Phase 110, research §8).
+  # Repo override concurrency proof.
   #
   # This is the executable, held-out proof that the counting double's repo override is
-  # PROCESS-SCOPED, not global. It locks the old→new delta the milestone delivers:
+  # PROCESS-SCOPED, not global:
   #
-  #   * OLD impl — `with_counting_repo/2` did `Application.put_env(:rindle, :repo, double)`,
-  #     a GLOBAL swap. A concurrent reader in any other process would resolve the double and
-  #     its transaction would force-fail → this test would be RED.
-  #   * NEW impl (Plan 01 resolver + Plan 02 process-scoped double) — the override lives in the
-  #     calling process's dictionary (visible only down its own `$callers` tree), so an unrelated
-  #     process reading `Config.repo()` still sees `Rindle.Repo` → this test is GREEN.
+  #   * A GLOBAL swap (`Application.put_env(:rindle, :repo, double)` inside
+  #     `with_counting_repo/2`) would let a concurrent reader in any other process resolve the
+  #     double, and its transaction would force-fail → this test goes RED.
+  #   * The process-scoped resolver and double keep the override in the calling process's
+  #     dictionary (visible only down its own `$callers` tree), so an unrelated process
+  #     reading `Config.repo()` still sees `Rindle.Repo` → this test is GREEN.
   #
   # Process A (the `with_counting_repo/1` callback's process) force-fails its 1st transaction
   # and sees the double. Process B is an UNRELATED reader created with bare `spawn`, so it has
@@ -19,7 +19,7 @@ defmodule Rindle.Config.RepoOverrideIsolationTest do
   #
   # The module is `async: true`: it is itself the canonical async-safe demonstration, and any
   # future regression that re-globalizes the repo swap makes B observe the double and turns this
-  # test RED — the un-droppable lock on the isolation property (threat T-110-06).
+  # test RED — the un-droppable lock on the isolation property.
   use Rindle.DataCase, async: true
 
   alias Ecto.Adapters.SQL.Sandbox

@@ -44,7 +44,7 @@ defmodule Rindle.Domain.LifecycleFSMTest do
     end
   end
 
-  describe "asset transition matrix — Phase 24 additive (AV-02-03)" do
+  describe "asset transition matrix — AV additive edges" do
     alias Rindle.Domain.AssetFSM
 
     test "available → transcoding is allowed (NEW edge)" do
@@ -63,7 +63,7 @@ defmodule Rindle.Domain.LifecycleFSMTest do
       assert :ok == AssetFSM.transition("transcoding", "quarantined")
     end
 
-    test "analyzing → quarantined is allowed (NEW; probe-failure path per AV-02-09; A4 deviation from D-09)" do
+    test "analyzing → quarantined is allowed (probe-failure path)" do
       assert :ok == AssetFSM.transition("analyzing", "quarantined")
     end
 
@@ -140,7 +140,7 @@ defmodule Rindle.Domain.LifecycleFSMTest do
     end
   end
 
-  describe "variant transition matrix — Phase 24 additive (AV-02-04)" do
+  describe "variant transition matrix — AV additive edges" do
     alias Rindle.Domain.VariantFSM
 
     test "planned → cancelled is allowed (NEW)" do

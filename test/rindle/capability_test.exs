@@ -87,7 +87,7 @@ defmodule Rindle.CapabilityTest do
     test "does not crash when :mux dep is absent (no Mux config + module not loaded)" do
       Application.delete_env(:rindle, @mux_config_key)
 
-      # Must NOT raise — D-30 mandates Application.get_env/2 (returns []), not
+      # Must NOT raise: the report reads Application.get_env/2 (returns []), not
       # Code.ensure_loaded?/1.
       report = Rindle.Capability.report()
       assert report.streaming.signed_playback_configured? == false
@@ -111,11 +111,11 @@ defmodule Rindle.CapabilityTest do
     end
   end
 
-  # Phase 36 WR-07: configured_streaming_profiles/1 is a public seam for the
+  # configured_streaming_profiles/1 is a public seam for the
   # doctor's streaming checks; the four input-shape branches need direct
   # coverage so a regression in the map vs keyword-list dual handling cannot
   # silently slip through.
-  describe "configured_streaming_profiles/1 (Phase 36 WR-07)" do
+  describe "configured_streaming_profiles/1" do
     defmodule NoDeliveryProfile do
       @moduledoc false
       use Rindle.Profile,

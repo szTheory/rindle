@@ -82,7 +82,7 @@ defmodule Rindle.BatchOwnerErasureTaskTest do
     assert msg =~ "owner"
   end
 
-  describe "PROOF-06: partial failure" do
+  describe "partial failure across owners" do
     test "execute prints partial report then batch_owner_failed error and exits 1" do
       owner1 = %User{id: Ecto.UUID.generate()}
       owner2 = %User{id: Ecto.UUID.generate()}

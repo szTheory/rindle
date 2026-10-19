@@ -73,7 +73,7 @@ defmodule Rindle.Delivery.WebhookPlugTest do
     |> PlugTest.conn(path, body)
     |> Conn.put_req_header("content-type", "application/json")
     |> Conn.put_req_header("mux-signature", sig_header)
-    # D-37 — synthetic conns don't run Plug.Parsers, so we pre-populate the
+    # Synthetic conns don't run Plug.Parsers, so we pre-populate the
     # :raw_body assign manually (matches what WebhookBodyReader would do).
     |> Conn.assign(:raw_body, [body])
   end
@@ -288,7 +288,7 @@ defmodule Rindle.Delivery.WebhookPlugTest do
     test "missing body assign + empty fallback body -> 500 :body_reader_missing",
          _ctx do
       # No raw_body assign; empty body — Plug.Conn.read_body/2 fallback returns
-      # an empty binary, which the Plug treats as body_reader_missing (D-16).
+      # an empty binary, which the Plug treats as body_reader_missing.
       conn =
         :post
         |> PlugTest.conn("/", "")

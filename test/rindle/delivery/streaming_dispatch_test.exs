@@ -1,11 +1,10 @@
 defmodule Rindle.Delivery.StreamingDispatchTest do
   @moduledoc """
-  Per-branch coverage for `Rindle.Delivery.streaming_url/3` D-19 dispatch tree
-  (Phase 33 STREAM-06).
+  Per-branch coverage for the `Rindle.Delivery.streaming_url/3` dispatch tree.
 
-  Branch matrix (from CONTEXT.md D-19 + Plan 33-03):
+  Branch matrix:
 
-    Branch 1 — no streaming configured → v1.4 progressive path (kind: :progressive)
+    Branch 1 — no streaming configured → progressive path (kind: :progressive)
     Branch 2 — streaming + binary key → :streaming_provider_requires_asset_struct
     Branch 3a/3b/3c — row in pending|uploading|processing → :provider_asset_not_ready
     Branch 4 — row in errored → :provider_sync_failed
@@ -81,7 +80,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
       ]
   end
 
-  # CR-01 regression: profile with BOTH :streaming AND :authorizer configured.
+  # Profile with BOTH :streaming AND :authorizer configured.
   # Branch 5 must run the authorizer before calling the provider — otherwise
   # signed HLS URLs leak past the authorizer the profile declared.
   defmodule AuthorizedStreamingProfile do
@@ -150,7 +149,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
 
   # ---------------------------------------------------------------------------
 
-  describe "Branch 1: no streaming configured (v1.4 progressive path)" do
+  describe "Branch 1: no streaming configured (progressive path)" do
     test "binary key on no-streaming profile returns kind: :progressive and emits telemetry" do
       ref = attach_streaming_telemetry()
       key = "assets/asset-1/video.mp4"
@@ -293,7 +292,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
   end
 
   describe "Branch 6: no row + non-strict (default) → progressive fallback" do
-    test "falls through to v1.4 progressive path and emits kind: :progressive" do
+    test "falls through to the progressive path and emits kind: :progressive" do
       ref = attach_streaming_telemetry()
       asset = insert_asset!()
       # No insert_provider_asset! — Repo.get_by returns nil.
@@ -317,7 +316,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     end
   end
 
-  describe "Branch 7: no row + strict opt → :provider_asset_not_ready (D-20)" do
+  describe "Branch 7: no row + strict opt → :provider_asset_not_ready" do
     test "returns :provider_asset_not_ready when opts[:strict] = true (no telemetry)" do
       ref = attach_streaming_telemetry()
       asset = insert_asset!()
@@ -330,7 +329,7 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     end
   end
 
-  describe "Repo.get_by lookup keys (D-21, D-22)" do
+  describe "Repo.get_by lookup keys" do
     test "lookup keys on (asset_id, profile, provider_name) — single row hit (no N+1)" do
       asset = insert_asset!()
 
@@ -354,10 +353,10 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     end
   end
 
-  # WR-04: Branch 5 must cross-check the persisted playback_policy / ingest_mode
+  # Branch 5 must cross-check the persisted playback_policy / ingest_mode
   # on the media_provider_assets row against the live streaming_config. When
   # they disagree, refuse the URL and emit a config_drift warning telemetry.
-  describe "Branch 5: config drift between row and profile (WR-04)" do
+  describe "Branch 5: config drift between row and profile" do
     test "row playback_policy differs from streaming_config returns :provider_sync_failed and emits drift telemetry" do
       drift_ref =
         :telemetry_test.attach_event_handlers(self(), [
@@ -496,12 +495,12 @@ defmodule Rindle.Delivery.StreamingDispatchTest do
     end
   end
 
-  # CR-01: Branch 5 must call the configured authorizer before the provider call.
+  # Branch 5 must call the configured authorizer before the provider call.
   # Without this, profiles with both :streaming AND :authorizer leak signed HLS
   # URLs to callers the authorizer would have rejected, as soon as the row state
   # flips to :ready. Mirrors the Branch 1/6 (progressive) authorize_delivery
   # contract.
-  describe "Branch 5: authorizer integration (CR-01 regression)" do
+  describe "Branch 5: authorizer integration" do
     defp insert_authorized_asset!(attrs \\ %{}) do
       %MediaAsset{}
       |> MediaAsset.changeset(

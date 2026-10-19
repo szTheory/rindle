@@ -111,7 +111,7 @@ defmodule Rindle.Domain.MediaSchemaTest do
     end
   end
 
-  describe "media_assets - kind/typed cols (Phase 24)" do
+  describe "media_assets - kind/typed cols" do
     @valid_base_attrs %{
       state: "staged",
       storage_key: "test/some/key.jpg",
@@ -197,13 +197,13 @@ defmodule Rindle.Domain.MediaSchemaTest do
       assert get_field(changeset, :error_reason) == "probe failed"
     end
 
-    test "transcoding is a valid state value (Plan 03 prerequisite)" do
+    test "transcoding is a valid state value" do
       attrs = Map.put(@valid_base_attrs, :state, "transcoding")
       assert MediaAsset.changeset(%MediaAsset{}, attrs).valid?
     end
   end
 
-  describe "media_variants - output_kind (Phase 24)" do
+  describe "media_variants - output_kind" do
     @variant_valid_base_attrs %{
       asset_id: Ecto.UUID.generate(),
       name: "thumb",
@@ -242,7 +242,7 @@ defmodule Rindle.Domain.MediaSchemaTest do
       refute MediaVariant.changeset(%MediaVariant{}, attrs).valid?
     end
 
-    test "cancelled is a valid state (AV-02-04 prerequisite)" do
+    test "cancelled is a valid state" do
       attrs = %{@variant_valid_base_attrs | state: "cancelled"}
       assert MediaVariant.changeset(%MediaVariant{}, attrs).valid?
     end

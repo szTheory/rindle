@@ -6,7 +6,7 @@ defmodule Rindle.AV.SubprocessEpipeTest do
 
   alias Rindle.AV.Subprocess
 
-  # (1) Deterministic synthetic — drain-after-reply absorption (EPIPE-01/05).
+  # (1) Deterministic synthetic — drain-after-reply absorption of a late :epipe.
   # No subprocess, zero OS race: inject a run_fun that returns the real {output, status}
   # AND fires a terminal {:EXIT, port, :epipe} into the worker's mailbox so the worker's
   # `after 0` drain + the parent's demonitor [:flush] both run deterministically.
@@ -36,7 +36,7 @@ defmodule Rindle.AV.SubprocessEpipeTest do
     refute_received {:EXIT, _, :epipe}
   end
 
-  # (2) Deterministic synthetic — pre-reply retry branch (D-05 bounded single retry + D-07 log).
+  # (2) Deterministic synthetic — pre-reply retry branch (one bounded retry plus a debug log).
   # The first call exit(:epipe)s BEFORE replying; the single bounded retry succeeds. Exactly one
   # Logger.debug citing #98 is emitted on the retry branch.
   @tag :regression
@@ -55,7 +55,7 @@ defmodule Rindle.AV.SubprocessEpipeTest do
     end
 
     # Ensure :debug records survive the primary Logger level filter for this module,
-    # independent of the global level (the breadcrumb is emitted at :debug, D-07).
+    # independent of the global level (the breadcrumb is emitted at :debug).
     Logger.put_module_level(Rindle.AV.Subprocess, :debug)
     on_exit(fn -> Logger.delete_module_level(Rindle.AV.Subprocess) end)
 

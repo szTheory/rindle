@@ -40,13 +40,13 @@ defmodule Rindle.Admin.RouterTest do
     end
 
     describe "rindle_admin/2 mount contract" do
-      test "D-89-01 exposes the router macro when LiveView is loaded" do
+      test "exposes the router macro when LiveView is loaded" do
         assert Code.ensure_loaded?(Rindle.Admin.Router)
         assert function_exported?(Rindle.Admin.Router, :__info__, 1)
         assert macro_exported?(Rindle.Admin.Router, :rindle_admin, 2)
       end
 
-      test "D-89-02 accepts host on_mount auth and explicit auth_guarded? acknowledgement" do
+      test "accepts host on_mount auth and explicit auth_guarded? acknowledgement" do
         assert {:ok, opts} =
                  Rindle.Admin.Router.__validate_rindle_admin_mount_opts__(
                    [on_mount: [HostAuth]],
@@ -64,7 +64,7 @@ defmodule Rindle.Admin.RouterTest do
         assert opts.auth_guarded? == true
       end
 
-      test "D-89-03 rejects allow_unauthenticated? as a production escape hatch" do
+      test "rejects allow_unauthenticated? as a production escape hatch" do
         assert_raise ArgumentError, ~r/allow_unauthenticated\?/, fn ->
           Rindle.Admin.Router.__validate_rindle_admin_mount_opts__(
             [allow_unauthenticated?: true],
@@ -73,7 +73,7 @@ defmodule Rindle.Admin.RouterTest do
         end
       end
 
-      test "D-89-04 preserves host route, socket, transport, CSP, and on_mount options" do
+      test "preserves host route, socket, transport, CSP, and on_mount options" do
         assert {:ok, opts} =
                  Rindle.Admin.Router.__validate_rindle_admin_mount_opts__(
                    [
@@ -105,7 +105,7 @@ defmodule Rindle.Admin.RouterTest do
         assert opts.on_mount == [HostAuth]
       end
 
-      test "D-89-03 allows explicit unauthenticated mounts only outside production" do
+      test "allows explicit unauthenticated mounts only outside production" do
         assert {:ok, opts} =
                  Rindle.Admin.Router.__validate_rindle_admin_mount_opts__(
                    [allow_unauthenticated?: true],
@@ -117,7 +117,7 @@ defmodule Rindle.Admin.RouterTest do
     end
 
     describe "generated host routes" do
-      test "D-89-01 expands all read-surface LiveView routes" do
+      test "expands all read-surface LiveView routes" do
         routes = Phoenix.Router.routes(GuardedHostRouter)
 
         assert_route(routes, "/admin/rindle", Rindle.Admin.Live.HomeLive, :index)
@@ -155,7 +155,7 @@ defmodule Rindle.Admin.RouterTest do
         assert_route(routes, "/admin/rindle/actions", Rindle.Admin.Live.ActionsLive, :index)
       end
 
-      test "D-89-05 expands exact namespaced static asset routes" do
+      test "expands exact namespaced static asset routes" do
         routes = Phoenix.Router.routes(GuardedHostRouter)
 
         for file <- ~w(rindle-admin.css rindle-admin.js logo.svg favicon.svg) do
@@ -168,7 +168,7 @@ defmodule Rindle.Admin.RouterTest do
         end
       end
 
-      test "D-89-02 accepts auth_guarded? acknowledgement during route expansion" do
+      test "accepts auth_guarded? acknowledgement during route expansion" do
         assert_route(
           Phoenix.Router.routes(AcknowledgedHostRouter),
           "/ops/media",

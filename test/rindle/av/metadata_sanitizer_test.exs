@@ -14,7 +14,7 @@ defmodule Rindle.AV.MetadataSanitizerTest do
       assert MetadataSanitizer.sanitize("col1\tcol2") == "col1\tcol2"
     end
 
-    test "strips \\n and \\r (literal D-19; see RESEARCH.md A3)" do
+    test "strips \\n and \\r" do
       assert MetadataSanitizer.sanitize("line1\nline2\rline3") == "line1line2line3"
     end
 

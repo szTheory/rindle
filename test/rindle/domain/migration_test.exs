@@ -3,7 +3,7 @@ defmodule Rindle.Domain.MigrationTest do
 
   alias Rindle.Repo
 
-  describe "extend_media_for_av migration (Phase 24)" do
+  describe "extend_media_for_av migration" do
     test "media_assets has the new AV columns" do
       {:ok, %{rows: rows}} =
         Repo.query("""
@@ -16,7 +16,7 @@ defmodule Rindle.Domain.MigrationTest do
       for required <-
             ~w(kind width height duration_ms has_video_track has_audio_track error_reason) do
         assert required in column_names,
-               "missing column #{required} on media_assets after Phase 24 migration"
+               "missing column #{required} on media_assets after the extend_media_for_av migration"
       end
     end
 
@@ -31,7 +31,7 @@ defmodule Rindle.Domain.MigrationTest do
 
       for required <- ~w(output_kind duration_ms width height) do
         assert required in column_names,
-               "missing column #{required} on media_variants after Phase 24 migration"
+               "missing column #{required} on media_variants after the extend_media_for_av migration"
       end
     end
 
@@ -69,7 +69,7 @@ defmodule Rindle.Domain.MigrationTest do
     end
   end
 
-  describe "extend_media_upload_sessions_for_resumable migration (Phase 38)" do
+  describe "extend_media_upload_sessions_for_resumable migration" do
     test "media_upload_sessions has the resumable columns" do
       {:ok, %{rows: rows}} =
         Repo.query("""
@@ -81,7 +81,7 @@ defmodule Rindle.Domain.MigrationTest do
 
       for required <- ~w(session_uri session_uri_expires_at last_known_offset region_hint) do
         assert required in column_names,
-               "missing column #{required} on media_upload_sessions after Phase 38 migration"
+               "missing column #{required} on media_upload_sessions after the resumable migration"
       end
     end
 
@@ -132,7 +132,7 @@ defmodule Rindle.Domain.MigrationTest do
     end
   end
 
-  describe "add_provider_upload_id_to_media_provider_assets migration (Phase 64)" do
+  describe "add_provider_upload_id_to_media_provider_assets migration" do
     test "media_provider_assets has provider_upload_id column" do
       {:ok, %{rows: rows}} =
         Repo.query("""
