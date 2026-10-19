@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test_e2e_specs_scoping.sh — static assertion for the ADOPTION_DEMO_E2E_SPECS
-# spec-scoping contract in scripts/ci/e2e_local.sh (GATE-01, research GATE-A3).
+# spec-scoping contract in scripts/ci/e2e_local.sh.
 #
 # WHY THIS EXISTS
 # ---------------

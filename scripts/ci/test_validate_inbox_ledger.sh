@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # test_validate_inbox_ledger.sh - fixture harness for scripts/maintainer/validate_inbox_ledger.sh
-# (Phase 134 INBOX-02 / SEC-09 / DEPS-01). One failing fixture per rejection rule plus clean
+# (inbox ledger shape, security disposition and dependency landing rules). One failing
+# fixture per rejection rule plus clean
 # fixtures. Needs only bash, jq and coreutils: no network, no gh, no Elixir.
 # Clock injection: INBOX_NOW_EPOCH. Bash 3.2 / jq 1.6 compatible.
 

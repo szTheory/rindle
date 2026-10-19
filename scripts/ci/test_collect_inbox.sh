@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fixture harness for scripts/maintainer/collect_inbox.sh (INBOX-01).
+# Fixture harness for scripts/maintainer/collect_inbox.sh.
 #
 # Pure bash + jq: fake `gh`, `mix` and `date` shims on PATH, no network, no Elixir,
 # no real `gh` login. The fake gh records every non-GET method, field/input flag and

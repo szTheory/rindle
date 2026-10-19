@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regression matrix for the setup_branch_protection.sh pending-forever guard (D-12),
+# Regression matrix for the setup_branch_protection.sh pending-forever guard,
 # driven by a fake `gh`. Covers the `[skip ci]` head commit that has no check-runs.
 set -euo pipefail
 

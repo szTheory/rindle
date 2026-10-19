@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Harness for scripts/maintainer/dep_landing_evidence.sh (Phase 134, D-134-07).
+# Harness for scripts/maintainer/dep_landing_evidence.sh.
 #
 # Pure bash + git + jq: a throwaway git repo with crafted squash commits and a fake
 # `gh` on PATH that answers run/job reads from fixture files. The fake gh records every

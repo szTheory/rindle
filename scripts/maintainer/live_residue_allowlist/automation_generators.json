@@ -3,292 +3,44 @@
   "area": "automation_generators",
   "entries": [
     {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "decision-id",
-      "text": "# EXPECTED list — reuse the write script's read-only flag; do NOT re-encode names (D-09).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "decision-id",
-      "text": "# This script is READ-ONLY (D-09 / D-14): it GETs `/required_status_checks` only and",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "milestone-ref",
-      "text": "# Phase 103 must capture the *actual* live required-check names BEFORE the v1.20",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "phase-ref",
-      "text": "# Phase 103 must capture the *actual* live required-check names BEFORE the v1.20",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "phase-ref",
-      "text": "# pipeline restructuring (the Phase 105 aggregate-check flip depends on knowing the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "requirement-id",
-      "text": "# (OBS-03) and diff them against the committed expected list.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "requirement-id",
-      "text": "# the whole point of OBS-03 (see 103-RESEARCH.md).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "spec-ref",
-      "text": "# newer `.checks[].context` objects (103-RESEARCH.md Pitfall 3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "spec-ref",
-      "text": "# the whole point of OBS-03 (see 103-RESEARCH.md).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/cohort_demo_smoke.sh",
-      "class": "narration",
-      "text": "# and a stale Elixir pin — and was previously caught only by human UAT. Nothing",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/cohort_demo_smoke.sh",
-      "class": "phase-ref",
-      "text": "# Phase 91 UAT discharge. The docker-compose boot path",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "decision-id",
-      "text": "# Parameterized window (D-08): override via env for PR-realism vs main-stability runs.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "decision-id",
-      "text": "# This is a maintainer-LOCAL collector (D-08), NOT a new CI job — it adds zero new",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "milestone-ref",
-      "text": "# Phase 103 is the [BASELINE FIRST] gate of the v1.20 CI/CD-performance milestone:",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "phase-ref",
-      "text": "# Phase 103 is the [BASELINE FIRST] gate of the v1.20 CI/CD-performance milestone:",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "phase-ref",
-      "text": "# we must record what the pipeline costs *today*, reproducibly, so Phase 107's",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "plan-ref",
-      "text": "# The Markdown table is printed to stdout; Plan 04 captures it into 103-BASELINE.md.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "requirement-id",
-      "text": "# collect_ci_baseline.sh — capture a reproducible CI timing baseline (OBS-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "spec-ref",
-      "text": "# (GitHub exposes NO direct `rerun_count` field — see 103-RESEARCH.md Pitfall 2).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "scripts/ci/collect_pr_timing_receipt.sh",
       "class": "planning-path",
       "text": "actual_paths=\"$(git diff --name-only \"$preserved_subject_sha..$head_sha\" | grep -Ev '^\\.planning/' || true)\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior"
     },
     {
       "path": "scripts/ci/collect_pr_timing_receipt.sh",
       "class": "planning-path",
       "text": "all(.stages[]; all(.non_planning[]; (.path | startswith(\".planning/\") | not) and (.blob_oid | type == \"string\" and test(\"^[0-9a-f]{40}$\"))))",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior"
     },
     {
       "path": "scripts/ci/collect_pr_timing_receipt.sh",
       "class": "planning-path",
       "text": "all(.stages[]; all(.planning[]; .path | startswith(\".planning/\"))) and",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "decision-id",
-      "text": "# \"Faithful\" == SAME pinned browser image both sides (D-10): this script and the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "decision-id",
-      "text": "# --- Browser-in-container against the SAME pinned image as CI (D-10) ----------",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "decision-id",
-      "text": "# browser pin (D-11), so there is no separate system-font install — the image",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior"
     },
     {
       "path": "scripts/ci/e2e_local.sh",
       "class": "milestone-ref",
       "text": "# `mcr.microsoft.com/playwright:v1.57.0-noble`. The container tag IS the font +",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image"
     },
     {
       "path": "scripts/ci/e2e_local.sh",
       "class": "milestone-ref",
       "text": "PLAYWRIGHT_IMAGE=\"${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.57.0-noble}\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "requirement-id",
-      "text": "# ADOPTION_DEMO_E2E_SPECS (GATE-01): optional space-separated list of spec files to",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# Collect-all-then-exit (D-06): every red lane is logged above before we fail.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# Exit : 0 if every gating job is success OR skipped (D-05 skip-as-pass — this is",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# GitHub API hiccup (D-02). This file holds that decision as a standalone script so it",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# failure/cancelled. All red lanes are logged before exiting (D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# is no per-lane env var to keep in sync — D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "success|skipped) ;; # D-05: success + skipped → pass",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "phase-ref",
-      "text": "# CI-health signal for `main` (Phase 105). Its decision is a pure evaluation of the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "requirement-id",
-      "text": "# eval_ci_summary.sh — the CI Summary aggregate gate logic (GATE-01), extracted.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image"
     },
     {
       "path": "scripts/ci/fixtures/nightly_failure_fingerprint.json",
@@ -299,84 +51,36 @@
       "reason": "byte-for-byte copy of the retained Nightly failure fingerprint receipt (sha256 119b2f9a...); the match is the Elixir toolchain version, not a milestone"
     },
     {
-      "path": "scripts/ci/test_ci_summary_gate.sh",
-      "class": "decision-id",
-      "text": "# The skip-as-pass semantics of `ci-summary` (D-05) close the fork-PR \"pending forever\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_ci_summary_gate.sh",
-      "class": "narration",
-      "text": "# instead of hanging. Previously that behavior was \"logic-provable but observable only",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_ci_summary_gate.sh",
-      "class": "requirement-id",
-      "text": "# test_ci_summary_gate.sh — unit tests for the CI Summary aggregate gate (GATE-01).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_collect_inbox.sh",
-      "class": "requirement-id",
-      "text": "# Fixture harness for scripts/maintainer/collect_inbox.sh (INBOX-01).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_dep_landing_evidence.sh",
-      "class": "decision-id",
-      "text": "# Harness for scripts/maintainer/dep_landing_evidence.sh (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_dep_landing_evidence.sh",
-      "class": "phase-ref",
-      "text": "# Harness for scripts/maintainer/dep_landing_evidence.sh (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
       "text": "if grep -n '\\.planning/phases' \"${script}\" >/dev/null; then",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
       "text": "record \"script reads no .planning/phases path\" false \"found\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
       "text": "record \"script reads no .planning/phases path\" true",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
@@ -385,14 +89,6 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "This fixture lists the check-run names the landing evidence script consumes."
-    },
-    {
-      "path": "scripts/ci/test_e2e_specs_scoping.sh",
-      "class": "requirement-id",
-      "text": "# spec-scoping contract in scripts/ci/e2e_local.sh (GATE-01, research GATE-A3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/ci/test_repo_hygiene_check.sh",
@@ -419,60 +115,36 @@
       "reason": "The harness builds a temp maintainer tree; these lines write and classify its planning files, not the live tree."
     },
     {
-      "path": "scripts/ci/test_setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "# Regression matrix for the setup_branch_protection.sh pending-forever guard (D-12),",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_validate_inbox_ledger.sh",
-      "class": "phase-ref",
-      "text": "# (Phase 134 INBOX-02 / SEC-09 / DEPS-01). One failing fixture per rejection rule plus clean",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "scripts/ci/test_validate_inbox_ledger.sh",
       "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_validate_inbox_ledger.sh",
-      "class": "requirement-id",
-      "text": "# (Phase 134 INBOX-02 / SEC-09 / DEPS-01). One failing fixture per rejection rule plus clean",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "milestone-ref",
       "text": "resolved Elixir mutation fails closed .dialyzer.resolved_elixir = \"v1.17.4-otp-27\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "receipt-bound Nightly verifier harness kept byte-unchanged; the literal reproduces receipt fields (Elixir toolchain version) or guards against ledger reads from a local checkout"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "milestone-ref",
       "text": "resolved_elixir=v1.17.3-otp-27",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "receipt-bound Nightly verifier harness kept byte-unchanged; the literal reproduces receipt fields (Elixir toolchain version) or guards against ledger reads from a local checkout"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "planning-path",
       "text": "! grep -Eq -- '--ledger .*/projects/rindle/.planning/' \"${temp}/authority-calls\" &&",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "receipt-bound Nightly verifier harness kept byte-unchanged; the literal reproduces receipt fields (Elixir toolchain version) or guards against ledger reads from a local checkout"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
