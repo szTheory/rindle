@@ -41,6 +41,54 @@
         "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
       ],
       "summary": "Move the tus-versus-run-dir directory dispatch and run-dir ageing out of process_run_dir/4 into sweep_directory/5 and age_run_dir/5; report counts unchanged."
+    },
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.Nesting",
+        "file": "lib/rindle/ops/lifecycle_repair.ex",
+        "observed_metric": 3,
+        "trigger": "fn"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/ops/lifecycle_repair.ex"
+      ],
+      "id": "craft-lifecycle-repair-nesting",
+      "intent": "cohesion",
+      "pr": null,
+      "proof": [
+        "bash scripts/maintainer/credo_quality.sh",
+        "bash scripts/maintainer/refactor_contract.sh",
+        "mix test test/rindle/ops/lifecycle_repair_test.exs test/rindle/public_surface_snapshot_test.exs test/install_smoke/credo_policy_test.exs",
+        "bash scripts/maintainer/craft_boundary_check.sh origin/main",
+        "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Move the per-variant requeue reduction out of the requeue_failed_variants/2 telemetry closure into requeue_selected_variants/3; report shape and error tuples unchanged."
+    },
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.Nesting",
+        "file": "lib/rindle/ops/runtime_checks/core_checks.ex",
+        "observed_metric": 3,
+        "trigger": "with"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/ops/runtime_checks/core_checks.ex"
+      ],
+      "id": "craft-core-checks-nesting",
+      "intent": "cohesion",
+      "pr": null,
+      "proof": [
+        "bash scripts/maintainer/credo_quality.sh",
+        "bash scripts/maintainer/refactor_contract.sh",
+        "mix test test/rindle/ops/runtime_checks_test.exs test/rindle/public_surface_snapshot_test.exs test/install_smoke/credo_policy_test.exs",
+        "bash scripts/maintainer/craft_boundary_check.sh origin/main",
+        "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Move the per-variant AV runtime check out of the profile_runtime_failures/2 nested closures into variant_runtime_failures/4; failure messages unchanged."
     }
   ],
   "schema": "rindle-readability-changes-v1"
