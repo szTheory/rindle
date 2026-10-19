@@ -5,7 +5,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 runner="${repo_root}/scripts/ci/run_nightly_dialyzer.sh"
-fingerprint="${repo_root}/.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-FAILURE-FINGERPRINT.json"
+fingerprint="${repo_root}/scripts/ci/fixtures/nightly_failure_fingerprint.json"
 setup_action="${repo_root}/.github/actions/setup-elixir/action.yml"
 nightly_workflow="${repo_root}/.github/workflows/nightly.yml"
 

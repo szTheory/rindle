@@ -987,6 +987,14 @@
       "reason": ""
     },
     {
+      "path": "scripts/ci/fixtures/nightly_failure_fingerprint.json",
+      "class": "milestone-ref",
+      "text": "\"elixir\": \"v1.17.3-otp-27\",",
+      "count": 2,
+      "reason_class": "fixture",
+      "reason": "byte-for-byte copy of the retained Nightly failure fingerprint receipt (sha256 119b2f9a...); the match is the Elixir toolchain version, not a milestone"
+    },
+    {
       "path": "scripts/ci/test_ci_summary_gate.sh",
       "class": "decision-id",
       "text": "# The skip-as-pass semantics of `ci-summary` (D-05) close the fork-PR \"pending forever\"",
@@ -1078,14 +1086,6 @@
       "path": "scripts/ci/test_e2e_specs_scoping.sh",
       "class": "requirement-id",
       "text": "# spec-scoping contract in scripts/ci/e2e_local.sh (GATE-01, research GATE-A3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_nightly_dialyzer.sh",
-      "class": "planning-path",
-      "text": "fingerprint=\"${repo_root}/.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-FAILURE-FINGERPRINT.json\"",
       "count": 1,
       "reason_class": "pending-removal",
       "reason": ""
