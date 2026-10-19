@@ -1,22 +1,22 @@
 defmodule AdoptionDemoWeb.CohortMigrationContractTest do
   @moduledoc """
-  Wave-0 home for the Phase 99 Cohort page-migration contract gates (D-96-05/06,
-  Pitfall 6). Per-page plans (P2–P5) extend this module with one `test` per
-  migrated route that calls the shared helpers below — they never re-implement
-  the rendering/grep machinery.
+  Cohort page-migration contract gates for the demo's LiveView routes. Each
+  migrated route has one `test` here that calls the shared helpers below, so the
+  rendering and grep machinery lives in one place.
 
   Two shared helpers form the frozen-contract gate:
 
     * `assert_frozen_contract/2` — renders a route, asserts every preserved DOM
       selector (`id=`/`data-testid=`/`phx-click=`/`phx-submit=`) still appears in
       the HTML, asserts the new `.ck` shell is present (`data-ck-root`), and
-      refutes any `raw(` token leaked into the rendered route HTML (HEEx auto-escape,
-      T-99-01-02 / T-101-01).
+      refutes any `raw(` token leaked into the rendered route HTML, so HEEx
+      auto-escaping stays in force.
 
     * `assert_daisyui_retired/1` — refutes the known daisyUI/Tailwind utility
       classes from the full composed route render, including shared `Layouts.app`
-      chrome and flash. Phase 101 promoted the scan from the old `[data-ck-root]`
-      body slice so shared scaffold regressions cannot hide outside the page shell.
+      chrome and flash. The scan covers the whole render, not only the
+      `[data-ck-root]` body, so shared scaffold regressions cannot hide outside the
+      page shell.
       The retired-class list lives only as data here, never echoed in page-renderable
       prose.
   """
@@ -25,7 +25,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
   import Phoenix.LiveViewTest
 
   # The daisyUI/Tailwind utility classes a migrated route must NOT contain after
-  # the Cohort swap (Pitfall 6). Kept as DATA — never echoed in a comment a
+  # the Cohort swap. Kept as DATA — never echoed in a comment a
   # rendered page could contain. Each entry is a literal substring scanned for in
   # the full composed render; class-boundary literals prevent false failures on
   # Cohort classes such as `.ck-btn`, `.ck-tab`, and `.ck-tabs`.
@@ -157,7 +157,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     assert AdoptionDemoWeb.CohortTheme.normalize(nil, "dark") == "dark"
   end
 
-  # --- Plan 101-02: layout wrapper retirement contract ----------------------
+  # --- Layout wrapper retirement contract -----------------------------------
   test "Layouts.app renders bare Cohort chrome without Tailwind width or padding wrapper", %{
     conn: conn
   } do
@@ -173,7 +173,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     refute html =~ "space-y-4"
   end
 
-  # --- Plan 101-01: flash retirement contract ------------------------------
+  # --- Flash retirement contract -------------------------------------------
   # These render-component assertions pin the shared flash surface before the
   # destructive default.css teardown. They intentionally target exact retired
   # flash/icon/button scaffold literals so Cohort classes such as .ck-btn and
@@ -259,7 +259,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
            "CoreComponents must keep escaped HEEx interpolation and avoid raw/1"
   end
 
-  test "Phase 101 source and deleted generator files stay retired" do
+  test "retired scaffold literals and deleted generator files stay retired" do
     source_files = [
       adoption_demo_path("lib/adoption_demo_web/components/core_components.ex"),
       adoption_demo_path("lib/adoption_demo_web/components/layouts.ex"),
@@ -324,11 +324,11 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
            "default.css must stay deleted after the final destructive retirement plan"
   end
 
-  # --- Plan 02: /dashboard frozen-contract + daisyUI-retirement -------------
+  # --- /dashboard frozen-contract + daisyUI-retirement -------------
   # Seeds a member + course/lesson + post so the LOAD-BEARING member-row contract
   # (id="member-#{id}" + data-testid="member-row-#{email}") and the lesson/post
   # link testids are exercised against real rows — support/cohort.js and 5+ upload
-  # specs navigate via these (RESEARCH Runtime State Inventory).
+  # specs navigate via these.
   test "/dashboard preserves its frozen contract and retires daisyUI", %{conn: conn} do
     AdoptionDemo.Accounts.seed_member!(%{
       email: "maya@cohort.test",
@@ -431,7 +431,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 03: /ops frozen-contract + daisyUI-retirement -------------------
+  # --- /ops frozen-contract + daisyUI-retirement -------------------
   # Seeds two students so the batch-member spans render against real rows. The
   # always-present selectors (the four phx-click buttons, the batch section, the
   # member spans) are asserted statically here; the `<pre :if=...>` output panels
@@ -507,7 +507,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 03: /account erasure frozen-contract + daisyUI-retirement --------
+  # --- /account erasure frozen-contract + daisyUI-retirement --------
   # Seeds a member and renders /account/:id/delete. The always-present selectors
   # (erasure-member-name + the two phx-click buttons) are asserted statically;
   # the `<pre :if=...>` erasure-preview/erasure-result panels render only after a
@@ -566,7 +566,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 04: /members/:id frozen-contract + daisyUI-retirement ------------
+  # --- /members/:id frozen-contract + daisyUI-retirement ------------
   # Seeds a member WITHOUT an avatar attached. The static ExUnit lane cannot boot
   # the storage subsystem (MinIO) needed to `Media.attach!` an avatar asset, so
   # the avatar branch (member-picture-tag / member-avatar-state) is exercised at
@@ -633,7 +633,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 04: /lessons/:id frozen-contract + daisyUI-retirement ------------
+  # --- /lessons/:id frozen-contract + daisyUI-retirement ------------
   # Seeds a course + lesson WITHOUT a video attached (same MinIO constraint as the
   # member test). The video/variant branch (lesson-video-tag, lesson-asset-state,
   # variant-#{name}) is exercised at runtime by rendering.spec.js (CI-delegated)
@@ -696,7 +696,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 05: /posts/:id frozen-contract + daisyUI-retirement --------------
+  # --- /posts/:id frozen-contract + daisyUI-retirement --------------
   # Seeds a member + post WITHOUT an image attached, so the post-no-image branch
   # renders (the image branch requires Media.attach! → the storage subsystem /
   # MinIO, not bootable in the static ExUnit lane — the member/lesson precedent).
@@ -765,11 +765,11 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 05: /media/:id frozen-contract + daisyUI-retirement --------------
-  # The HIGHEST-RISK swap in the phase: the hand-built <dl><dt><dd> whose <dd>s
+  # --- /media/:id frozen-contract + daisyUI-retirement --------------
+  # The highest-risk swap: the hand-built <dl><dt><dd> whose <dd>s
   # carry media-id/media-state/media-delivery-url MUST be restyled in place, NOT
   # replaced by ck_detail/1 (which generates its own <dd> and would drop those
-  # ids — Pitfall 2). We insert a MediaAsset and one MediaVariant directly (both
+  # ids). We insert a MediaAsset and one MediaVariant directly (both
   # plain Repo rows — no MinIO needed) so all three <dd> ids/testids AND a real
   # variant-#{name} <li> render. Asserts the three <dd> ids/testids survive (each
   # as id= and data-testid=), the variant id, the variants section, the alex link
@@ -869,7 +869,7 @@ defmodule AdoptionDemoWeb.CohortMigrationContractTest do
     end
   end
 
-  # --- Plan 100-01: /upload per-tab frozen-contract + daisyUI-retirement ------
+  # --- /upload per-tab frozen-contract + daisyUI-retirement ------
   # /upload is the heaviest Cohort inner page (6 tabs, 4 phx-hook flows, 2 forms).
   # load_member!(nil) falls back to the first seeded member, so ?tab=X renders
   # with no id. Each tab renders only its own `:if`-gated panel, so we assert the
