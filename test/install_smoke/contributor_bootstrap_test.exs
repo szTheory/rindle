@@ -27,6 +27,21 @@ defmodule Rindle.ContributorBootstrapTest do
     assert receipt["commands"] |> Enum.all?(&(&1["exit_status"] == 0))
   end
 
+  @tag :tmp_dir
+  test "full bootstrap follows the focused proof with the documented full PR command", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir)
+    {output, status} = run_probe(fixture, ["--full"])
+    assert status == 0, output
+    receipt = fixture.receipt |> File.read!() |> Jason.decode!()
+    assert receipt["full"] == true
+    assert List.last(receipt["commands"])["argv"] == ["mix", "ci"]
+
+    assert File.read!(fixture.log) |> String.split("\n", trim: true) ==
+             Enum.map(@commands ++ [["mix", "ci"]], &Enum.join(&1, " "))
+  end
+
   defp fixture!(dir) do
     source = Path.join(dir, "source")
     bin = Path.join(dir, "bin")
