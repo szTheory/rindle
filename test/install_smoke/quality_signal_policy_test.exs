@@ -277,6 +277,108 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     end
   end
 
+  test "sole required context and fork-safe topology reject parsed field mutations" do
+    root = Path.expand("../..", __DIR__)
+    ci = YamlElixir.read_from_file!(@ci_path)
+    release = YamlElixir.read_from_file!(Path.join(root, ".github/workflows/release.yml"))
+
+    authority =
+      Path.join(root, "config/ci_required_checks.json") |> File.read!() |> Jason.decode!()
+
+    assert valid_topology?(ci, release, authority)
+
+    for mutated <- [
+          Map.put(ci, "name", "Other CI"),
+          put_in(ci, ["jobs", "ci-summary", "name"], "Other Summary"),
+          put_in(ci, ["permissions", "contents"], "write"),
+          put_in(
+            ci,
+            ["jobs", "adoption-demo-e2e-smoke", "if"],
+            "github.repository == 'szTheory/rindle'"
+          ),
+          put_in(ci, ["on", "pull_request_target"], nil),
+          put_in(ci, ["jobs", "quality", "permissions"], %{"contents" => "write"})
+        ] do
+      refute valid_topology?(mutated, release, authority)
+    end
+
+    for mutated <- [
+          Map.put(authority, "contexts", ["CI Summary", "Quality"]),
+          put_in(authority, ["workflow", "file"], "other.yml")
+        ] do
+      refute valid_topology?(ci, release, mutated)
+    end
+
+    refute valid_topology?(
+             ci,
+             put_in(release, ["jobs", "publish", "needs"], ["recovery-validation"]),
+             authority
+           )
+  end
+
+  test "release gate executes against the selected SHA and rejects other SHA success" do
+    root = Path.expand("../..", __DIR__)
+    release = YamlElixir.read_from_file!(Path.join(root, ".github/workflows/release.yml"))
+    gate = step(release, "gate-ci-green", "Wait for CI to finish green on release SHA")
+    script = get_in(gate, ["with", "script"])
+    assert release_gate_result(script, "success")["passed"]
+    refute release_gate_result(script, "wrong-sha")["passed"]
+    refute release_gate_result(script, "failure")["passed"]
+    weakened_filter = String.replace(script, "run.head_sha === sha", "true")
+    assert release_gate_result(weakened_filter, "wrong-sha")["passed"]
+    weakened_query = String.replace(script, "head_sha: sha,", "")
+    refute release_gate_result(weakened_query, "success")["passed"]
+  end
+
+  defp valid_topology?(ci, release, authority) do
+    authority["contexts"] == ["CI Summary"] and
+      authority["workflow"] == %{"file" => "ci.yml", "name" => "CI", "job_id" => "ci-summary"} and
+      ci["name"] == "CI" and ci["permissions"] == %{"contents" => "read"} and
+      Map.has_key?(ci["on"], "pull_request") and not Map.has_key?(ci["on"], "pull_request_target") and
+      get_in(ci, ["jobs", "ci-summary", "name"]) == "CI Summary" and
+      Enum.count(ci["jobs"], fn {_, job} -> job["name"] == "CI Summary" end) == 1 and
+      get_in(ci, ["jobs", "adoption-demo-e2e-smoke", "if"]) == nil and
+      Enum.all?(ci["jobs"], fn {_, job} ->
+        Enum.all?(Map.get(job, "permissions", %{}), fn {_, permission} -> permission == "read" end)
+      end) and "gate-ci-green" in get_in(release, ["jobs", "publish", "needs"]) and
+      get_in(release, ["jobs", "publish", "if"]) =~ "needs.gate-ci-green.result == 'success'" and
+      get_in(release, ["jobs", "gate-ci-green", "permissions"]) == %{
+        "actions" => "read",
+        "contents" => "read"
+      }
+  end
+
+  defp release_gate_result(script, scenario) do
+    sha = String.duplicate("a", 40)
+    script = String.replace(script, "${{ steps.resolve.outputs.release_sha }}", sha)
+
+    harness = ~S"""
+    const failures = [], outputs = {};
+    globalThis.setTimeout = callback => { callback(); return 0; };
+    const sha = 'a'.repeat(40);
+    const github = {rest: {actions: {listWorkflowRuns: async args => {
+      if (args.workflow_id !== 'ci.yml' || args.head_sha !== sha) throw new Error('unbound CI lookup');
+      return {data: {workflow_runs: [{head_sha: process.env.SCENARIO === 'wrong-sha' ? 'b'.repeat(40) : sha,
+        status: 'completed', conclusion: process.env.SCENARIO === 'failure' ? 'failure' : 'success', html_url: 'fixture'}]}};
+    }}}};
+    const core = {info: () => {}, setFailed: reason => failures.push(reason),
+                  setOutput: (key, value) => { outputs[key] = value; }};
+    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+    try { await new AsyncFunction('github', 'context', 'core', process.env.GATE_SCRIPT)(
+      github, {repo: {owner: 'fixture', repo: 'fixture'}}, core); }
+    catch (error) { failures.push(error.message); }
+    console.log(JSON.stringify({passed: failures.length === 0 && outputs.ci_run_url === 'fixture'}));
+    """
+
+    {output, 0} =
+      System.cmd("node", ["--input-type=module", "-e", harness],
+        env: [{"GATE_SCRIPT", script}, {"SCENARIO", scenario}],
+        stderr_to_stdout: true
+      )
+
+    Jason.decode!(output)
+  end
+
   defp infrastructure do
     root = Path.expand("../..", __DIR__)
 
