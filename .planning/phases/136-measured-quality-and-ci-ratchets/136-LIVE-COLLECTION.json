@@ -17,5 +17,8 @@
   "async_jsonl": ".planning/evidence/async-isolation/136-async-isolation.jsonl",
   "state": "collecting",
   "updated_at": "2026-10-20T23:25:44.480860+00:00",
-  "resume_rule": "Inspect these owners and evidence before launching anything. Never duplicate collectors. Qualification waits for async owner to finish; no local DB test overlap. No source edits or push beyond frozen SHA."
+  "resume_rule": "Inspect these owners and evidence before launching anything. Never duplicate collectors. Qualification waits for async owner to finish; no local DB test overlap. No source edits or push beyond frozen SHA.",
+  "timing_gate": "blocked_by_initial_ci_job_failure",
+  "initial_ci_failure_receipt": "136-INITIAL-CI-FAILURE.json",
+  "timing_samples_collected": 0
 }

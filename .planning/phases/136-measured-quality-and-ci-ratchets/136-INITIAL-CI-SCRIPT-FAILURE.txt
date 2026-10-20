@@ -1,0 +1,670 @@
+﻿2026-10-20T23:24:01.9980501Z Current runner version: '2.337.0'
+2026-10-20T23:24:02.0005788Z ##[group]Runner Image Provisioner
+2026-10-20T23:24:02.0007135Z Hosted Compute Agent
+2026-10-20T23:24:02.0007750Z Version: 20261015.610
+2026-10-20T23:24:02.0008524Z Commit: 267fdb4e8bbec4ab5ea31367f3a00d5c480c7656
+2026-10-20T23:24:02.0009305Z Build Date: 2026-10-14T17:06:54Z
+2026-10-20T23:24:02.0010069Z Worker ID: {4ff93ff8-21db-47b9-8b51-c506ee926b91}
+2026-10-20T23:24:02.0010871Z Region: eastus
+2026-10-20T23:24:02.0011472Z Cloud: Azure
+2026-10-20T23:24:02.0012005Z ##[endgroup]
+2026-10-20T23:24:02.0013875Z ##[group]Operating System
+2026-10-20T23:24:02.0014910Z Ubuntu
+2026-10-20T23:24:02.0015577Z 22.04.5
+2026-10-20T23:24:02.0016103Z LTS
+2026-10-20T23:24:02.0016618Z ##[endgroup]
+2026-10-20T23:24:02.0017365Z ##[group]Runner Image
+2026-10-20T23:24:02.0017994Z Image: ubuntu-22.04
+2026-10-20T23:24:02.0018670Z Version: 20261018.327.1
+2026-10-20T23:24:02.0019970Z Included Software: https://github.com/actions/runner-images/blob/ubuntu22/20261018.327/images/ubuntu/Ubuntu2204-Readme.md
+2026-10-20T23:24:02.0021659Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu22%2F20261018.327
+2026-10-20T23:24:02.0022641Z ##[endgroup]
+2026-10-20T23:24:02.0023851Z ##[group]GITHUB_TOKEN Permissions
+2026-10-20T23:24:02.0026458Z Contents: read
+2026-10-20T23:24:02.0027217Z Metadata: read
+2026-10-20T23:24:02.0027844Z ##[endgroup]
+2026-10-20T23:24:02.0030202Z Secret source: Actions
+2026-10-20T23:24:02.0031348Z Cache mode: write
+2026-10-20T23:24:02.0032290Z Prepare workflow directory
+2026-10-20T23:24:02.0416077Z Prepare all required actions
+2026-10-20T23:24:02.0464271Z Getting action download info
+2026-10-20T23:24:02.2538229Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-20T23:24:02.4603639Z Complete job name: CI Script Tests
+2026-10-20T23:24:02.5557060Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-20T23:24:02.5558128Z with:
+2026-10-20T23:24:02.5558586Z   repository: szTheory/rindle
+2026-10-20T23:24:02.5562375Z   token: ***
+2026-10-20T23:24:02.5562811Z   ssh-strict: true
+2026-10-20T23:24:02.5563243Z   ssh-user: git
+2026-10-20T23:24:02.5563681Z   persist-credentials: true
+2026-10-20T23:24:02.5564405Z   clean: true
+2026-10-20T23:24:02.5564844Z   sparse-checkout-cone-mode: true
+2026-10-20T23:24:02.5565356Z   fetch-depth: 1
+2026-10-20T23:24:02.5565774Z   fetch-tags: false
+2026-10-20T23:24:02.5566213Z   show-progress: true
+2026-10-20T23:24:02.5566644Z   lfs: false
+2026-10-20T23:24:02.5567039Z   submodules: false
+2026-10-20T23:24:02.5567478Z   set-safe-directory: true
+2026-10-20T23:24:02.5567972Z   allow-unsafe-pr-checkout: false
+2026-10-20T23:24:02.5568719Z env:
+2026-10-20T23:24:02.5569106Z   MIX_ENV: test
+2026-10-20T23:24:02.5569519Z ##[endgroup]
+2026-10-20T23:24:02.6605028Z Syncing repository: szTheory/rindle
+2026-10-20T23:24:02.6607253Z ##[group]Getting Git version info
+2026-10-20T23:24:02.6607981Z Working directory is '/home/runner/work/rindle/rindle'
+2026-10-20T23:24:02.6609022Z [command]/usr/bin/git version
+2026-10-20T23:24:02.6663646Z git version 2.55.0
+2026-10-20T23:24:02.6684271Z ##[endgroup]
+2026-10-20T23:24:02.6694347Z Temporarily overriding HOME='/home/runner/work/_temp/fba5441a-d8f5-4a58-bac7-66bd66eb0967' before making global git config changes
+2026-10-20T23:24:02.6695810Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T23:24:02.6699615Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/rindle/rindle
+2026-10-20T23:24:02.6732490Z Deleting the contents of '/home/runner/work/rindle/rindle'
+2026-10-20T23:24:02.6736543Z ##[group]Determining repository object format
+2026-10-20T23:24:02.6737915Z ##[endgroup]
+2026-10-20T23:24:02.6738819Z ##[group]Initializing the repository
+2026-10-20T23:24:02.6741595Z [command]/usr/bin/git init /home/runner/work/rindle/rindle
+2026-10-20T23:24:02.6857580Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T23:24:02.6859571Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T23:24:02.6861315Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T23:24:02.6862736Z hint: call:
+2026-10-20T23:24:02.6863504Z hint:
+2026-10-20T23:24:02.6864749Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T23:24:02.6865922Z hint:
+2026-10-20T23:24:02.6867002Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T23:24:02.6868647Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T23:24:02.6869986Z hint:
+2026-10-20T23:24:02.6870793Z hint: 	git branch -m <name>
+2026-10-20T23:24:02.6871711Z hint:
+2026-10-20T23:24:02.6872936Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T23:24:02.6875046Z Initialized empty Git repository in /home/runner/work/rindle/rindle/.git/
+2026-10-20T23:24:02.6877632Z [command]/usr/bin/git remote add origin https://github.com/szTheory/rindle
+2026-10-20T23:24:02.6914252Z ##[endgroup]
+2026-10-20T23:24:02.6915595Z ##[group]Disabling automatic garbage collection
+2026-10-20T23:24:02.6918037Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T23:24:02.6952544Z ##[endgroup]
+2026-10-20T23:24:02.6954106Z ##[group]Setting up auth
+2026-10-20T23:24:02.6955079Z Removing SSH command configuration
+2026-10-20T23:24:02.6959323Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T23:24:02.6995377Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T23:24:02.7376376Z Removing HTTP extra header
+2026-10-20T23:24:02.7381519Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T23:24:02.7412978Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T23:24:02.7659924Z Removing includeIf entries pointing to credentials config files
+2026-10-20T23:24:02.7664937Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T23:24:02.7697305Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T23:24:02.7946986Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T23:24:02.7985181Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/rindle/rindle/.git.path /home/runner/work/_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:24:02.8019804Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:24:02.8055434Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:24:02.8091714Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:24:02.8121417Z ##[endgroup]
+2026-10-20T23:24:02.8122154Z ##[group]Fetching the repository
+2026-10-20T23:24:02.8128264Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +869d853902e0b72057b76d046b97681e2e994070:refs/remotes/pull/162/merge
+2026-10-20T23:24:03.8169825Z From https://github.com/szTheory/rindle
+2026-10-20T23:24:03.8172103Z  * [new ref]         869d853902e0b72057b76d046b97681e2e994070 -> pull/162/merge
+2026-10-20T23:24:03.8177703Z ##[endgroup]
+2026-10-20T23:24:03.8179661Z ##[group]Determining the checkout info
+2026-10-20T23:24:03.8182018Z ##[endgroup]
+2026-10-20T23:24:03.8183437Z [command]/usr/bin/git sparse-checkout disable
+2026-10-20T23:24:03.8232800Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-20T23:24:03.8266554Z ##[group]Checking out the ref
+2026-10-20T23:24:03.8270821Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/162/merge
+2026-10-20T23:24:04.1340448Z Note: switching to 'refs/remotes/pull/162/merge'.
+2026-10-20T23:24:04.1342768Z 
+2026-10-20T23:24:04.1343615Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-20T23:24:04.1344933Z changes and commit them, and you can discard any commits you make in this
+2026-10-20T23:24:04.1345857Z state without impacting any branches by switching back to a branch.
+2026-10-20T23:24:04.1346468Z 
+2026-10-20T23:24:04.1346853Z If you want to create a new branch to retain commits you create, you may
+2026-10-20T23:24:04.1347774Z do so (now or later) by using -c with the switch command. Example:
+2026-10-20T23:24:04.1348254Z 
+2026-10-20T23:24:04.1348471Z   git switch -c <new-branch-name>
+2026-10-20T23:24:04.1348800Z 
+2026-10-20T23:24:04.1349015Z Or undo this operation with:
+2026-10-20T23:24:04.1349331Z 
+2026-10-20T23:24:04.1349502Z   git switch -
+2026-10-20T23:24:04.1349769Z 
+2026-10-20T23:24:04.1350169Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-20T23:24:04.1350776Z 
+2026-10-20T23:24:04.1351426Z HEAD is now at 869d853 Merge 4dc73fa91c60ae870c7289a151d9d53460140906 into 808d4b771bf55404529e2aad5f151baf6c70a218
+2026-10-20T23:24:04.1362862Z ##[endgroup]
+2026-10-20T23:24:04.1405788Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T23:24:04.1433127Z 869d853902e0b72057b76d046b97681e2e994070
+2026-10-20T23:24:04.1656291Z ##[group]Run bash scripts/ci/test_ci_summary_gate.sh
+2026-10-20T23:24:04.1656834Z bash scripts/ci/test_ci_summary_gate.sh
+2026-10-20T23:24:04.1695012Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:24:04.1695382Z env:
+2026-10-20T23:24:04.1695619Z   MIX_ENV: test
+2026-10-20T23:24:04.1771771Z ##[endgroup]
+2026-10-20T23:24:04.2114776Z ok   — fork: repo-gated jobs skipped, rest success → pass (exit 0)
+2026-10-20T23:24:04.2338757Z ok   — all jobs success → pass (exit 0)
+2026-10-20T23:24:04.2564391Z ok   — all jobs skipped → pass (exit 0)
+2026-10-20T23:24:04.2786719Z ok   — one job failure → fail (exit 1)
+2026-10-20T23:24:04.3009807Z ok   — one job cancelled → fail (exit 1)
+2026-10-20T23:24:04.3230756Z ok   — failure alongside a skip → fail (exit 1)
+2026-10-20T23:24:04.3231592Z —
+2026-10-20T23:24:04.3232082Z passed: 6  failed: 0
+2026-10-20T23:24:04.3281271Z ##[group]Run bash scripts/ci/test_nightly_summary_gate.sh
+2026-10-20T23:24:04.3281773Z bash scripts/ci/test_nightly_summary_gate.sh
+2026-10-20T23:24:04.3316403Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:24:04.3316706Z env:
+2026-10-20T23:24:04.3316936Z   MIX_ENV: test
+2026-10-20T23:24:04.3317180Z ##[endgroup]
+2026-10-20T23:24:04.5089680Z ok   — exact declared jobs with executed applicable successes and visible exemption (exit 0, verdict green)
+2026-10-20T23:24:04.7235326Z ok   — all applicable jobs executed successfully (exit 0, verdict green)
+2026-10-20T23:24:04.9357078Z ok   — repository-gated skip is explicit not-run (exit 0, verdict green)
+2026-10-20T23:24:05.1547365Z ok   — inapplicable successful no-op remains visibly not-run (exit 0, verdict green)
+2026-10-20T23:24:05.3427944Z ok   — GitHub needs outputs coexist with the result envelope (exit 0, verdict green)
+2026-10-20T23:24:05.5332330Z ok   — applicable failure is red (exit 1, verdict red)
+2026-10-20T23:24:05.7230548Z ok   — applicable cancelled is red (exit 1, verdict red)
+2026-10-20T23:24:05.9117225Z ok   — applicable skipped is red (exit 1, verdict red)
+2026-10-20T23:24:06.1023174Z ok   — applicable unknown is red (exit 1, verdict red)
+2026-10-20T23:24:06.2905720Z ok   — applicable timed_out is red (exit 1, verdict red)
+2026-10-20T23:24:06.4815363Z ok   — applicable action_required is red (exit 1, verdict red)
+2026-10-20T23:24:06.6688314Z ok   — applicable neutral is red (exit 1, verdict red)
+2026-10-20T23:24:06.8599923Z ok   — applicable stale is red (exit 1, verdict red)
+2026-10-20T23:24:07.0499146Z ok   — failed inapplicable job stays red (exit 1, verdict red)
+2026-10-20T23:24:07.2398282Z ok   — cancelled inapplicable job stays red (exit 1, verdict red)
+2026-10-20T23:24:07.4292407Z ok   — missing declared job is red (exit 1, verdict red)
+2026-10-20T23:24:07.6188082Z ok   — unexpected observed job is red (exit 1, verdict red)
+2026-10-20T23:24:07.8081045Z ok   — missing observed result is red (exit 1, verdict red)
+2026-10-20T23:24:07.9989168Z ok   — non-string observed result is red (exit 1, verdict red)
+2026-10-20T23:24:08.1888288Z ok   — missing applicable is red (exit 1, verdict red)
+2026-10-20T23:24:08.3785001Z ok   — missing applicability_rule is red (exit 1, verdict red)
+2026-10-20T23:24:08.5675132Z ok   — missing execution is red (exit 1, verdict red)
+2026-10-20T23:24:08.7574992Z ok   — missing reason is red (exit 1, verdict red)
+2026-10-20T23:24:08.9456083Z ok   — always job requires applicable boolean true (false) (exit 1, verdict red)
+2026-10-20T23:24:09.1345382Z ok   — always job requires applicable boolean true (null) (exit 1, verdict red)
+2026-10-20T23:24:09.3226189Z ok   — always job requires applicable boolean true ("true") (exit 1, verdict red)
+2026-10-20T23:24:09.5106234Z ok   — always job requires applicable boolean true (1) (exit 1, verdict red)
+2026-10-20T23:24:09.6970402Z ok   — applicable success requires passed execution (not-run) (exit 1, verdict red)
+2026-10-20T23:24:09.8860707Z ok   — applicable success requires passed execution (skipped) (exit 1, verdict red)
+2026-10-20T23:24:10.0746238Z ok   — applicable success requires passed execution (missing) (exit 1, verdict red)
+2026-10-20T23:24:10.2640280Z ok   — applicable success requires passed execution (unknown) (exit 1, verdict red)
+2026-10-20T23:24:10.4524344Z ok   — applicable success requires passed execution (empty) (exit 1, verdict red)
+2026-10-20T23:24:10.6415185Z ok   — applicable success rejects an exemption reason (exit 1, verdict red)
+2026-10-20T23:24:10.8298435Z ok   — always rule cannot claim inapplicability (exit 1, verdict red)
+2026-10-20T23:24:11.0186574Z ok   — unknown applicability rule is red (exit 1, verdict red)
+2026-10-20T23:24:11.2076658Z ok   — gated applicable job requires passed execution (exit 1, verdict red)
+2026-10-20T23:24:11.3970529Z ok   — inapplicable job requires not-run execution (exit 1, verdict red)
+2026-10-20T23:24:11.5869960Z ok   — inapplicable job requires an allowlisted reason (exit 1, verdict red)
+2026-10-20T23:24:11.7764711Z ok   — inapplicable job rejects empty reason (exit 1, verdict red)
+2026-10-20T23:24:11.9866729Z ok   — applicable skipped job cannot borrow an exemption reason (exit 1, verdict red)
+2026-10-20T23:24:12.1575169Z ok   — empty needs is red (exit 1, verdict red)
+2026-10-20T23:24:12.3270527Z ok   — empty policy is red (exit 1, verdict red)
+2026-10-20T23:24:12.4966006Z ok   — needs array is red (exit 1, verdict red)
+2026-10-20T23:24:12.6639527Z ok   — policy array is red (exit 1, verdict red)
+2026-10-20T23:24:12.8334672Z ok   — malformed needs is red (exit 1, verdict red)
+2026-10-20T23:24:13.0066496Z ok   — malformed policy is red (exit 1, verdict red)
+2026-10-20T23:24:13.1554140Z ok   — absent NEEDS_JSON is red (exit 1, verdict red)
+2026-10-20T23:24:13.3049170Z ok   — absent NIGHTLY_POLICY_JSON is red (exit 1, verdict red)
+2026-10-20T23:24:13.4763125Z ok   — all red job diagnostics render before exit
+2026-10-20T23:24:13.4776001Z —
+2026-10-20T23:24:13.4776328Z passed: 49  failed: 0
+2026-10-20T23:24:13.4824990Z ##[group]Run bash scripts/ci/test_nightly_incident.sh
+2026-10-20T23:24:13.4825468Z bash scripts/ci/test_nightly_incident.sh
+2026-10-20T23:24:13.4859568Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:24:13.4859811Z env:
+2026-10-20T23:24:13.4859997Z   MIX_ENV: test
+2026-10-20T23:24:13.4860190Z ##[endgroup]
+2026-10-20T23:24:17.9056306Z ok   — red-A/green-B history opens, updates, and closes exactly once
+2026-10-20T23:24:19.9932575Z ok   — same complete log replay is mutation-idempotent
+2026-10-20T23:24:22.9205031Z ok   — repeated green with no incident is an unmarked no-op
+2026-10-20T23:24:27.6895310Z ok   — delayed middle artifact is retried before mutation
+2026-10-20T23:24:29.4742401Z ok   — missing middle artifact fails before issue mutation
+2026-10-20T23:24:30.4530662Z ok   — duplicate event artifact fails before issue mutation
+2026-10-20T23:24:31.7846031Z ok   — malformed event fails before issue mutation
+2026-10-20T23:24:33.1398833Z ok   — foreign repository event fails before issue mutation
+2026-10-20T23:24:34.4941273Z ok   — run/artifact identity mismatch fails before issue mutation
+2026-10-20T23:24:35.8395415Z ok   — historical event SHA mismatch fails before issue mutation
+2026-10-20T23:24:36.4574448Z ok   — foreign high-watermark SHA fails before issue mutation
+2026-10-20T23:24:38.0626507Z ok   — duplicate marker ownership fails closed
+2026-10-20T23:24:39.6492368Z ok   — simultaneous open incidents fail closed
+2026-10-20T23:24:39.8075646Z ok   — workflow-run API failure performs no issue mutation
+2026-10-20T23:24:44.1613478Z ok   — stale mutation preimage restarts full replay
+2026-10-20T23:24:48.5231482Z ok   — uncertain mutation outcome restarts and converges
+2026-10-20T23:24:55.1277992Z ok   — bounded uncertain mutation exhaustion fails without skipping
+2026-10-20T23:25:00.1120612Z ok   — lagging issue list after a mutation does not duplicate the create
+2026-10-20T23:25:02.6025434Z ok   — mutation never visible fails closed without a second create
+2026-10-20T23:25:08.3017523Z ok   — both scheduled attempts replay as distinct ordered events
+2026-10-20T23:25:10.2866356Z ok   — a missing earlier attempt fails before incident mutation
+2026-10-20T23:25:13.2516880Z ok   — expired evidence before authenticated checkpoint permits replay
+2026-10-20T23:25:14.8569611Z ok   — expired evidence after checkpoint fails before mutation
+2026-10-20T23:25:16.1741905Z ok   — tampered checkpoint fails before mutation
+2026-10-20T23:25:17.7229277Z ok   — concurrent issue-history advancement invalidates checkpoint
+2026-10-20T23:25:18.5061975Z ok   — repository retention cap below 14 days fails before mutation
+2026-10-20T23:25:20.0500972Z ok   — edit to pre-checkpoint issue body still invalidates checkpoint
+2026-10-20T23:25:21.6067957Z ok   — backdated marker at or before the checkpoint cursor still invalidates checkpoint
+2026-10-20T23:25:23.1602373Z ok   — unmarked issue created after the checkpoint still invalidates checkpoint
+2026-10-20T23:25:25.5188880Z ok   — forged post-checkpoint marker with the wrong action fails before mutation
+2026-10-20T23:25:27.7961124Z ok   — post-checkpoint marker for a run with no verdict event fails before mutation
+2026-10-20T23:25:30.0719005Z ok   — post-checkpoint marker for an attempt with no verdict event fails before mutation
+2026-10-20T23:25:33.3954449Z ok   — issue opened after the checkpoint by a run that died before checkpointing converges
+2026-10-20T23:25:35.6322910Z ok   — issue opened after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+2026-10-20T23:25:38.9282574Z ok   — update after the checkpoint by a run that died before checkpointing converges
+2026-10-20T23:25:41.1671786Z ok   — update after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+2026-10-20T23:25:43.8806839Z ok   — close after the checkpoint by a run that died before checkpointing converges
+2026-10-20T23:25:46.1246203Z ok   — close after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+2026-10-20T23:25:47.1817203Z ok   — checkpoint inside expiry safety margin fails before mutation
+2026-10-20T23:25:50.1671005Z ok   — near-expiry checkpoint advances through active high-watermark
+2026-10-20T23:25:52.6859202Z ok   — genesis adopts the legacy open incident and closes it citing the green run
+2026-10-20T23:25:54.3024918Z ok   — genesis adopts the legacy open incident and closes it citing the green run: re-run on the same run is mutation-idempotent
+2026-10-20T23:25:56.8220371Z ok   — genesis adopts the legacy open incident and updates it citing the red run
+2026-10-20T23:25:58.4409940Z ok   — genesis adopts the legacy open incident and updates it citing the red run: re-run on the same run is mutation-idempotent
+2026-10-20T23:25:59.8071027Z ok   — genesis with duplicate legacy open incidents fails closed
+2026-10-20T23:26:01.1499579Z ok   — genesis with an unlabelled open incident fails closed
+2026-10-20T23:26:02.5633375Z ok   — genesis with a mutation marker before the genesis run fails closed
+2026-10-20T23:26:04.7043731Z ok   — a missing verdict artifact after genesis still fails closed
+2026-10-20T23:26:04.7064349Z —
+2026-10-20T23:26:04.7066243Z passed: 48  failed: 0
+2026-10-20T23:26:04.7103322Z ##[group]Run bash scripts/ci/test_setup_branch_protection.sh
+2026-10-20T23:26:04.7103803Z bash scripts/ci/test_setup_branch_protection.sh
+2026-10-20T23:26:04.7138000Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:04.7138252Z env:
+2026-10-20T23:26:04.7138428Z   MIX_ENV: test
+2026-10-20T23:26:04.7138626Z ##[endgroup]
+2026-10-20T23:26:04.8353080Z ok   — head commit reported CI Summary -> applies
+2026-10-20T23:26:04.9512608Z ok   — [skip ci] head with no check-runs, parent reported -> applies
+2026-10-20T23:26:05.0282041Z ok   — context only beyond lookback window -> refuses
+2026-10-20T23:26:05.0789563Z ok   — commit list unreadable -> refuses
+2026-10-20T23:26:05.1360903Z ok   — check-runs unreadable -> refuses
+2026-10-20T23:26:05.2318971Z ok   — --force bypasses the guard
+2026-10-20T23:26:05.2319450Z 6 passed, 0 failed
+2026-10-20T23:26:05.2376759Z ##[group]Run bash scripts/ci/test_collect_inbox.sh
+2026-10-20T23:26:05.2377151Z bash scripts/ci/test_collect_inbox.sh
+2026-10-20T23:26:05.2409680Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:05.2409943Z env:
+2026-10-20T23:26:05.2410123Z   MIX_ENV: test
+2026-10-20T23:26:05.2410318Z ##[endgroup]
+2026-10-20T23:26:05.7860965Z ok   - issues-only inventory: exit 0 and file written
+2026-10-20T23:26:05.8059326Z ok   - issues-only inventory: schema, repo, 40-hex main_sha
+2026-10-20T23:26:05.8255067Z ok   - issues-only inventory: collected_at from INBOX_NOW_EPOCH
+2026-10-20T23:26:05.8451548Z ok   - issues-only inventory: exactly two issues, PR filtered, sorted
+2026-10-20T23:26:05.8452732Z ok   - issues-only inventory: shell-metachar title was not executed
+2026-10-20T23:26:05.8453677Z ok   - issues-only inventory: no mutations or unexpected gh calls
+2026-10-20T23:26:05.9000966Z ok   - auth failure: non-zero exit and no output file
+2026-10-20T23:26:05.9001712Z ok   - auth failure: no mutations or unexpected gh calls
+2026-10-20T23:26:06.0040037Z ok   - page2 failure: non-zero exit and no output file
+2026-10-20T23:26:06.0040799Z ok   - page2 failure: no mutations or unexpected gh calls
+2026-10-20T23:26:06.0073216Z ok   - failure leaves no temp inventory behind
+2026-10-20T23:26:06.0505489Z ok   - unknown flag exits 64
+2026-10-20T23:26:07.2265028Z ok   - PR inventory: exit 0 and file written
+2026-10-20T23:26:07.2463213Z ok   - duplicate check-runs: latest completed_at wins (success, superseded_count 1, foreign app ignored)
+2026-10-20T23:26:07.2657948Z ok   - no check-runs: conclusion null with reason no_check_runs
+2026-10-20T23:26:07.2851570Z ok   - unknown mergeable: stays "unknown" after bounded retries, not coerced
+2026-10-20T23:26:07.2870251Z ok   - unknown mergeable: exactly 3 bounded reads
+2026-10-20T23:26:07.3067505Z ok   - mergeable_state behind sets behind true
+2026-10-20T23:26:07.3261539Z ok   - lock_delta parse: two packages with from/to, garbage ignored
+2026-10-20T23:26:07.3455358Z ok   - manifest_files: mix.exs, mix.lock, workflows, package*.json only
+2026-10-20T23:26:07.3651784Z ok   - PR fields: author, base, head_sha, title kept verbatim
+2026-10-20T23:26:07.3845012Z ok   - prs sorted by number
+2026-10-20T23:26:07.4040847Z ok   - terminal include 93: closed, merged false, kind pr
+2026-10-20T23:26:07.4237983Z ok   - terminal include 77: merged true
+2026-10-20T23:26:07.4436264Z ok   - terminal include 88: issue with state_reason completed
+2026-10-20T23:26:07.4629699Z ok   - protection 200: source protection, strict true, enforce_admins false (booleans)
+2026-10-20T23:26:07.4824600Z ok   - main_ci: latest push run with every non-passing job listed
+2026-10-20T23:26:07.4825821Z ok   - PR inventory: no mutations or unexpected gh calls
+2026-10-20T23:26:07.4826876Z ok   - PR title with shell metacharacters was not executed
+2026-10-20T23:26:08.4399987Z ok   - protection 403: branches-partial with strict/enforce_admins "unreadable" (never booleans)
+2026-10-20T23:26:08.4401299Z ok   - protection 403: no mutations or unexpected gh calls
+2026-10-20T23:26:09.4007051Z ok   - protection and branches both failing: source unreadable
+2026-10-20T23:26:09.6098606Z ok   - 5xx on protection: abort with no output file
+2026-10-20T23:26:09.8700222Z ok   - 5xx on main CI jobs: abort with no output file
+2026-10-20T23:26:09.9654917Z ok   - malformed issues response: abort with no output file
+2026-10-20T23:26:10.5061370Z ok   - hex.audit findings: collector exits 0
+2026-10-20T23:26:10.5257559Z ok   - hex.audit findings: hex_audit_root status findings
+2026-10-20T23:26:10.5458382Z ok   - hex.audit findings: three root findings, ignored false, source hex_audit
+2026-10-20T23:26:10.5476252Z ok   - hex.audit runs with ignores emptied (root)
+2026-10-20T23:26:10.5495073Z ok   - demo audit uses scratch MIX_DEPS_PATH/MIX_BUILD_PATH, never the caller's
+2026-10-20T23:26:10.5694112Z ok   - demo audit clean when fake demo audit is clean
+2026-10-20T23:26:10.5891310Z ok   - deps_audit second opinion recorded
+2026-10-20T23:26:10.6085697Z ok   - actions recorded not-applicable
+2026-10-20T23:26:10.6086556Z ok   - hex.audit findings: no mutations or unexpected gh calls
+2026-10-20T23:26:11.1471472Z ok   - hex.audit clean: status clean and no findings
+2026-10-20T23:26:11.4377998Z ok   - hex.audit exit 1 with no section marker: abort, no output file
+2026-10-20T23:26:12.0025925Z ok   - Ignored advisories section: findings tagged ignored true (exit 0 still findings)
+2026-10-20T23:26:12.5651628Z ok   - demo findings carry scope examples/adoption_demo
+2026-10-20T23:26:13.0969701Z ok   - demo deps.get failure records unreadable with reason (never clean)
+2026-10-20T23:26:13.6012499Z ok   - --skip-demo-audit records unreadable with reason skipped
+2026-10-20T23:26:13.6028855Z ok   - --skip-demo-audit never touches the demo project
+2026-10-20T23:26:13.9734583Z ok   - a lock file changing during collection aborts with no output file
+2026-10-20T23:26:14.5182207Z ok   - deps.audit findings recorded as second opinion
+2026-10-20T23:26:15.0581098Z ok   - alerts 403 'disabled for this repository' -> source_disabled; vulnerability-alerts 404 -> source_disabled; no zero count
+2026-10-20T23:26:15.6232722Z ok   - alerts 403 missing scope -> unreadable (never source_disabled); vulnerability-alerts 403 -> unreadable
+2026-10-20T23:26:16.1830426Z ok   - alerts 404 -> unreadable with http and message
+2026-10-20T23:26:16.7659328Z ok   - vulnerability-alerts 204 and alerts 200 -> enabled, open alerts become dependabot findings
+2026-10-20T23:26:16.7660767Z ok   - GitHub-side advisory sources: no mutations or unexpected gh calls
+2026-10-20T23:26:17.1560637Z ok   - 5xx on dependabot alerts: abort with no output file
+2026-10-20T23:26:17.7497266Z ok   - --hex-package records the first released version per package
+2026-10-20T23:26:18.1605446Z ok   - unknown --hex-package aborts with no output file
+2026-10-20T23:26:18.2017753Z ok   - tripwire flags: api -X POST repos/x
+2026-10-20T23:26:18.2059050Z ok   - tripwire flags: api --method=PUT repos/x
+2026-10-20T23:26:18.2101806Z ok   - tripwire flags: api -f a=b repos/x
+2026-10-20T23:26:18.2122574Z ok   - tripwire flags: pr merge 1
+2026-10-20T23:26:18.2144475Z ok   - tripwire flags: issue close 2
+2026-10-20T23:26:18.2166309Z ok   - tripwire flags: run rerun 3
+2026-10-20T23:26:18.2207630Z ok   - tripwire flags: api -XDELETE repos/x
+2026-10-20T23:26:18.2281054Z ok   - tripwire allows GET and read-only verbs
+2026-10-20T23:26:18.7709119Z ok   - clock falls back to date -u +%s
+2026-10-20T23:26:18.7709524Z 
+2026-10-20T23:26:18.7709717Z collect_inbox harness: 70 passed, 0 failed
+2026-10-20T23:26:18.7898913Z ##[group]Run bash scripts/ci/test_validate_inbox_ledger.sh
+2026-10-20T23:26:18.7899354Z bash scripts/ci/test_validate_inbox_ledger.sh
+2026-10-20T23:26:18.7935911Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:18.7936161Z env:
+2026-10-20T23:26:18.7936339Z   MIX_ENV: test
+2026-10-20T23:26:18.7936533Z ##[endgroup]
+2026-10-20T23:26:18.9776766Z ok   - live: clean fixtures exit 0
+2026-10-20T23:26:19.1395566Z ok   - live: missing PR 105 rejected
+2026-10-20T23:26:19.3063550Z ok   - live: missing issue 42 rejected
+2026-10-20T23:26:19.4603332Z ok   - live: duplicate issue 42 rejected
+2026-10-20T23:26:19.6148457Z ok   - live: repo mismatch rejected
+2026-10-20T23:26:19.7509194Z ok   - live: all problems reported in one run
+2026-10-20T23:26:19.9039788Z ok   - live: stale PR head rejected
+2026-10-20T23:26:20.0588706Z ok   - live: inventory older than bound rejected
+2026-10-20T23:26:20.2126532Z ok   - live: custom --max-age-seconds accepted
+2026-10-20T23:26:20.3672815Z ok   - live: inventory from the future rejected
+2026-10-20T23:26:20.5211049Z ok   - live: wrong inventory schema rejected
+2026-10-20T23:26:20.6759544Z ok   - live: item for non-open number without terminal rejected
+2026-10-20T23:26:20.8301728Z ok   - live: terminal merged mismatch rejected
+2026-10-20T23:26:20.9833039Z ok   - live: terminal without inventory lookup rejected
+2026-10-20T23:26:21.1358248Z ok   - live: terminal on a still-open item rejected
+2026-10-20T23:26:21.2962137Z ok   - live: supersede without successor rejected
+2026-10-20T23:26:21.4478441Z ok   - live: supersede with successor accepted
+2026-10-20T23:26:21.6025706Z ok   - live: defer without gate rejected
+2026-10-20T23:26:21.7565840Z ok   - live: defer without trigger rejected
+2026-10-20T23:26:21.9108778Z ok   - live: defer trigger outside vocabulary rejected
+2026-10-20T23:26:22.0652471Z ok   - live: unknown disposition rejected
+2026-10-20T23:26:22.2193789Z ok   - live: pending defer accepted
+2026-10-20T23:26:22.3726913Z ok   - live: fired date trigger rejected
+2026-10-20T23:26:22.5271200Z ok   - live: misspelled trigger type rejected
+2026-10-20T23:26:22.6815978Z ok   - live: hex_version_gte satisfied by hex_latest rejected
+2026-10-20T23:26:22.8354418Z ok   - live: gh_issue_closed satisfied rejected
+2026-10-20T23:26:22.9900972Z ok   - live: unevaluable trigger rejected
+2026-10-20T23:26:23.1448300Z ok   - live: merge with failing CI Summary rejected
+2026-10-20T23:26:23.2991421Z ok   - live: merge behind main rejected
+2026-10-20T23:26:23.4517628Z ok   - live: merge behind main with pending_action rebase accepted
+2026-10-20T23:26:23.6048942Z ok   - live: lock delta outside group_packages rejected
+2026-10-20T23:26:23.7580959Z ok   - live: unknown pending_action rejected
+2026-10-20T23:26:23.9128167Z ok   - live: inventory finding without ledger record rejected
+2026-10-20T23:26:24.0671363Z ok   - live: resolved record still reported rejected
+2026-10-20T23:26:24.2415908Z ok   - live: expired exception rejected
+2026-10-20T23:26:24.3950805Z ok   - live: exception missing trigger rejected
+2026-10-20T23:26:24.5495777Z ok   - live: open advisory record rejected
+2026-10-20T23:26:24.7022475Z ok   - live: ledger record no longer reported and not resolved rejected
+2026-10-20T23:26:24.8568982Z ok   - live: ignored finding needs an exception
+2026-10-20T23:26:25.0094988Z ok   - live: ignored finding with unexpired exception accepted
+2026-10-20T23:26:25.1666501Z ok   - live: fired exception trigger rejected
+2026-10-20T23:26:25.3206524Z ok   - live: bad reachability enum rejected
+2026-10-20T23:26:25.4736846Z ok   - live: dependabot disabled without ledger source record rejected
+2026-10-20T23:26:25.6269771Z ok   - live: dependabot disabled with empty rationale rejected
+2026-10-20T23:26:25.7798890Z ok   - live: dependabot ledger status mismatch rejected
+2026-10-20T23:26:25.9329909Z ok   - live: dependabot enabled needs no ledger record
+2026-10-20T23:26:26.0877623Z ok   - live: hex_audit_root unreadable rejected
+2026-10-20T23:26:26.2427250Z ok   - live: hex_audit_demo unreadable rejected
+2026-10-20T23:26:26.3968988Z ok   - live: twin pass rejected
+2026-10-20T23:26:26.5503442Z ok   - live: non-pass gate rejected
+2026-10-20T23:26:26.7038372Z ok   - live: lock_delta outside group_packages rejected
+2026-10-20T23:26:26.8575948Z ok   - live: merge_sha not 40-hex rejected
+2026-10-20T23:26:26.9707710Z ok   - offline: clean ledger exit 0
+2026-10-20T23:26:27.0848882Z ok   - offline: open advisories and pending actions exit 0
+2026-10-20T23:26:27.1999694Z ok   - offline: unknown disposition rejected
+2026-10-20T23:26:27.3142792Z ok   - offline: missing rationale rejected
+2026-10-20T23:26:27.4289757Z ok   - offline: PR item without head_sha rejected
+2026-10-20T23:26:27.5439753Z ok   - offline: unknown trigger type rejected
+2026-10-20T23:26:27.6581625Z ok   - offline: wrong schema id rejected
+2026-10-20T23:26:27.7745231Z ok   - offline: advisory missing path rejected
+2026-10-20T23:26:27.8898356Z ok   - offline: risk_group without group_packages rejected
+2026-10-20T23:26:28.0061493Z ok   - offline: twin pass landing rejected
+2026-10-20T23:26:28.1198618Z ok   - offline: empty landings accepted
+2026-10-20T23:26:28.2168754Z ok   - offline: reads no clock
+2026-10-20T23:26:28.2200728Z ok   - cli: no arguments exits 64
+2026-10-20T23:26:28.2232658Z ok   - cli: neither --offline nor --inventory exits 64
+2026-10-20T23:26:28.2264360Z ok   - cli: --offline with --inventory exits 64
+2026-10-20T23:26:28.2296710Z ok   - cli: unknown flag exits 64
+2026-10-20T23:26:28.2526471Z ok   - cli: malformed ledger JSON rejected
+2026-10-20T23:26:28.2562447Z ok   - cli: missing ledger file rejected
+2026-10-20T23:26:28.3587293Z ok   - print-collector-args: one --include per terminal/closed-trigger number and --hex-package per version trigger
+2026-10-20T23:26:28.4718059Z ok   - ledger text is data: shell and trigger injection not executed
+2026-10-20T23:26:28.4718600Z 
+2026-10-20T23:26:28.4718752Z 72 passed, 0 failed
+2026-10-20T23:26:28.4786284Z ##[group]Run bash scripts/ci/test_dep_landing_evidence.sh
+2026-10-20T23:26:28.4786716Z bash scripts/ci/test_dep_landing_evidence.sh
+2026-10-20T23:26:28.4819212Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:28.4819452Z env:
+2026-10-20T23:26:28.4819628Z   MIX_ENV: test
+2026-10-20T23:26:28.4819826Z ##[endgroup]
+2026-10-20T23:26:28.8618995Z ok   — clean group: exit 0
+2026-10-20T23:26:28.8841425Z ok   — clean group: verdict pass and attributable
+2026-10-20T23:26:28.9037292Z ok   — clean group: schema tag
+2026-10-20T23:26:28.9237808Z ok   — clean group: delta shows from/to per package
+2026-10-20T23:26:28.9436397Z ok   — clean group: mix_exs_changed false
+2026-10-20T23:26:28.9634321Z ok   — clean group: all gates pass
+2026-10-20T23:26:28.9831734Z ok   — clean group: twin is the not-applicable literal
+2026-10-20T23:26:29.0031677Z ok   — clean group: twin never reported as pass
+2026-10-20T23:26:29.0234942Z ok   — clean group: main-only lanes are mapped to package_consumer
+2026-10-20T23:26:29.0431949Z ok   — clean group: unrelated job has no gate
+2026-10-20T23:26:29.0628473Z ok   — clean group: run recorded
+2026-10-20T23:26:29.0629123Z ok   — clean group: no mutations or unexpected gh calls
+2026-10-20T23:26:29.2719191Z ok   — extra package in delta: exit 1
+2026-10-20T23:26:29.2921596Z ok   — extra package: attributable false
+2026-10-20T23:26:29.2922300Z ok   — extra package: no mutations or unexpected gh calls
+2026-10-20T23:26:29.5405311Z ok   — mix.exs also edited: exit 1
+2026-10-20T23:26:29.5609786Z ok   — mix.exs edit: flagged
+2026-10-20T23:26:29.5749876Z ok   — merge commit rejected: exit 1
+2026-10-20T23:26:29.8224849Z ok   — actions group, workflow-only commit: exit 0
+2026-10-20T23:26:29.8420426Z ok   — actions group: attributable with empty delta
+2026-10-20T23:26:30.0908733Z ok   — actions group, commit that changes mix.lock: exit 1
+2026-10-20T23:26:30.1103879Z ok   — actions group lock change: attribution failed
+2026-10-20T23:26:30.3605926Z ok   — Adoption Demo E2E absent: exit 1
+2026-10-20T23:26:30.3806814Z ok   — absent E2E: package_consumer missing
+2026-10-20T23:26:30.6077577Z ok   — no Quality leg (prefix unmatched): exit 1
+2026-10-20T23:26:30.6274862Z ok   — no Quality leg: supported_toolchain missing
+2026-10-20T23:26:30.8538275Z ok   — Smoke job does not stand in for exact E2E name: exit 1
+2026-10-20T23:26:30.8735026Z ok   — missing Smoke: package_consumer missing
+2026-10-20T23:26:31.2675813Z ok   — red on landing, green on baseline: exit 1
+2026-10-20T23:26:31.2874240Z ok   — regression: class and gate
+2026-10-20T23:26:31.3071080Z ok   — regression: baseline recorded
+2026-10-20T23:26:31.3071666Z ok   — regression: no mutations or unexpected gh calls
+2026-10-20T23:26:31.6352621Z ok   — red on both runs: exit 3
+2026-10-20T23:26:31.6553746Z ok   — inherited_red: class and gate
+2026-10-20T23:26:31.6751718Z ok   — inherited_red: baseline conclusion kept
+2026-10-20T23:26:31.8819001Z ok   — red with no baseline given is a regression: exit 1
+2026-10-20T23:26:32.2313332Z ok   — Contract red, baseline green: exit 1
+2026-10-20T23:26:32.2510394Z ok   — Contract red: public_contract fail
+2026-10-20T23:26:32.4317031Z ok   — run in progress: exit 75
+2026-10-20T23:26:32.5342319Z ok   — no run for the SHA: exit 75
+2026-10-20T23:26:32.5342984Z ok   — 75 paths: no mutations or unexpected gh calls
+2026-10-20T23:26:32.7279988Z ok   — baseline mode: gates only: exit 0
+2026-10-20T23:26:32.7479487Z ok   — baseline mode: attribution skipped
+2026-10-20T23:26:32.7677486Z ok   — baseline mode: gates evaluated
+2026-10-20T23:26:32.7712755Z ok   — packages without group is a usage error: exit 64
+2026-10-20T23:26:32.7760745Z ok   — no arguments: exit 64
+2026-10-20T23:26:32.7796630Z ok   — disallowed lock path: exit 64
+2026-10-20T23:26:32.7831706Z ok   — non-hex sha: exit 64
+2026-10-20T23:26:33.0559539Z ok   — --out writes the evidence file atomically
+2026-10-20T23:26:33.0584862Z ok   — --out leaves no temp files
+2026-10-20T23:26:33.0635299Z ok   — tripwire flags: api -X POST x
+2026-10-20T23:26:33.0685659Z ok   — tripwire flags: api --method=PUT x
+2026-10-20T23:26:33.0735322Z ok   — tripwire flags: api -f a=b x
+2026-10-20T23:26:33.0783742Z ok   — tripwire flags: api -XDELETE x
+2026-10-20T23:26:33.0812405Z ok   — tripwire flags: pr merge 1
+2026-10-20T23:26:33.0841208Z ok   — tripwire flags: run rerun 1
+2026-10-20T23:26:33.0871749Z ok   — script has no write-method flag
+2026-10-20T23:26:33.0887967Z ok   — script reads no .planning/phases path
+2026-10-20T23:26:33.0888358Z 
+2026-10-20T23:26:33.0888576Z dep_landing_evidence harness: 58 passed, 0 failed
+2026-10-20T23:26:33.1011843Z ##[group]Run bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json
+2026-10-20T23:26:33.1012660Z bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json
+2026-10-20T23:26:33.1045389Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:33.1045630Z env:
+2026-10-20T23:26:33.1045805Z   MIX_ENV: test
+2026-10-20T23:26:33.1045997Z ##[endgroup]
+2026-10-20T23:26:33.2050398Z validate_inbox_ledger: ok (offline)
+2026-10-20T23:26:33.2085253Z ##[group]Run bash scripts/ci/test_craft_contract_tools.sh
+2026-10-20T23:26:33.2085687Z bash scripts/ci/test_craft_contract_tools.sh
+2026-10-20T23:26:33.2117274Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:33.2117514Z env:
+2026-10-20T23:26:33.2117687Z   MIX_ENV: test
+2026-10-20T23:26:33.2117874Z ##[endgroup]
+2026-10-20T23:26:33.3586521Z ok   - trace: committed trace passes offline
+2026-10-20T23:26:33.4529477Z ok   - trace: one traced change passes offline
+2026-10-20T23:26:33.5498584Z ok   - trace: sha256 altered
+2026-10-20T23:26:33.6451985Z ok   - trace: subject_sha altered
+2026-10-20T23:26:33.7409904Z ok   - trace: candidate id list altered
+2026-10-20T23:26:33.8376377Z ok   - trace: schema altered
+2026-10-20T23:26:33.9340668Z ok   - trace: candidate_id outside the pinned ids
+2026-10-20T23:26:34.0296727Z ok   - trace: intent style
+2026-10-20T23:26:34.1258910Z ok   - trace: empty proof
+2026-10-20T23:26:34.2214937Z ok   - trace: empty files
+2026-10-20T23:26:34.3176992Z ok   - trace: blank detector
+2026-10-20T23:26:34.4137519Z ok   - trace: pr not an integer
+2026-10-20T23:26:34.5085597Z ok   - trace: pr integer accepted
+2026-10-20T23:26:34.6048968Z ok   - trace: anchor missing a key
+2026-10-20T23:26:34.7008668Z ok   - trace: duplicate change id
+2026-10-20T23:26:34.7965619Z ok   - trace: anchor still present in the baseline
+2026-10-20T23:26:34.8911379Z ok   - trace: changes not an array
+2026-10-20T23:26:34.9869952Z ok   - trace: every reason reported in one run
+2026-10-20T23:26:34.9907574Z ok   - trace: missing trace file
+2026-10-20T23:26:35.0135982Z ok   - trace: invalid JSON trace
+2026-10-20T23:26:35.0184806Z ok   - trace: unknown flag is a usage error
+2026-10-20T23:26:35.0415784Z ok   - trace: missing mode is a usage error
+2026-10-20T23:26:35.1630220Z ok   - trace: verify-source rejects a different file
+2026-10-20T23:26:35.2759268Z ok   - trace --base: anchor removed since base passes
+2026-10-20T23:26:35.3934218Z ok   - trace --base: anchor absent at base
+2026-10-20T23:26:35.4420882Z ok   - trace --base: unknown ref is rejected
+2026-10-20T23:26:35.5374947Z ok   - trace: shell substitution text is data, never executed
+2026-10-20T23:26:35.6112631Z ok   - boundary: comment-only lib change passes
+2026-10-20T23:26:35.6621372Z ok   - boundary: empty change passes
+2026-10-20T23:26:35.7158027Z ok   - boundary: non-release workflow change passes
+2026-10-20T23:26:35.7714638Z ok   - boundary: aliases comment in mix.exs passes
+2026-10-20T23:26:35.8291652Z ok   - boundary: migration edit
+2026-10-20T23:26:35.8835000Z ok   - boundary: new migration
+2026-10-20T23:26:35.9407369Z ok   - boundary: migration moved out
+2026-10-20T23:26:35.9949293Z ok   - boundary: mix.lock
+2026-10-20T23:26:36.0480633Z ok   - boundary: CHANGELOG.md
+2026-10-20T23:26:36.1014865Z ok   - boundary: release-please-config.json
+2026-10-20T23:26:36.1550638Z ok   - boundary: .release-please-manifest.json
+2026-10-20T23:26:36.2086577Z ok   - boundary: release workflow
+2026-10-20T23:26:36.2624553Z ok   - boundary: new release workflow
+2026-10-20T23:26:36.3161255Z ok   - boundary: public surface fixture
+2026-10-20T23:26:36.3704662Z ok   - boundary: telemetry contract test
+2026-10-20T23:26:36.4275373Z ok   - boundary: mix.exs @version
+2026-10-20T23:26:36.4842624Z ok   - boundary: mix.exs dep line
+2026-10-20T23:26:36.5408623Z ok   - boundary: mix.exs package files
+2026-10-20T23:26:36.5859539Z ok   - boundary: uncommitted mix.lock edit
+2026-10-20T23:26:36.6478757Z ok   - boundary: every reason reported in one run
+2026-10-20T23:26:36.7162398Z ok   - boundary: base that moved on is compared at the merge base
+2026-10-20T23:26:36.7240356Z ok   - boundary: unknown base ref
+2026-10-20T23:26:36.7278972Z ok   - boundary: missing base is a usage error
+2026-10-20T23:26:36.7318793Z ok   - boundary: option-shaped base is a usage error
+2026-10-20T23:26:36.7765787Z ok   - boundary: path text is data, never executed
+2026-10-20T23:26:36.7766143Z 
+2026-10-20T23:26:36.7766250Z 52 passed, 0 failed
+2026-10-20T23:26:36.7978030Z ##[group]Run bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json
+2026-10-20T23:26:36.7980587Z bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json
+2026-10-20T23:26:36.8029395Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:36.8029815Z env:
+2026-10-20T23:26:36.8030116Z   MIX_ENV: test
+2026-10-20T23:26:36.8030447Z ##[endgroup]
+2026-10-20T23:26:36.8871098Z validate_readability_trace: ok (offline)
+2026-10-20T23:26:36.8918296Z ##[group]Run bash scripts/ci/test_validate_artifact_ledger.sh
+2026-10-20T23:26:36.8918748Z bash scripts/ci/test_validate_artifact_ledger.sh
+2026-10-20T23:26:36.8949574Z shell: /usr/bin/bash -e {0}
+2026-10-20T23:26:36.8949811Z env:
+2026-10-20T23:26:36.8949987Z   MIX_ENV: test
+2026-10-20T23:26:36.8950178Z ##[endgroup]
+2026-10-20T23:26:37.7048981Z ok   - partition: clean fixture exits 0
+2026-10-20T23:26:38.4648126Z ok   - partition: file no class covers is uncovered
+2026-10-20T23:26:39.2647127Z ok   - adjacency: overlapping classes double-classify
+2026-10-20T23:26:40.0688065Z ok   - adjacency: identical pathspecs double-classify, never merge
+2026-10-20T23:26:40.8721651Z ok   - partition: exclude carves a sub-tree out of a class
+2026-10-20T23:26:41.6643517Z ok   - empty: class matching no tracked file is stale
+2026-10-20T23:26:42.0766837Z ok   - empty: no classes rejected
+2026-10-20T23:26:42.8408847Z ok   - empty: class with no pathspecs rejected
+2026-10-20T23:26:43.5934981Z ok   - empty: exclude-only pathspecs rejected (would match the whole tree)
+2026-10-20T23:26:44.3349718Z ok   - empty: short-form exclude-only pathspecs rejected
+2026-10-20T23:26:45.0702001Z ok   - pathspecs: unanchored wildcard exclude rejected
+2026-10-20T23:26:45.8179006Z ok   - schema: wrong schema id rejected
+2026-10-20T23:26:46.5516552Z ok   - identity: duplicate class id rejected
+2026-10-20T23:26:47.3519869Z ok   - ordering: all reasons reported in one run, sorted by rule then path
+2026-10-20T23:26:48.1038810Z ok   - idempotency: second run yields identical output and leaves git status unchanged
+2026-10-20T23:26:48.9796722Z ok   - concurrency: two concurrent runs both exit 0 with identical output
+2026-10-20T23:26:49.7109399Z ok   - fields: missing authority rejected
+2026-10-20T23:26:50.4278618Z ok   - fields: authority outside the vocabulary rejected
+2026-10-20T23:26:51.1636827Z ok   - fields: missing consumer rejected
+2026-10-20T23:26:51.8926667Z ok   - fields: empty consumer on a retained class rejected
+2026-10-20T23:26:52.6104500Z ok   - fields: untracked consumer path rejected
+2026-10-20T23:26:53.3486222Z ok   - fields: package outside shipped|excluded rejected
+2026-10-20T23:26:54.0817459Z ok   - fields: disposition outside retain|delete|ignore rejected
+2026-10-20T23:26:54.8019035Z ok   - fields: missing reason rejected
+2026-10-20T23:26:55.5211021Z ok   - regenerate: generated class without regenerate rejected
+2026-10-20T23:26:56.2496860Z ok   - regenerate: regenerate on a non-generated class rejected
+2026-10-20T23:26:56.9639226Z ok   - regenerate: unvetted hygiene command rejected
+2026-10-20T23:26:57.6935881Z ok   - regenerate: drift_check none needs a reason
+2026-10-20T23:26:58.4362237Z ok   - regenerate: drift_check none with a reason accepts any command
+2026-10-20T23:26:59.1658208Z ok   - regenerate: untracked drift path rejected
+2026-10-20T23:26:59.8946055Z ok   - injection: shell text in a hygiene command is rejected and never executed
+2026-10-20T23:26:59.8948377Z ok   - injection: no file created by ledger text
+2026-10-20T23:27:00.6286641Z ok   - package: shipped class outside the mix.exs files list rejected
+2026-10-20T23:27:01.3534691Z ok   - package: excluded class inside the mix.exs files list rejected
+2026-10-20T23:27:02.0897228Z ok   - package: unreadable mix.exs files list is a reject, never a pass
+2026-10-20T23:27:02.8197765Z ok   - ignore: effective .gitignore line missing from ignore_rules rejected
+2026-10-20T23:27:03.5646930Z ok   - ignore: rule listed twice rejected
+2026-10-20T23:27:04.2927163Z ok   - ignore: rule that no tracked .gitignore has rejected
+2026-10-20T23:27:05.0311257Z ok   - ignore: produced_by required
+2026-10-20T23:27:05.8119504Z ok   - ignore: tracked file matched by an ignore rule rejected
+2026-10-20T23:27:06.5860262Z ok   - junk: tracked file matching a junk pattern rejected
+2026-10-20T23:27:07.3790206Z ok   - junk: exclude-only junk pattern rejected
+2026-10-20T23:27:08.1800302Z ok   - roots: verification root without an ignore rule rejected
+2026-10-20T23:27:08.9443023Z ok   - roots: absolute verification root rejected
+2026-10-20T23:27:09.7045473Z ok   - settled: delete class with an empty consumer list is accepted
+2026-10-20T23:27:10.4325170Z ok   - settled: --require-settled rejects a delete class
+2026-10-20T23:27:11.1548767Z ok   - retained receipt: archiving the receipt prints exactly one retained receipt line and no stale class line
+2026-10-20T23:27:11.8836875Z ok   - retained receipt: class without immutable-receipt authority rejected
+2026-10-20T23:27:12.6372708Z ok   - retained receipt: missing identity rejected
+2026-10-20T23:27:14.0859506Z ok   - archive simulation: only the retained receipt is left in the phases directory
+2026-10-20T23:27:18.6946066Z FAIL - archive simulation: archiving every other phase directory stays green (exit 1, want 0): REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/001.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/002.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-CANONICAL-FIRST-RED.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/001.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/002.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/003.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/004.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/005.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/006.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/007.log (:(glob)**/*.log)|REJECT: uncovered: scripts/maintainer/phase136_evidence.py|
+2026-10-20T23:27:22.8134594Z FAIL - archive simulation: retained receipt (exit 1): REJECT: retained receipt: .planning/phases/133-evidence-charter-and-live-truth must not be archived (verify_nightly_run.sh census identity)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/milestones/archive-simulation/136-measured-quality-and-ci-ratchet
+2026-10-20T23:27:22.8163629Z ok   - cli: no arguments exits 64
+2026-10-20T23:27:22.8195286Z ok   - cli: missing --offline exits 64
+2026-10-20T23:27:22.8226557Z ok   - cli: unknown flag exits 64
+2026-10-20T23:27:26.7856855Z FAIL - cli: --ledger defaults to the committed ledger under --root (exit 1, want 0): REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/001.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/002.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-FIRST-RED.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/001.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/002.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/003.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/004.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/005.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/006.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/007.log (:(glob)**/*.log)|REJECT: uncovered: scripts/maintainer/phase136_evidence.py|
+2026-10-20T23:27:26.8081039Z ok   - cli: malformed ledger rejected
+2026-10-20T23:27:30.8438447Z FAIL - live: committed ledger partitions the repository (exit 1, want 0): REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/001.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/002.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-FIRST-RED.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/000.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/001.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/002.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/003.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/004.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/005.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/006.log (:(glob)**/*.log)|REJECT: tracked junk: .planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/007.log (:(glob)**/*.log)|REJECT: uncovered: scripts/maintainer/phase136_evidence.py|
+2026-10-20T23:27:30.8450041Z 
+2026-10-20T23:27:30.8450193Z 54 passed, 4 failed
+2026-10-20T23:27:31.2649397Z ##[error]Process completed with exit code 1.
+2026-10-20T23:27:31.2789097Z Post job cleanup.
+2026-10-20T23:27:31.3668382Z [command]/usr/bin/git version
+2026-10-20T23:27:31.3707436Z git version 2.55.0
+2026-10-20T23:27:31.3743349Z Temporarily overriding HOME='/home/runner/work/_temp/714abefc-03e6-4ac5-ba4a-a82199af866d' before making global git config changes
+2026-10-20T23:27:31.3745012Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T23:27:31.3748520Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/rindle/rindle
+2026-10-20T23:27:31.3782310Z Removing SSH command configuration
+2026-10-20T23:27:31.3788737Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T23:27:31.3825344Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T23:27:31.4080682Z Removing HTTP extra header
+2026-10-20T23:27:31.4085545Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T23:27:31.4121658Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T23:27:31.4375040Z Removing includeIf entries pointing to credentials config files
+2026-10-20T23:27:31.4380586Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T23:27:31.4407059Z includeif.gitdir:/home/runner/work/rindle/rindle/.git.path
+2026-10-20T23:27:31.4407864Z includeif.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path
+2026-10-20T23:27:31.4408450Z includeif.gitdir:/github/workspace/.git.path
+2026-10-20T23:27:31.4408812Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-20T23:27:31.4416776Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/rindle/rindle/.git.path
+2026-10-20T23:27:31.4441350Z /home/runner/work/_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:27:31.4453039Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/rindle/rindle/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-e7bb54d2\-a6af\-4e43\-be2d\-6b567d2421a7\.config
+2026-10-20T23:27:31.4490751Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path
+2026-10-20T23:27:31.4516577Z /home/runner/work/_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:27:31.4526966Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-e7bb54d2\-a6af\-4e43\-be2d\-6b567d2421a7\.config
+2026-10-20T23:27:31.4562530Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-20T23:27:31.4586644Z /github/runner_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:27:31.4594847Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-e7bb54d2\-a6af\-4e43\-be2d\-6b567d2421a7\.config
+2026-10-20T23:27:31.4629750Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-20T23:27:31.4654967Z /github/runner_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config
+2026-10-20T23:27:31.4663037Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-e7bb54d2\-a6af\-4e43\-be2d\-6b567d2421a7\.config
+2026-10-20T23:27:31.4699865Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T23:27:31.4948762Z Removing credentials config '/home/runner/work/_temp/git-credentials-e7bb54d2-a6af-4e43-be2d-6b567d2421a7.config'
+2026-10-20T23:27:31.5110872Z Cleaning up orphan processes

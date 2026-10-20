@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "subject_sha": "4dc73fa91c60ae870c7289a151d9d53460140906",
+  "pr_url": "https://github.com/szTheory/rindle/pull/162",
+  "run_id": 39514749448,
+  "job_id": 118944104302,
+  "failed_step": "Artifact ledger validator harness",
+  "job_result": "failure",
+  "harness_result": {
+    "passed": 54,
+    "failed": 4
+  },
+  "timing_outcome": "blocked",
+  "timing_samples_collected": 0,
+  "reason": "Initial PR CI failed; guarded timing collection must not start.",
+  "findings": [
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "reason": "Not classified by the artifact ledger."
+    },
+    {
+      "path": ".planning/phases/136-measured-quality-and-ci-ratchets",
+      "reason": "Retained measurement .log files violate tracked_junk_patterns, including after archive simulation."
+    }
+  ],
+  "local_reproduction": {
+    "argv": [
+      "bash",
+      "scripts/maintainer/validate_artifact_ledger.sh",
+      "--offline",
+      "--require-settled",
+      "--ledger",
+      "scripts/maintainer/artifact_ledger.json"
+    ],
+    "exit_status": 1,
+    "output": "136-ARTIFACT-LEDGER-RED.txt"
+  },
+  "ci_log": "136-INITIAL-CI-SCRIPT-FAILURE.txt",
+  "ci_log_sha256": "e830136dca41434ee2e467d6daae2bc9bbb4983c03b062a2ed70f9a3021e77d7",
+  "next_trigger": "After the current frozen-subject collector terminates, prepare a gap-repair candidate that classifies the collector and reconciles retained evidence with the unchanged hygiene guarantees. Re-run live and archive-simulation harnesses before freezing a new source; prior-source measurements cannot close the replacement subject.",
+  "recorded_at": "2026-10-20T23:30:22.699702+00:00"
+}
