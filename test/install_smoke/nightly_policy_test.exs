@@ -270,7 +270,7 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
            end) == 1
   end
 
-  # D-134-08: never pin an action commit SHA literally in a test. The pin is derived
+  # Never pin an action commit SHA literally in a test. The pin is derived
   # from nightly.yml (both upload steps must agree) and checked only for its shape,
   # so an actions-group bump changes no test.
   defp assert_upload_artifact_pin!(uses) do

@@ -590,21 +590,21 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
     """
   end
 
-  # Phase 36 D-15 / Pitfall 2: the `:mux` lane mirrors the `:video` lane's
+  # The `:mux` lane mirrors the `:video` lane's
   # variant assertions verbatim (`["poster", "web_720p"]`) and adds two new
   # streaming-URL assertions at the end:
   #   1. `Rindle.Delivery.streaming_url/3` returns a Mux-signed HLS URL.
   #   2. The URL's `?token=` JWT decodes against the test signing PUBLIC key
   #      staged into the generated app's `test/fixtures/mux/`.
   #
-  # Mox setup MUST go at the top of the generated test module (Pitfall 2):
+  # Mox setup MUST go at the top of the generated test module:
   # `setup :set_mox_from_context` is required so cross-process workers
   # spawned by `perform_job/2` can see the stubs configured in the test
   # process. Without it, the cassette lane fails with `Mox.UnexpectedCallError`.
   #
   # In SOAK mode (real Mux), the lifecycle is wrapped in `try/after` so
   # `Mux.Video.Assets.delete/2` runs on the created `provider_asset_id`
-  # even if assertions fail (D-22 layer 1). In CASSETTE mode the
+  # even if assertions fail (layer-1 cleanup). In CASSETTE mode the
   # `try/after` is a no-op (Mox returns canned responses; nothing to delete)
   # — still emitted for shape symmetry.
   defp lifecycle_test_source(_app_module, :mux) do
@@ -615,16 +615,14 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
                         ) == Rindle.Streaming.Provider.Mux.ClientMock or
                           Application.compile_env(:rindle, :__mux_cassette_mode__, false)
 
-        # Phase 36 WR-05: use the documented Mox setup-callback form.
-        # Previously this called `Mox.verify_on_exit!(self())` and
-        # `Mox.set_mox_from_context(%{async: false})` from inside a
-        # top-level `setup do` block — `verify_on_exit!/1` binds its
-        # arg to `_context` and discards it (passing `self()` works
-        # only by accident), and `set_mox_from_context` is documented
-        # to be wired via `setup :set_mox_from_context` so it receives
-        # the real ExUnit context. Both are required for cross-process
-        # worker stubs (Pitfall 2 — Oban perform_job spawns a worker
-        # in a different process than the test).
+        # Use the documented Mox setup-callback form. Calling
+        # `Mox.verify_on_exit!(self())` from a `setup do` block only works
+        # by accident (`verify_on_exit!/1` binds its arg to `_context` and
+        # discards it), and `set_mox_from_context` is documented to be
+        # wired via `setup :set_mox_from_context` so it receives the real
+        # ExUnit context. Both are required for cross-process worker
+        # stubs (Oban perform_job spawns a worker in a different process
+        # than the test).
         if @cassette_mode? do
           setup :set_mox_from_context
           setup :verify_on_exit!
@@ -733,15 +731,12 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
                        "expected_recipe_digest" => web_variant.recipe_digest
                      })
 
-            # Phase 36 CR-02: record provider_asset_id IMMEDIATELY once the
-            # provider ingest job has run and created the Mux-side asset.
-            # The previous
-            # placement of this block was after the streaming-URL
-            # assertions — if any of those assertions failed, control
-            # transferred to the after-block before the ETS row was
-            # written, leaving the soak asset orphaned on Mux's side
-            # (the layer-1 cleanup only ran on test success). Record
-            # the id here so the after-block always has it on hand.
+            # Record provider_asset_id IMMEDIATELY once the provider ingest
+            # job has run and created the Mux-side asset. If this block ran
+            # after the streaming-URL assertions, a failed assertion would
+            # transfer control to the after-block before the ETS row was
+            # written, leaving the soak asset orphaned on Mux's side.
+            # Recording the id here means the after-block always has it.
             if mode == :soak do
               provider_row =
                 Repo.one(
@@ -772,7 +767,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
                        })
             end
 
-            # Phase 36 D-15: byte-identical to the :video lane (D-04 contract).
+            # Byte-identical to the :video lane.
             assert Enum.map(ready_variants, &{&1.name, &1.output_kind, &1.state}) == [
                      {"poster", "image", "ready"},
                      {"web_720p", "video", "ready"}
@@ -781,7 +776,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
             assert is_binary(web_variant.storage_key)
             assert String.contains?(web_variant.storage_key, "web_720p")
 
-            # NEW Phase 36 streaming-URL assertions:
+            # Streaming-URL assertions:
             asset_for_streaming = Repo.get!(MediaAsset, asset.id)
 
             {:ok, %{url: streaming_url, kind: :hls}} =
@@ -811,7 +806,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.SmokeSource do
               })
             )
           after
-            # D-22 layer 1: soak-mode delete-on-finally so the asset is reaped
+            # Layer-1 cleanup: soak-mode delete-on-finally so the asset is reaped
             # even if assertions above failed. Cassette mode is a no-op.
             if mode == :soak do
               case :ets.lookup(provider_asset_id_table, provider_asset_id_ref) do

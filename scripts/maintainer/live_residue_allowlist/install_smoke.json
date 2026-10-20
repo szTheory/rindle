@@ -3,284 +3,76 @@
   "area": "install_smoke",
   "entries": [
     {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "# (D-11) do NOT match.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "# ISO-04 (D-07): collects every :rindle/:repo global swap in a module body. Applies",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "# ISO-04 (D-07/D-08/D-11): no test module — async:true OR async:false — may swap",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "# ISO-04 (D-07/D-11): matches `Application.put_env(:rindle, :repo, _)` /",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "# ISO-04 (D-08): mirrors `parse_async_true_modules/1` MINUS the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "# ISO-04 (D-08): the :global_repo_swap rule scans EVERY module (the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "decision-id",
-      "text": "Static async-safety guard (HARD-01, D-02).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "# ISO-04 (D-07): collects every :rindle/:repo global swap in a module body. Applies",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "# ISO-04 (D-07/D-08/D-11): no test module — async:true OR async:false — may swap",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "# ISO-04 (D-07/D-11): matches `Application.put_env(:rindle, :repo, _)` /",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "# ISO-04 (D-08): mirrors `parse_async_true_modules/1` MINUS the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "# ISO-04 (D-08): the :global_repo_swap rule scans EVERY module (the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "Static async-safety guard (HARD-01, D-02).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/async_safety_guard_test.exs",
-      "class": "requirement-id",
-      "text": "This cross-pollutes any concurrent async reader of `Rindle.Config.repo/0` (ISO-04).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "decision-id",
-      "text": "# Count-based dual-assert (RESEARCH Pattern 2 / Open Q1, D-03): admin-polish.js has",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "decision-id",
-      "text": "## What it asserts (dual-assert, D-03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "decision-id",
-      "text": "LOCK-04 (Phase 111, D-03) — focus-visible keyboard-modality regression lock.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "decision-id",
-      "text": "instead of inlining the raw call-form (LOCK-04, D-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "phase-ref",
-      "text": "LOCK-04 (Phase 111, D-03) — focus-visible keyboard-modality regression lock.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "phase-ref",
-      "text": "default suite / merge-blocking `quality` lane like the other Phase 111 meta-tests.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "plan-ref",
-      "text": "A merge-blocking meta-test that locks the Plan 03 dedupe: post-dedupe the raw",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "plan-ref",
-      "text": "Post-dedupe (Plan 03), the raw `:focus-visible` modality call lives ONLY inside the \\",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "planning-path",
-      "text": "Reads `examples/` and `brandbook/` SHIPPED harness paths only — never a `.planning/`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "requirement-id",
-      "text": "LOCK-04 (Phase 111, D-03) — focus-visible keyboard-modality regression lock.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "requirement-id",
-      "text": "instead of inlining the raw call-form (LOCK-04, D-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/focus_visible_modality_guard_test.exs",
-      "class": "requirement-id",
-      "text": "path (those move when a milestone is archived; the LOCK-05 planning-path-hygiene",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "planning-path",
       "text": "state = Path.join(repo_dir, \".planning/STATE.md\")",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "requirement-id",
       "text": "<verification>Human approval closes SAFE-02.</verification>",
       "count": 3,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "spec-ref",
       "text": "File.write!(Path.join(phase_dir, \"132-01-PLAN.md\"), \"\"\"",
       "count": 3,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "spec-ref",
       "text": "File.write!(Path.join(phase_dir, \"132-02-PLAN.md\"), \"\"\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "spec-ref",
       "text": "File.write!(Path.join(phase_dir, \"132-03-PLAN.md\"), \"\"\"",
       "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "spec-ref",
       "text": "File.write!(Path.join(phase_dir, \"132-04-PLAN.md\"), \"\"\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "spec-ref",
       "text": "File.write!(Path.join(phase_dir, \"132-05-PLAN.md\"), \"\"\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/automation_first_contract_test.exs",
       "class": "spec-ref",
       "text": "File.write!(Path.join(phase_dir, \"132-VALIDATION.md\"), \"\"\"",
       "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
       "path": "test/install_smoke/ci_timing_automation_test.exs",
       "class": "milestone-ref",
       "text": "jq -cn --arg sha \"${GH_REMOTE_SHA:-$GH_EXPECTED_SHA}\" '{state:\"OPEN\",isDraft:true,headRefName:\"codex/v1.25-maintainer-craft\",headRefOid:$sha}'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Canned gh stub output for a disposable fixture repository; the branch name is sample data, not a live reference."
     },
     {
       "path": "test/install_smoke/ci_timing_automation_test.exs",
@@ -323,30 +115,6 @@
       "reason": "The test writes this path into a disposable fixture repository, not the live tree."
     },
     {
-      "path": "test/install_smoke/dialyzer_ignore_policy_test.exs",
-      "class": "requirement-id",
-      "text": "test \"TYPE-02: approved filters may be removed without freezing the live count\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/dialyzer_ignore_policy_test.exs",
-      "class": "requirement-id",
-      "text": "test \"TYPE-02: invalid fixtures are rejected without freezing the live count\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/dialyzer_ignore_policy_test.exs",
-      "class": "requirement-id",
-      "text": "test \"TYPE-02: the live curated ignore list is a unique, owned, approved subset\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs",
       "class": "mojibake",
       "text": "refute Regex.match?(~r/DELETE\\s*\\|\\s*Ã¢ÂÂ/, moduledoc)",
@@ -367,80 +135,24 @@
       "class": "phase-ref",
       "text": "refute moduledoc =~ \"Phase 42\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "milestone-ref",
-      "text": "\"Rindle facade moduledoc must not deny an admin UI (scope reversed in v1.18)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "milestone-ref",
-      "text": "\"user_flows.md must not deny an admin UI (scope reversed in v1.18)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Refuted stale-text literal: a regression guard that keeps planning-era wording out of the shipped moduledoc."
     },
     {
       "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
       "class": "milestone-ref",
       "text": "refute user_flows =~ \"The full executable facade lands in later `v1.10` phase work\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Refuted stale-text literal: a regression guard that keeps superseded roadmap wording out of guides/user_flows.md."
     },
     {
       "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
       "class": "milestone-ref",
       "text": "refute user_flows =~ \"being standardized for `v1.10`\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "plan-ref",
-      "text": "\"guides/admin_console.md must exist (created by Plan 03)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "requirement-id",
-      "text": "\"Rindle facade moduledoc must affirm the mountable admin console (TRUTH-07)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "requirement-id",
-      "text": "\"Rindle facade moduledoc must reference the rindle_admin router macro (TRUTH-07)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "requirement-id",
-      "text": "# TRUTH-07: the JTBD admin-UI exclusion is reversed. user_flows must not",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
-      "class": "requirement-id",
-      "text": "# TRUTH-07: user_flows now affirms the mountable admin console instead",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Refuted stale-text literal: a regression guard that keeps superseded roadmap wording out of guides/user_flows.md."
     },
     {
       "path": "test/install_smoke/evidence_census_test.exs",
@@ -455,24 +167,16 @@
       "class": "phase-ref",
       "text": "\"reason\" => \"Phase 133 replaced the testing evidence producer\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Transition-record field in a disposable census fixture that mirrors the retained receipt's transition shape."
     },
     {
       "path": "test/install_smoke/evidence_census_test.exs",
       "class": "phase-ref",
       "text": "assert_invalid(fixture, \"changed candidate requires one Phase 133 transition\")",
       "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "plan-ref",
-      "text": "test \"Plan 109 rejects two byte-identical invalid copied census receipts independently\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "Asserts the validate_evidence_census.exs error text for the retained evidence-census receipt's transition records; the validator message is receipt-bound."
     },
     {
       "path": "test/install_smoke/evidence_census_test.exs",
@@ -481,182 +185,6 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: adjacent observations sharing a detector and file stay separate candidates\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: an explicit stable-ID transition reconciles changed observations\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: candidate identity and disposition mutations fail closed\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: candidate set changes and unexplained observation transitions fail closed\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: clean exact-head receipt validates against a separate reviewed ledger\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: collector canonicalizes contained locations and rejects every escape family\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: collector preserves identity and digest for contained detector inputs\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: collector rejects detector input symlinks that escape the subject\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: collector rejects invalid detector input physical shapes\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: complete registry covers every locked dimension with repository-owned inputs\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: foreign SHA and dirty diagnostic receipts cannot become authoritative\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: inapplicability requires an allowlisted dimension and exact bounded reason\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: mixed applicability preserves exact authority for every applicable detector\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: nested census tools inherit test dependencies and reject escaping evidence\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: registry, candidates, and transitions serialize canonically\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: taxonomy and observation assignment mutations fail closed\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: unchanged inputs produce byte-stable canonical receipts\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: validator independently rejects lexical and symlink observation escapes\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: validator rejects same-byte post-receipt symlink substitution\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: validator rejects self-consistent external detector input evidence\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: volatile evidence attributes do not replace reviewer-owned candidate identity\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/evidence_census_test.exs",
-      "class": "requirement-id",
-      "text": "test \"EVID-01: zero-cardinality and imprecise count boundaries fail closed\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "test/install_smoke/evidence_census_test.exs",
@@ -667,140 +195,76 @@
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
     },
     {
-      "path": "test/install_smoke/generated_app_smoke_test.exs",
-      "class": "milestone-ref",
-      "text": "test \"generated Phoenix app upgrades a pre-v1.4 image-only adopter through the public migration path\",",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/generated_app_smoke_test.exs",
-      "class": "phase-ref",
-      "text": "test \"focused Phase 120 MinIO commands exclude sibling generated-app scenarios\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/install_smoke/install_smoke_preflight_test.exs",
       "class": "milestone-ref",
       "text": "@expected_version \"Phoenix installer v1.8.9\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Phoenix framework installer version pinned by scripts/ci/ensure_phx_new.sh, not a planning milestone."
     },
     {
       "path": "test/install_smoke/install_smoke_preflight_test.exs",
       "class": "milestone-ref",
       "text": "File.write!(state, \"Phoenix installer v1.7.0\")",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Phoenix framework installer version pinned by scripts/ci/ensure_phx_new.sh, not a planning milestone."
     },
     {
       "path": "test/install_smoke/live_truth_parity_test.exs",
       "class": "milestone-ref",
       "text": "path: \".planning/milestones/v1.25/receipt.md\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "In-memory claim fixture passed to the live-truth validator to prove stale and archived paths are classified correctly; nothing is read from disk."
     },
     {
       "path": "test/install_smoke/live_truth_parity_test.exs",
       "class": "plan-ref",
       "text": "\"Plan 07 remains the live acceptance authority; the exact-subject\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Stale advisory text substituted into an in-memory copy of RUNNING.md to prove the authority check rejects it; nothing is read from or written to disk."
     },
     {
       "path": "test/install_smoke/live_truth_parity_test.exs",
       "class": "planning-path",
       "text": "\".planning/INBOX-TRIAGE.md\",",
       "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Names a maintained planning surface the live-truth validator checks for derived evidence classes; the path is the validator's input set."
     },
     {
       "path": "test/install_smoke/live_truth_parity_test.exs",
       "class": "planning-path",
       "text": "\".planning/JTBD-MAP.md\",",
       "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Names a maintained planning surface the live-truth validator checks for derived evidence classes; the path is the validator's input set."
     },
     {
       "path": "test/install_smoke/live_truth_parity_test.exs",
       "class": "planning-path",
       "text": "%{path: \".planning/STATE.md\", content: \"Current release is 0.4.5.\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "In-memory claim fixture passed to the live-truth validator to prove stale and archived paths are classified correctly; nothing is read from disk."
     },
     {
       "path": "test/install_smoke/live_truth_parity_test.exs",
       "class": "planning-path",
       "text": "path: \".planning/milestones/v1.25/receipt.md\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/live_truth_parity_test.exs",
-      "class": "requirement-id",
-      "text": "test \"TRUTH-08: claims the derived model cannot classify fail instead of passing as prose\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/nightly_policy_test.exs",
-      "class": "decision-id",
-      "text": "# D-134-08: never pin an action commit SHA literally in a test. The pin is derived",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "In-memory claim fixture passed to the live-truth validator to prove stale and archived paths are classified correctly; nothing is read from disk."
     },
     {
       "path": "test/install_smoke/nightly_policy_test.exs",
       "class": "planning-path",
       "text": "\"bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/package_metadata_test.exs",
-      "class": "requirement-id",
-      "text": "# allow-listed here. (HARD-01 async-safety guard)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/phoenix_tus_truth_parity_test.exs",
-      "class": "phase-ref",
-      "text": "Freezes the SHIPPED Phoenix tus contract (Phase 50): the adopter-facing guide,",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/phoenix_tus_truth_parity_test.exs",
-      "class": "phase-ref",
-      "text": "test \"guide, helper seam, and generated-app proof freeze the Phase 50 Phoenix contract\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/phoenix_tus_truth_parity_test.exs",
-      "class": "planning-path",
-      "text": "NOT couple to internal `.planning/` doc paths: those move/disappear when a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Asserts the CI step command that reads the maintained inbox ledger; the literal mirrors ci.yml and the validator input path."
     },
     {
       "path": "test/install_smoke/quality_signal_policy_test.exs",
@@ -811,532 +275,52 @@
       "reason": "This assertion pins the CI step name that scripts and the policy test consume."
     },
     {
-      "path": "test/install_smoke/quality_signal_policy_test.exs",
-      "class": "requirement-id",
-      "text": "test \"Contract carries deterministic contract tests and SAFE-01 without masking\", %{",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/install_smoke/refactor_contract_test.exs",
       "class": "planning-path",
       "text": "refute script =~ \".planning/\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "assert executable?(@script_path), \"SAFE-01 runner must remain executable\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "assert length(mix_test_lines) == 1, \"SAFE-01 must use one Mix test process\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "assert mix_test_lines != [], \"SAFE-01 must not have an empty test selection\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "assert script =~ suite, \"SAFE-01 is missing #{suite}\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "test \"SAFE-01 cannot background, hide, or mask test failures\", %{meaningful_lines: lines} do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "test \"SAFE-01 fails closed on compile-connected cycles before preservation tests\", %{",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "test \"SAFE-01 keeps every behavior-preservation domain represented\", %{script: script} do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "test \"SAFE-01 remains an executable, planning-independent preservation command\", %{",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/refactor_contract_test.exs",
-      "class": "requirement-id",
-      "text": "test \"SAFE-01 uses one foreground Mix test process with the telemetry contract enabled\", %{",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Guard asserting the preservation runner reads no planning path (archiving planning docs must not red CI)."
     },
     {
       "path": "test/install_smoke/release_docs_parity_test.exs",
       "class": "phase-ref",
       "text": "\"Phase 11 adds write-capable automation\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Refuted stale-text literal: a regression guard that keeps superseded release-automation wording out of the release docs."
     },
     {
       "path": "test/install_smoke/release_docs_parity_test.exs",
       "class": "phase-ref",
       "text": "\"deferred to Phase 11\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_docs_parity_test.exs",
-      "class": "phase-ref",
-      "text": "# Phase 106 (LANE-02) split the old \"Package Consumer Proof Matrix\" job into a lean",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_docs_parity_test.exs",
-      "class": "requirement-id",
-      "text": "# Phase 106 (LANE-02) split the old \"Package Consumer Proof Matrix\" job into a lean",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "\"ci.yml line 1 must stay exactly `name: CI` — release-please-automerge `workflows: [CI]` + gate-ci-green `workflow_id: ci.yml` are coupled to it (D-09)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "\"ci.yml must declare the `ci-summary` job (the required-check carrier, D-09)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "\"release-train-drift must NOT appear in the ci-summary `needs:` list — it stays OFF the sole required path (D-09)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "\"the ci-summary job must keep the byte-stable required-check name `CI Summary` (D-09)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "\"the token guard must be a STEP inside release-please, not a new top-level job (D-06b/D-09)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "\"the token guard must not surface as a new job/check name (D-06b/D-09)\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "# D-09: neither guard sneaks onto the sole required CI path.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "- .github/workflows/ci.yml (D-09: guards stay OFF the required path)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "D-06 release-train recurrence guards and the D-09 release-coupling invariant.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "D-09 is the load-bearing invariant: the new guards must NEVER appear in the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "test \"D-09 GATE-BYTE-STABLE: ci.yml line 1 is `name: CI` and the ci-summary job carries `name: CI Summary`\",",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "decision-id",
-      "text": "test \"D-09: the ci-summary `needs:` block does NOT reference release-train-drift\",",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "phase-ref",
-      "text": "Phase 113 (Evaluation Baseline & Release Hygiene) regression lock for the two",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "planning-path",
-      "text": "internal `.planning/` doc paths, which move when a milestone is archived",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/release_guard_meta_test.exs",
-      "class": "requirement-id",
-      "text": "Mirrors the OBS-02 grep-meta pattern in ci_observability_test.exs: `setup_all`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Refuted stale-text literal: a regression guard that keeps superseded release-automation wording out of the release docs."
     },
     {
       "path": "test/install_smoke/repository_residue_test.exs",
       "class": "milestone-ref",
       "text": "\"v1.7-v1.7-MILESTONE-AUDIT.md\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Names an obsolete root audit copy that the residue test asserts is absent; the literal is the thing being refuted."
     },
     {
       "path": "test/install_smoke/repository_residue_test.exs",
       "class": "milestone-ref",
       "text": "\"v1.8-MILESTONE-AUDIT.md\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "fixture",
+      "reason": "Names an obsolete root audit copy that the residue test asserts is absent; the literal is the thing being refuted."
     },
     {
       "path": "test/install_smoke/streaming_cancel_docs_parity_test.exs",
       "class": "milestone-ref",
       "text": "assert guide =~ \"v1.13\" or guide =~ \"Mux-only\" or guide =~ \"Mux direct\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/streaming_cancel_docs_parity_test.exs",
-      "class": "phase-ref",
-      "text": "test \"streaming guide documents cancel semantics for Phase 66 TRUTH-01\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/streaming_cancel_docs_parity_test.exs",
-      "class": "requirement-id",
-      "text": "test \"streaming guide documents cancel semantics for Phase 66 TRUTH-01\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "decision-id",
-      "text": "# Phase 36 D-21 / Pitfall 3: Mux config block is appended AFTER the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "decision-id",
-      "text": "# Phase 36 cassette lane (D-16): Mox mock for the Mux HTTP client behaviour.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "decision-id",
-      "text": "# variants verbatim (D-04 byte-identical), but with a locked streaming",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "narration",
-      "text": "# silently skipping. Previously, an `if File.exists?(src)` guard",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 CR-03: raise loudly on missing fixtures rather than",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 D-21 / Pitfall 3: Mux config block is appended AFTER the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 WR-04: single source of truth for the generated app's Oban",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 cassette lane (D-16): Mox mock for the Mux HTTP client behaviour.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36: define the Mox mock in the generated app's test_helper.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "phase-ref",
-      "text": "# adds `rindle_provider` (Phase 36 WR-03 / streaming guide §6 — the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "plan-ref",
-      "text": "# Rindle.Profile.Presets.MuxWeb (Plan 01) — same web_720p + poster",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "spec-ref",
-      "text": "# Phase 36 CR-03: raise loudly on missing fixtures rather than",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "spec-ref",
-      "text": "# Phase 36 WR-04: single source of truth for the generated app's Oban",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/patcher.ex",
-      "class": "spec-ref",
-      "text": "# adds `rindle_provider` (Phase 36 WR-03 / streaming guide §6 — the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/profile_helpers.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 Pitfall 2: Mox `import` is required at the top of the generated",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "decision-id",
-      "text": "# D-22 layer 1: soak-mode delete-on-finally so the asset is reaped",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "decision-id",
-      "text": "# Phase 36 D-15 / Pitfall 2: the `:mux` lane mirrors the `:video` lane's",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "decision-id",
-      "text": "# Phase 36 D-15: byte-identical to the :video lane (D-04 contract).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "decision-id",
-      "text": "# even if assertions fail (D-22 layer 1). In CASSETTE mode the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "narration",
-      "text": "# Previously this called `Mox.verify_on_exit!(self())` and",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "phase-ref",
-      "text": "# NEW Phase 36 streaming-URL assertions:",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 CR-02: record provider_asset_id IMMEDIATELY once the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 D-15 / Pitfall 2: the `:mux` lane mirrors the `:video` lane's",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 D-15: byte-identical to the :video lane (D-04 contract).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "phase-ref",
-      "text": "# Phase 36 WR-05: use the documented Mox setup-callback form.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "spec-ref",
-      "text": "# Phase 36 CR-02: record provider_asset_id IMMEDIATELY once the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/support/generated_app/smoke_source.ex",
-      "class": "spec-ref",
-      "text": "# Phase 36 WR-05: use the documented Mox setup-callback form.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/planning_path_hygiene_test.exs",
-      "class": "phase-ref",
-      "text": "Phase 111 (Regression Locks) LOCK-05 regression lock: NO test under `test/`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/planning_path_hygiene_test.exs",
-      "class": "requirement-id",
-      "text": "Phase 111 (Regression Locks) LOCK-05 regression lock: NO test under `test/`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/planning_path_hygiene_test.exs",
-      "class": "requirement-id",
-      "text": "test \"LOCK-05 distinguishes repository paths from disposable fixture roots\" do",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/planning_path_hygiene_test.exs",
-      "class": "requirement-id",
-      "text": "test \"no test/**/*.exs file reads a live repository planning path at runtime (LOCK-05)\", %{",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Asserted alternative mirrors the version reference in the shipped streaming guide; the assertion literal must match the guide text."
     }
   ]
 }

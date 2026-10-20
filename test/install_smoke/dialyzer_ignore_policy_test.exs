@@ -45,19 +45,19 @@ defmodule Rindle.InstallSmoke.DialyzerIgnorePolicyTest do
     {"test/support/host_rindle_migration.ex", "Function install!/0 has no local return."}
   ]
 
-  test "TYPE-02: the live curated ignore list is a unique, owned, approved subset" do
+  test "the live curated ignore list is a unique, owned, approved subset" do
     ignores = Code.eval_file(@ignore_path) |> elem(0)
 
     assert valid_ignore_list?(ignores)
   end
 
-  test "TYPE-02: approved filters may be removed without freezing the live count" do
+  test "approved filters may be removed without freezing the live count" do
     ignores = Code.eval_file(@ignore_path) |> elem(0)
 
     assert valid_ignore_list?(List.delete_at(ignores, 0))
   end
 
-  test "TYPE-02: invalid fixtures are rejected without freezing the live count" do
+  test "invalid fixtures are rejected without freezing the live count" do
     assert_invalid([{"lib/rindle.ex", :unapproved_atom}])
     assert_invalid([{"lib/rindle.ex", "The function call new_exact_filter/0 will not succeed."}])
     assert_invalid([{"lib/rindle.ex", "specific"}, {"lib/rindle.ex", "specific"}])

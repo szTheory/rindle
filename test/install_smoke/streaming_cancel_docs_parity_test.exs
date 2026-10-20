@@ -6,7 +6,7 @@ defmodule Rindle.InstallSmoke.StreamingCancelDocsParityTest do
   @webhook_plug_path Path.expand("../../lib/rindle/delivery/webhook_plug.ex", __DIR__)
   @sync_coordinator_path Path.expand("../../lib/rindle/workers/mux_sync_coordinator.ex", __DIR__)
 
-  test "streaming guide documents cancel semantics for Phase 66 TRUTH-01" do
+  test "streaming guide documents direct-upload cancel semantics" do
     guide = File.read!(@guide_path)
     delivery = File.read!(@delivery_path)
     webhook_plug = File.read!(@webhook_plug_path)

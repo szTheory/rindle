@@ -8,7 +8,7 @@ defmodule Rindle.InstallSmoke.PackageMetadataTest do
   # async-safety: justified — the only File mutation is `File.rm_rf(cleanup_root)` in on_exit,
   # where `cleanup_root` is a unique per-build tmp root returned by `build_package!()`. The
   # static guard can't bridge the setup_all-return tuple, so the file_mutation primitive is
-  # allow-listed here. (HARD-01 async-safety guard)
+  # allow-listed here (see the async-safety guard).
   @async_safety_allow [:file_mutation]
   # Referenced so the compiler sees the attribute as used; the async-safety guard
   # itself reads it from the source AST (Code.string_to_quoted!), not at runtime.

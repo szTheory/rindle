@@ -27,14 +27,14 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
     path = Path.join(root, "test/test_helper.exs")
     existing = if File.exists?(path), do: File.read!(path), else: ""
 
-    # Phase 36: define the Mox mock in the generated app's test_helper.
+    # Define the Mox mock in the generated app's test_helper.
     # `Rindle.Streaming.Provider.Mux.ClientMock` is normally defined in
     # the library's `test/support/mocks.ex`, which is NOT shipped in the
     # Hex package. The generated app must define its own mock pointing at
     # the same `@behaviour` (which IS in the package: `lib/.../mux/client.ex`).
     mox_setup = """
 
-    # Phase 36 cassette lane (D-16): Mox mock for the Mux HTTP client behaviour.
+    # Cassette lane: Mox mock for the Mux HTTP client behaviour.
     # The behaviour itself lives in the published package
     # (`lib/rindle/streaming/provider/mux/client.ex`); the mock is defined
     # here at test_helper time so the package consumer can pin
@@ -142,7 +142,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
         base_updated
       end
 
-    # Phase 36 D-21 / Pitfall 3: Mux config block is appended AFTER the
+    # The Mux config block is appended AFTER the
     # existing Oban + repo blocks. The `RINDLE_MUX_USE_REAL_API` conditional
     # is evaluated HOST-SIDE at patch time (NOT inside the generated app's
     # runtime), so the generated `config/test.exs` either contains
@@ -318,13 +318,12 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
       test_signing_public_key.pem
     )
 
-    # Phase 36 CR-03: raise loudly on missing fixtures rather than
-    # silently skipping. Previously, an `if File.exists?(src)` guard
-    # silently dropped missing fixtures; the eventual failure surfaced
-    # in the generated-app test as a confusing "private key parse
-    # error" or "cassette stub returned wrong shape" stack trace
-    # instead of a clear "the Mux profile requires fixture X". A loud
-    # failure here pins the diagnosis to the staging step.
+    # Raise loudly on missing fixtures rather than silently skipping.
+    # A silently dropped fixture would surface in the generated-app test
+    # as a confusing "private key parse error" or "cassette stub returned
+    # wrong shape" stack trace instead of a clear "the Mux profile
+    # requires fixture X". A loud failure here pins the diagnosis to the
+    # staging step.
     for fixture <- fixtures do
       src = Path.join("test/fixtures/mux", fixture)
 
@@ -415,10 +414,10 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
     File.write!(path, File.read!(path) <> runtime_append)
   end
 
-  # Phase 36 WR-04: single source of truth for the generated app's Oban
+  # Single source of truth for the generated app's Oban
   # queue list. patch_test_config!/3 and patch_runtime_config!/4 both
   # render this so the two blocks cannot drift. The :mux profile mode
-  # adds `rindle_provider` (Phase 36 WR-03 / streaming guide §6 — the
+  # adds `rindle_provider` (streaming guide §6 — the
   # MuxSyncCoordinator and MuxIngestVariant workers enqueue here).
   defp oban_queues_block(profile_mode) do
     queues =
@@ -489,8 +488,8 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
     path = Path.join(root, "lib/#{app_name}/rindle_profile.ex")
 
     # The `:mux` lane swaps Rindle.Profile.Presets.Web for
-    # Rindle.Profile.Presets.MuxWeb (Plan 01) — same web_720p + poster
-    # variants verbatim (D-04 byte-identical), but with a locked streaming
+    # Rindle.Profile.Presets.MuxWeb — same web_720p + poster
+    # variants verbatim (byte-identical), but with a locked streaming
     # block. Module name `VideoProfile` stays so the assertion sites in
     # the lifecycle test source remain byte-identical to the :video lane.
     video_preset =
