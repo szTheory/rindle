@@ -33,3 +33,17 @@ Out-of-scope discoveries logged by executors. Not fixed in the plan that found t
   function), not comments or test names, and the residue scanner does not flag them.
   Renaming them is a code change across three files plus any `--only`/`--include`
   invocations, so it was left out of this rename-only tranche.
+
+## From 135-11
+
+- **`scripts/ci/test_compat_115_26.sh` is a Docker toolchain repro, not a fixture harness.**
+  It runs `mix coveralls` in the `hexpm/elixir:1.15.8` image against a throwaway Postgres
+  container and is not wired into any CI job. On this host it exits 2 with the same 4
+  failures (`Rindle.DoctorTest` profile-aware success output and three
+  `Rindle.Workers.ProcessVariantTest` AV cases, because the plain image has no FFmpeg)
+  in an unarchived clone and in archive simulation A, so archiving is not the cause. The
+  archive simulation's "every `scripts/ci/test_*.sh`" loop should either skip this script
+  or the script should move out of the `test_*` harness namespace.
+- **Scheduled Nightly has concluded `failure` on its last three runs** (39218639562 on
+  e76adde8, 39108080256 and 39014057417 on 4b7b8e33). No scheduled run has yet landed on
+  a Phase 135 descendant, so the collector records `nightly_followup.status: pending`.
