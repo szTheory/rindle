@@ -1,15 +1,15 @@
 defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   @moduledoc """
-  Phase 104 (Cache & Tooling Hygiene) regression lock. Mirrors the
+  CI cache and tooling hygiene regression lock. Mirrors the
   release_docs_parity_test / docs_parity_test `setup_all` + `File.read!`
   `=~`/`refute =~` style so the CI cache-hygiene contract regresses inside the
   default `mix test` / `mix ci` suite (no exclude tag — same as the sibling
   install_smoke parity tests).
 
-  ASSERTS CURRENT SHIPPED STATE. Phase 106 later restructured these workflows:
-  the Dialyzer/PLT job was MOVED out of ci.yml into nightly.yml, and the
-  package-consumer job was split. Every string asserted here was grep-confirmed
-  against the files as they exist on disk now — not the Phase-104-era layout.
+  ASSERTS CURRENT SHIPPED STATE. The Dialyzer/PLT job lives in nightly.yml, not
+  ci.yml, and the package-consumer job is split into lean and full lanes. Every
+  string asserted here was grep-confirmed against the files as they exist on
+  disk now.
   """
   use ExUnit.Case, async: true
 
@@ -41,10 +41,10 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
      }}
   end
 
-  # CACHE-01: both composites exist and are the single source of truth, adopted
+  # Both composites exist and are the single source of truth, adopted
   # by ci.yml + release.yml at their live counts (regression to inline setup
   # would drop these below the asserted floors).
-  test "CACHE-01: both composites are real composite actions", %{
+  test "both composites are real composite actions", %{
     setup_elixir: setup_elixir,
     setup_minio: setup_minio
   } do
@@ -88,28 +88,28 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert elem(installer, 0) < elem(gate, 0)
   end
 
-  test "CACHE-01: ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
+  test "ci.yml adopts both composites at the live adoption counts", %{ci: ci} do
     # Live counts (grep-confirmed): setup-elixir ×11, setup-minio ×8 in ci.yml.
-    # Both went +1 in Phase 112: the lean `adoption-demo-e2e-smoke` PR lane
-    # (clone of `adoption-demo-e2e`) adopts BOTH composites too — composite
-    # reuse is the desired hygiene, so the lock tracks the new live counts.
+    # The lean `adoption-demo-e2e-smoke` PR lane (clone of `adoption-demo-e2e`)
+    # adopts BOTH composites too — composite reuse is the desired hygiene, so the
+    # lock tracks the live counts.
     # `==` exact so adding inline `erlef/setup-beam` / inline MinIO bring-up back
     # into a job (dropping a composite adoption) regresses this lock.
     assert count(ci, "uses: ./.github/actions/setup-elixir") == 11,
-           "ci.yml must adopt the setup-elixir composite 11× (single source of truth, CACHE-01)"
+           "ci.yml must adopt the setup-elixir composite 11× (single source of truth)"
 
     assert count(ci, "uses: ./.github/actions/setup-minio") == 8,
-           "ci.yml must adopt the setup-minio composite 8× (single source of truth, CACHE-01)"
+           "ci.yml must adopt the setup-minio composite 8× (single source of truth)"
   end
 
-  test "CACHE-01: release.yml adopts the setup-minio composite twice", %{release: release} do
+  test "release.yml adopts the setup-minio composite twice", %{release: release} do
     assert count(release, "uses: ./.github/actions/setup-minio") == 2,
-           "release.yml must adopt the setup-minio composite ×2 (CACHE-01)"
+           "release.yml must adopt the setup-minio composite ×2"
   end
 
-  # CACHE-02: the setup-elixir composite deps/_build cache key carries the full
+  # The setup-elixir composite deps/_build cache key carries the full
   # dimension set and hashes the repo-root mix.lock ONLY (never **/mix.lock).
-  test "CACHE-02: setup-elixir cache key carries the full resolved dimension set", %{
+  test "setup-elixir cache key carries the full resolved dimension set", %{
     setup_elixir: setup_elixir
   } do
     for segment <- [
@@ -123,44 +123,43 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
           "-v1-"
         ] do
       assert setup_elixir =~ segment,
-             "setup-elixir cache key must carry #{inspect(segment)} (CACHE-02)"
+             "setup-elixir cache key must carry #{inspect(segment)}"
     end
   end
 
-  test "CACHE-02: setup-elixir hashes repo-root mix.lock, never the recursive glob", %{
+  test "setup-elixir hashes repo-root mix.lock, never the recursive glob", %{
     setup_elixir: setup_elixir
   } do
     refute setup_elixir =~ "**/mix.lock",
-           "setup-elixir must hash repo-root mix.lock only — `**/mix.lock` recursive hashing is banned (CACHE-02)"
+           "setup-elixir must hash repo-root mix.lock only — `**/mix.lock` recursive hashing is banned"
   end
 
-  # CACHE-03: PLT restore/save split. Phase 106 MOVED the Dialyzer/PLT job out of
-  # ci.yml into nightly.yml — assert against where it actually lives now.
-  test "CACHE-03: the PLT restore/save split lives in nightly.yml (moved from ci.yml by Phase 106)",
+  # PLT restore/save split. The Dialyzer/PLT job lives in nightly.yml, not
+  # ci.yml — assert against where it actually lives.
+  test "the PLT restore/save split lives in nightly.yml, not ci.yml",
        %{nightly: nightly, ci: ci} do
     assert nightly =~ "actions/cache/restore",
-           "nightly.yml must restore the PLT via actions/cache/restore (CACHE-03)"
+           "nightly.yml must restore the PLT via actions/cache/restore"
 
     assert nightly =~ "actions/cache/save",
-           "nightly.yml must save the PLT via actions/cache/save (CACHE-03)"
+           "nightly.yml must save the PLT via actions/cache/save"
 
-    # The split moved out of ci.yml — guard against it silently reappearing there
-    # (Phase 106 restructure invariant).
+    # Guard against the split silently reappearing in ci.yml.
     refute ci =~ "actions/cache/save",
-           "the PLT cache/save step must NOT live in ci.yml (moved to nightly.yml by Phase 106)"
+           "the PLT cache/save step must NOT live in ci.yml (it lives in nightly.yml)"
   end
 
-  test "CACHE-03: the PLT key hashes the dependency lock and has no broad fallback", %{
+  test "the PLT key hashes the dependency lock and has no broad fallback", %{
     nightly: nightly
   } do
     assert nightly =~ "hashFiles('mix.exs', 'mix.lock', '.dialyzer_ignore.exs')",
-           "PLT key must hash mix.exs + mix.lock + .dialyzer_ignore.exs (CACHE-03)"
+           "PLT key must hash mix.exs + mix.lock + .dialyzer_ignore.exs"
 
     refute nightly =~ "restore-keys:",
-           "PLT restore must not fall back across dependency locks (CACHE-03)"
+           "PLT restore must not fall back across dependency locks"
   end
 
-  test "CACHE-03: the fresh PLT is saved before exact restore, never if: always()", %{
+  test "the fresh PLT is saved before exact restore, never if: always()", %{
     nightly: nightly
   } do
     # Fresh construction is now unconditional evidence. Save it before clearing
@@ -172,37 +171,37 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     {restore_position, _} = :binary.match(nightly, "- name: Restore exact PLT cache")
 
     assert fresh_position < save_position and save_position < restore_position,
-           "fresh analysis must precede PLT save, which must precede exact restore (CACHE-03)"
+           "fresh analysis must precede PLT save, which must precede exact restore"
 
     refute save_step =~ "if: always()",
-           "the PLT save step must NOT use `if: always()` (CACHE-03)"
+           "the PLT save step must NOT use `if: always()`"
   end
 
-  # CACHE-05: .tool-versions pins, FFmpeg retirement, version-invariant lint guard.
-  test "CACHE-05: .tool-versions exists at repo root and pins the primary toolchain", %{
+  # .tool-versions pins, FFmpeg retirement, version-invariant lint guard.
+  test ".tool-versions exists at repo root and pins the primary toolchain", %{
     tool_versions: tool_versions
   } do
     assert tool_versions =~ "elixir 1.17.3-otp-27",
-           ".tool-versions must pin elixir 1.17.3-otp-27 (CACHE-05)"
+           ".tool-versions must pin elixir 1.17.3-otp-27"
 
     assert tool_versions =~ "erlang 27.2",
-           ".tool-versions must pin erlang 27.2 (CACHE-05)"
+           ".tool-versions must pin erlang 27.2"
 
     assert tool_versions =~ "nodejs 20.18.1",
-           ".tool-versions must pin nodejs 20.18.1 (CACHE-05)"
+           ".tool-versions must pin nodejs 20.18.1"
   end
 
-  test "CACHE-05: release.yml retires FedericoCarboni/setup-ffmpeg for install_ffmpeg.sh", %{
+  test "release.yml retires FedericoCarboni/setup-ffmpeg for install_ffmpeg.sh", %{
     release: release
   } do
     refute release =~ "FedericoCarboni/setup-ffmpeg",
-           "release.yml must not use FedericoCarboni/setup-ffmpeg (retired, CACHE-05)"
+           "release.yml must not use FedericoCarboni/setup-ffmpeg (retired)"
 
     assert release =~ "install_ffmpeg",
-           "release.yml must reference the install_ffmpeg.sh script (CACHE-05)"
+           "release.yml must reference the install_ffmpeg.sh script"
   end
 
-  test "CACHE-05: FFmpeg installer resolves the highest stable BtbN asset instead of a disappearing version pin",
+  test "FFmpeg installer resolves the highest stable BtbN asset instead of a disappearing version pin",
        %{install_ffmpeg: install_ffmpeg} do
     assert install_ffmpeg =~ "api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
     assert install_ffmpeg =~ "max_by([.major, .minor, .patch])"
@@ -212,7 +211,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     refute install_ffmpeg =~ ~r/asset="ffmpeg-n[0-9]/
   end
 
-  test "CACHE-05: FFmpeg installer resolves the current stable GPL asset and API download URL" do
+  test "FFmpeg installer resolves the current stable GPL asset and API download URL" do
     {output, 0} =
       System.cmd("bash", [@install_ffmpeg_path],
         cd: @repo_root,
@@ -229,7 +228,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            ]
   end
 
-  test "CACHE-05: every static FFmpeg install authenticates its release lookup" do
+  test "every static FFmpeg install authenticates its release lookup" do
     for {workflow_name, workflow_path} <- [
           {"ci.yml", @ci_path},
           {"nightly.yml", @nightly_path},
@@ -350,12 +349,12 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            ]
   end
 
-  test "CACHE-05: version-invariant lint steps in ci.yml are guarded by matrix.lint", %{ci: ci} do
+  test "version-invariant lint steps in ci.yml are guarded by matrix.lint", %{ci: ci} do
     assert ci =~ "if: ${{ matrix.lint }}",
-           "format/credo/doctor lint steps must be guarded by `if: ${{ matrix.lint }}` (CACHE-05)"
+           "format/credo/doctor lint steps must be guarded by `if: ${{ matrix.lint }}`"
 
     assert ci =~ "lint: true",
-           "ci.yml quality matrix must carry a `lint: true` include so the guard fires once on the home cell (CACHE-05)"
+           "ci.yml quality matrix must carry a `lint: true` include so the guard fires once on the home cell"
   end
 
   # Isolate the `Save PLT cache` step: from its `- name:` line up to (but not
