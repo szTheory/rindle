@@ -7,7 +7,7 @@ MINIO_ACCESS_KEY="${RINDLE_MINIO_ACCESS_KEY:-minioadmin}"
 MINIO_SECRET_KEY="${RINDLE_MINIO_SECRET_KEY:-minioadmin}"
 MINIO_RESET_BUCKET="${RINDLE_MINIO_RESET_BUCKET:-}"
 
-# Upstream MinIO no longer publishes container images or download-site
+# Upstream MinIO does not publish container images or download-site
 # binaries. This digest-pinned image provides both the server and the `mc`
 # client.
 MINIO_IMAGE="cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8"

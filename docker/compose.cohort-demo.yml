@@ -16,7 +16,7 @@ services:
       retries: 15
 
   minio:
-    # Upstream MinIO no longer publishes container images; this digest-pinned
+    # Upstream MinIO does not publish container images; this digest-pinned
     # image ships both the server and the `mc` client.
     image: cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
     command: server /data --console-address ":9001"

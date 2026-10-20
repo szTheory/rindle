@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SAFE-01: behavior-preservation contracts required before maintenance refactors.
+# Behavior-preservation contracts required before maintenance refactors.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"

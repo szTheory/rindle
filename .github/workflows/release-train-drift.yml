@@ -1,11 +1,11 @@
-# Release-train drift guard (D-06a) — NON-REQUIRED, standalone.
+# Release-train drift guard — NON-REQUIRED, standalone.
 #
 # Catches the symptom of the 0.3.2 stuck-release footgun: `main` carries
 # releasable feat:/fix: commits ahead of the last `rindle-v*` tag, yet no open
 # Release Please PR exists to cut them. Self-files / updates a single rolling
 # issue on a daily cron and closes it on recovery.
 #
-# HARD invariant (D-09): this workflow MUST NOT be added to ci.yml `ci-summary`
+# HARD invariant: this workflow MUST NOT be added to ci.yml `ci-summary`
 # `needs:`. `CI Summary` stays the sole required check; this guard is advisory.
 # Locked by test/install_smoke/release_guard_meta_test.exs.
 name: Release Train Drift Check
@@ -17,7 +17,7 @@ on:
     - cron: "23 7 * * *"
   workflow_dispatch:
 
-# Least-privilege (V14 / T-113-05): the predicate is read-only `git log` +
+# Least-privilege: the predicate is read-only `git log` +
 # `gh pr list`; the only write is opening/closing the rolling drift issue.
 permissions:
   contents: read

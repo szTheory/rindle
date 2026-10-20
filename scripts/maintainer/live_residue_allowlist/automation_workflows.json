@@ -4,707 +4,35 @@
   "entries": [
     {
       "path": ".github/actions/setup-elixir/action.yml",
-      "class": "decision-id",
-      "text": "# a fallback can never poison the tree across incompatible toolchains (D-05).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "decision-id",
-      "text": "# deps-<prefix>/build-<prefix> (e.g. 'no-optional' -> deps-no-optional, D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "decision-id",
-      "text": "'deps-no-optional-v1-…' / 'build-no-optional-v1-…' namespace (D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "decision-id",
-      "text": "compile flags stay at the caller's job level (D-01).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "decision-id",
-      "text": "deps/_build cache lineage is never accidentally forked by an empty env (D-09).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
       "class": "milestone-ref",
       "text": "uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-02 key schema: OS + arch + resolved (patch-level) OTP + resolved",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "requirement-id",
-      "text": "(CACHE-01). Installs the BEAM toolchain via erlef/setup-beam and restores the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "requirement-id",
-      "text": "deps and _build caches with resolved-version-aware keys (CACHE-02). Exposes the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "requirement-id",
-      "text": "deps/_build cache-hit values as outputs so the OBS-01 $GITHUB_STEP_SUMMARY",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "requirement-id",
-      "text": "description: \"'true' when the _build cache was restored on an exact key hit (for the OBS-01 summary).\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-elixir/action.yml",
-      "class": "requirement-id",
-      "text": "description: \"'true' when the deps cache was restored on an exact key hit (for the OBS-01 summary).\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-minio/action.yml",
-      "class": "decision-id",
-      "text": "Single source of truth for the MinIO bring-up trio (CACHE-01 / D-02): start the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-minio/action.yml",
-      "class": "decision-id",
-      "text": "baked into this composite (D-02).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/actions/setup-minio/action.yml",
-      "class": "requirement-id",
-      "text": "Single source of truth for the MinIO bring-up trio (CACHE-01 / D-02): start the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/dependabot.yml",
-      "class": "decision-id",
-      "text": "# GitHub Actions SHA pins (D-03) and the hex dep tree.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/dependabot.yml",
-      "class": "decision-id",
-      "text": "# HARD-02 (D-04): grouped, weekly, low-noise dependency updates for both the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/dependabot.yml",
-      "class": "requirement-id",
-      "text": "# HARD-02 (D-04): grouped, weekly, low-noise dependency updates for both the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# (Plan 01). No standalone coverage-JSON run here (COV-03, D-04/D-07): the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false",
-      "count": 6,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-01 (D-03): composite setup + root deps/_build cache. install-deps:false",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-01 (D-03): single source of truth for BEAM setup + deps/_build",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-01 / D-06: composite setup + deps/_build cache in the deliberately",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-04 (D-10): the strict --check-locked drift gate runs only on the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-04 (D-11): --check-unused is guarded to matrix.otp == '27' — the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-05 (D-12): version-invariant lint (format/credo/doctor) runs",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# CACHE-05 (D-12): version-invariant lint runs once on the lint cell",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# D-10/D-11: the pinned Playwright browser image. scripts/ci/e2e_local.sh",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# D-10: the browser leg runs inside the SAME pinned image",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# D-14 and nightly.yml.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# HARD-02 (D-05): mix_audit scans the transitive hex dep tree against the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# LANE-01 (D-04): MOVED off the PR critical path to push:main — the ~502s",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# LANE-01 (D-05): MOVED off the PR critical path to push:main. The existing",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# LANE-01 / D-06: serialize runs per-workflow + per-ref so a new push to a PR",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# LANE-02 (D-08/D-10/D-11): the OFF-PR breadth half of the package-consumer",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# LANE-02 (D-09 omit-from-needs / D-11): this gate lists the LEAN `package-consumer`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# LANE-02 (D-10): ONLY the representative `image` profile on the PR critical",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# NO permissions: block — inherits the workflow default contents: read (D-02).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# OBS-01 aggregator (additive, ADVISORY only — D-14: never a required check).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Per-STEP timing for the three D-04 long-pole jobs ONLY, from the SAME",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Phase 106 (D-14): `gcs-soak` and `package-consumer-gcs-live` MOVED to",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Phase 106 (D-17): Dialyzer (and its PLT restore/create/build/save split)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Phase 36 (D-19, D-20, D-22, T-36-FORK-SECRETS, T-36-ASSET-LEAK):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Phase 36 D-19 / external research Topic 1: `labeled` MUST be added",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Pure evaluation of needs.*.result (skip-as-pass, D-05/D-06). The logic",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# Reuse the setup-elixir composite (D-12 spirit: near-zero duplication).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# SEC-09 (D-134-06): hex.audit reports EEF/OSV advisories that mix deps.audit",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# TRUTH-01 (D-15/D-16): merge-blocking guard that the security-invariant-13",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# The container tag IS the browser + font pin (D-11). Host-side Phoenix",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# absent cover/excoveralls.json is missing for this job (D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# admin-console mount + brand + lifecycle render), which STAYS on PR (D-02).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# behavior on every PR). See 106-CONTEXT.md D-17..D-20.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# byte-unchanged (only `CI Summary` is required; matrix-leg names are free, D-11).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-04.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-05.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# ci-observability.needs (D-09 omit-from-needs): the PR gate makes no claim about",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# compile — the `Compile` step stays at job level (D-01).",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# fail). No standalone coverage-JSON run here (COV-03, D-05): this job gates",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# gate-ci-green` blocks the Hex publish (D-08 masking-trap rule; D-11 release",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# repoints to the composite outputs. Composite does not compile (D-01).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# run an unflagged deps.get (D-10).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# seed into the run summary (OBS-02 D-05). The gating test invocations are",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# that the Hex publish gate depends on (the D-06 footgun this avoids).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# then from the SAME response emits per-step durations for the three D-04",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# warn, so the absent cover/excoveralls.json is tolerated (D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# was dropped with the Dialyzer extraction (D-17).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "decision-id",
-      "text": "# workflow default stays contents: read (D-03). if: always() + omitting the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
     },
     {
       "path": ".github/workflows/ci.yml",
       "class": "decision-id",
       "text": "echo \"## CI per-step timing (D-04 long-pole jobs)\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "milestone-ref",
-      "text": "# (mcr.microsoft.com/playwright:v1.57.0-noble) that scripts/ci/e2e_local.sh",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "milestone-ref",
-      "text": "# `main` — without giving back the v1.20 wall-clock win. Clones the full",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "milestone-ref",
-      "text": "# repro run the SAME mcr.microsoft.com/playwright:v1.57.0-noble container —",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Run-summary heading printed by the CI Observability step; executable workflow text stays unchanged in this comment-only tranche (D-135-01)."
     },
     {
       "path": ".github/workflows/ci.yml",
       "class": "milestone-ref",
       "text": "PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble",
       "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Pinned Playwright container tag; scripts/ci/e2e_local.sh defaults to the same tag and examples/adoption_demo/package.json pins the matching @playwright/test version."
     },
     {
       "path": ".github/workflows/ci.yml",
       "class": "milestone-ref",
       "text": "uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "narration",
-      "text": "# Elixir pin) and was previously only human-verified. Builds the demo image,",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "narration",
-      "text": "# actually writes (the previously-used `meta.rindle_soak` tag was",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# GATE-01/GATE-02 (Phase 112): the lean PR-side browser-render proxy. Closes",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 106 (D-14): `gcs-soak` and `package-consumer-gcs-live` MOVED to",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 106 (D-17): Dialyzer (and its PLT restore/create/build/save split)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 133 (EVID-02..04): the Nightly Dialyzer, strict summary, incident",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 36 (D-19, D-20, D-22, T-36-FORK-SECRETS, T-36-ASSET-LEAK):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 36 CR-01: stamp every Mux asset created during the soak lane",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 36 D-19 / external research Topic 1: `labeled` MUST be added",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 71 (CI proof honesty): see RUNNING.md `## CI lane severity` for the full matrix.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# Phase 75 (CI-03): merge-blocking docs parity + operator proof tests.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# gates rindle-admin.css only; cohort.css (hand-authored, Phase 96) is out.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# grep step (NOT an ExUnit test reading .planning/) on purpose: Phase 111",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "phase-ref",
-      "text": "# walkthrough parity (Phase 91 UAT, automated). Storage-free — rows are",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "plan-ref",
-      "text": "# (Plan 01). No standalone coverage-JSON run here (COV-03, D-04/D-07): the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
     },
     {
       "path": ".github/workflows/ci.yml",
@@ -725,30 +53,6 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "planning-path",
-      "text": "# .planning/ path, so a doc-assertion test would conflict — the grep guard",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "planning-path",
-      "text": "# enforces TRUTH-01 without introducing a .planning/-reading test. Asserts",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "planning-path",
-      "text": "# grep step (NOT an ExUnit test reading .planning/) on purpose: Phase 111",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "planning-path",
       "text": "grep -q \"MuonTrap is the sole subprocess runner on every platform\" .planning/PROJECT.md",
       "count": 1,
       "reason_class": "policy",
@@ -765,326 +69,6 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "requirement-id",
-      "text": "# (Plan 01). No standalone coverage-JSON run here (COV-03, D-04/D-07): the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false",
-      "count": 6,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-01 (D-03): composite setup + root deps/_build cache. install-deps:false",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-01 (D-03): single source of truth for BEAM setup + deps/_build",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-01 / D-06: composite setup + deps/_build cache in the deliberately",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-04 (D-10): the strict --check-locked drift gate runs only on the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-04 (D-11): --check-unused is guarded to matrix.otp == '27' — the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-05 (D-12): version-invariant lint (format/credo/doctor) runs",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-05 (D-12): version-invariant lint runs once on the lint cell",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# Contract-tagged tests and SAFE-01 are deterministic preservation proof.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# GATE-01/GATE-02 (Phase 112): the lean PR-side browser-render proxy. Closes",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# GATE-01: scope the lean lane to the deterministic browser-render subset.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# HARD-02 (D-05): mix_audit scans the transitive hex dep tree against the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LANE-01 (D-04): MOVED off the PR critical path to push:main — the ~502s",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LANE-01 (D-05): MOVED off the PR critical path to push:main. The existing",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LANE-01 / D-06: serialize runs per-workflow + per-ref so a new push to a PR",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LANE-02 (D-08/D-10/D-11): the OFF-PR breadth half of the package-consumer",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LANE-02 (D-09 omit-from-needs / D-11): this gate lists the LEAN `package-consumer`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LANE-02 (D-10): ONLY the representative `image` profile on the PR critical",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LOCK-02: purge the phx.new archive so the cold-runner self-install path in",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# LOCK-05 adds a merge-blocking meta-test that fails if ANY test reads a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# Merge-blocking token->CSS pipeline gate (PIPE-01). Regenerates every",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-01 (additive, observational): surface cache hit/miss in the run summary.",
-      "count": 3,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-01 aggregator (additive, ADVISORY only — D-14: never a required check).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-02 (additive): JUnit XML is emitted by test_helper.exs when CI is set",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-02 (additive): upload JUnit + coverage artifacts on every run (pass or",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-02 (additive, observational): schedulers_online + bounded compile",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-02 (additive, observational): schedulers_online + bounded compile profile.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# OBS-02 (additive, observational): surface schedulers_online + a bounded",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# Phase 133 (EVID-02..04): the Nightly Dialyzer, strict summary, incident",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# Quality runs its own deps.get carrying the CACHE-04 gate flags",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# SEC-09 (D-134-06): hex.audit reports EEF/OSV advisories that mix deps.audit",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# Single-run dual-output coverage (COV-01..COV-03). The merge-blocking gate",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# TRUTH-01 (D-15/D-16): merge-blocking guard that the security-invariant-13",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# TRUTH-08: the adoption proof matrix gate's package authority builds a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# duplicate). OBS-01 summary below repoints to the composite outputs.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# enforces TRUTH-01 without introducing a .planning/-reading test. Asserts",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# fail). No standalone coverage-JSON run here (COV-03, D-05): this job gates",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# keeps this job's own `mix deps.get` (no duplicate). OBS-01 summary below",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
-      "text": "# seed into the run summary (OBS-02 D-05). The gating test invocations are",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "requirement-id",
       "text": "- name: Run SAFE-01 preservation contract",
       "count": 1,
       "reason_class": "contract",
@@ -1095,16 +79,16 @@
       "class": "requirement-id",
       "text": "- name: TRUTH-01 docs-truth guard (PROJECT.md invariant 13)",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Step name, not a comment: TRUTH-01 is the present-tense name of the docs-truth guard this step enforces; workflow edits in this tranche are comment-only."
     },
     {
       "path": ".github/workflows/ci.yml",
       "class": "requirement-id",
       "text": "echo \"TRUTH-01-OK\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Success sentinel printed by the TRUTH-01 docs-truth guard step; executable workflow text stays unchanged in this comment-only tranche."
     },
     {
       "path": ".github/workflows/ci.yml",
@@ -1115,228 +99,20 @@
       "reason": "This check-run or step name is consumed by scripts and asserted by tests; renaming needs all consumers in one change."
     },
     {
-      "path": ".github/workflows/ci.yml",
-      "class": "spec-ref",
-      "text": "# PR lane (no nightly cadence — no PR label on a schedule). See 106-CONTEXT.md",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "spec-ref",
-      "text": "# Phase 36 CR-01: stamp every Mux asset created during the soak lane",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "spec-ref",
-      "text": "# behavior on every PR). See 106-CONTEXT.md D-17..D-20.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "spec-ref",
-      "text": "# ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-04.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "spec-ref",
-      "text": "# ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-05.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# CACHE-01 (D-03): composite setup + deps/_build cache, carrying the same",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-06: cold construction is always exercised first and cannot consume a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-07: valid restores analyze directly. Only the exact observed old-PLT",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-09..D-11: Nightly has its own strict, fail-closed result/applicability",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-12/D-13: the latest surviving scheduled drainer replays the immutable",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-13: broad OTP×Elixir compatibility on a CURATED ~6-cell diagonal (NOT a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-14: GCS Soak — moved verbatim from ci.yml into the nightly lane. Real",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-14: Package Consumer GCS Live Proof — moved verbatim from ci.yml. The",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-14: now GATING in nightly (continue-on-error dropped vs. the old ci.yml",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-15: cron 27 7 (07:27 UTC) — off-the-hour avoids the documented top-of-hour",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# D-17: owned, GATING Dialyzer (extracted from ci.yml `quality`'s advisory",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# EPIPE-05 (D-12): advisory MuonTrap #98 probes. `--include canary`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# LANE-03 nightly lane (separate file — D-12). A `schedule:` trigger on ci.yml",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# Reuse the setup-elixir composite (D-12: near-zero duplication). The",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "decision-id",
-      "text": "# install-smoke failure becomes real nightly signal (the 105 D-04 masking trap",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": ".github/workflows/nightly.yml",
       "class": "milestone-ref",
       "text": "uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "narration",
-      "text": "# {:json_polyfill, ...}, OTP>=27 does not. OTP 25 is no longer claimed because",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "requirement-id",
-      "text": "# CACHE-01 (D-03): composite setup + deps/_build cache, carrying the same",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "requirement-id",
-      "text": "# EPIPE-05 (D-12): advisory MuonTrap #98 probes. `--include canary`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/nightly.yml",
-      "class": "requirement-id",
-      "text": "# LANE-03 nightly lane (separate file — D-12). A `schedule:` trigger on ci.yml",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/release-train-drift.yml",
-      "class": "decision-id",
-      "text": "# HARD invariant (D-09): this workflow MUST NOT be added to ci.yml `ci-summary`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": ".github/workflows/release.yml",
-      "class": "decision-id",
-      "text": "# ci.yml. See scripts/ci/install_ffmpeg.sh (CACHE-05, D-14).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
     },
     {
       "path": ".github/workflows/release.yml",
       "class": "milestone-ref",
       "text": "uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1",
       "count": 4,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
     },
     {
       "path": ".github/workflows/release.yml",
@@ -1353,38 +129,6 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "The release workflow updates the maintained release-train ledger."
-    },
-    {
-      "path": ".github/workflows/release.yml",
-      "class": "requirement-id",
-      "text": "# ci.yml. See scripts/ci/install_ffmpeg.sh (CACHE-05, D-14).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "docker/compose.cohort-demo.yml",
-      "class": "narration",
-      "text": "# Upstream MinIO no longer publishes container images; this digest-pinned",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "docker/dx-template/compose.__app__.yml",
-      "class": "narration",
-      "text": "# Upstream MinIO no longer publishes container images; this digest-pinned",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ensure_minio.sh",
-      "class": "narration",
-      "text": "# Upstream MinIO no longer publishes container images or download-site",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/gsd_cleanup.sh",
@@ -1511,16 +255,16 @@
       "class": "planning-path",
       "text": "echo \"usage: $0 --validate | --report .planning/evidence/async-isolation/<new-report>.jsonl\" >&2",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Usage text naming the maintained async-isolation evidence directory this runner writes and validates (documented in RUNNING.md)."
     },
     {
       "path": "scripts/maintainer/async_isolation_evidence.sh",
       "class": "planning-path",
       "text": "evidence_dir=\"${RINDLE_ASYNC_EVIDENCE_DIR:-${repo_root}/.planning/evidence/async-isolation}\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Default location of the maintained async-isolation evidence reports; overridable with RINDLE_ASYNC_EVIDENCE_DIR."
     },
     {
       "path": "scripts/maintainer/automation_first_contract.sh",
@@ -1543,176 +287,16 @@
       "class": "planning-path",
       "text": "CHANGELOG.md|mix.exs|test/*|.planning/*|.github/*)",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "decision-id",
-      "text": "# Closure gate for the Phase 133 landing branch (133-RESCOPE.md D-133-R4).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "path-name",
-      "text": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "phase-ref",
-      "text": "# Closure gate for the Phase 133 landing branch (133-RESCOPE.md D-133-R4).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "# 2. The landing .planning/ tree equals the source .planning/ tree.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "# byte-identical to the source branch, plus the source .planning/ tree; that no",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "# landing HEAD (for example a .planning/ ledger sharing an excluded basename).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "# those the source adds over base outside the manifest and .planning/.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "[[ \"${token}\" == .planning/* ]] && continue",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "default_manifest=\".planning/phases/133-evidence-charter-and-live-truth/133-LANDING-MANIFEST.txt\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "local m=\".planning/manifest.txt\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "printf 'cat .planning/ledger.json\\n' >>\"${repo}/scripts/ci/kept.sh\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/check_phase_133_landing_closure.sh",
-      "class": "planning-path",
-      "text": "printf '{}\\n' >\"${repo}/.planning/ledger.json\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "decision-id",
-      "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "narration",
-      "text": "# Terminal lookups for ledger entries that are no longer open (--include N).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "phase-ref",
-      "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "requirement-id",
-      "text": "# --- advisories (SEC-09 input) ---------------------------------------------",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "requirement-id",
-      "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/dep_landing_evidence.sh",
-      "class": "decision-id",
-      "text": "# (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/dep_landing_evidence.sh",
-      "class": "phase-ref",
-      "text": "# (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Exclusion pattern: maintainer planning files are outside the adopter-docs link check."
     },
     {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN_LITERAL=\"not-applicable: twin not built (Phase 137)\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/dep_landing_evidence.sh",
-      "class": "requirement-id",
-      "text": "# dep_landing_evidence.sh - DEPS-01 per-landing attribution and post-merge gate evidence",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Exact twin-gate literal recorded in the inbox ledger and asserted by scripts/ci/test_dep_landing_evidence.sh and test_validate_inbox_ledger.sh; the validators must emit and accept the same bytes."
     },
     {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
@@ -1745,14 +329,6 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "scripts/maintainer/refactor_contract.sh",
-      "class": "requirement-id",
-      "text": "# SAFE-01: behavior-preservation contracts required before maintenance refactors.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/maintainer/repo_hygiene_check.sh",
@@ -1839,32 +415,32 @@
       "class": "phase-ref",
       "text": "do: {:error, \"candidate baseline and Phase 133 transitions are required\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
       "class": "phase-ref",
       "text": "{:error, \"Phase 133 transition record is incomplete or inconsistent\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
       "class": "phase-ref",
       "text": "{:error, \"Phase 133 transition records are malformed\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
       "class": "phase-ref",
       "text": "{:error, \"changed candidate requires one Phase 133 transition\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
@@ -1881,126 +457,30 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "scripts/maintainer/validate_inbox_ledger.sh",
-      "class": "decision-id",
-      "text": "# (Phase 134, D-134-04, D-134-06, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/validate_inbox_ledger.sh",
-      "class": "phase-ref",
-      "text": "# (Phase 134, D-134-04, D-134-06, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",
       "class": "phase-ref",
       "text": "TWIN_LITERAL='not-applicable: twin not built (Phase 137)'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Exact twin-gate literal recorded in the inbox ledger and asserted by scripts/ci/test_dep_landing_evidence.sh and test_validate_inbox_ledger.sh; the validators must emit and accept the same bytes."
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",
       "class": "planning-path",
       "text": "# Checks .planning/INBOX-LEDGER.json (schema rindle-inbox-ledger-v1) either",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/validate_inbox_ledger.sh",
-      "class": "requirement-id",
-      "text": "# validate_inbox_ledger.sh - INBOX-02 / SEC-09 / DEPS-01 ledger validator",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Names the maintained inbox ledger this validator reads; CI passes the same path to --ledger."
     },
     {
       "path": "scripts/maintainer/validate_live_truth.exs",
       "class": "planning-path",
       "text": "archived_prefix: \".planning/milestones/\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "decision-id",
-      "text": "# Belt-and-suspenders cleanup for the `mux-soak` CI lane (Phase 36 D-22 layer 3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "phase-ref",
-      "text": "# Belt-and-suspenders cleanup for the `mux-soak` CI lane (Phase 36 D-22 layer 3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "phase-ref",
-      "text": "# Phase 36 CR-01: the producer side (`Rindle.Workers.MuxIngestVariant`)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "phase-ref",
-      "text": "# `test/rindle/streaming/provider/mux/mux_test.exs#\"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)\"`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "spec-ref",
-      "text": "# Phase 36 CR-01: the producer side (`Rindle.Workers.MuxIngestVariant`)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "spec-ref",
-      "text": "# `test/rindle/streaming/provider/mux/mux_test.exs#\"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)\"`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "# Guard against GitHub's pending-forever trap (D-12). GitHub never verifies that a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "echo \" Refusing to apply to avoid the pending-forever trap (D-12).\" >&2",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "echo \" hang every PR forever (GitHub does not validate required-context names — D-12).\" >&2",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Historical-boundary prefix: the live-truth validator treats paths under the archived milestones directory as history, not live claims."
     }
   ]
 }

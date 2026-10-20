@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# dep_landing_evidence.sh - DEPS-01 per-landing attribution and post-merge gate evidence
-# (Phase 134, D-134-07).
+# dep_landing_evidence.sh - per-landing attribution and post-merge gate evidence
+# for dependency updates.
 #
 # Usage:
 #   scripts/maintainer/dep_landing_evidence.sh --sha SHA [--group NAME --packages a,b,...]

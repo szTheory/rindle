@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# validate_inbox_ledger.sh - INBOX-02 / SEC-09 / DEPS-01 ledger validator
-# (Phase 134, D-134-04, D-134-06, D-134-07).
+# validate_inbox_ledger.sh - maintainer inbox, security advisory and dependency
+# landing ledger validator.
 #
 # Checks .planning/INBOX-LEDGER.json (schema rindle-inbox-ledger-v1) either
 #   --offline            shape only: schema, enums, required fields, trigger vocabulary,

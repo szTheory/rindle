@@ -1,11 +1,11 @@
 name: setup-minio
 description: >-
-  Single source of truth for the MinIO bring-up trio (CACHE-01 / D-02): start the
+  Single source of truth for the MinIO bring-up trio: start the
   digest-pinned MinIO container with a health-ready wait, install the `mc` client
   from that same image, and create the test bucket. Upstream MinIO no longer
   publishes container images or download-site binaries. Caller jobs keep their
   own MinIO connection env and any secret/label `if:` gates — those are NOT
-  baked into this composite (D-02).
+  baked into this composite.
 
 inputs:
   cors-allow-origin:
