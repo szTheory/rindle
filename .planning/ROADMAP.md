@@ -739,7 +739,8 @@ Plans:
 - [x] 136-03-PLAN.md — Exact coverage validator, threshold and behavioral tests
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 136-11-PLAN.md — Commit pin and sole canonical coverage measurement
+- [x] 136-11-PLAN.md — Commit pin and sole canonical coverage measurement
+- [ ] 136-12-PLAN.md — Repair full-tree metagates and measure a separate candidate
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 136-09-PLAN.md — Final-subject Dialyzer, async and bootstrap measurement receipts
@@ -801,7 +802,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 8/11 | In progress | - |
+| 136. Measured Quality and CI Ratchets | 9/12 | In progress | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |

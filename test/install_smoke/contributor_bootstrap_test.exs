@@ -1,5 +1,5 @@
 defmodule Rindle.ContributorBootstrapTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   @root Path.expand("../..", __DIR__)
   @script Path.join(@root, "scripts/maintainer/verify_contributor_bootstrap.sh")

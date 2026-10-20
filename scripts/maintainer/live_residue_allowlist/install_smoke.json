@@ -93,6 +93,14 @@
     {
       "path": "test/install_smoke/ci_timing_automation_test.exs",
       "class": "planning-path",
+      "text": "write_fixture_file!(context.repo_dir, \".planning/new-evidence.md\", \"new evidence\\n\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/ci_timing_automation_test.exs",
+      "class": "planning-path",
       "text": "write_fixture_file!(repo_dir, \".planning/formatter.md\", \"formatter evidence\\n\")",
       "count": 1,
       "reason_class": "fixture",
@@ -113,6 +121,22 @@
       "count": 1,
       "reason_class": "fixture",
       "reason": "The test writes this path into a disposable fixture repository, not the live tree."
+    },
+    {
+      "path": "test/install_smoke/coverage_floor_policy_test.exs",
+      "class": "phase-ref",
+      "text": "@files ~w(scripts/maintainer/phase136_evidence.py scripts/maintainer/phase136_evidence_contract.json scripts/maintainer/verify_coverage_floor.exs)",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/coverage_floor_policy_test.exs",
+      "class": "planning-path",
+      "text": "evidence = Path.join(source, \".planning/evidence\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
     },
     {
       "path": "test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs",
@@ -297,6 +321,150 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "Asserts the CI step command that reads the maintained inbox ledger; the literal mirrors ci.yml and the validator input path."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "phase-ref",
+      "text": "for path <- ~w(scripts/maintainer/phase136_measure.sh scripts/maintainer/phase136_evidence.py) do",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "phase-ref",
+      "text": "script = Path.join(fixture.source, \"scripts/maintainer/phase136_measure.sh\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "planning-path",
+      "text": "File.write!(Path.join(fixture.source, \".planning/new.md\"), \"new evidence\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "planning-path",
+      "text": "evidence = Path.join(source, \".planning/evidence\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "planning-path",
+      "text": "fixture = %{fixture | receipt: \".planning/evidence/relative-bootstrap.json\"}",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "planning-path",
+      "text": "fixture = %{fixture | receipt: Path.join(fixture.source, \".planning/evidence/#{kind}.json\")}",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/phase136_measure_test.exs",
+      "class": "planning-path",
+      "text": "git!(fixture.source, [\"add\", \".planning/new.md\"])",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "phase-ref",
+      "text": "@files ~w(scripts/maintainer/phase136_measure.sh scripts/maintainer/phase136_evidence.py scripts/maintainer/phase136_evidence_contract.json scripts/maintainer/verify_phase136_qualification.sh scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/verify_async_isolation_receipt.sh scripts/maintainer/verify_contributor_bootstrap.sh CONTRIBUTING.md)",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "phase-ref",
+      "text": "script = Path.join(fixture.source, \"scripts/maintainer/phase136_measure.sh\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "phase-ref",
+      "text": "script = Path.join(fixture.source, \"scripts/maintainer/verify_phase136_qualification.sh\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "phase-ref",
+      "text": "script = Path.join(source, \"scripts/maintainer/phase136_measure.sh\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "phase-ref",
+      "text": "spec = importlib.util.spec_from_file_location('phase_evidence', root/'scripts/maintainer/phase136_evidence.py')",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture copies or invokes this exact evidence executable or shared contract; the literal enforces owner parity."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "planning-path",
+      "text": "evidence = Path.join(source, \".planning/evidence\")",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Temporary Git fixture uses this path to verify planning-only source projection and confined evidence paths."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "requirement-id",
+      "text": "assert manifest[\"requirements\"][\"COV-06\"][\"status\"] == \"blocked\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Assertion exercises the actual requirement key in the recomputed qualification schema."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "requirement-id",
+      "text": "assert manifest[\"requirements\"][\"DX-05\"][\"status\"] == \"complete\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Assertion exercises the actual requirement key in the recomputed qualification schema."
+    },
+    {
+      "path": "test/install_smoke/phase136_qualification_test.exs",
+      "class": "requirement-id",
+      "text": "assert manifest[\"requirements\"][\"TYPE-03\"][\"status\"] == \"complete\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Assertion exercises the actual requirement key in the recomputed qualification schema."
+    },
+    {
+      "path": "test/install_smoke/quality_signal_policy_test.exs",
+      "class": "milestone-ref",
+      "text": "\"mcr.microsoft.com/playwright:v1.57.0-noble\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture pins the reviewed upstream Playwright artifact identity and tests rejection of moving tags."
+    },
+    {
+      "path": "test/install_smoke/quality_signal_policy_test.exs",
+      "class": "milestone-ref",
+      "text": "@playwright_image \"mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fixture pins the reviewed upstream Playwright artifact identity and tests rejection of moving tags."
     },
     {
       "path": "test/install_smoke/quality_signal_policy_test.exs",

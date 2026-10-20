@@ -1,5 +1,5 @@
 defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   @ci_path Path.expand("../../.github/workflows/ci.yml", __DIR__)
   @mix_path Path.expand("../../mix.exs", __DIR__)

@@ -1,5 +1,5 @@
 defmodule Rindle.PhaseEvidenceQualificationTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   @root Path.expand("../..", __DIR__)
   @files ~w(scripts/maintainer/phase136_measure.sh scripts/maintainer/phase136_evidence.py scripts/maintainer/phase136_evidence_contract.json scripts/maintainer/verify_phase136_qualification.sh scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/verify_async_isolation_receipt.sh scripts/maintainer/verify_contributor_bootstrap.sh CONTRIBUTING.md)

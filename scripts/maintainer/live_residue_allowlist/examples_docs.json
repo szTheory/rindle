@@ -37,18 +37,10 @@
     {
       "path": "AGENTS.md",
       "class": "planning-path",
-      "text": "If subagents still bill API models, fall back to manual picker only (remove `model_overrides` from `.planning/config.json`, keep `inherit` + `omit`).",
+      "text": "This project currently runs GSD through **Codex**: `.planning/config.json` sets",
       "count": 1,
       "reason_class": "policy",
-      "reason": "Agent instructions point at the maintained planning documents."
-    },
-    {
-      "path": "AGENTS.md",
-      "class": "planning-path",
-      "text": "This repo uses a **Cursor-only** GSD overlay (see `.planning/config.json`):",
-      "count": 1,
-      "reason_class": "policy",
-      "reason": "Agent instructions point at the maintained planning documents."
+      "reason": "Contributor policy names the actual project-level GSD runtime and model-routing configuration authority."
     },
     {
       "path": "AGENTS.md",
@@ -57,6 +49,14 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "The agent instructions name the demand signals that gate reopening a milestone."
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "class": "planning-path",
+      "text": "| Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable contributor command must name the async runner output confinement path exactly."
     },
     {
       "path": "examples/adoption_demo/AGENTS.md",
