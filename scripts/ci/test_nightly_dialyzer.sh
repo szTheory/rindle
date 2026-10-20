@@ -97,6 +97,43 @@ assert_case() {
     pass_case "$name"
   fi
 
+  # Assert the exact persisted analysis transcript, not just the runner status.
+  # In restored recovery it must retain the original first-red bytes before
+  # any later successful/failed analysis, and never substitute rebuild output.
+  local physical_fixture
+  physical_fixture="$(cd "$repo_fixture" && pwd -P)"
+  case "$scenario" in
+    success|build_failure)
+      if [ "$expected_status" -eq 0 ]; then
+        printf 'done (passed successfully)\n' > "${case_root}/expected.log"
+      else
+        : > "${case_root}/expected.log"
+      fi
+      ;;
+    stale_then_success)
+      printf ':dialyzer.run error: Old PLT file %s/priv/plts/dialyzer.plt\ndone (passed successfully)\n' "$physical_fixture" > "${case_root}/expected.log"
+      ;;
+    stale_build_failure)
+      printf ':dialyzer.run error: Old PLT file %s/priv/plts/dialyzer.plt\n' "$physical_fixture" > "${case_root}/expected.log"
+      ;;
+    stale_reanalysis_failure)
+      printf ':dialyzer.run error: Old PLT file %s/priv/plts/dialyzer.plt\npost-rebuild analysis failed\n' "$physical_fixture" > "${case_root}/expected.log"
+      ;;
+    missing)
+      printf 'No such file or directory: %s/priv/plts/dialyzer.plt\n' "$physical_fixture" > "${case_root}/expected.log"
+      ;;
+    corrupt) printf 'Could not read PLT file\n' > "${case_root}/expected.log" ;;
+    genuine_warning) printf 'lib/rindle/example.ex:1: Function broken/0 has no local return\n' > "${case_root}/expected.log" ;;
+    unknown_failure) printf 'unexpected analyzer failure\n' > "${case_root}/expected.log" ;;
+  esac
+  if [ -f "${case_root}/expected.log" ] && [ -s "${case_root}/expected.log" ]; then
+    if cmp -s "${case_root}/expected.log" "$dialyzer_log"; then
+      pass_case "${name}: persisted first-red/analysis bytes exact"
+    else
+      fail_case "${name}: persisted analysis transcript changed"
+    fi
+  fi
+
   rm -rf "$case_root"
 }
 
@@ -237,6 +274,7 @@ assert_case "old restored PLT rebuilds and re-analyzes once" restored stale_then
 assert_case "missing restored PLT stays red without rebuild" restored missing 12 "dialyzer --format github|"
 assert_case "corrupt restored PLT stays red without rebuild" restored corrupt 13 "dialyzer --format github|"
 assert_case "fresh PLT build failure stays red" fresh build_failure 14 "dialyzer --plt|"
+assert_case "fresh genuine warning stays red without rebuild" fresh genuine_warning 15 "dialyzer --plt|dialyzer --format github|"
 assert_case "genuine warning stays red without rebuild" restored genuine_warning 15 "dialyzer --format github|"
 assert_case "unknown analysis failure stays red without rebuild" restored unknown_failure 16 "dialyzer --format github|"
 assert_case "failed stale rebuild stays red without re-analysis" restored stale_build_failure 14 "dialyzer --format github|dialyzer --plt|"
