@@ -498,17 +498,40 @@ cleanup_controller() {
 trap cleanup_controller EXIT
 trap 'cleanup_controller; exit 143' INT TERM
 
+list_runs() {
+  local deadline="$1"
+  gh_api_json \
+    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate "$deadline"
+}
+
+same_sha_runs() {
+  local deadline="$1"
+  list_runs "$deadline" | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
+    [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
+      select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
+  '
+}
+
+
+initial_boundary="[]"
+
 write_initial_state() {
   local tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq -n \
     --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
-    --argjson max_sequences "$max_sequences" \
-    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,population_boundary_ids:[],status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
+    --argjson max_sequences "$max_sequences" --argjson boundary "$initial_boundary" \
+    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,population_boundary_ids:$boundary,status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
   mv "$tmp" "$state_file"
 }
 
 if [ ! -f "$state_file" ]; then
+  if [ "$current_mode" -eq 1 ]; then
+    initial_population="$(same_sha_runs "$(( $(date +%s) + run_timeout ))")"
+    jq -e 'all(.[]; .status == "completed")' <<<"$initial_population" >/dev/null ||
+      die "existing published-head PR runs must finish before current sampling"
+    initial_boundary="$(jq -c 'map(.id) | sort | if unique == . then . else error("duplicate boundary IDs") end' <<<"$initial_population")"
+  fi
   write_initial_state
 fi
 
@@ -528,21 +551,6 @@ if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
   [ "$completed_verdict" = PASS ] && exit 0
   exit 2
 fi
-
-list_runs() {
-  local deadline="$1"
-  gh_api_json \
-    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate "$deadline"
-}
-
-same_sha_runs() {
-  local deadline="$1"
-  list_runs "$deadline" | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
-    [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
-      select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
-  '
-}
-
 
 wait_for_published_head_quiescence() {
   local deadline runs ids previous_ids active observed stable
@@ -802,7 +810,10 @@ else
   die "deadline expired while collecting final canonical population"
 fi
 selected="$(jq -c 'map(.id)' <<<"$runs")"
-[ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
+if [ "$eligible" != "$selected" ]; then
+  terminalize_state "selected run IDs do not equal the complete canonical eligible population"
+  die "selected run IDs do not equal the complete canonical eligible population"
+fi
 
 sorted="$(jq -c '[.[].duration_seconds] | sort' <<<"$runs")"
 median="$(jq -r '(.[4] + .[5]) / 2' <<<"$sorted")"
