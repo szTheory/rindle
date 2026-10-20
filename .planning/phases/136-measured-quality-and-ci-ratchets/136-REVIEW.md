@@ -1,9 +1,9 @@
 ---
 phase: 136-measured-quality-and-ci-ratchets
-reviewed: 2026-10-20T22:37:16.458598+00:00
+reviewed: 2026-10-20T23:09:00.020314+00:00
 depth: standard
 method: inline-self-review
-reviewed_subject: 002b85822b4df4ecd48814cd28ba46d1cf7b24f6
+reviewed_subject: 4dc73fa91c60ae870c7289a151d9d53460140906
 files_reviewed: 36
 files_reviewed_list:
   - .github/actions/setup-minio/action.yml
@@ -52,7 +52,7 @@ status: clean
 
 # Phase136: Code Review Report
 
-Configured standard review performed inline under the Codex workflow fallback. No independent reviewer or external review lane is claimed. Scope is the36non-planning changed files between accepted Phase135 closeout808d4b77 and the repaired frozen subject002b8582.
+Configured standard review performed inline under the Codex workflow fallback. No independent reviewer or external review lane is claimed. Scope is the36non-planning changed files between accepted Phase135 closeout808d4b77 and the final frozen subject4dc73fa9.
 
 ## Narrative Findings (AI reviewer)
 
@@ -60,8 +60,14 @@ No additional actionable code finding identified in this scoped self-review. Ins
 
 No new token/private-key literal or Python shell=True invocation was detected across the36-file scope. No coverage exclusion, product implementation, runtime hint or package input was changed. The old Nightly matcher/recovery scope and historical timing mode remain intact. Artifact digests are checked before extraction/install and workflow permissions/topology retain their reviewed authority. Current timing mode authenticates a detached exact SHA and published workflow before trigger labels, refuses implicit publication, and retains the initial eligible-run boundary.
 
+## Final-source re-review
+
+This re-review supersedes the earlier002b8582 review. The actual bootstrap timeout exposed an insufficient300second full-suite cap and a missing terminal record;4dc73fa9 retains explicit timeout/output-limit failures and gives full mix ci600seconds within the same1200second total. Controlled3second owner/consumer tests verify cleanup and truthful open outcomes. Foreign-host coverage fixtures now use explicit unit probes, while production runtime checking remains strict. No package, product code, coverage skip, workflow permission or required-context change was introduced by this repair.
+
+The real final clean bootstrap passed all six documented commands in388.54seconds; full mix ci took333.031seconds, confirming the old300second cap was insufficient. Final supported fresh/restored Dialyzer passed54.847/2.973seconds, and their receipt plus clean bootstrap receipt verified against4dc73fa9. The combined source/consumer/whole-tree guard regression passed60/60 before this subject's canonical measurement.
+
 ## Verification and limits
 
-The repaired subject passed its one canonical supported run:3doctests,1693tests,zero failures; exact coverage5206/6329. Both current full-tree meta owners passed along with waveform regressions36/36. Live Credo passed. Fresh and restored supported Dialyzer receipts passed and verified. Source projection currently reports complete after planning-only evidence commits.
+The repaired subject passed its one canonical supported run:3doctests,1695tests,zero failures; exact coverage5206/6329. Both current full-tree meta owners passed along with waveform regressions36/36. Live Credo passed. Fresh and restored supported Dialyzer receipts passed and verified. Source projection currently reports complete after planning-only evidence commits.
 
-This review is advisory source analysis. It does not grant clean-bootstrap,25-seed async, live PR timing, performance or overall phase qualification credit; their final collectors remain authoritative. The two pre-existing actionlint matrix-property diagnostics from Plan05 are not represented as a globally clean actionlint result. Structural fallow pre-pass is disabled by project configuration.
+This review is advisory source analysis. It does not grant25-seed async, live PR timing, performance or overall phase qualification credit; their final collectors remain authoritative. Clean bootstrap and Dialyzer have their own verified final-source receipts. The two pre-existing actionlint matrix-property diagnostics from Plan05 are not represented as a globally clean actionlint result. Structural fallow pre-pass is disabled by project configuration.
