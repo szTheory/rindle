@@ -42,7 +42,7 @@
   "next": {
     "command": "$gsd-execute-phase 136",
     "label": "Execute Phase 136",
-    "reason": "Phase 135 prerequisite accepted; eleven incomplete plans in seven waves, five ready in Wave 1"
+    "reason": "Phase 136 Wave 1: 3/11 plans complete; Plan 05 next, followed by 08"
   },
-  "updated_at": "2026-10-20T20:48:16.097151Z"
+  "updated_at": "2026-10-20T21:02:46.636529+00:00"
 }
