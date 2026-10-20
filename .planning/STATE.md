@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 FINAL canonical green; Plan09 final-subject collectors next
+stopped_at: Phase136 FINAL bootstrap and226test regression verified; start finite25seed experiment
 last_updated: "2026-10-20T22:57:34.315624+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
@@ -26,6 +26,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-20, authoritative): FINAL4dc73fa9 clean bootstrap verified complete:388.54seconds total, six documented commands, full mix ci333.031seconds within corrected600second cap; receipt committed4210fb0e. Prior-phase regression gate passed226tests/0failures/17excluded over16files in118.8seconds, under GSD600second timeout. Review refreshed forFINAL in7e445e9a. Next is the fixed25seed async collector, not yet launched at this checkpoint. No further database-using full suite may overlap it. Final source remains immutable; live exact-head timing/publication still pending.
+
+Execution update (2026-10-20, authoritative): FINAL4dc73fa9 coverage and fresh/restored Dialyzer are verified; Dialyzer54.847/2.973seconds committed251fcf0b. Clean-bootstrap FINAL is ACTIVE process94318, stdout/private/tmp/phase136-bootstrap-final-collector.log, new136-BOOTSTRAP-EVIDENCE-FINAL.json plus sidecar directory. Do not duplicate it. When it finishes, verify-bootstrap with FINAL pin, commit receipt+sidecars, then run the unstarted25seed async collector once at136-ASYNC-RESULT.json and.planning/evidence/async-isolation/136-async-isolation.jsonl. All collectors use acceptedASDF OTP27.3.4.15/Elixir1.17.3 and prepend Node20.18.1 PATH. Security L1 audit20/20 closed committed6f3be6be; Nyquist executable coverage audit validated committed402d7ba4, actual acceptance still pending. Code review85e6c4fc names old002b8582 and must be refreshed for4dc73fa9 before final verification. No source edits, PR publication or current-subject timing yet.
 
 Execution update (2026-10-20, authoritative): Eleven of thirteen plans complete. FINAL source4dc73fa91c60ae870c7289a151d9d53460140906 has its single green canonical receipt:1695tests,3doctests,zero failures,5206/6329=82.25628061305103percent. Both exact verifier and source projection pass. Plan09 now recollects FINAL Dialyzer/bootstrap and runs25seed async once. Use136-SUBJECT-FINAL.json and explicitly named *-FINAL.json receipts for coverage/Dialyzer/bootstrap; no source changes. All earlier attempts remain immutable. No live timing, publication or overall requirement credit yet.
 
