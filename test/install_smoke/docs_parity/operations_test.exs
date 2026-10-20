@@ -210,15 +210,14 @@ defmodule Rindle.InstallSmoke.DocsParity.OperationsTest do
     assert operations =~ "runtime status reports degraded or stuck work"
     assert operations =~ "repair verbs perform change"
 
-    # TRUTH-07: the facade now ships a mountable admin console, so operations.md
-    # must affirm the console (not deny a dashboard) while retaining the honest
-    # "no auto-remediation" contract. The old dashboard-denial assertion was
-    # reworked ÃÂ¢ÃÂÃÂ re-asserting the bare denial phrase would relock the
-    # scope-reversed claim Plan 01 removed (Pitfall 5 / T-93-05).
+    # The facade ships a mountable admin console, so operations.md must affirm
+    # the console (not deny a dashboard) while keeping the honest
+    # "no auto-remediation" contract. Asserting the old dashboard-denial phrase
+    # would reinstate a stale claim.
     assert operations =~ "no auto-remediation"
 
     assert operations =~ ~r/mountable admin console/i,
-           "operations.md must affirm the mountable admin console in prose (TRUTH-07) ÃÂ¢ÃÂÃÂ " <>
+           "operations.md must affirm the mountable admin console in prose -- " <>
              "a bare admin_console.html link substring must not satisfy this lock"
 
     refute operations =~ "intentionally has no dashboard",

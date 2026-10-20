@@ -1875,46 +1875,6 @@
       "reason": ""
     },
     {
-      "path": "test/install_smoke/docs_parity/operations_test.exs",
-      "class": "mojibake",
-      "text": "\"operations.md must affirm the mountable admin console in prose (TRUTH-07) ÃÂ¢ÃÂÃÂ \" <>",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/operations_test.exs",
-      "class": "mojibake",
-      "text": "# reworked ÃÂ¢ÃÂÃÂ re-asserting the bare denial phrase would relock the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/operations_test.exs",
-      "class": "plan-ref",
-      "text": "# scope-reversed claim Plan 01 removed (Pitfall 5 / T-93-05).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/operations_test.exs",
-      "class": "requirement-id",
-      "text": "\"operations.md must affirm the mountable admin console in prose (TRUTH-07) ÃÂ¢ÃÂÃÂ \" <>",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/install_smoke/docs_parity/operations_test.exs",
-      "class": "requirement-id",
-      "text": "# TRUTH-07: the facade now ships a mountable admin console, so operations.md",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/install_smoke/docs_parity/product_and_admin_test.exs",
       "class": "milestone-ref",
       "text": "\"Rindle facade moduledoc must not deny an admin UI (scope reversed in v1.18)\"",
