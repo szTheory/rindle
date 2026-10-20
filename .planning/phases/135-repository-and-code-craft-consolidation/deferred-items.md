@@ -21,18 +21,20 @@ Out-of-scope discoveries logged by executors. Not fixed in the plan that found t
   and classed it `contract`. Rewording it, for example to `(long-pole jobs)`, is a
   one-line follow-up that also removes its allowlist entry.
 
-## From 135-10
+## From 135-14
 
-- **Phase-numbered tag atoms and helper names in the generated-app smoke suite.**
-  `test/install_smoke/generated_app_smoke_test.exs`, `support/generated_app_helper.ex`
-  and `support/generated_app/contracts.ex` use `:phase_120_public_compat`,
-  `:phase_120_isolation_upgrade`, `:phase_120_compat_contract`,
-  `:phase_120_upgrade_contract`, `:phase_120_fast_contract`,
-  `:phase_132_generator_contract` and `GeneratedAppHelper.phase_120_scenario_enabled?/2`.
-  These are functional identifiers (scenario keys, `--include` selectors and a helper
-  function), not comments or test names, and the residue scanner does not flag them.
-  Renaming them is a code change across three files plus any `--only`/`--include`
-  invocations, so it was left out of this rename-only tranche.
+- **`Rindle.DoctorThresholdsTest` setup_all is order-dependent on this host.** With
+  `MIX_BUILD_PATH` outside the worktree, running it in the same `mix test` invocation
+  as `test/install_smoke` sometimes invalidates its two tests with
+  `FunctionClauseError` in `Doctor.ModuleInformation.build/2`
+  (`{:error, :module_not_found}` for `Mix.Tasks.Rindle.AbortIncompleteUploads`). The
+  file passes alone, and the same invalidation shows up in the pre-edit baseline on
+  e8f6895a. Whether CI's in-tree build path shows it was not checked.
+- **Generated-app `:public_compatibility_scenario` fails locally with
+  `smoke_exit_code` 2** on this branch and identically on origin/main 65395f2c
+  (`--only phase_120_public_compat`), MinIO running via `scripts/ensure_minio.sh`.
+  Exporting `MIX_DEPS_PATH`/`MIX_BUILD_PATH` for that scenario also leaks them into the
+  generated app, which then fetches its own newer deps into the shared deps dir.
 
 ## From 135-11
 

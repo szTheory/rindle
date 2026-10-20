@@ -172,6 +172,42 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
     end
   end
 
+  test "phase-ref catches snake_case, dashed, uppercase and CamelCase phase identifiers" do
+    planted = %{
+      "test/tag_atom.exs" => "@tag :" <> "phase" <> "_120_x\n",
+      "test/tag_atom_b.exs" => "@tag :" <> "phase" <> "_119_y\n",
+      "test/attribute.exs" => "@" <> "phase" <> "_34_events [:a]\n",
+      "test/def_name.exs" => "def " <> "phase" <> "_120_scenario_enabled?(a), do: a\n",
+      "test/dashed.exs" => "@secret \"" <> "phase" <> "-35-secret\"\n",
+      "test/upper.exs" => "x = :" <> "PHASE" <> "_12\n",
+      "test/camel.exs" => "defmodule GeneratedApp" <> "Phase" <> "132Test do\nend\n"
+    }
+
+    root = fixture(planted)
+    dir = shards(root, %{})
+
+    {output, status} = run_fixture(root, dir, ["--check"])
+
+    assert status == 1
+
+    for path <- Map.keys(planted) do
+      assert output =~ path <> ":1: phase-ref: ", "#{path} was not flagged:\n#{output}"
+    end
+  end
+
+  test "phase-ref ignores words that only contain phase" do
+    line =
+      "x = \"multiphase 2, two-phase commit, phases 12, phase: 3, Phaser3 and phase_1234\"\n"
+
+    root = fixture(%{"test/negatives.exs" => line})
+    dir = shards(root, %{})
+
+    {output, status} = run_fixture(root, dir, ["--check"])
+
+    assert status == 0, output
+    refute output =~ "test/negatives.exs"
+  end
+
   test "--require-no-pending AREA fails only for pending entries in that shard" do
     text = "# per " <> "CRAFT" <> "-04"
     root = fixture(%{"lib/planted.ex" => text <> "\n"})

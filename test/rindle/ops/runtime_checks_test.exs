@@ -186,7 +186,7 @@ defmodule Rindle.Ops.RuntimeChecksTest do
       end
     end
 
-    @tag :phase_119_redaction
+    @tag :diagnostic_redaction
     test "redacts migration inspection failure names while preserving ownership checks" do
       sentinel = "Postgrex.Error SELECT password FROM credentials"
 

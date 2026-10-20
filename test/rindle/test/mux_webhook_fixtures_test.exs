@@ -3,7 +3,7 @@ defmodule Rindle.Test.MuxWebhookFixturesTest do
 
   alias Rindle.Test.MuxWebhookFixtures
 
-  @secret "phase-35-test-secret-aaaa"
+  @secret "mux-webhook-test-secret-aaaa"
   @body ~s({"hello":"world"})
 
   describe "sign_header/3" do

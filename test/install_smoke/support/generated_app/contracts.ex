@@ -141,21 +141,21 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Contracts do
   end
 
   @doc false
-  def phase_120_scenario_enabled?(scenario, included_tags \\ nil)
+  def scenario_enabled?(scenario, included_tags \\ nil)
 
-  def phase_120_scenario_enabled?(scenario, nil) do
+  def scenario_enabled?(scenario, nil) do
     included_tags = ExUnit.configuration() |> Keyword.get(:include, [])
-    phase_120_scenario_enabled?(scenario, included_tags)
+    scenario_enabled?(scenario, included_tags)
   end
 
-  def phase_120_scenario_enabled?(scenario, included_tags) when is_list(included_tags) do
+  def scenario_enabled?(scenario, included_tags) when is_list(included_tags) do
     selected_scenarios =
       included_tags
       |> Enum.map(fn
         {tag, _value} -> tag
         tag -> tag
       end)
-      |> Enum.filter(&(&1 in [:phase_120_public_compat, :phase_120_isolation_upgrade]))
+      |> Enum.filter(&(&1 in [:public_compatibility_scenario, :isolation_upgrade_scenario]))
 
     selected_scenarios == [] or scenario in selected_scenarios
   end

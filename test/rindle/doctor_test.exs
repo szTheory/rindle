@@ -103,7 +103,7 @@ defmodule Rindle.DoctorTest do
   end
 
   describe "run_checks/2" do
-    @tag :phase_119_redaction
+    @tag :diagnostic_redaction
     test "renders a bounded migration inspection failure" do
       sentinel = "Postgrex.Error SELECT password FROM credentials"
 

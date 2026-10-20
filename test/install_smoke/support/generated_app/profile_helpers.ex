@@ -174,7 +174,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.ProfileHelpers do
               filename: path.basename(filePath),
               filetype: "video/mp4",
             }
-            const fingerprintValue = `rindle-phase44:${metadata.filename}:${file.length}`
+            const fingerprintValue = `rindle-install-smoke-tus:${metadata.filename}:${file.length}`
             const urlStoragePath = path.join(process.cwd(), "tmp", "install_smoke_tus_url_storage.json")
 
             fs.mkdirSync(path.dirname(urlStoragePath), { recursive: true })

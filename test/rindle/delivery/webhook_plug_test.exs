@@ -19,7 +19,7 @@ defmodule Rindle.Delivery.WebhookPlugTest do
       delivery: [signed_url_ttl_seconds: 900]
   end
 
-  @secret "test_webhook_secret_phase35"
+  @secret "test_webhook_secret"
   @ready_fixture_path Path.join([
                         File.cwd!(),
                         "test",

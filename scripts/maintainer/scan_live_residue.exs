@@ -53,7 +53,8 @@ defmodule Rindle.Maintainer.LiveResidueScan do
     [
       {"decision-id", :line, ~r/(?<![A-Za-z])D-\d{1,3}(?:-\d{2})?\b/},
       {"requirement-id", :line, requirement_regex()},
-      {"phase-ref", :line, ~r/\bPhase[ -]?\d{1,3}\b/},
+      {"phase-ref", :line,
+       ~r/(?i:(?<![a-z0-9])phase[_ -]?\d{1,3}(?!\d))|(?<=[a-z0-9])Phase\d{1,3}(?!\d)/},
       {"spec-ref", :line, spec_regex()},
       {"planning-path", :line, planning_regex()},
       {"milestone-ref", :line, ~r/(?<![A-Za-z0-9.])v1\.\d{1,2}\b/},
