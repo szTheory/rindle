@@ -1,0 +1,13 @@
+{
+  "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test CI=true mix test test/install_smoke/contributor_bootstrap_test.exs --seed 0",
+  "exitCode": 2,
+  "output": "<?xml version=\"1.0\"?><testsuites><testsuite errors=\"0\" failures=\"1\" skipped=\"0\" name=\"Elixir.Rindle.ContributorBootstrapTest\" tests=\"1\" time=\"0.1324\"><properties><property name=\"date\" value=\"2026-10-20T21:25:19.863698Z\"/><property name=\"seed\" value=\"0\"/></properties><testcase file=\"test/install_smoke/contributor_bootstrap_test.exs\" classname=\"Elixir.Rindle.ContributorBootstrapTest\" name=\"test clean copied source follows documented bootstrap through a focused test\" time=\"0.1324\"><failure message=\"Assertion with == failed\">  1) test clean copied source follows documented bootstrap through a focused test (Rindle.ContributorBootstrapTest)\n     test/install_smoke/contributor_bootstrap_test.exs:15\n     Assertion with == failed\n     code:  assert receipt[\"outcome\"] == \"complete\"\n     left:  \"blocked\"\n     right: \"complete\"\n     stacktrace:\n       test/install_smoke/contributor_bootstrap_test.exs:20: (test)\n</failure></testcase></testsuite></testsuites>",
+  "reportPath": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/_build/test/junit/rindle-junit.xml",
+  "runStartedAt": "2026-10-20T21:25:17.211917+00:00",
+  "reportModifiedAt": "2026-10-20T21:25:20.015763+00:00",
+  "targetTest": "test clean copied source follows documented bootstrap through a focused test",
+  "targetFile": "test/install_smoke/contributor_bootstrap_test.exs",
+  "expected": "clean copied source executes documented commands and focused test",
+  "actual": "bootstrap interface scaffold returns blocked",
+  "semanticAssessment": "Real probe interface produces a valid receipt and target assertion fails on blocked versus complete; fixture git setup succeeds. No missing-file or import error is used as RED evidence."
+}
