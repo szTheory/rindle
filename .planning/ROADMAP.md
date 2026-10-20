@@ -726,8 +726,8 @@ Plans:
 - [x] 136-01-PLAN.md — Removal-only Credo complexity ledger and behavior proof
 - [x] 136-02-PLAN.md — Narrow Dialyzer suppressions and supported fresh/restored evidence
 - [x] 136-04-PLAN.md — Finite issue #42 async experiment and immutable first-red receipt
-- [ ] 136-05-PLAN.md — CI input integrity, bounded jobs and topology semantics
-- [ ] 136-08-PLAN.md — Current-subject timing collector mode with historical-mode regression proof
+- [x] 136-05-PLAN.md — CI input integrity, bounded jobs and topology semantics
+- [x] 136-08-PLAN.md — Current-subject timing collector mode with historical-mode regression proof
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 136-06-PLAN.md — Tested clean contributor bootstrap and command map
@@ -801,7 +801,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 3/11 | In progress | - |
+| 136. Measured Quality and CI Ratchets | 5/11 | In progress | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |

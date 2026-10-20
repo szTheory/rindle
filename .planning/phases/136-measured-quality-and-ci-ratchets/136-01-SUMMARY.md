@@ -77,3 +77,7 @@ None outstanding for this plan. MAINT-04 remains pending at phase level until fi
 Ready for remaining Wave 1 plans. Final qualification has not run.
 
 ## Self-Check: PASSED
+
+## Wave 1 Review Follow-up
+
+RED efc247c8 demonstrated a wholly skipped behavior test could authorize a reduction; GREEN fbb66229 rejects skipped, excluded or invalid named tests. Preserved 136-01-SKIPPED-RED.json returned RED_EVIDENCE_OK. Full policy suite after the fix: 11 tests, 0 failures (51.9s); live Credo passed. No reviewed metric/count change.

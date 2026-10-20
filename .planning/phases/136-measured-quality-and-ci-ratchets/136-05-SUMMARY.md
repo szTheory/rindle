@@ -96,3 +96,7 @@ MinIO was already digest-pinned on accepted main, so no speculative repin. macOS
 Plan 06 may build contributor bootstrap on the frozen input/budget policy. Continue Wave 1 Plan 08 first.
 
 ## Self-Check: PASSED
+
+## Wave 1 Review Follow-up
+
+Live Credo identified complexity/nesting in newly added test policy helpers. Refactor 59931446 separates required identity, fork safety, release topology and job input responsibilities. All 59 focused CI tests and live Credo passed afterward; no baseline growth.
