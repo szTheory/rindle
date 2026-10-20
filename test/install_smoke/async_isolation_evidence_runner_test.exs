@@ -61,6 +61,34 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
     refute report =~ "/tmp/secret-settings"
   end
 
+  test "first-red receipt validates as open with uncertainty and an evidence trigger" do
+    report = report_path("validated-red")
+    log = temporary_path("validated-red.log")
+    assert {_, 23} = run_runner(report, log, fail_seed: 17, fail_status: 23)
+    {output, 0} = validate_receipt(report)
+    result = Jason.decode!(output)
+    assert result["status"] == "open"
+    assert result["failed_seed"] == 17
+    assert result["uncertainty"] != ""
+    assert result["next_trigger"] != ""
+  end
+
+  defp validate_receipt(report) do
+    System.cmd(
+      "bash",
+      [
+        Path.join(
+          @repo_root,
+          "scripts/maintainer/verify_async_isolation_receipt.sh"
+        ),
+        "--report",
+        report
+      ],
+      cd: @repo_root,
+      stderr_to_stdout: true
+    )
+  end
+
   defp validation_seeds do
     {output, 0} =
       System.cmd("bash", [@runner, "--validate"], cd: @repo_root, stderr_to_stdout: true)
