@@ -102,7 +102,10 @@ defmodule Rindle.ContributorBootstrapTest do
     assert {_, 1} = run_probe(fixture, ["--timeout-seconds", "3"])
     receipt = Jason.decode!(File.read!(fixture.receipt))
     assert receipt["reason"] == "command_timeout"
-    assert receipt["outcome"] == "blocked"
+    assert List.last(receipt["commands"])["argv"] == ["mix", "local.hex", "--force"]
+    assert List.last(receipt["commands"])["exit_status"] == 124
+    assert List.last(receipt["commands"])["failure_reason"] == "command_timeout"
+    assert receipt["outcome"] == "open"
     checkout = File.read!(checkout_log) |> String.trim()
     refute File.exists?(checkout)
   end
@@ -111,6 +114,9 @@ defmodule Rindle.ContributorBootstrapTest do
     {output, 0} = System.cmd("bash", [@script, "--validate"], cd: @root)
     manifest = Jason.decode!(output)
     assert manifest["commands"] == @commands
+    assert manifest["command_timeout_seconds"] == 300
+    assert manifest["full_command_timeout_seconds"] == 600
+    assert manifest["timeout_seconds"] == 1200
 
     assert manifest["runtime"] == %{
              "elixir" => "1.17.3",
