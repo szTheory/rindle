@@ -79,7 +79,7 @@ mkdir -p "${evidence_dir}"
 
 umask 077
 sha="$(git rev-parse HEAD)"
-toolchain="$(elixir -v | awk '/Elixir / { print "elixir-" $2; exit }')"
+toolchain="$(elixir --eval 'otp = :code.root_dir() |> Path.join("releases/" <> System.otp_release() <> "/OTP_VERSION") |> File.read!() |> String.trim(); IO.puts("elixir-#{System.version()}/otp-#{otp}")')"
 command='mix coveralls.multiple --type local --type json --seed SEED --slowest 20'
 tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/rindle-async-isolation.XXXXXX")"
 trap 'rm -rf "${tmp_dir}"' EXIT
