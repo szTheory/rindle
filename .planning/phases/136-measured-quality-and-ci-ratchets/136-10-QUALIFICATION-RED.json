@@ -1,0 +1,13 @@
+{
+  "command": "PATH=/Users/jon/.asdf/installs/nodejs/20.18.1/bin:$PATH ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test CI=true mix test test/install_smoke/phase136_qualification_test.exs --seed 0",
+  "exitCode": 2,
+  "output": "<?xml version=\"1.0\"?><testsuites><testsuite errors=\"0\" failures=\"1\" skipped=\"0\" name=\"Elixir.Rindle.PhaseEvidenceQualificationTest\" tests=\"1\" time=\"1.8092\"><properties><property name=\"date\" value=\"2026-10-20T21:51:46.419584Z\"/><property name=\"seed\" value=\"0\"/></properties><testcase file=\"test/install_smoke/phase136_qualification_test.exs\" classname=\"Elixir.Rindle.PhaseEvidenceQualificationTest\" name=\"test qualification derives seven complete authorities from one frozen fixture subject\" time=\"1.8092\"><failure message=\"Assertion with == failed\">  1) test qualification derives seven complete authorities from one frozen fixture subject (Rindle.PhaseEvidenceQualificationTest)\n     test/install_smoke/phase136_qualification_test.exs:8\n     Assertion with == failed\n     code:  assert manifest[\"outcome\"] == \"complete\"\n     left:  \"blocked\"\n     right: \"complete\"\n     stacktrace:\n       test/install_smoke/phase136_qualification_test.exs:14: (test)\n</failure></testcase></testsuite></testsuites>",
+  "reportPath": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/_build/test/junit/rindle-junit.xml",
+  "runStartedAt": "2026-10-20T21:51:43.738193+00:00",
+  "reportModifiedAt": "2026-10-20T21:51:48.254541+00:00",
+  "targetTest": "test qualification derives seven complete authorities from one frozen fixture subject",
+  "targetFile": "test/install_smoke/phase136_qualification_test.exs",
+  "expected": "derive all seven authorities from valid same-subject fixtures",
+  "actual": "qualification interface scaffold returns blocked",
+  "semanticAssessment": "Fixture setup successfully collected and verified all prerequisite measurement modes; target assertion fails only on the qualification scaffold blocked outcome."
+}

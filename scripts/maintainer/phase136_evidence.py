@@ -438,8 +438,26 @@ def collect(root, subject, args):
     return result
 
 
+def qualification_main(root, argv):
+    parser = argparse.ArgumentParser(prog="verify_phase136_qualification.sh")
+    parser.add_argument("operation")
+    parser.add_argument("--subject-file", required=True)
+    parser.add_argument("--manifest", required=True)
+    for name in ("coverage", "dialyzer", "async-receipt", "bootstrap", "timing"):
+        parser.add_argument("--" + name)
+    args = parser.parse_args(argv)
+    result = {"outcome": "blocked", "reason": "qualification_not_implemented"}
+    if args.operation == "generate":
+        with Path(args.manifest).open("x") as output:
+            json.dump(result, output)
+    print(json.dumps(result))
+    return 0
+
+
 def main():
     family, root = sys.argv[1], Path(sys.argv[2]).resolve()
+    if family == "qualify":
+        return qualification_main(root, sys.argv[3:])
     parser = argparse.ArgumentParser(prog="phase136_measure.sh")
     parser.add_argument("operation")
     parser.add_argument("--subject-file", required=True)
