@@ -115,7 +115,7 @@ def sanitized(data):
 
 class Artifacts:
     def __init__(self, receipt, create=False):
-        self.root = Path(str(receipt) + ".artifacts")
+        self.root = Path(str(Path(receipt).resolve()) + ".artifacts")
         self.count = 0
         if create:
             self.root.mkdir(mode=0o700)
@@ -140,6 +140,10 @@ class Artifacts:
         require(path.is_file() and not path.is_symlink() and path.stat().st_size <= LIMIT,
                 "missing_command_output")
         data = path.read_bytes()
+        require(type(record.get("output_bytes")) is int and record["output_bytes"] >= 0,
+                "invalid_output_size")
+        require(type(record.get("duration_seconds")) in (int, float) and record["duration_seconds"] >= 0,
+                "invalid_command_duration")
         require(digest(data) == record.get("output_sha256") and len(data) == record.get("output_bytes"),
                 "command_output_digest_mismatch")
         return data.decode(errors="replace")
@@ -234,6 +238,48 @@ def collect_dialyzer(artifacts, checkout, scratch, env, result):
     result["outcome"] = "complete"
 
 
+def relative_evidence(root, path):
+    path = Path(path).resolve()
+    require(path.is_relative_to(root / ".planning"), "evidence_path_outside_planning")
+    return str(path.relative_to(root))
+
+
+def collect_async(root, artifacts, checkout, env, result, args):
+    target = Path(args.jsonl or root / ".planning/evidence/async-isolation/136-async-isolation.jsonl").resolve()
+    reference = relative_evidence(root, target)
+    require(not target.exists() and not target.is_symlink(), "async_target_not_new")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not prepare(artifacts, checkout, env, result):
+        return
+    env = {**env, "RINDLE_ASYNC_EVIDENCE_DIR": str(target.parent)}
+    result["runner"] = artifacts.run(["bash", "scripts/maintainer/async_isolation_evidence.sh",
+                                       "--report", str(target)], checkout, env, budget=14400)
+    result["jsonl"] = artifacts.payload("async.jsonl", target)
+    result["evidence_file"] = {"path": reference, "sha256": digest(target.read_bytes())}
+    status, data, _ = execute(["bash", "scripts/maintainer/verify_async_isolation_receipt.sh",
+                               "--report", str(target)], checkout, env, budget=60)
+    require(status == 0, "async_owner_verification_failed")
+    verdict = json.loads(data)
+    result["async_verdict"] = verdict
+    result["outcome"] = "complete" if verdict["status"] == "complete" else "open"
+    if result["outcome"] == "open":
+        result["reason"] = "async_first_red"
+
+
+def collect_bootstrap(artifacts, checkout, env, result):
+    target = artifacts.root / "bootstrap.json"
+    result["runner"] = artifacts.run(["bash", "scripts/maintainer/verify_contributor_bootstrap.sh",
+        "--run", "--full", "--subject-sha", result["subject_sha"], "--receipt", str(target)],
+        checkout, env, budget=1260)
+    # The owner already created this immutable payload in the fresh artifact directory.
+    require(target.is_file(), "bootstrap_owner_receipt_missing")
+    result["bootstrap"] = {"artifact": target.name, "sha256": digest(target.read_bytes())}
+    inner = read_json(target)
+    result["outcome"] = "complete" if inner.get("outcome") == "complete" else "open"
+    if result["outcome"] == "open":
+        result["reason"] = "bootstrap_first_red"
+
+
 def verify_runtime(artifacts, receipt):
     records = receipt.get("runtime", {})
     elixir, node = records.get("elixir", {}), records.get("node", {})
@@ -289,22 +335,85 @@ def verify_dialyzer(artifacts, receipt):
     return "complete"
 
 
+def verify_async(root, subject, artifacts, receipt):
+    prepared = verify_preparation(artifacts, receipt)
+    if prepared == "open":
+        require("runner" not in receipt, "async_after_preparation_red")
+        return "open"
+    runner = receipt.get("runner", {})
+    artifacts.log(runner)
+    require(runner.get("argv", [])[:3] == ["bash", "scripts/maintainer/async_isolation_evidence.sh", "--report"] and
+            len(runner["argv"]) == 4, "async_runner_identity")
+    path = artifacts.read_payload(receipt.get("jsonl", {}), "async.jsonl")
+    external = receipt.get("evidence_file", {})
+    original = (root / external.get("path", "")).resolve()
+    relative_evidence(root, original)
+    require(original.is_file() and digest(original.read_bytes()) == external.get("sha256") ==
+            digest(path.read_bytes()), "async_original_changed")
+    with pinned_checkout(root, subject) as (checkout, _, env):
+        status, output, _ = execute(["bash", "scripts/maintainer/verify_async_isolation_receipt.sh",
+                                     "--report", str(path)], checkout, env, budget=60)
+    require(status == 0, "async_owner_verification_failed")
+    verdict = json.loads(output)
+    require(verdict == receipt.get("async_verdict"), "async_verdict_changed")
+    require((verdict["status"] == "complete" and runner["exit_status"] == 0) or
+            (verdict["status"] == "open" and runner["exit_status"] != 0), "async_exit_mismatch")
+    return "complete" if verdict["status"] == "complete" else "open"
+
+
+def verify_bootstrap(artifacts, receipt):
+    runner = receipt.get("runner", {})
+    artifacts.log(runner)
+    require(runner.get("argv", [])[:7] == ["bash", "scripts/maintainer/verify_contributor_bootstrap.sh",
+            "--run", "--full", "--subject-sha", receipt["subject_sha"], "--receipt"] and
+            len(runner["argv"]) == 8, "bootstrap_runner_identity")
+    path = artifacts.read_payload(receipt.get("bootstrap", {}), "bootstrap.json")
+    inner = read_json(path)
+    require(type(inner.get("schema_version")) is int and inner["schema_version"] == 1,
+            "bootstrap_receipt_schema")
+    require(inner.get("subject_sha") == receipt["subject_sha"] and
+            inner.get("source_tree") == receipt["source_tree"] and
+            inner.get("toolchain") == TOOLCHAIN and
+            re.fullmatch(r"v20\.[0-9]+\.[0-9]+", inner.get("node_version", "")), "bootstrap_subject_or_runtime")
+    require(inner.get("clean_checkout") is True and inner.get("full") is True, "bootstrap_not_clean_full")
+    commands = inner.get("commands", [])
+    expected = PREPARE + [FOCUSED, ["mix", "ci"]]
+    require(0 < len(commands) <= len(expected), "bootstrap_missing_commands")
+    for index, record in enumerate(commands):
+        require(record.get("argv") == expected[index] and type(record.get("exit_status")) is int,
+                "bootstrap_command_identity")
+        if record["exit_status"] != 0:
+            require(index == len(commands) - 1 and runner["exit_status"] != 0 and
+                    inner.get("outcome") != "complete", "bootstrap_post_red_or_forged_green")
+            return "open"
+    require(len(commands) == len(expected) and runner["exit_status"] == 0 and
+            inner.get("outcome") == "complete", "bootstrap_partial_green")
+    return "complete"
+
+
 def verify_receipt(root, subject, path, kind):
     receipt = read_json(path)
-    require(receipt.get("schema_version") == 1 and receipt.get("kind") == kind,
+    require(type(receipt.get("schema_version")) is int and receipt["schema_version"] == 1 and
+            receipt.get("kind") == kind,
             "receipt_kind_or_schema")
     require(all(receipt.get(key) == value for key, value in subject.items()), "foreign_receipt_subject")
     artifacts = Artifacts(path)
     verify_runtime(artifacts, receipt)
-    require(kind == "dialyzer", "unsupported_measurement_kind")
-    outcome = verify_dialyzer(artifacts, receipt)
+    if kind == "dialyzer":
+        outcome = verify_dialyzer(artifacts, receipt)
+    elif kind == "async":
+        outcome = verify_async(root, subject, artifacts, receipt)
+    elif kind == "bootstrap":
+        outcome = verify_bootstrap(artifacts, receipt)
+    else:
+        raise Rejected("unsupported_measurement_kind")
     require(receipt.get("outcome") == outcome, "forged_measurement_outcome")
     return receipt
 
 
 def collect(root, subject, args):
     require(args.receipt, "receipt_required")
-    path = Path(args.receipt)
+    path = Path(args.receipt).resolve()
     # O_EXCL also rejects dangling symlinks and preserves every prior attempt.
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     result = {"schema_version": 1, "kind": args.operation, **subject, "outcome": "blocked"}
@@ -312,8 +421,12 @@ def collect(root, subject, args):
         artifacts = Artifacts(path, create=True)
         runtime(artifacts, root, result)
         with pinned_checkout(root, subject) as (checkout, scratch, env):
-            require(args.operation == "dialyzer", "unsupported_measurement_kind")
-            collect_dialyzer(artifacts, checkout, scratch, env, result)
+            if args.operation == "dialyzer":
+                collect_dialyzer(artifacts, checkout, scratch, env, result)
+            elif args.operation == "async":
+                collect_async(root, artifacts, checkout, env, result, args)
+            else:
+                collect_bootstrap(artifacts, checkout, env, result)
     except (Rejected, OSError, ValueError, subprocess.SubprocessError) as error:
         result["reason"] = str(error) if isinstance(error, Rejected) else "measurement_prerequisite_failed"
     finally:
