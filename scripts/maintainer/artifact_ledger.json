@@ -301,8 +301,7 @@
       "package": "excluded",
       "pathspecs": [
         ":(glob)scripts/maintainer/*.sh",
-        ":(glob)scripts/maintainer/*.exs",
-        ":(exclude)scripts/maintainer/check_phase_133_landing_closure.sh"
+        ":(glob)scripts/maintainer/*.exs"
       ],
       "reason": "Maintainer validators, collectors and release helpers."
     },
@@ -322,17 +321,6 @@
         ":(glob)scripts/maintainer/live_residue_allowlist/**"
       ],
       "reason": "Ratchet baselines, allowlists, traces and this ledger, each read by its validator."
-    },
-    {
-      "authority": "hand-authored",
-      "consumer": [],
-      "disposition": "delete",
-      "id": "scripts-maintainer-retired",
-      "package": "excluded",
-      "pathspecs": [
-        "scripts/maintainer/check_phase_133_landing_closure.sh"
-      ],
-      "reason": "Closure checker for a finished landing; no live consumer remains and the closure plan removes it."
     },
     {
       "authority": "hand-authored",
