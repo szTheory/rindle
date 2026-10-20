@@ -164,6 +164,17 @@ broader lane named in the last column before handoff.
 | Operations, runtime checks, migration diagnostics | `mix test test/rindle/ops test/rindle/migration_fast_test.exs` | Preservation contract + Integration migration proofs |
 | Generated adopter/package behavior | `mix test test/install_smoke/generated_app_smoke_test.exs --include minio` | Required image consumer proof; five-profile main/release proof |
 | CI scripts and workflow policy | `mix test test/install_smoke/ci_*_test.exs test/install_smoke/quality_signal_policy_test.exs` | Exact-head `CI Summary` |
+| Comments, names and docs in shipped files | `MIX_ENV=test mix run --no-start scripts/maintainer/scan_live_residue.exs --check --require-no-pending all` | Quality (`test/install_smoke/live_residue_scan_test.exs`) |
+| New, moved or deleted tracked files | `bash scripts/maintainer/validate_artifact_ledger.sh --offline --require-settled` | CI Script Tests |
+| Readability refactors | `bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json` and `bash scripts/maintainer/craft_boundary_check.sh origin/main` | CI Script Tests; public surface snapshot in Quality |
+| Release prep | `./scripts/maintainer/repo_hygiene_check.sh --release-prep --with-mix-ci` | `repo_hygiene_check.sh --ci` on main |
+| Phase gate evidence | `bash scripts/maintainer/collect_phase_gate_evidence.sh --repo szTheory/rindle --shas-file FILE --hygiene-log FILE --hygiene-exit N` | Collector harness in CI Script Tests |
+
+The residue scan's `--regen-baseline` mode only refreshes `contract`, `policy`,
+`immutable-receipt` or `fixture` entries after an approved change; it is never used to add
+`pending-removal` entries. See [RUNNING.md](RUNNING.md#repository-craft-gates) for every
+gate, the hygiene modes (`--ci`, `--release-prep`, `--with-mix-ci`) and the public surface
+snapshot rule.
 
 ### After merge (`push:main`) / nightly (not on your PR)
 

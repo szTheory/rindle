@@ -1484,6 +1484,8 @@ jobs:
         run: bash scripts/maintainer/validate_artifact_ledger.sh --offline --require-settled --ledger scripts/maintainer/artifact_ledger.json
       - name: Repo hygiene harness
         run: bash scripts/ci/test_repo_hygiene_check.sh
+      - name: Phase gate evidence collector harness
+        run: bash scripts/ci/test_collect_phase_gate_evidence.sh
 
   ci-summary:
     name: CI Summary
