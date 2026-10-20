@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 fixed25seed async experiment ACTIVE32373 on frozen4dc73fa9
+stopped_at: Phase136 PR162 published; initial CI and local async experiment active
 last_updated: "2026-10-20T22:57:34.315624+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
@@ -26,6 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-20, authoritative): User explicitly approved publishing the frozen candidate and the bounded ten-run measurement. PR #162 is published at https://github.com/szTheory/rindle/pull/162 on gsd/phase-136-quality-ratchets, exact head 4dc73fa91c60ae870c7289a151d9d53460140906. Initial CI run 39514749448 must finish before current-head sampling begins. Private detached timing checkout: /private/tmp/phase136-timing-final-4dc73fa9. Local fixed 25-seed collector remains active in session 32373; seed 0 passed, seed 17 running. Do not duplicate it or overlap local database tests. Source remains frozen; publication does not authorize merge or release. Earlier updates below are historical.
 
 Execution update (2026-10-20, authoritative): The actual25seed async collector is ACTIVE process32373 onFINAL4dc73fa9. Its stdout is/private/tmp/phase136-async-final-collector.log; immutable result136-ASYNC-RESULT.json is reserved and empty until completion, sidecars at136-ASYNC-RESULT.json.artifacts, live rows at.planning/evidence/async-isolation/136-async-isolation.jsonl. Seed0 has started; read JSONL for current progress. DO NOT start another collector, canonical suite, bootstrap or database-using regression while it runs. Poll the existing process; if session control is unavailable, inspect original owner/process and files before assuming it ended. Final coverage, Dialyzer, full bootstrap and226test prior-phase regression are already verified/committed. When async finishes, verify-async against FINAL pin, retain complete or first-red-open outcome and all artifacts, then finish Plan09 summary. Plan07 needs a published exact4dc73fa9 PR; no publication authorized yet. Qualification generate MUST explicitly use FINAL coverage/Dialyzer/bootstrap paths.
 

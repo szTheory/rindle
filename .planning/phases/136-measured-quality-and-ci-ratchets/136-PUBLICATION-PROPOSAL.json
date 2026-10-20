@@ -17,5 +17,11 @@
   "rule": "Plan 08: Never publish the PR head implicitly in Phase 136; use an already published exact SHA or a separately authorized publication.",
   "approval_status": "approved",
   "approval_answer": "Publish Phase 136 PR",
-  "approved_at": "2026-10-20T23:21:49.562987+00:00"
+  "approved_at": "2026-10-20T23:21:49.562987+00:00",
+  "publication_status": "published",
+  "pr_number": 162,
+  "pr_url": "https://github.com/szTheory/rindle/pull/162",
+  "published_head": "4dc73fa91c60ae870c7289a151d9d53460140906",
+  "initial_ci_run_id": 39514749448,
+  "published_at": "2026-10-20T23:24:31.404579+00:00"
 }
