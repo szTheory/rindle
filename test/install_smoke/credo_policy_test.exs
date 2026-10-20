@@ -212,6 +212,16 @@ defmodule Rindle.CredoPolicyTest do
 
     assert {_, status} = fixture_aggregate([entry], [], [record])
     assert status != 0
+
+    for tag <- [:skip, :integration] do
+      File.write!(
+        target,
+        "defmodule BehaviorPreservationFixtureTest do\n use ExUnit.Case\n @tag :#{tag}\n test \"preserves owner behavior\", do: assert true\nend\n"
+      )
+
+      assert {_, status} = fixture_aggregate([entry], [], [record])
+      assert status != 0, "unexecuted behavior tests cannot prove a reduction"
+    end
   end
 
   defp fixture_aggregate(baseline, live, evidence \\ []) do
