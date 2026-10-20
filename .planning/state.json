@@ -42,7 +42,7 @@
   "next": {
     "command": "$gsd-execute-phase 136",
     "label": "Execute Phase 136",
-    "reason": "FINAL4dc73fa9 coverage, Dialyzer, clean full bootstrap and prior-phase regressions green; finite25seed async experiment next; live timing requires published exact-SHA PR"
+    "reason": "Monitor existing async collector32373 onFINAL4dc73fa9; do not duplicate or overlap DB suites; then verify receipt and finish Plan09/07"
   },
   "updated_at": "2026-10-20T22:07:12.431395+00:00"
 }
