@@ -83,6 +83,37 @@ defmodule Rindle.CoverageFloorPolicyTest do
     end
   end
 
+  test "configured local analyzer rejects floored values below the exact accepted ratio" do
+    options = ExCoveralls.Settings.get_coverage_options()
+    assert options["floor_coverage"] == true
+    assert options["minimum_coverage"] == 82.2
+    assert ExCoveralls.Stats.get_coverage(1_000_000, 821_342) == 82.1
+    assert ExCoveralls.Stats.get_coverage(1_000_000, 821_343) == 82.1
+    assert ExCoveralls.Stats.get_coverage(1_000_000, 822_000) == 82.2
+
+    below = [
+      %{
+        name: "fixture.ex",
+        source: "fixture",
+        coverage: List.duplicate(1, 821_342) ++ List.duplicate(0, 178_658)
+      }
+    ]
+
+    assert ExUnit.CaptureIO.capture_io(fn ->
+             assert catch_exit(ExCoveralls.Stats.ensure_minimum_coverage(below)) == {:shutdown, 1}
+           end) =~ "Expected minimum coverage of 82.2%"
+
+    representable = [
+      %{
+        name: "fixture.ex",
+        source: "fixture",
+        coverage: List.duplicate(1, 822) ++ List.duplicate(0, 178)
+      }
+    ]
+
+    assert ExCoveralls.Stats.ensure_minimum_coverage(representable) == nil
+  end
+
   defp fixture!(dir, coverage) do
     source = Path.join(dir, "source")
 

@@ -1,0 +1,13 @@
+{
+  "command": "mix test test/install_smoke/coverage_floor_policy_test.exs --seed 0",
+  "exitCode": 2,
+  "output": "<?xml version=\"1.0\"?><testsuites><testsuite errors=\"0\" failures=\"1\" skipped=\"0\" name=\"Elixir.Rindle.CoverageFloorPolicyTest\" tests=\"5\" time=\"12.4493\"><properties><property name=\"date\" value=\"2026-10-20T22:13:59.861025Z\"/><property name=\"seed\" value=\"0\"/></properties><testcase file=\"test/install_smoke/coverage_floor_policy_test.exs\" classname=\"Elixir.Rindle.CoverageFloorPolicyTest\" name=\"test configured local analyzer rejects floored values below the exact accepted ratio\" time=\"0.0002\"><failure message=\"Assertion with == failed\">  1) test configured local analyzer rejects floored values below the exact accepted ratio (Rindle.CoverageFloorPolicyTest)\n     test/install_smoke/coverage_floor_policy_test.exs:86\n     Assertion with == failed\n     code:  assert options[\"floor_coverage\"] == true\n     left:  nil\n     right: true\n     stacktrace:\n       test/install_smoke/coverage_floor_policy_test.exs:88: (test)\n</failure></testcase><testcase file=\"test/install_smoke/coverage_floor_policy_test.exs\" classname=\"Elixir.Rindle.CoverageFloorPolicyTest\" name=\"test stale malformed and failed local outputs never qualify\" time=\"3.8586\"/><testcase file=\"test/install_smoke/coverage_floor_policy_test.exs\" classname=\"Elixir.Rindle.CoverageFloorPolicyTest\" name=\"test receipt mutations cannot forge counts source runtime local success or payload\" time=\"4.5657\"/><testcase file=\"test/install_smoke/coverage_floor_policy_test.exs\" classname=\"Elixir.Rindle.CoverageFloorPolicyTest\" name=\"test integer boundary equality passes and one covered line below fails\" time=\"2.9259\"/><testcase file=\"test/install_smoke/coverage_floor_policy_test.exs\" classname=\"Elixir.Rindle.CoverageFloorPolicyTest\" name=\"test one same-run artifact reaches an exact source-bound floor verdict\" time=\"1.0989\"/></testsuite></testsuites>",
+  "reportPath": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/_build/test/junit/rindle-junit.xml",
+  "runStartedAt": "2026-10-20T22:13:57.085515+00:00",
+  "reportModifiedAt": "2026-10-20T22:14:12.354630+00:00",
+  "targetTest": "test configured local analyzer rejects floored values below the exact accepted ratio",
+  "targetFile": "test/install_smoke/coverage_floor_policy_test.exs",
+  "expected": "explicit floor precision and conservative minimum82.2",
+  "actual": "floor_coverage absent and configured minimum69",
+  "semanticAssessment": "Actual configured ExCoveralls owner assertion rejects missing explicit precision before exercising threshold. Mix exit2 observed."
+}
