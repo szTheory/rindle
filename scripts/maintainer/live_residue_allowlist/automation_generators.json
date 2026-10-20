@@ -3,1068 +3,84 @@
   "area": "automation_generators",
   "entries": [
     {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "/* 1024 = :aside two-pane ONLY (D-98-15). The scaffold :work + :aside region",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "/* 760 = shell sidebar switch ONLY (D-98-15). The shell becomes the two-track",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "/* §D general visually-hidden utility (D-98-08). The migrated data tables each carry a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "// Phase 98 Level-3 scaffold + a11y structural selectors (D-98-13 guard-2).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "// new categories (D-94-08): emitted-AND-used or the self-check hard-fails",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "// pushed into `missing` below so the build fails closed (D-97-03/D-97-08).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "// shadow token (D-98-13 guard-1) — emitted-AND-used or the self-check hard-fails.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "1024 blocks are NEVER conflated (D-98-15). Breakpoint pixels are literals because",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "Level-2 meta-components (UPLIFT-02 / D-97-01..03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "migration (D-98-08); this rule consumes it. EXCEPTION: .rindle-admin-table--sticky",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "so large viewports stay byte-identical to the existing fixed scale (D-94-09). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "triage surface — the FIRST consumer of --rindle-shadow-card (D-98-13 guard-1):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "two-track grid ONLY inside @media (min-width:1024px) below (D-98-15). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "decision-id",
-      "text": "§C mobile-first responsive (D-98-14). Base (0-479) is the single-column / stacked",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "phase-ref",
-      "text": "// Phase 98 Level-3 scaffold + a11y structural selectors (D-98-13 guard-2).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "phase-ref",
-      "text": "// Phase 98: the :summary 1st-order surface is the first consumer of the card",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "phase-ref",
-      "text": "Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "requirement-id",
-      "text": "// Level-2 meta-component parity (UPLIFT-02). Every composed unit must emit a root",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "requirement-id",
-      "text": "Level-2 meta-components (UPLIFT-02 / D-97-01..03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "spec-ref",
-      "text": "/* §D modal overlay (WR-01): the full-viewport positioning + centering host for",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "spec-ref",
-      "text": "// WR-01: the overlay primitive's positioning + backdrop. modal/1 and",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-css-build.mjs",
-      "class": "spec-ref",
-      "text": "here and handled by the dedicated rule below (WR-01). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// COMPONENTS with these slugs; they live in their own parallel inventory (D-97-04).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// exclusively from the Level-1 COMPONENTS above + tokens — never a new primitive (D-97-01/02).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-design-system-data.mjs",
-      "class": "requirement-id",
-      "text": "// Level-2 meta-component inventory of record (UPLIFT-02). Composed units, each built",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-design-system-data.mjs",
-      "class": "spec-ref",
-      "text": "// Order is authoritative (97-UI-SPEC §\"Level-2 Meta-Component Inventory\"). Do NOT extend",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-gallery-check.mjs",
-      "class": "requirement-id",
-      "text": "// CI flake). Routing through the single helper removes the per-site modality copy (LOCK-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-gallery.mjs",
-      "class": "decision-id",
-      "text": "// Level-2 meta-component cohesion markers (D-97-06) + data-table static state.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-gallery.mjs",
-      "class": "decision-id",
-      "text": "// Level-2 meta-component cohesion panels (UPLIFT-02 / D-97-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-gallery.mjs",
-      "class": "requirement-id",
-      "text": "// Level-2 meta-component cohesion panels (UPLIFT-02 / D-97-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/admin-gallery.mjs",
-      "class": "spec-ref",
-      "text": "// voice from 97-UI-SPEC §\"Copywriting Contract\". No client JS toggling.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/candidates.mjs",
-      "class": "planning-path",
-      "text": "// Hard constraints (locked, .planning/research/b1.0-brand-audit.md SS8):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// (coverage, D-96-19), any pair value drifts from cohort.css (parity, D-96-18),",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// --- coverage loop (D-96-19): fail on a MISSING required {context × theme} ---",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// --- literal scanner (D-96-20): hand-rolled brace-depth pass ------------------",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// --- parity check (D-96-18): each pair value byte-equals cohort.css ----------",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// duplication D-96-11; drift between the two blocks = hard fail). This is",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// generated admin token file (D-94-05/06). Exits non-zero if any pair is below",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// is the D-94-08 \"self-check green while artifact omits it\" trap this guards.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// or any color literal lives outside a token-definition block (D-96-20).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// real CSS custom-property cascade (BLOCKER-3 / D-96-23): for 'dark', look in",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// system. Net-new sibling of admin-contrast.mjs (D-96-01/02), but it resolves",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-contrast.mjs",
-      "class": "decision-id",
-      "text": "// the controlled byte-equal duplicate of the dark block (D-96-11). The parity",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// Decorative-only faint role (D-96-23): NOT a body pair — card paths, nav demo",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// Hand-authored sibling of the admin contrast data module (D-96-01), NEVER an",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// Readable secondary text — the D-96-23 replacement for --ck-faint as a body",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// [Rule 1] D-96-23 decorative/non-text role — WCAG 1.4.3/1.4.11 exempt; locked",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// gate resolves them per theme and byte-equal parity-checks them (D-96-18). Each",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// import of it (D-94-05/06: Cohort and rindle-admin share vocabulary, never a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// line 167; the resolver's :root cascade fallback (D-96-23 / BLOCKER-3)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "decision-id",
-      "text": "// locked --ck-faint color value preserved (D-96-23: \"No --ck-* color values",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/cohort-design-system-data.mjs",
-      "class": "spec-ref",
-      "text": "// text clears AA ~4.9:1 in both themes). The dark row is REQUIRED by UI-SPEC",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/contrast-constants.mjs",
-      "class": "decision-id",
-      "text": "// data modules) cannot drift apart (D-12).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/sheet.mjs",
-      "class": "phase-ref",
-      "text": "B, C and D are fully integrated typemarks. Pick a direction; Phase 83 refines the winner into the full system.</p>",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/sync-admin-css.mjs",
-      "class": "decision-id",
-      "text": "// This is the SINGLE committed mechanism (D-94-03) that copies the brandbook",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/src/sync-admin-css.mjs",
-      "class": "plan-ref",
-      "text": "// both CI and local developers run this one script, and the Plan 04 diff gate",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "/* 1024 = :aside two-pane ONLY (D-98-15). The scaffold :work + :aside region",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "/* 760 = shell sidebar switch ONLY (D-98-15). The shell becomes the two-track",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "/* §D general visually-hidden utility (D-98-08). The migrated data tables each carry a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "1024 blocks are NEVER conflated (D-98-15). Breakpoint pixels are literals because",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "Level-2 meta-components (UPLIFT-02 / D-97-01..03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "migration (D-98-08); this rule consumes it. EXCEPTION: .rindle-admin-table--sticky",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "so large viewports stay byte-identical to the existing fixed scale (D-94-09). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "triage surface — the FIRST consumer of --rindle-shadow-card (D-98-13 guard-1):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "two-track grid ONLY inside @media (min-width:1024px) below (D-98-15). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "decision-id",
-      "text": "§C mobile-first responsive (D-98-14). Base (0-479) is the single-column / stacked",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "phase-ref",
-      "text": "Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "requirement-id",
-      "text": "Level-2 meta-components (UPLIFT-02 / D-97-01..03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "spec-ref",
-      "text": "/* §D modal overlay (WR-01): the full-viewport positioning + centering host for",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "brandbook/tokens/rindle-admin.css",
-      "class": "spec-ref",
-      "text": "here and handled by the dedicated rule below (WR-01). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "/* 1024 = :aside two-pane ONLY (D-98-15). The scaffold :work + :aside region",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "/* 760 = shell sidebar switch ONLY (D-98-15). The shell becomes the two-track",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "/* §D general visually-hidden utility (D-98-08). The migrated data tables each carry a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "1024 blocks are NEVER conflated (D-98-15). Breakpoint pixels are literals because",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "Level-2 meta-components (UPLIFT-02 / D-97-01..03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "migration (D-98-08); this rule consumes it. EXCEPTION: .rindle-admin-table--sticky",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "so large viewports stay byte-identical to the existing fixed scale (D-94-09). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "triage surface — the FIRST consumer of --rindle-shadow-card (D-98-13 guard-1):",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "two-track grid ONLY inside @media (min-width:1024px) below (D-98-15). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "decision-id",
-      "text": "§C mobile-first responsive (D-98-14). Base (0-479) is the single-column / stacked",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "phase-ref",
-      "text": "Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "requirement-id",
-      "text": "Level-2 meta-components (UPLIFT-02 / D-97-01..03)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "spec-ref",
-      "text": "/* §D modal overlay (WR-01): the full-viewport positioning + centering host for",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "priv/static/rindle_admin/rindle-admin.css",
-      "class": "spec-ref",
-      "text": "here and handled by the dedicated rule below (WR-01). */",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "decision-id",
-      "text": "# EXPECTED list — reuse the write script's read-only flag; do NOT re-encode names (D-09).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "decision-id",
-      "text": "# This script is READ-ONLY (D-09 / D-14): it GETs `/required_status_checks` only and",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "milestone-ref",
-      "text": "# Phase 103 must capture the *actual* live required-check names BEFORE the v1.20",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "phase-ref",
-      "text": "# Phase 103 must capture the *actual* live required-check names BEFORE the v1.20",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "phase-ref",
-      "text": "# pipeline restructuring (the Phase 105 aggregate-check flip depends on knowing the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "requirement-id",
-      "text": "# (OBS-03) and diff them against the committed expected list.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "requirement-id",
-      "text": "# the whole point of OBS-03 (see 103-RESEARCH.md).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "spec-ref",
-      "text": "# newer `.checks[].context` objects (103-RESEARCH.md Pitfall 3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/check_required_checks.sh",
-      "class": "spec-ref",
-      "text": "# the whole point of OBS-03 (see 103-RESEARCH.md).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/cohort_demo_smoke.sh",
-      "class": "narration",
-      "text": "# and a stale Elixir pin — and was previously caught only by human UAT. Nothing",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/cohort_demo_smoke.sh",
-      "class": "phase-ref",
-      "text": "# Phase 91 UAT discharge. The docker-compose boot path",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "decision-id",
-      "text": "# Parameterized window (D-08): override via env for PR-realism vs main-stability runs.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "decision-id",
-      "text": "# This is a maintainer-LOCAL collector (D-08), NOT a new CI job — it adds zero new",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "milestone-ref",
-      "text": "# Phase 103 is the [BASELINE FIRST] gate of the v1.20 CI/CD-performance milestone:",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "phase-ref",
-      "text": "# Phase 103 is the [BASELINE FIRST] gate of the v1.20 CI/CD-performance milestone:",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "phase-ref",
-      "text": "# we must record what the pipeline costs *today*, reproducibly, so Phase 107's",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "plan-ref",
-      "text": "# The Markdown table is printed to stdout; Plan 04 captures it into 103-BASELINE.md.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "requirement-id",
-      "text": "# collect_ci_baseline.sh — capture a reproducible CI timing baseline (OBS-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/collect_ci_baseline.sh",
-      "class": "spec-ref",
-      "text": "# (GitHub exposes NO direct `rerun_count` field — see 103-RESEARCH.md Pitfall 2).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "scripts/ci/collect_pr_timing_receipt.sh",
       "class": "planning-path",
       "text": "actual_paths=\"$(git diff --name-only \"$preserved_subject_sha..$head_sha\" | grep -Ev '^\\.planning/' || true)\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior"
     },
     {
       "path": "scripts/ci/collect_pr_timing_receipt.sh",
       "class": "planning-path",
       "text": "all(.stages[]; all(.non_planning[]; (.path | startswith(\".planning/\") | not) and (.blob_oid | type == \"string\" and test(\"^[0-9a-f]{40}$\"))))",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior"
     },
     {
       "path": "scripts/ci/collect_pr_timing_receipt.sh",
       "class": "planning-path",
       "text": "all(.stages[]; all(.planning[]; .path | startswith(\".planning/\"))) and",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "decision-id",
-      "text": "# \"Faithful\" == SAME pinned browser image both sides (D-10): this script and the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "decision-id",
-      "text": "# --- Browser-in-container against the SAME pinned image as CI (D-10) ----------",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "decision-id",
-      "text": "# browser pin (D-11), so there is no separate system-font install — the image",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior"
     },
     {
       "path": "scripts/ci/e2e_local.sh",
       "class": "milestone-ref",
       "text": "# `mcr.microsoft.com/playwright:v1.57.0-noble`. The container tag IS the font +",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image"
     },
     {
       "path": "scripts/ci/e2e_local.sh",
       "class": "milestone-ref",
       "text": "PLAYWRIGHT_IMAGE=\"${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.57.0-noble}\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image"
     },
     {
-      "path": "scripts/ci/e2e_local.sh",
-      "class": "requirement-id",
-      "text": "# ADOPTION_DEMO_E2E_SPECS (GATE-01): optional space-separated list of spec files to",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# Collect-all-then-exit (D-06): every red lane is logged above before we fail.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# Exit : 0 if every gating job is success OR skipped (D-05 skip-as-pass — this is",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# GitHub API hiccup (D-02). This file holds that decision as a standalone script so it",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# failure/cancelled. All red lanes are logged before exiting (D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "# is no per-lane env var to keep in sync — D-06).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "decision-id",
-      "text": "success|skipped) ;; # D-05: success + skipped → pass",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "phase-ref",
-      "text": "# CI-health signal for `main` (Phase 105). Its decision is a pure evaluation of the",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/eval_ci_summary.sh",
-      "class": "requirement-id",
-      "text": "# eval_ci_summary.sh — the CI Summary aggregate gate logic (GATE-01), extracted.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_ci_summary_gate.sh",
-      "class": "decision-id",
-      "text": "# The skip-as-pass semantics of `ci-summary` (D-05) close the fork-PR \"pending forever\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_ci_summary_gate.sh",
-      "class": "narration",
-      "text": "# instead of hanging. Previously that behavior was \"logic-provable but observable only",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_ci_summary_gate.sh",
-      "class": "requirement-id",
-      "text": "# test_ci_summary_gate.sh — unit tests for the CI Summary aggregate gate (GATE-01).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_collect_inbox.sh",
-      "class": "requirement-id",
-      "text": "# Fixture harness for scripts/maintainer/collect_inbox.sh (INBOX-01).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_dep_landing_evidence.sh",
-      "class": "decision-id",
-      "text": "# Harness for scripts/maintainer/dep_landing_evidence.sh (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_dep_landing_evidence.sh",
-      "class": "phase-ref",
-      "text": "# Harness for scripts/maintainer/dep_landing_evidence.sh (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "path": "scripts/ci/fixtures/nightly_failure_fingerprint.json",
+      "class": "milestone-ref",
+      "text": "\"elixir\": \"v1.17.3-otp-27\",",
+      "count": 2,
+      "reason_class": "fixture",
+      "reason": "byte-for-byte copy of the retained Nightly failure fingerprint receipt (sha256 119b2f9a...); the match is the Elixir toolchain version, not a milestone"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
       "text": "if grep -n '\\.planning/phases' \"${script}\" >/dev/null; then",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
       "text": "record \"script reads no .planning/phases path\" false \"found\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
       "text": "record \"script reads no .planning/phases path\" true",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)"
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
@@ -1073,22 +89,6 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "This fixture lists the check-run names the landing evidence script consumes."
-    },
-    {
-      "path": "scripts/ci/test_e2e_specs_scoping.sh",
-      "class": "requirement-id",
-      "text": "# spec-scoping contract in scripts/ci/e2e_local.sh (GATE-01, research GATE-A3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_nightly_dialyzer.sh",
-      "class": "planning-path",
-      "text": "fingerprint=\"${repo_root}/.planning/phases/133-evidence-charter-and-live-truth/133-NIGHTLY-FAILURE-FINGERPRINT.json\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/ci/test_repo_hygiene_check.sh",
@@ -1115,60 +115,36 @@
       "reason": "The harness builds a temp maintainer tree; these lines write and classify its planning files, not the live tree."
     },
     {
-      "path": "scripts/ci/test_setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "# Regression matrix for the setup_branch_protection.sh pending-forever guard (D-12),",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_validate_inbox_ledger.sh",
-      "class": "phase-ref",
-      "text": "# (Phase 134 INBOX-02 / SEC-09 / DEPS-01). One failing fixture per rejection rule plus clean",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "scripts/ci/test_validate_inbox_ledger.sh",
       "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ci/test_validate_inbox_ledger.sh",
-      "class": "requirement-id",
-      "text": "# (Phase 134 INBOX-02 / SEC-09 / DEPS-01). One failing fixture per rejection rule plus clean",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "milestone-ref",
       "text": "resolved Elixir mutation fails closed .dialyzer.resolved_elixir = \"v1.17.4-otp-27\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "receipt-bound Nightly verifier harness kept byte-unchanged; the literal reproduces receipt fields (Elixir toolchain version) or guards against ledger reads from a local checkout"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "milestone-ref",
       "text": "resolved_elixir=v1.17.3-otp-27",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "receipt-bound Nightly verifier harness kept byte-unchanged; the literal reproduces receipt fields (Elixir toolchain version) or guards against ledger reads from a local checkout"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "planning-path",
       "text": "! grep -Eq -- '--ledger .*/projects/rindle/.planning/' \"${temp}/authority-calls\" &&",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "immutable-receipt",
+      "reason": "receipt-bound Nightly verifier harness kept byte-unchanged; the literal reproduces receipt fields (Elixir toolchain version) or guards against ledger reads from a local checkout"
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",

@@ -9,7 +9,7 @@
 // plus optional { role: 'accent' } - accent parts take the accent color; everything
 // else takes the base color. Mono renders collapse both to one color.
 //
-// Hard constraints (locked, .planning/research/b1.0-brand-audit.md SS8):
+// Hard constraints (locked by the brand audit):
 //   - no background/container shapes of any kind
 //   - logotype tight to the mark
 //   - no subtitle in these lockups

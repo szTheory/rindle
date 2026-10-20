@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Faithful local repro of the adoption-demo Playwright E2E lane.
 #
-# "Faithful" == SAME pinned browser image both sides (D-10): this script and the
+# "Faithful" == SAME pinned browser image both sides: this script and the
 # ci.yml `adoption-demo-e2e` lane both run the browser inside
 # `mcr.microsoft.com/playwright:v1.57.0-noble`. The container tag IS the font +
-# browser pin (D-11), so there is no separate system-font install — the image
+# browser pin, so there is no separate system-font install — the image
 # carries the exact Chromium + fonts CI uses. Kills the "green in CI, red
 # locally" class by construction.
 #
-# Networking (RESEARCH Open-Q1): the Phoenix demo server runs on the HOST; the
+# Networking: the Phoenix demo server runs on the HOST; the
 # browser-in-container reaches it over the host network. The demo's
 # playwright.config.js fixes baseURL to `http://localhost:<port>`, so the
 # container shares the host network namespace (`--network=host`) — container
@@ -65,10 +65,10 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 
-# --- Browser-in-container against the SAME pinned image as CI (D-10) ----------
+# --- Browser-in-container against the SAME pinned image as CI ----------------
 # --network=host: container localhost == host Phoenix server (no baseURL edit).
 # The demo's reuse-server knob keeps Playwright from spawning its own webServer.
-# ADOPTION_DEMO_E2E_SPECS (GATE-01): optional space-separated list of spec files to
+# ADOPTION_DEMO_E2E_SPECS: optional space-separated list of spec files to
 # scope the run. UNSET -> expands to empty -> byte-equivalent to the full-suite
 # invocation (`npx playwright test --config=playwright.config.js` with no positional
 # spec). SET (e.g. "e2e/smoke.spec.js e2e/admin-console.spec.js") -> Playwright runs

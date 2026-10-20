@@ -158,12 +158,12 @@ const tableMarkup = tableRows.map(([id, summary, state, surface, action]) => `
               </tr>`).join('');
 
 // ---------------------------------------------------------------------------
-// Level-2 meta-component cohesion panels (UPLIFT-02 / D-97-06).
+// Level-2 meta-component cohesion panels.
 // Each unit renders as ONE labeled <section> whose root carries
 // data-rindle-admin-meta="{slug}", composed ONLY of Level-1 rindle-admin-*
 // parts that each still carry their data-rindle-admin-component marker
 // (dual-marker convention). All fixture copy is in the terse operator/SRE
-// voice from 97-UI-SPEC §"Copywriting Contract". No client JS toggling.
+// voice the admin console uses. No client JS toggling.
 // ---------------------------------------------------------------------------
 
 const metaToolbar = `
@@ -814,7 +814,7 @@ const requiredSnippets = [
   'data-rindle-admin-component="form-controls" data-rindle-admin-state="focus-visible"',
   'data-rindle-admin-error-state',
   'Rindle Admin could not load this surface. Retry load or check Runtime/Doctor for the missing source artifact.',
-  // Level-2 meta-component cohesion markers (D-97-06) + data-table static state.
+  // Level-2 meta-component cohesion markers + data-table static state.
   ...META_COMPONENTS.map((slug) => `data-rindle-admin-meta="${slug}"`),
   ...metaSectionIds.map((id) => `id="${id}"`),
   'aria-sort=',

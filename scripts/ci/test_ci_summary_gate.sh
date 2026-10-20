@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# test_ci_summary_gate.sh — unit tests for the CI Summary aggregate gate (GATE-01).
+# test_ci_summary_gate.sh — unit tests for the CI Summary aggregate gate.
 #
 # WHY THIS EXISTS
 # ---------------
-# The skip-as-pass semantics of `ci-summary` (D-05) close the fork-PR "pending forever"
+# The skip-as-pass semantics of `ci-summary` close the fork-PR "pending forever"
 # trap: the repo-gated jobs (cohort-demo-smoke, adoption-demo-e2e, brandbook-tokens)
 # skip on forks, and treating a skip as a pass is what lets `CI Summary` report success
-# instead of hanging. Previously that behavior was "logic-provable but observable only
-# via a real fork PR" — a manual UAT item. This test pins the regressable part (OUR
+# instead of hanging. Without this test that behavior would be observable only via a
+# real fork PR. This test pins the regressable part (OUR
 # gate logic in eval_ci_summary.sh) so it is merge-blocking in CI. It does NOT (and
 # cannot) test GitHub's own `if: github.repository == ...` fork evaluation — that is the
 # platform's behavior, exercised by the real `needs:` graph, not by this script.

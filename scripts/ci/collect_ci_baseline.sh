@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# collect_ci_baseline.sh — capture a reproducible CI timing baseline (OBS-03).
+# collect_ci_baseline.sh — capture a reproducible CI timing baseline.
 #
 # WHY THIS EXISTS
 # ---------------
-# Phase 103 is the [BASELINE FIRST] gate of the v1.20 CI/CD-performance milestone:
-# before any topology change (cache hygiene, aggregate required check, lane split),
-# we must record what the pipeline costs *today*, reproducibly, so Phase 107's
+# Before any CI topology change (cache hygiene, aggregate required check, lane split),
+# record what the pipeline costs *today*, reproducibly, so a later
 # "regression vs baseline" check has a real reference instead of an eyeballed
 # memory of a few reruns.
 #
-# This is a maintainer-LOCAL collector (D-08), NOT a new CI job — it adds zero new
-# CI surface and no new required check (threat T-103-05). It is READ-ONLY: it only
+# This is a maintainer-LOCAL collector, NOT a new CI job — it adds zero new
+# CI surface and no new required check. It is READ-ONLY: it only
 # GETs runs/jobs from the GitHub Actions API; it never mutates branch protection or
 # any CI state.
 #
@@ -20,8 +19,8 @@
 #   * a per-job  avg(s) + p95(s)  duration table (from each job's
 #     started_at/completed_at), and
 #   * a rerun rate, DERIVED from `run_attempt` / `previous_attempt_url`
-#     (GitHub exposes NO direct `rerun_count` field — see 103-RESEARCH.md Pitfall 2).
-# The Markdown table is printed to stdout; Plan 04 captures it into 103-BASELINE.md.
+#     (GitHub exposes NO direct `rerun_count` field).
+# The Markdown table is printed to stdout for the maintainer to record.
 #
 # Auth: uses the maintainer's authed `gh` session. Reading runs/jobs needs no admin
 # scope (only branch-protection reads do — see check_required_checks.sh).
@@ -41,7 +40,7 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-# Parameterized window (D-08): override via env for PR-realism vs main-stability runs.
+# Parameterized window: override via env for PR-realism vs main-stability runs.
 REPO="${GITHUB_REPOSITORY:-szTheory/rindle}"
 BRANCH="${BASELINE_BRANCH:-main}"
 N="${BASELINE_RUNS:-50}"
@@ -49,10 +48,10 @@ N="${BASELINE_RUNS:-50}"
 echo "[collect-ci-baseline] window: last ${N} ci.yml runs on ${REPO}@${BRANCH}" >&2
 
 # 1. Recent runs. The listing returns the latest attempt per run; run_attempt /
-#    previous_attempt_url reveal which were reruns (Pitfall 2).
+#    previous_attempt_url reveal which were reruns (there is no rerun_count).
 #    NOTE: `--paginate` with an inline `--jq` applies the filter (and the `.[:N]`
 #    slice) PER PAGE, emitting one JSON array per page — so `length` / the slice
-#    are wrong once results span >1 page (Pitfall 4). Use `--paginate --slurp` to
+#    are wrong once results span >1 page. Use `--paginate --slurp` to
 #    get a single array-of-pages, then flatten + slice exactly once in a separate
 #    jq pass.
 runs_json="$(gh api --paginate --slurp \

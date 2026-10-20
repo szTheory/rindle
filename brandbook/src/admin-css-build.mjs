@@ -387,7 +387,7 @@ css += `
 
 /* Text-like controls only: the box treatment (full-width, padded, bordered,
    surface-filled) is wrong for native checkbox/radio toggles, which are excluded
-   here and handled by the dedicated rule below (WR-01). */
+   here and handled by the dedicated rule below. */
 [data-rindle-admin-input]:where(:not([type="checkbox"]):not([type="radio"])) {
   min-height: var(--rindle-admin-target-min);
   width: 100%;
@@ -661,7 +661,7 @@ textarea[data-rindle-admin-input] {
 }
 
 /* Fluid display headings: clamp() interpolates between bp-sm and the fixed max
-   so large viewports stay byte-identical to the existing fixed scale (D-94-09). */
+   so large viewports stay byte-identical to the fixed type scale. */
 .rindle-admin-heading--hero {
   font-family: var(--rindle-font-display);
   font-size: var(--rindle-text-hero-fluid);
@@ -684,7 +684,7 @@ textarea[data-rindle-admin-input] {
 }
 
 /* ============================================================================
-   Level-2 meta-components (UPLIFT-02 / D-97-01..03)
+   Level-2 meta-components
    Composed units built ONLY from Level-1 rindle-admin primitives + tokens.
    No new color literal, no off-grid spacing: every gap/margin/padding resolves
    to a --rindle-space-* token. Data-table sort/sticky/bulk-select state is driven
@@ -940,7 +940,7 @@ textarea[data-rindle-admin-input] {
 }
 
 /* ============================================================================
-   Phase 98 — Level-3 page composition + motion + responsive + a11y (D-98-12..15)
+   Level-3 page composition + motion + responsive + a11y
    ALL of the following is generated CSS authored ONLY here. Mobile-first: the
    single-column scaffold is the base; the two-pane / sidebar layouts are layered
    in NEVER-CONFLATED min-width blocks below (760 = shell sidebar ONLY,
@@ -969,7 +969,7 @@ textarea[data-rindle-admin-input] {
 }
 
 /* Two-pane panes container: single column by default (mobile-first); flips to a
-   two-track grid ONLY inside @media (min-width:1024px) below (D-98-15). */
+   two-track grid ONLY inside @media (min-width:1024px) below. */
 .rindle-admin-page__panes {
   display: grid;
   gap: var(--rindle-space-5);
@@ -997,7 +997,7 @@ textarea[data-rindle-admin-input] {
 }
 
 /* §A hierarchy (token-only, assertable): 1st-order :summary is the raised
-   triage surface — the FIRST consumer of --rindle-shadow-card (D-98-13 guard-1):
+   triage surface — the FIRST consumer of --rindle-shadow-card:
    surface-raised + radius-panel (20) + shadow-card. */
 .rindle-admin-page__summary {
   background: var(--rindle-surface-raised);
@@ -1055,7 +1055,7 @@ textarea[data-rindle-admin-input] {
   top: var(--rindle-space-3);
 }
 
-/* §D modal overlay (WR-01): the full-viewport positioning + centering host for
+/* §D modal overlay: the full-viewport positioning + centering host for
    modal/1 and confirm_dialog/1. The dialog card (.rindle-admin-confirm-dialog) is
    centered inside it; the dimmed scrim is .rindle-admin-overlay__backdrop. Fixed +
    high z-index so it floats above the (inerted) shell. Only opacity animates
@@ -1094,7 +1094,7 @@ textarea[data-rindle-admin-input] {
   z-index: 1;
 }
 
-/* §D general visually-hidden utility (D-98-08). The migrated data tables each carry a
+/* §D general visually-hidden utility. The data tables each carry a
    <caption class="rindle-admin-visually-hidden"> naming the surface for AT users; the
    caption must be announced but never painted at >=760 where the real <table> returns.
    Same clip/clip-path recipe as the stacked <thead> hide below — authored once here so
@@ -1163,17 +1163,17 @@ textarea[data-rindle-admin-input] {
 }
 
 /* ----------------------------------------------------------------------------
-   §C mobile-first responsive (D-98-14). Base (0-479) is the single-column / stacked
+   §C mobile-first responsive. Base (0-479) is the single-column / stacked
    layout authored OUTSIDE any media query (the .rindle-admin-* rules above + the
    stacked-table base below). Each min-width stop layers ONE concern; the 760 and
-   1024 blocks are NEVER conflated (D-98-15). Breakpoint pixels are literals because
+   1024 blocks are NEVER conflated. Breakpoint pixels are literals because
    CSS media conditions cannot read custom properties; they mirror tokens.json
    breakpoint sm480/md760/lg1024/xl1280.
    ---------------------------------------------------------------------------- */
 
 /* base/<760 STACKED data tables: gov.uk "label: value" cards, no markup fork, no
-   priority-column hiding. The <td data-label> markup rides the P2b surface
-   migration (D-98-08); this rule consumes it. EXCEPTION: .rindle-admin-table--sticky
+   priority-column hiding. Each data-table surface emits <td data-label>
+   markup; this rule consumes it. EXCEPTION: .rindle-admin-table--sticky
    is a wrapper modifier, so wrapped tables keep horizontal scroll for wide numeric
    matrices at all widths. */
 .rindle-admin-table:not(.rindle-admin-table--sticky .rindle-admin-table),
@@ -1235,7 +1235,7 @@ textarea[data-rindle-admin-input] {
   }
 }
 
-/* 760 = shell sidebar switch ONLY (D-98-15). The shell becomes the two-track
+/* 760 = shell sidebar switch ONLY. The shell becomes the two-track
    sidebar grid here; data tables revert to real <table> rows. */
 @media (min-width: 760px) {
   .rindle-admin-shell {
@@ -1315,7 +1315,7 @@ textarea[data-rindle-admin-input] {
   }
 }
 
-/* 1024 = :aside two-pane ONLY (D-98-15). The scaffold :work + :aside region
+/* 1024 = :aside two-pane ONLY. The scaffold :work + :aside region
    becomes a two-track grid here and ONLY here; single track below 1024. */
 @media (min-width: 1024px) {
   .rindle-admin-page--two-pane .rindle-admin-page__panes {
@@ -1365,7 +1365,7 @@ const requiredSelectors = [
   '[data-rindle-admin-input]',
   '[data-rindle-admin-confirm-input]',
   '.rindle-admin-confirm-dialog',
-  // WR-01: the overlay primitive's positioning + backdrop. modal/1 and
+  // The overlay primitive's positioning + backdrop. modal/1 and
   // confirm_dialog/1 emit these classes; without these rules dialogs render
   // inline with no fixed positioning, no scrim, and no z-index. Fail closed.
   '.rindle-admin-overlay',
@@ -1395,7 +1395,7 @@ const requiredSelectors = [
   '.rindle-admin-nav__item[aria-current="page"]',
   '.rindle-admin-theme-picker__option[aria-pressed="true"]',
   '[data-rindle-admin-submit][aria-busy="true"]',
-  // Phase 98 Level-3 scaffold + a11y structural selectors (D-98-13 guard-2).
+  // Level-3 scaffold + a11y structural selectors.
   '.rindle-admin-page',
   '.rindle-admin-page__summary',
   '.rindle-admin-page__work',
@@ -1407,9 +1407,9 @@ const requiredSelectors = [
   'content: attr(data-label)',
   '.rindle-admin-table--sticky .rindle-admin-table',
 ];
-// Level-2 meta-component parity (UPLIFT-02). Every composed unit must emit a root
+// Level-2 meta-component parity. Every composed unit must emit a root
 // selector + the static (no-JS) sort/sticky/bulk-select state hooks. Absentees are
-// pushed into `missing` below so the build fails closed (D-97-03/D-97-08).
+// pushed into `missing` below so the build fails closed.
 const requiredMetaSelectors = [
   '.rindle-admin-toolbar',
   '.rindle-admin-data-table',
@@ -1436,14 +1436,14 @@ const requiredAutoDarkSelectors = [
 const requiredMotionUses = MOTION_TOKENS.map((token) => `var(--rindle-motion-${token})`);
 const requiredTokenUses = [
   'var(--rindle-surface)', 'var(--rindle-text)', 'var(--rindle-focus-width)', 'var(--rindle-focus-offset)', 'var(--rindle-focus-ring)',
-  // new categories (D-94-08): emitted-AND-used or the self-check hard-fails
+  // elevation, shadow, fluid type and fluid space: emitted-AND-used or the self-check hard-fails
   'var(--rindle-elevation-1)', 'var(--rindle-elevation-2)', 'var(--rindle-elevation-3)',
   'var(--rindle-shadow-raised)', 'var(--rindle-shadow-overlay)',
   'var(--rindle-text-hero-fluid)', 'var(--rindle-text-h1-fluid)', 'var(--rindle-text-h2-fluid)', 'var(--rindle-text-h3-fluid)',
   'var(--rindle-space-fluid-gutter)', 'var(--rindle-space-fluid-section)',
   'var(--rindle-bp-xl)',
-  // Phase 98: the :summary 1st-order surface is the first consumer of the card
-  // shadow token (D-98-13 guard-1) — emitted-AND-used or the self-check hard-fails.
+  // The :summary 1st-order surface is the first consumer of the card
+  // shadow token — emitted-AND-used or the self-check hard-fails.
   'var(--rindle-shadow-card)',
 ];
 const missing = [];

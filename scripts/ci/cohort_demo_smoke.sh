@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Cold-start smoke for the Cohort Docker-compose demo stack.
 #
-# Phase 91 UAT discharge. The docker-compose boot path
+# The docker-compose boot path
 # (scripts/demo/up.sh -> docker/compose.cohort-demo.yml -> docker/Dockerfile.cohort-demo)
-# is the path that broke twice across phases — a prod-auth-guard compile failure
-# and a stale Elixir pin — and was previously caught only by human UAT. Nothing
-# in CI exercised it: the native e2e lane boots the app directly, never through
-# Compose or the demo image build.
+# can break in ways no other lane sees — for example a prod-auth-guard compile
+# failure or a stale Elixir pin. The native e2e lane boots the app directly, never
+# through Compose or the demo image build, so this script is the automated check
+# for that path.
 #
 # This gate builds the demo image from a clean context, boots the full stack, and
 # proves:
