@@ -365,18 +365,38 @@ load_checkpoint() {
   checkpoint_issue_digest="$(jq -r .issue_digest "${checkpoint_file}")"
 }
 
+# The checkpoint digest covers the issue history as it stood when the checkpoint
+# was written. A later run can mutate (open, comment, close) and then fail before
+# writing its own checkpoint; that content must not invalidate the checkpoint, or
+# the replay chain wedges permanently. So the comparison drops issues and comments
+# whose mutation marker is later than the checkpoint cursor. Those markers are
+# still checked against authenticated verdict events by derive_intent, so a forged
+# or wrong-action marker fails there, and any edit to pre-cursor history still
+# changes the digest.
 validate_checkpoint_issue() {
   [ "${checkpoint_run}" -ne 0 ] || return 0
-  local issues="${workspace}/checkpoint-issues.json" digest
+  local issues="${workspace}/checkpoint-issues.json"
+  local scoped="${workspace}/checkpoint-issues.scoped" digest
   inventory "${issues}"
-  jq -cS . "${issues}" >"${workspace}/checkpoint-issues.canonical"
+  jq --argjson run "${checkpoint_run}" --argjson attempt "${checkpoint_attempt}" '
+    def post_cursor_actions:
+      [scan("nightly-mutation:(open|update|close):([1-9][0-9]{0,19}):([1-9][0-9]{0,9})") |
+        select((.[1] | tonumber) > $run or ((.[1] | tonumber) == $run and (.[2] | tonumber) > $attempt)) | .[0]];
+    def post_cursor: post_cursor_actions | length > 0;
+    # A later close mutation flips the state of an issue that predates the
+    # cursor; project the issue back to the open state it had at the checkpoint.
+    map(select(.body | post_cursor | not) |
+      if any(.comments[].body; post_cursor_actions | index("close")) then .state = "OPEN" else . end |
+      .comments |= map(select(.body | post_cursor | not)))
+  ' "${issues}" >"${scoped}"
+  jq -cS . "${scoped}" >"${workspace}/checkpoint-issues.canonical"
   digest="$(sha256_file "${workspace}/checkpoint-issues.canonical")"
   [ "${digest}" = "${checkpoint_issue_digest}" ] || fail "incident issue history differs from authenticated checkpoint"
   if [ -n "${checkpoint_issue_number}" ]; then
     jq -e --argjson number "${checkpoint_issue_number}" --arg state "${checkpoint_issue_state}" \
-      '[.[] | select(.number == $number and .state == $state)] | length == 1' "${issues}" >/dev/null ||
+      '[.[] | select(.number == $number and .state == $state)] | length == 1' "${scoped}" >/dev/null ||
       fail "checkpoint incident number/state is absent from issue history"
-  elif [ "$(jq length "${issues}")" -ne 0 ]; then
+  elif [ "$(jq length "${scoped}")" -ne 0 ]; then
     fail "checkpoint expected no incident, but issue history is non-empty"
   fi
 }
@@ -470,6 +490,14 @@ derive_intent() {
   open_count="$(jq '[.[] | select(.state == "OPEN")] | length' "${inventory_file}")"
   logical_open=false
   if [ "${checkpoint_run}" -gt 0 ]; then
+    # validate_checkpoint_issue excludes post-cursor content from the checkpoint
+    # digest, so every such marker must name an authenticated replay event.
+    jq -e -R -s --argjson run "${checkpoint_run}" --argjson attempt "${checkpoint_attempt}" \
+      --slurpfile events "${events_file}" '
+        split("\n") | map(select(length > 0) | split(":") | {run:(.[2] | tonumber), attempt:(.[3] | tonumber)}) |
+        map(select(.run > $run or (.run == $run and .attempt > $attempt))) |
+        all(.[]; . as $marker | $events[0] | any(.[]; .run_id == $marker.run and .run_attempt == $marker.attempt))
+      ' "${marker_file}" >/dev/null || fail "post-checkpoint mutation marker has no authenticated verdict event"
     if [ "${checkpoint_issue_state}" = OPEN ]; then logical_open=true; fi
   elif [ "$(jq length "${events_file}")" -gt 0 ]; then
     first_run="$(jq -r '.[0].run_id' "${events_file}")"
