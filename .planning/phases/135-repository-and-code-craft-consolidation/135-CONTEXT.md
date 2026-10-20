@@ -86,5 +86,3 @@
 - The validator landing-record and equivalence rule, and the collector's in-progress-jobs bug (todo 2026-10-16). Not in Phase 135 scope.
 - Rewording public error messages that contain milestone text (see D-135-05).
 - The 13 credo baseline entries whose triggers name a developer-approved phase, and the 9 other mechanical-trigger entries outside the pilot.
-</content>
-</invoke>

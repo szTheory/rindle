@@ -85,7 +85,3 @@ All phase behaviors have automated verification. Merges are authorized actions o
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
-</content>
-</invoke>
-<invoke name="Bash">
-<parameter name="command">cd /Users/jon/projects/rindle/.claude/worktrees/phase134 && G=~/.claude/gsd-core/bin/gsd-tools.cjs; node $G query init.plan-phase 135 >/dev/null 2>&1; F=$(mktemp); node $G query init.plan-phase 135 > $F 2>/dev/null; node -e 'let s=require("fs").readFileSync(process.argv[1],"utf8").trim(); if(s.startsWith("@file:")) s=require("fs").readFileSync(s.slice(6),"utf8"); const o=JSON.parse(s); console.log(JSON.stringify(o.prior_verify_commands.slice(0,13),null,0)); console.log(o.context_path, o.research_path, o.phase_dir)' $F; node $G query agent-skills gsd-planner; node $G query agent-skills gsd-plan-checker; node -e 'const o=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); for(const h of o.activeHooks){ if(h.kind==="contribution"&&h.into==="planner"&&h.capId!=="ai-integration"){console.log("=== "+h.capId); console.log(h.fragment.inline)}}' /private/tmp/claude-501/-Users-jon-projects-rindle/5a0f91f8-9418-407c-a13d-0a39784574d4/scratchpad/planpre.json > /private/tmp/claude-501/-Users-jon-projects-rindle/5a0f91f8-9418-407c-a13d-0a39784574d4/scratchpad/planner-contribs.md; wc -c /private/tmp/claude-501/-Users-jon-projects-rindle/5a0f91f8-9418-407c-a13d-0a39784574d4/scratchpad/planner-contribs.md
