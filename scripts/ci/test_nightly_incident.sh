@@ -436,7 +436,7 @@ two_attempts_case() {
 }
 
 checkpoint_case() {
-  local name="$1" setup="$2" temp output got=0 effects
+  local name="$1" setup="$2" reason="${3:-}" temp output got=0 effects
   temp="$(new_fixture)"
   output="${temp}/output"
   case "${setup}" in
@@ -464,6 +464,42 @@ checkpoint_case() {
         "${temp}/state/issues.json" >"${temp}/state/issues.next"
       mv "${temp}/state/issues.next" "${temp}/state/issues.json"
       ;;
+    pre-cursor-body-edit)
+      seed_checkpoint_issue "${temp}" 102
+      jq '.[0].body += "\nedited after the checkpoint"' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    backdated-marker)
+      seed_checkpoint_issue "${temp}" 102
+      jq '.[0].comments += [{body:"Evidence marker: nightly-mutation:update:101:1"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    post-cursor-unmarked-issue)
+      seed_checkpoint_issue "${temp}" 101
+      jq '. + [{number:89,title:"Nightly CI failure",state:"CLOSED",body:"opened by hand",comments:[]}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    forged-wrong-action)
+      seed_checkpoint_issue "${temp}" 101
+      jq '.[0].state = "CLOSED" | .[0].comments += [{body:"Evidence marker: nightly-mutation:close:102:1"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    forged-unbacked-run)
+      seed_checkpoint_issue "${temp}" 101
+      jq '.[0].comments += [{body:"Evidence marker: nightly-mutation:update:150:1"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+    forged-unbacked-attempt)
+      seed_checkpoint_issue "${temp}" 101
+      jq '.[0].comments += [{body:"Evidence marker: nightly-mutation:update:102:7"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
     short-retention)
       read -r _ created expires <<<"$(python3 -c 'from datetime import datetime, timedelta, timezone; now=datetime.now(timezone.utc); print(int(now.timestamp()), now.isoformat(timespec="seconds").replace("+00:00","Z"), (now+timedelta(days=7)).isoformat(timespec="seconds").replace("+00:00","Z"))')"
       jq --arg created "${created}" --arg expires "${expires}" \
@@ -486,13 +522,85 @@ checkpoint_case() {
       run_manager "${temp}" "${output}" || got=$?
       local attempts=0
       [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
-      if [ "${got}" -ne 0 ] && [ "${attempts}" -eq 0 ]; then
+      if [ "${got}" -ne 0 ] && [ "${attempts}" -eq 0 ] &&
+         { [ -z "${reason}" ] || grep -Fq -- "${reason}" "${output}"; }; then
         record "${name}" true ""
       else
-        record "${name}" false "exit=${got} mutations=${attempts}; $(<"${output}")"
+        record "${name}" false "exit=${got} mutations=${attempts} want='${reason}'; $(<"${output}")"
       fi
       ;;
   esac
+  rm -rf "${temp}"
+}
+
+# A run that mutated the incident and then failed before writing its own
+# checkpoint leaves post-cursor content behind. The next run must replay through
+# it from the older checkpoint instead of wedging on the issue digest.
+checkpoint_post_cursor_case() {
+  local name="$1" setup="$2" temp output got=0 attempts=0 replay_attempts=0 ok=true detail=""
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  case "${setup}" in
+    open)
+      write_event "${temp}/state/events/nightly-incident-verdict-101-1.json" 101 1 green
+      jq -cn '[{number:88,title:"Nightly CI failure",state:"CLOSED",body:"Legacy Nightly failure",comments:[]}]' \
+        >"${temp}/state/issues.json"
+      install_checkpoint "${temp}" 101 1
+      jq '. + [{number:89,title:"Nightly CI failure",state:"OPEN",
+          body:"Nightly incident mutation: open\nEvidence marker: nightly-mutation:open:102:1",comments:[]}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      ;;
+    update)
+      seed_checkpoint_issue "${temp}" 101
+      jq '.[0].comments += [{body:"Nightly incident mutation: update\nEvidence marker: nightly-mutation:update:102:1"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      ;;
+    close)
+      write_event "${temp}/state/events/nightly-incident-verdict-102-1.json" 102 1 green
+      seed_checkpoint_issue "${temp}" 101
+      jq '.[0].state = "CLOSED" | .[0].comments += [{body:"Nightly incident mutation: close\nEvidence marker: nightly-mutation:close:102:1"}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      ;;
+  esac
+  mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+
+  run_manager "${temp}" "${output}" || got=$?
+  [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
+  case "${setup}" in
+    open)
+      [ "$(jq -r '.[] | select(.number == 89) | .state' "${temp}/state/issues.json")" = CLOSED ] &&
+        [ "$(jq -r '[.[] | select(.number == 89) | .comments[].body | select(contains("nightly-mutation:close:103:1"))] | length' "${temp}/state/issues.json")" -eq 1 ] &&
+        [ "${attempts}" -eq 1 ] &&
+        jq -e '.last_run_id == 103 and .issue_number == 89 and .issue_state == "CLOSED"' "${temp}/state/checkpoint-output.json" >/dev/null ||
+        ok=false
+      ;;
+    update)
+      [ "$(jq -r '.[0].state' "${temp}/state/issues.json")" = CLOSED ] && [ "${attempts}" -eq 1 ] &&
+        [ "$(mutation_effects "${temp}")" -eq 3 ] &&
+        jq -e '.last_run_id == 103 and .issue_number == 88 and .issue_state == "CLOSED"' "${temp}/state/checkpoint-output.json" >/dev/null ||
+        ok=false
+      ;;
+    close)
+      [ "${attempts}" -eq 0 ] && [ "$(mutation_effects "${temp}")" -eq 2 ] &&
+        jq -e '.last_run_id == 103 and .issue_number == 88 and .issue_state == "CLOSED"' "${temp}/state/checkpoint-output.json" >/dev/null ||
+        ok=false
+      ;;
+  esac
+  [ "${got}" -eq 0 ] || ok=false
+  [ "${ok}" = true ] || detail="exit=${got} attempts=${attempts}; $(<"${output}")"
+  record "${name}" "${ok}" "${detail}"
+
+  # The older checkpoint is still the only one published; a re-run must converge
+  # against it again without repeating any mutation.
+  rm -f "${temp}/state/artifact_reads" "${temp}/state/issue_reads" "${temp}/state/mutation_attempts"
+  got=0
+  run_manager "${temp}" "${output}" || got=$?
+  [ ! -f "${temp}/state/mutation_attempts" ] || replay_attempts="$(<"${temp}/state/mutation_attempts")"
+  if [ "${got}" -eq 0 ] && [ "${replay_attempts}" -eq 0 ]; then
+    record "${name}: re-run from the same checkpoint is mutation-idempotent" true ""
+  else
+    record "${name}: re-run from the same checkpoint is mutation-idempotent" false "exit=${got} attempts=${replay_attempts}; $(<"${output}")"
+  fi
   rm -rf "${temp}"
 }
 
@@ -569,6 +677,15 @@ checkpoint_case "expired evidence after checkpoint fails before mutation" expire
 checkpoint_case "tampered checkpoint fails before mutation" tampered
 checkpoint_case "concurrent issue-history advancement invalidates checkpoint" concurrent-advance
 checkpoint_case "repository retention cap below 14 days fails before mutation" short-retention
+checkpoint_case "edit to pre-checkpoint issue body still invalidates checkpoint" pre-cursor-body-edit "differs from authenticated checkpoint"
+checkpoint_case "backdated marker at or before the checkpoint cursor still invalidates checkpoint" backdated-marker "differs from authenticated checkpoint"
+checkpoint_case "unmarked issue created after the checkpoint still invalidates checkpoint" post-cursor-unmarked-issue "differs from authenticated checkpoint"
+checkpoint_case "forged post-checkpoint marker with the wrong action fails before mutation" forged-wrong-action "owns the wrong mutation marker"
+checkpoint_case "post-checkpoint marker for a run with no verdict event fails before mutation" forged-unbacked-run "has no authenticated verdict event"
+checkpoint_case "post-checkpoint marker for an attempt with no verdict event fails before mutation" forged-unbacked-attempt "has no authenticated verdict event"
+checkpoint_post_cursor_case "issue opened after the checkpoint by a run that died before checkpointing converges" open
+checkpoint_post_cursor_case "update after the checkpoint by a run that died before checkpointing converges" update
+checkpoint_post_cursor_case "close after the checkpoint by a run that died before checkpointing converges" close
 checkpoint_expiry_boundary_case 3599
 checkpoint_expiry_boundary_case 3601
 
