@@ -73,6 +73,70 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
     assert result["next_trigger"] != ""
   end
 
+  test "runner refuses a dangling report symlink before any Mix invocation" do
+    report = report_path("symlink")
+    target = temporary_path("uncreated-target")
+    log = temporary_path("symlink.log")
+    File.mkdir_p!(Path.dirname(report))
+    File.ln_s!(target, report)
+    on_exit(fn -> File.rm(target) end)
+    assert {_, 64} = run_runner(report, log)
+    refute File.exists?(target)
+    refute File.exists?(log)
+  end
+
+  test "an existing first-red report stays byte-identical on a rejected rerun" do
+    report = report_path("immutable-red")
+    log = temporary_path("immutable-red.log")
+    assert {_, 23} = run_runner(report, log, fail_seed: 17, fail_status: 23)
+    before = File.read!(report)
+    digest = :crypto.hash(:sha256, before)
+    calls = File.read!(log)
+    assert {_, 64} = run_runner(report, log)
+    assert :crypto.hash(:sha256, File.read!(report)) == digest
+    assert File.read!(report) == before
+    assert File.read!(log) == calls
+  end
+
+  test "validator accepts only the complete fixed matrix or an exact first-red prefix" do
+    report = report_path("mutations")
+    log = temporary_path("mutations.log")
+    assert {_, 0} = run_runner(report, log)
+    assert {output, 0} = validate_receipt(report)
+    assert Jason.decode!(output)["status"] == "complete"
+
+    records =
+      report |> File.read!() |> String.split("\n", trim: true) |> Enum.map(&Jason.decode!/1)
+
+    [header, first, second | rest] = records
+
+    corruptions = [
+      [Map.put(header, "kind", "unknown"), first, second | rest],
+      [header, second, first | rest],
+      [header, first, first | rest],
+      [header, Map.put(first, "sha", String.duplicate("0", 40)), second | rest],
+      [header, Map.put(first, "toolchain", "elixir-1.17.3/otp-27.2"), second | rest],
+      [header, Map.put(first, "argv", "mix test"), second | rest],
+      [header, Map.put(first, "iteration", 2), second | rest],
+      [header, Map.put(first, "exit_status", true), second | rest],
+      [header, Map.put(first, "failure_location", "secret"), second | rest],
+      [
+        header,
+        Map.merge(first, %{"exit_status" => 23, "failure_location" => "command_failed"}),
+        second | rest
+      ],
+      [header, Map.merge(first, %{"exit_status" => 23, "failure_location" => "/tmp/secret"})],
+      [header, first],
+      records ++ [List.last(records)]
+    ]
+
+    Enum.each(corruptions, fn mutation ->
+      File.write!(report, Enum.map_join(mutation, "\n", &Jason.encode!/1) <> "\n")
+      assert {invalid, 1} = validate_receipt(report)
+      assert Jason.decode!(invalid)["status"] == "blocked"
+    end)
+  end
+
   defp validate_receipt(report) do
     System.cmd(
       "bash",
