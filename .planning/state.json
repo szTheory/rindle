@@ -16,7 +16,7 @@
     {
       "number": "135",
       "name": "Repository and Code-Craft Consolidation",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "136",
@@ -41,8 +41,8 @@
   ],
   "next": {
     "command": "/gsd-progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 3 of 7 · executing"
+    "label": "Advance to the next step (plan phase 136)",
+    "reason": "Phase 4 of 7 — needs a plan"
   },
-  "updated_at": "2026-10-19T00:53:43.477Z"
+  "updated_at": "2026-10-20T18:35:10.931Z"
 }

@@ -27,11 +27,11 @@ completion credit.
 
 ### Repository and Code Craft
 
-- [ ] **CRAFT-03**: Every tracked, ignored, generated, or candidate artifact has documented authority, consumer, package status, and retain/delete/ignore disposition.
-- [ ] **CRAFT-04**: Planning-era identifiers in live code, tests, scripts, config, and workflows are removed or rewritten unless an allowlisted present-tense policy reason requires them.
-- [ ] **CRAFT-05**: Readability changes originate from the frozen candidate ledger and improve naming, cohesion, ownership, or failure semantics while preserving public and behavioral contracts.
-- [ ] **CRAFT-06**: Mojibake, duplicated prose, obsolete narration, and mechanically proven residue are removed, with an automated regression scan preventing recurrence.
-- [ ] **HYGIENE-03**: Repository hygiene fails honestly on fetch failure, wrong branch, tracked junk, generated drift, incomplete `mix ci`, or post-verification worktree residue.
+- [x] **CRAFT-03**: Every tracked, ignored, generated, or candidate artifact has documented authority, consumer, package status, and retain/delete/ignore disposition.
+- [x] **CRAFT-04**: Planning-era identifiers in live code, tests, scripts, config, and workflows are removed or rewritten unless an allowlisted present-tense policy reason requires them.
+- [x] **CRAFT-05**: Readability changes originate from the frozen candidate ledger and improve naming, cohesion, ownership, or failure semantics while preserving public and behavioral contracts.
+- [x] **CRAFT-06**: Mojibake, duplicated prose, obsolete narration, and mechanically proven residue are removed, with an automated regression scan preventing recurrence.
+- [x] **HYGIENE-03**: Repository hygiene fails honestly on fetch failure, wrong branch, tracked junk, generated drift, incomplete `mix ci`, or post-verification worktree residue.
 
 ### Measured Quality and CI
 
@@ -112,11 +112,11 @@ completion credit.
 | INBOX-02 | Phase 134 | Complete |
 | SEC-09 | Phase 134 | Complete |
 | DEPS-01 | Phase 134 | Complete |
-| CRAFT-03 | Phase 135 | Pending |
-| CRAFT-04 | Phase 135 | Pending |
-| CRAFT-05 | Phase 135 | Pending |
-| CRAFT-06 | Phase 135 | Pending |
-| HYGIENE-03 | Phase 135 | Pending |
+| CRAFT-03 | Phase 135 | Complete |
+| CRAFT-04 | Phase 135 | Complete |
+| CRAFT-05 | Phase 135 | Complete |
+| CRAFT-06 | Phase 135 | Complete |
+| HYGIENE-03 | Phase 135 | Complete |
 | MAINT-04 | Phase 136 | Pending |
 | TYPE-03 | Phase 136 | Pending |
 | COV-06 | Phase 136 | Pending |
