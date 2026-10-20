@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 replacement canonical green; begin Plan09 final collectors on002b8582
-last_updated: "2026-10-20T21:23:44.196328+00:00"
-state_head: fbb66229560f8dbd0651f7b85895fe555a273e69
+stopped_at: Phase136 FINAL canonical green; Plan09 final-subject collectors next
+last_updated: "2026-10-20T22:57:34.315624+00:00"
+state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 210
-  completed_plans: 207
+  total_plans: 211
+  completed_plans: 209
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
@@ -26,6 +26,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-20, authoritative): Eleven of thirteen plans complete. FINAL source4dc73fa91c60ae870c7289a151d9d53460140906 has its single green canonical receipt:1695tests,3doctests,zero failures,5206/6329=82.25628061305103percent. Both exact verifier and source projection pass. Plan09 now recollects FINAL Dialyzer/bootstrap and runs25seed async once. Use136-SUBJECT-FINAL.json and explicitly named *-FINAL.json receipts for coverage/Dialyzer/bootstrap; no source changes. All earlier attempts remain immutable. No live timing, publication or overall requirement credit yet.
+
+Execution update (2026-10-20, authoritative): Plan13 repairs the actual clean-bootstrap300second timeout and missing terminal command record; the old343.89second first-red receipt is committed eb30a02d and remains invalid for credit. Owner/consumer/portable-fixture/full-tree guard suite passed60/60; live Credo passed. Source fix4dc73fa91c60ae870c7289a151d9d53460140906 is now pinned in136-SUBJECT-FINAL.json (tree7914e96ccfe3420a453f81e34066c88912691602). Exactly one canonical FINAL run is ACTIVE process83836, stdout/private/tmp/phase136-canonical-final.log, start/private/tmp/phase136-canonical-final-start. Do not rerun or edit source. After actual exit, write136-COVERAGE-EVIDENCE-FINAL.json using exact stdout/artifact/exit, close Plan13, then Plan09 recollects Dialyzer and bootstrap into *-FINAL.json paths and runs the still-unrun25seed async experiment. Qualification generation must explicitly select FINAL pin/coverage/Dialyzer/bootstrap paths; Plan07 remains blocked until separately authorized exact-SHA PR publication. Source002b8582 coverage and Dialyzer were green but are historical for this new subject. First909318d9 failed canonical evidence also remains untouched. No requirement credit or publication yet.
 
 Execution update (2026-10-20, authoritative): Ten of twelve plans complete. Plan12 replacement canonical on002b85822b4df4ecd48814cd28ba46d1cf7b24f6 exited0:1693tests,3doctests,zero failures;5206/6329=82.25628061305103percent. Local82.2 gate and exact receipt verify pass. Original first-red evidence byte-identical. Begin Plan09 real Dialyzer, async and clean bootstrap using136-SUBJECT-REMEDIATED.json. Source may not change; qualification generation must explicitly select136-COVERAGE-EVIDENCE-REMEDIATED.json. All seven requirements remain Pending until final recomputation; no PR publication.
 

@@ -42,7 +42,7 @@
   "next": {
     "command": "$gsd-execute-phase 136",
     "label": "Execute Phase 136",
-    "reason": "Phase13610/12plans; replacement canonical green on002b8582; Plan09 final collectors next, then Plan07 timing and qualification"
+    "reason": "Phase13611/13plans; FINAL canonical green on4dc73fa9; Plan09 final-subject collectors then Plan07 exact-head timing and qualification"
   },
   "updated_at": "2026-10-20T22:07:12.431395+00:00"
 }
