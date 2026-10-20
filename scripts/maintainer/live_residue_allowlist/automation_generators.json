@@ -140,6 +140,30 @@
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",
+      "class": "phase-ref",
+      "text": "\"api repos/szTheory/rindle/git/ref/heads/phase-133-evidence-aaaaaaaaaaaa\")",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Fixture ref in the receipt-bound Nightly verifier harness, kept byte-unchanged; it reproduces the evidence ref naming recorded in the retained Phase 133 receipts."
+    },
+    {
+      "path": "scripts/ci/test_verify_nightly_run.sh",
+      "class": "phase-ref",
+      "text": "--ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \\",
+      "count": 12,
+      "reason_class": "immutable-receipt",
+      "reason": "Fixture ref in the receipt-bound Nightly verifier harness, kept byte-unchanged; it reproduces the evidence ref naming recorded in the retained Phase 133 receipts."
+    },
+    {
+      "path": "scripts/ci/test_verify_nightly_run.sh",
+      "class": "phase-ref",
+      "text": "ref=phase-133-evidence-aaaaaaaaaaaa",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Fixture ref in the receipt-bound Nightly verifier harness, kept byte-unchanged; it reproduces the evidence ref naming recorded in the retained Phase 133 receipts."
+    },
+    {
+      "path": "scripts/ci/test_verify_nightly_run.sh",
       "class": "planning-path",
       "text": "! grep -Eq -- '--ledger .*/projects/rindle/.planning/' \"${temp}/authority-calls\" &&",
       "count": 1,

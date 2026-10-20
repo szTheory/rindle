@@ -73,6 +73,14 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "Phoenix framework version in the phx.new-generated agent guidelines, not a planning milestone."
+    },
+    {
+      "path": "examples/adoption_demo/e2e/admin-destructive-ux.spec.js",
+      "class": "phase-ref",
+      "text": "// Discharges the phase-90 human-verification item (\"visual styling clearly indicates a",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
     }
   ]
 }

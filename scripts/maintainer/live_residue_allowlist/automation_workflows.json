@@ -316,6 +316,22 @@
     },
     {
       "path": "scripts/maintainer/evidence_census.exs",
+      "class": "phase-ref",
+      "text": "\"phase_133_transitions\" =>",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "scripts/maintainer/evidence_census.exs",
+      "class": "phase-ref",
+      "text": "Enum.sort_by(ledger[\"phase_133_transitions\"] || [], & &1[\"candidate_id\"])",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "scripts/maintainer/evidence_census.exs",
       "class": "planning-path",
       "text": "\".planning/milestones/v1.25-phases/132-measured-closure/132-02-SUMMARY.md\"",
       "count": 1,
@@ -409,6 +425,30 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
+    },
+    {
+      "path": "scripts/maintainer/validate_evidence_census.exs",
+      "class": "phase-ref",
+      "text": "\"phase_133_transitions\" =>",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "scripts/maintainer/validate_evidence_census.exs",
+      "class": "phase-ref",
+      "text": "\"phase_133_transitions\" => transitions",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "scripts/maintainer/validate_evidence_census.exs",
+      "class": "phase-ref",
+      "text": "Enum.sort_by(ledger[\"phase_133_transitions\"] || [], & &1[\"candidate_id\"])",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",

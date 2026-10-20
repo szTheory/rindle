@@ -1,5 +1,46 @@
 {
   "schema": "rindle-live-residue-allowlist-v1",
   "area": "unit_tests_b",
-  "entries": []
+  "entries": [
+    {
+      "path": "test/rindle/ops/runtime_checks_test.exs",
+      "class": "phase-ref",
+      "text": "@tag :phase_119_redaction",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "@phase_34_events [",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "@phase_34_events,",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/streaming/provider/mux/telemetry_test.exs",
+      "class": "phase-ref",
+      "text": "handler_id = \"phase34-telemetry-#{System.unique_integer([:positive])}\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/rindle/test/mux_webhook_fixtures_test.exs",
+      "class": "phase-ref",
+      "text": "@secret \"phase-35-test-secret-aaaa\"",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    }
+  ]
 }

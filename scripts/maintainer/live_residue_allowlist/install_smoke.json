@@ -165,6 +165,14 @@
     {
       "path": "test/install_smoke/evidence_census_test.exs",
       "class": "phase-ref",
+      "text": "\"phase_133_transitions\" => []",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "test/install_smoke/evidence_census_test.exs",
+      "class": "phase-ref",
       "text": "\"reason\" => \"Phase 133 replaced the testing evidence producer\",",
       "count": 1,
       "reason_class": "fixture",
@@ -173,10 +181,34 @@
     {
       "path": "test/install_smoke/evidence_census_test.exs",
       "class": "phase-ref",
+      "text": "Map.put(changed, \"phase_133_transitions\", [",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "test/install_smoke/evidence_census_test.exs",
+      "class": "phase-ref",
       "text": "assert_invalid(fixture, \"changed candidate requires one Phase 133 transition\")",
       "count": 2,
       "reason_class": "immutable-receipt",
       "reason": "Asserts the validate_evidence_census.exs error text for the retained evidence-census receipt's transition records; the validator message is receipt-bound."
+    },
+    {
+      "path": "test/install_smoke/evidence_census_test.exs",
+      "class": "phase-ref",
+      "text": "mutate_json!(fixture.ledger, &Map.put(&1, \"phase_133_transitions\", []))",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
+    },
+    {
+      "path": "test/install_smoke/evidence_census_test.exs",
+      "class": "phase-ref",
+      "text": "|> Map.update!(\"phase_133_transitions\", &Enum.reverse/1)",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Field name of the transition records in the retained Phase 133 evidence-census receipt; validate_evidence_census.exs reads this key from the committed receipt, so a rename changes the receipt format."
     },
     {
       "path": "test/install_smoke/evidence_census_test.exs",
@@ -193,6 +225,166 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": ":phase_120_public_compat",
+      "count": 3,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "@moduletag :phase_120_fast_contract",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "@moduletag :phase_120_isolation_upgrade",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "@moduletag :phase_120_public_compat",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "@moduletag :phase_132_generator_contract",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "@tag :phase_120_compat_contract",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "@tag :phase_120_upgrade_contract",
+      "count": 7,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "GeneratedAppHelper.phase_120_scenario_enabled?(:default) do",
+      "count": 6,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_isolation_upgrade) do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat) do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "Rindle.InstallSmoke.GeneratedApp.Contracts.phase_120_scenario_enabled?(",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "assert GeneratedAppHelper.phase_120_scenario_enabled?(:default, [:minio])",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "assert GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat, [",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "assert GeneratedAppHelper.phase_120_scenario_enabled?(scenario, tags) ==",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "defmodule Rindle.InstallSmoke.GeneratedAppPhase132GeneratorContractTest do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "for scenario <- [:default, :phase_120_public_compat, :phase_120_isolation_upgrade] do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "refute GeneratedAppHelper.phase_120_scenario_enabled?(:default, [",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "refute GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_isolation_upgrade, [",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/generated_app_smoke_test.exs",
+      "class": "phase-ref",
+      "text": "tags = [:minio, :phase_120_public_compat]",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
     },
     {
       "path": "test/install_smoke/install_smoke_preflight_test.exs",
@@ -321,6 +513,70 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Asserted alternative mirrors the version reference in the shipped streaming guide; the assertion literal must match the guide text."
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/contracts.ex",
+      "class": "phase-ref",
+      "text": "def phase_120_scenario_enabled?(scenario, included_tags \\\\ nil)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/contracts.ex",
+      "class": "phase-ref",
+      "text": "def phase_120_scenario_enabled?(scenario, included_tags) when is_list(included_tags) do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/contracts.ex",
+      "class": "phase-ref",
+      "text": "def phase_120_scenario_enabled?(scenario, nil) do",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/contracts.ex",
+      "class": "phase-ref",
+      "text": "phase_120_scenario_enabled?(scenario, included_tags)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/contracts.ex",
+      "class": "phase-ref",
+      "text": "|> Enum.filter(&(&1 in [:phase_120_public_compat, :phase_120_isolation_upgrade]))",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app/profile_helpers.ex",
+      "class": "phase-ref",
+      "text": "const fingerprintValue = `rindle-phase44:${metadata.filename}:${file.length}`",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app_helper.ex",
+      "class": "phase-ref",
+      "text": "def phase_120_scenario_enabled?(scenario, included_tags \\\\ nil),",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
+    },
+    {
+      "path": "test/install_smoke/support/generated_app_helper.ex",
+      "class": "phase-ref",
+      "text": "do: Contracts.phase_120_scenario_enabled?(scenario, included_tags)",
+      "count": 1,
+      "reason_class": "pending-removal",
+      "reason": ""
     }
   ]
 }
