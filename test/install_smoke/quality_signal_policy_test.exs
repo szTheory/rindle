@@ -331,16 +331,29 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
   end
 
   defp valid_topology?(ci, release, authority) do
+    valid_required_identity?(ci, authority) and fork_safe?(ci) and
+      valid_release_topology?(release)
+  end
+
+  defp valid_required_identity?(ci, authority) do
     authority["contexts"] == ["CI Summary"] and
       authority["workflow"] == %{"file" => "ci.yml", "name" => "CI", "job_id" => "ci-summary"} and
-      ci["name"] == "CI" and ci["permissions"] == %{"contents" => "read"} and
-      Map.has_key?(ci["on"], "pull_request") and not Map.has_key?(ci["on"], "pull_request_target") and
+      ci["name"] == "CI" and
       get_in(ci, ["jobs", "ci-summary", "name"]) == "CI Summary" and
-      Enum.count(ci["jobs"], fn {_, job} -> job["name"] == "CI Summary" end) == 1 and
+      Enum.count(ci["jobs"], fn {_, job} -> job["name"] == "CI Summary" end) == 1
+  end
+
+  defp fork_safe?(ci) do
+    ci["permissions"] == %{"contents" => "read"} and
+      Map.has_key?(ci["on"], "pull_request") and not Map.has_key?(ci["on"], "pull_request_target") and
       get_in(ci, ["jobs", "adoption-demo-e2e-smoke", "if"]) == nil and
       Enum.all?(ci["jobs"], fn {_, job} ->
         Enum.all?(Map.get(job, "permissions", %{}), fn {_, permission} -> permission == "read" end)
-      end) and "gate-ci-green" in get_in(release, ["jobs", "publish", "needs"]) and
+      end)
+  end
+
+  defp valid_release_topology?(release) do
+    "gate-ci-green" in get_in(release, ["jobs", "publish", "needs"]) and
       get_in(release, ["jobs", "publish", "if"]) =~ "needs.gate-ci-green.result == 'success'" and
       get_in(release, ["jobs", "gate-ci-green", "permissions"]) == %{
         "actions" => "read",
@@ -399,16 +412,20 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
         get_in(data, ["ci", "jobs", name, "env", "PLAYWRIGHT_IMAGE"]) == @playwright_image
       end) and valid_minio?(data["minio"]) and valid_caches?(data) and
       Enum.all?([data["ci"], data["nightly"]], fn workflow ->
-        Enum.all?(workflow["jobs"], fn {_name, job} ->
-          Enum.all?(Map.get(job, "steps", []), &pinned_action?/1) and
-            Enum.all?(Map.get(job, "services", %{}), fn {_name, service} ->
-              # Explicit exception: isolated disposable Postgres test fixtures
-              # track security patches within the supported major/Alpine family.
-              service["image"] == "postgres:16-alpine" or
-                Regex.match?(~r/@sha256:[a-f0-9]{64}$/, service["image"] || "")
-            end)
-        end)
+        Enum.all?(workflow["jobs"], fn {_name, job} -> pinned_job_inputs?(job) end)
       end)
+  end
+
+  defp pinned_job_inputs?(job) do
+    Enum.all?(Map.get(job, "steps", []), &pinned_action?/1) and
+      Enum.all?(Map.get(job, "services", %{}), fn {_name, service} -> pinned_service?(service) end)
+  end
+
+  defp pinned_service?(service) do
+    # Explicit exception: isolated disposable Postgres test fixtures track
+    # security patches within the supported major/Alpine family.
+    service["image"] == "postgres:16-alpine" or
+      Regex.match?(~r/@sha256:[a-f0-9]{64}$/, service["image"] || "")
   end
 
   defp valid_timeouts?(workflow, limits) do
