@@ -113,7 +113,7 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 1
 fi
 
-# Guard against GitHub's pending-forever trap (D-12). GitHub never verifies that a
+# Guard against GitHub's pending-forever trap. GitHub never verifies that a
 # required status-check context name was ever produced: if we make a context (e.g.
 # "CI Summary") required BEFORE a check-run with that exact name has posted on BRANCH,
 # every subsequent PR hangs forever ("Expected — Waiting for status to be reported").
@@ -136,7 +136,7 @@ require_contexts_exist() {
       --jq '.[].sha' 2>/dev/null)" || [ -z "${shas}" ]; then
     echo "ERROR: could not list recent commits on ${REPO}@${BRANCH} to verify required" >&2
     echo "       contexts before applying (token needs Contents: read)." >&2
-    echo "       Refusing to apply to avoid the pending-forever trap (D-12)." >&2
+    echo "       Refusing to apply to avoid the pending-forever trap." >&2
     echo "       Re-run with --force only if the contexts already report." >&2
     return 1
   fi
@@ -150,7 +150,7 @@ require_contexts_exist() {
           --jq '.check_runs[].name' 2>/dev/null)"; then
         echo "ERROR: could not read check-runs on ${REPO}@${sha} to verify required" >&2
         echo "       contexts before applying (token needs Checks: read)." >&2
-        echo "       Refusing to apply to avoid the pending-forever trap (D-12)." >&2
+        echo "       Refusing to apply to avoid the pending-forever trap." >&2
         echo "       Re-run with --force only if the contexts already report." >&2
         return 1
       fi
@@ -162,7 +162,7 @@ require_contexts_exist() {
     if [ -z "${found}" ]; then
       echo "ERROR: required context '${ctx}' has not posted a check-run on any of the" >&2
       echo "       last ${GUARD_LOOKBACK} commits of ${REPO}@${BRANCH}. Requiring it now would" >&2
-      echo "       hang every PR forever (GitHub does not validate required-context names — D-12)." >&2
+      echo "       hang every PR forever (GitHub does not validate required-context names)." >&2
       echo "       Let CI run on ${BRANCH} once, then re-run. Use --force to override." >&2
       return 1
     fi

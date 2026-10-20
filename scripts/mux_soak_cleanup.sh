@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Belt-and-suspenders cleanup for the `mux-soak` CI lane (Phase 36 D-22 layer 3).
+# Belt-and-suspenders cleanup for the `mux-soak` CI lane (cleanup layer 3).
 #
-# Mux's free tier caps stored on-demand assets at 10 (external research Topic 2),
+# Mux's free tier caps stored on-demand assets at 10,
 # so the soak lane MUST delete the assets it creates. There are three cleanup
 # layers:
 #   1. Elixir `try/after` inside `lifecycle_test_source(_, :mux)` — runs on
@@ -14,12 +14,12 @@
 #      `provider_asset_id` to last-4 chars (security invariant 14) via
 #      `Rindle.Domain.MediaProviderAsset.redact_id/1`.
 #
-# Phase 36 CR-01: the producer side (`Rindle.Workers.MuxIngestVariant`)
+# The producer side (`Rindle.Workers.MuxIngestVariant`)
 # stamps `passthrough: "rindle_soak"` on every create-asset request when
 # the `RINDLE_MUX_PASSTHROUGH_TAG` env var is set in the soak lane. The
 # filter below MUST stay in lock-step with that producer tag — the
 # regression test
-# `test/rindle/streaming/provider/mux/mux_test.exs#"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)"`
+# `test/rindle/streaming/provider/mux/mux_test.exs#"create_asset/3 forwards :passthrough to the SDK request body (soak cleanup contract)"`
 # pins the contract.
 #
 # Exits 0 (no-op) when `RINDLE_MUX_TOKEN_ID` or `RINDLE_MUX_TOKEN_SECRET`

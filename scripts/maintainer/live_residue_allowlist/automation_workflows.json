@@ -131,30 +131,6 @@
       "reason": "The release workflow updates the maintained release-train ledger."
     },
     {
-      "path": "docker/compose.cohort-demo.yml",
-      "class": "narration",
-      "text": "# Upstream MinIO no longer publishes container images; this digest-pinned",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "docker/dx-template/compose.__app__.yml",
-      "class": "narration",
-      "text": "# Upstream MinIO no longer publishes container images; this digest-pinned",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/ensure_minio.sh",
-      "class": "narration",
-      "text": "# Upstream MinIO no longer publishes container images or download-site",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "scripts/gsd_cleanup.sh",
       "class": "planning-path",
       "text": "echo ' - Milestone is complete. Run `$gsd-cleanup` to archive completed milestone phase directories out of .planning/phases/.'",
@@ -279,16 +255,16 @@
       "class": "planning-path",
       "text": "echo \"usage: $0 --validate | --report .planning/evidence/async-isolation/<new-report>.jsonl\" >&2",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Usage text naming the maintained async-isolation evidence directory this runner writes and validates (documented in RUNNING.md)."
     },
     {
       "path": "scripts/maintainer/async_isolation_evidence.sh",
       "class": "planning-path",
       "text": "evidence_dir=\"${RINDLE_ASYNC_EVIDENCE_DIR:-${repo_root}/.planning/evidence/async-isolation}\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Default location of the maintained async-isolation evidence reports; overridable with RINDLE_ASYNC_EVIDENCE_DIR."
     },
     {
       "path": "scripts/maintainer/automation_first_contract.sh",
@@ -311,80 +287,16 @@
       "class": "planning-path",
       "text": "CHANGELOG.md|mix.exs|test/*|.planning/*|.github/*)",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "decision-id",
-      "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "narration",
-      "text": "# Terminal lookups for ledger entries that are no longer open (--include N).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "phase-ref",
-      "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "requirement-id",
-      "text": "# --- advisories (SEC-09 input) ---------------------------------------------",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/collect_inbox.sh",
-      "class": "requirement-id",
-      "text": "# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/dep_landing_evidence.sh",
-      "class": "decision-id",
-      "text": "# (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/dep_landing_evidence.sh",
-      "class": "phase-ref",
-      "text": "# (Phase 134, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Exclusion pattern: maintainer planning files are outside the adopter-docs link check."
     },
     {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN_LITERAL=\"not-applicable: twin not built (Phase 137)\"",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/dep_landing_evidence.sh",
-      "class": "requirement-id",
-      "text": "# dep_landing_evidence.sh - DEPS-01 per-landing attribution and post-merge gate evidence",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Exact twin-gate literal recorded in the inbox ledger and asserted by scripts/ci/test_dep_landing_evidence.sh and test_validate_inbox_ledger.sh; the validators must emit and accept the same bytes."
     },
     {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
@@ -417,14 +329,6 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "scripts/maintainer/refactor_contract.sh",
-      "class": "requirement-id",
-      "text": "# SAFE-01: behavior-preservation contracts required before maintenance refactors.",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/maintainer/repo_hygiene_check.sh",
@@ -511,32 +415,32 @@
       "class": "phase-ref",
       "text": "do: {:error, \"candidate baseline and Phase 133 transitions are required\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
       "class": "phase-ref",
       "text": "{:error, \"Phase 133 transition record is incomplete or inconsistent\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
       "class": "phase-ref",
       "text": "{:error, \"Phase 133 transition records are malformed\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
       "class": "phase-ref",
       "text": "{:error, \"changed candidate requires one Phase 133 transition\"}",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Validator error text naming the Phase 133 transition records of the retained evidence-census receipt; test/install_smoke/evidence_census_test.exs asserts these messages."
     },
     {
       "path": "scripts/maintainer/validate_evidence_census.exs",
@@ -553,126 +457,30 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "scripts/maintainer/validate_inbox_ledger.sh",
-      "class": "decision-id",
-      "text": "# (Phase 134, D-134-04, D-134-06, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/validate_inbox_ledger.sh",
-      "class": "phase-ref",
-      "text": "# (Phase 134, D-134-04, D-134-06, D-134-07).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",
       "class": "phase-ref",
       "text": "TWIN_LITERAL='not-applicable: twin not built (Phase 137)'",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "contract",
+      "reason": "Exact twin-gate literal recorded in the inbox ledger and asserted by scripts/ci/test_dep_landing_evidence.sh and test_validate_inbox_ledger.sh; the validators must emit and accept the same bytes."
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",
       "class": "planning-path",
       "text": "# Checks .planning/INBOX-LEDGER.json (schema rindle-inbox-ledger-v1) either",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/maintainer/validate_inbox_ledger.sh",
-      "class": "requirement-id",
-      "text": "# validate_inbox_ledger.sh - INBOX-02 / SEC-09 / DEPS-01 ledger validator",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Names the maintained inbox ledger this validator reads; CI passes the same path to --ledger."
     },
     {
       "path": "scripts/maintainer/validate_live_truth.exs",
       "class": "planning-path",
       "text": "archived_prefix: \".planning/milestones/\",",
       "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "decision-id",
-      "text": "# Belt-and-suspenders cleanup for the `mux-soak` CI lane (Phase 36 D-22 layer 3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "phase-ref",
-      "text": "# Belt-and-suspenders cleanup for the `mux-soak` CI lane (Phase 36 D-22 layer 3).",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "phase-ref",
-      "text": "# Phase 36 CR-01: the producer side (`Rindle.Workers.MuxIngestVariant`)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "phase-ref",
-      "text": "# `test/rindle/streaming/provider/mux/mux_test.exs#\"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)\"`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "spec-ref",
-      "text": "# Phase 36 CR-01: the producer side (`Rindle.Workers.MuxIngestVariant`)",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/mux_soak_cleanup.sh",
-      "class": "spec-ref",
-      "text": "# `test/rindle/streaming/provider/mux/mux_test.exs#\"create_asset/3 forwards :passthrough to the SDK request body (Phase 36 CR-01 cleanup contract)\"`",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "# Guard against GitHub's pending-forever trap (D-12). GitHub never verifies that a",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "echo \" Refusing to apply to avoid the pending-forever trap (D-12).\" >&2",
-      "count": 2,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "scripts/setup_branch_protection.sh",
-      "class": "decision-id",
-      "text": "echo \" hang every PR forever (GitHub does not validate required-context names — D-12).\" >&2",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
+      "reason_class": "policy",
+      "reason": "Historical-boundary prefix: the live-truth validator treats paths under the archived milestones directory as history, not live claims."
     }
   ]
 }

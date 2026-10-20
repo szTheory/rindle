@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# collect_inbox.sh - INBOX-01 read-only inventory collector (Phase 134, D-134-03).
+# collect_inbox.sh - read-only maintainer inbox inventory collector.
 #
 # Emits ONE timestamped JSON inventory (schema rindle-inbox-inventory-v1) of the
 # open issues, open PRs, advisory sources and branch protection of a GitHub repo.
@@ -201,7 +201,7 @@ for n in ${PR_NUMBERS}; do
   gh_get "repos/${REPO}/commits/${head_sha}/check-runs?check_name=CI%20Summary&per_page=100" \
     >"${WORK}/pr.checks.json" || die "cannot read check-runs of PR #${n}"
 
-  # Pitfall 5: a cancelled earlier run leaves a failed CI Summary beside the later
+  # A cancelled earlier run leaves a failed CI Summary beside the later
   # success, and filter=latest does not de-duplicate. Take the greatest completed_at.
   jq -S -n \
     --slurpfile d "${WORK}/pr.json" \
@@ -241,7 +241,7 @@ done
 jq -S -s '{prs: (sort_by(.number))}' "${WORK}/prs.jsonl" >"${WORK}/sec-prs.json" \
   || die "cannot assemble PR list"
 
-# Terminal lookups for ledger entries that are no longer open (--include N).
+# Terminal lookups for ledger entries that are already closed (--include N).
 : >"${WORK}/terminal.jsonl"
 for n in ${INCLUDES}; do
   gh_get "repos/${REPO}/issues/${n}" >"${WORK}/term.issue.json" || die "cannot read #${n}"
@@ -306,10 +306,10 @@ jq -S -n --slurpfile r "${WORK}/main.runs.json" --slurpfile j "${WORK}/main.jobs
                 failed_jobs: [ $j[0].jobs[] | select(.conclusion != "success" and .conclusion != "skipped") | .name ]}}' \
   >"${WORK}/sec-main-ci.json" || die "cannot assemble main CI baseline"
 
-# --- advisories (SEC-09 input) ---------------------------------------------
+# --- advisories (security advisory input) ---------------------------------
 # Every source is an explicit record. A disabled or unreadable source is never a
-# zero count, and an unparseable audit aborts the whole collection (Pitfall 6:
-# hex.audit exits 1 for findings AND for operational errors).
+# zero count, and an unparseable audit aborts the whole collection
+# (hex.audit exits 1 for findings AND for operational errors).
 
 ESC="$(printf '\033')"
 
