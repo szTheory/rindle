@@ -1,50 +1,21 @@
 ---
 phase: 135-repository-and-code-craft-consolidation
-verified: 2026-10-20T16:45:00Z
-status: gaps_found
-score: 3/4 must-haves verified
-covered_files: [".github/workflows/ci.yml", ".planning/phases/135-repository-and-code-craft-consolidation/135-01-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-01-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-02-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-02-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-03-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-03-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-04-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-04-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-05-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-05-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-06-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-06-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-07-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-07-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-08-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-08-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-09-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-09-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-10-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-10-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-11-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-11-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-12-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-12-SUMMARY.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-13-PLAN.md", ".planning/phases/135-repository-and-code-craft-consolidation/135-13-SUMMARY.md", "lib/rindle/ops/lifecycle_repair.ex", "lib/rindle/ops/runtime_checks.ex", "lib/rindle/ops/runtime_checks/core_checks.ex", "lib/rindle/ops/sweep_orphaned_temp_files.ex", "lib/rindle/upload/tus_protocol.ex", "scripts/ci/test_craft_contract_tools.sh", "scripts/ci/test_repo_hygiene_check.sh", "scripts/ci/test_validate_artifact_ledger.sh", "scripts/maintainer/artifact_ledger.json", "scripts/maintainer/craft_boundary_check.sh", "scripts/maintainer/credo_complexity_baseline.json", "scripts/maintainer/live_residue_allowlist/automation_generators.json", "scripts/maintainer/live_residue_allowlist/automation_workflows.json", "scripts/maintainer/live_residue_allowlist/examples_docs.json", "scripts/maintainer/live_residue_allowlist/install_smoke.json", "scripts/maintainer/live_residue_allowlist/lib.json", "scripts/maintainer/live_residue_allowlist/unit_tests_a.json", "scripts/maintainer/live_residue_allowlist/unit_tests_b.json", "scripts/maintainer/readability_changes.json", "scripts/maintainer/repo_hygiene_check.sh", "scripts/maintainer/scan_live_residue.exs", "scripts/maintainer/validate_artifact_ledger.sh", "scripts/maintainer/validate_readability_trace.sh", "test/fixtures/public_surface.txt", "test/install_smoke/artifact_package_set_test.exs", "test/install_smoke/live_residue_scan_test.exs", "test/rindle/public_surface_snapshot_test.exs"]
-covered_digest: "v3:sha256:fb0c03df95f14e7d961f42f26048fa3202c14d425455e6af35673e59cafb7b57"
+verified: 2026-10-20T22:30:00Z
+re_verified_at: 35c1c5d0c2642514e632c4450840a0278ac53800
+status: passed
+score: 4/4 must-haves verified
+covered_files: [".github/workflows/ci.yml",".planning/phases/135-repository-and-code-craft-consolidation/135-01-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-01-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-02-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-02-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-03-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-03-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-04-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-04-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-05-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-05-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-06-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-06-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-07-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-07-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-08-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-08-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-09-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-09-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-10-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-10-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-11-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-11-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-12-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-12-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-13-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-13-SUMMARY.md",".planning/phases/135-repository-and-code-craft-consolidation/135-14-PLAN.md",".planning/phases/135-repository-and-code-craft-consolidation/135-14-SUMMARY.md","examples/adoption_demo/e2e/admin-destructive-ux.spec.js","lib/rindle/ops/lifecycle_repair.ex","lib/rindle/ops/runtime_checks.ex","lib/rindle/ops/runtime_checks/core_checks.ex","lib/rindle/ops/sweep_orphaned_temp_files.ex","lib/rindle/upload/tus_protocol.ex","scripts/ci/test_craft_contract_tools.sh","scripts/ci/test_repo_hygiene_check.sh","scripts/ci/test_validate_artifact_ledger.sh","scripts/maintainer/artifact_ledger.json","scripts/maintainer/craft_boundary_check.sh","scripts/maintainer/credo_complexity_baseline.json","scripts/maintainer/live_residue_allowlist/automation_generators.json","scripts/maintainer/live_residue_allowlist/automation_workflows.json","scripts/maintainer/live_residue_allowlist/examples_docs.json","scripts/maintainer/live_residue_allowlist/install_smoke.json","scripts/maintainer/live_residue_allowlist/lib.json","scripts/maintainer/live_residue_allowlist/unit_tests_a.json","scripts/maintainer/live_residue_allowlist/unit_tests_b.json","scripts/maintainer/readability_changes.json","scripts/maintainer/repo_hygiene_check.sh","scripts/maintainer/scan_live_residue.exs","scripts/maintainer/validate_artifact_ledger.sh","scripts/maintainer/validate_readability_trace.sh","test/fixtures/public_surface.txt","test/install_smoke/artifact_package_set_test.exs","test/install_smoke/generated_app_smoke_test.exs","test/install_smoke/live_residue_scan_test.exs","test/install_smoke/support/generated_app/contracts.ex","test/install_smoke/support/generated_app/profile_helpers.ex","test/install_smoke/support/generated_app_helper.ex","test/rindle/admin/live/variants_runtime_actions_test.exs","test/rindle/admin/queries_test.exs","test/rindle/delivery/webhook_plug_test.exs","test/rindle/doctor_test.exs","test/rindle/ops/runtime_checks_test.exs","test/rindle/public_surface_snapshot_test.exs","test/rindle/streaming/provider/mux/telemetry_test.exs","test/rindle/test/mux_webhook_fixtures_test.exs"]
+covered_digest: "v3:sha256:1d543315d75f41ce5da00051819f9c5d17bb46f7a1f56e895c918044673464fb"
 behavior_unverified: 0
 overrides_applied: 0
-gaps:
-  - truth: "Automated scans reject unallowlisted planning-era identifiers in live code, tests, scripts, configuration, and workflows (ROADMAP SC2; CRAFT-04)"
-    status: partial
-    reason: >-
-      The scanner's phase-ref class is the case-sensitive, space/dash-only regex
-      \bPhase[ -]?\d{1,3}\b (scripts/maintainer/scan_live_residue.exs:56). Lowercase
-      snake_case phase identifiers are invisible to it. A git grep over live scope finds
-      53 such lines in 9 files, none allowlisted, and the scanner still reports "ok".
-      CRAFT-04 requires these to be removed, or allowlisted with a present-tense reason.
-      Executor 135-10 saw part of this and logged it in deferred-items.md as "the residue
-      scanner does not flag them". No later phase (136-139) covers it.
-    artifacts:
-      - path: "scripts/maintainer/scan_live_residue.exs"
-        issue: "phase-ref regex misses snake_case/lowercase forms (phase_120_*, phase_119_*, @phase_34_events, phase_133_transitions)"
-      - path: "test/install_smoke/generated_app_smoke_test.exs"
-        issue: "31 lines: @moduletag/@tag :phase_120_*, :phase_132_generator_contract, phase_120_scenario_enabled?/2 calls"
-      - path: "test/install_smoke/support/generated_app/contracts.ex"
-        issue: "phase_120_scenario_enabled?/2 definition and :phase_120_* atoms (5 lines)"
-      - path: "test/install_smoke/support/generated_app_helper.ex"
-        issue: "phase_120_scenario_enabled?/2 delegate (2 lines)"
-      - path: "test/rindle/streaming/provider/mux/telemetry_test.exs"
-        issue: "@phase_34_events module attribute (2 lines)"
-      - path: "test/rindle/doctor_test.exs, test/rindle/admin/queries_test.exs, test/rindle/ops/runtime_checks_test.exs, test/rindle/admin/live/variants_runtime_actions_test.exs"
-        issue: "@tag :phase_119_redaction / :phase_119_refusal (1 line each)"
-      - path: "scripts/maintainer/evidence_census.exs, scripts/maintainer/validate_evidence_census.exs, test/install_smoke/evidence_census_test.exs"
-        issue: "\"phase_133_transitions\" JSON key (9 lines); a key in the immutable Phase 133 census receipt, so this is a candidate for an immutable-receipt allowlist entry rather than a rename"
-    missing:
-      - "Extend phase-ref (or add a class) to detect case-insensitive and underscore forms such as (?i)\\bphase[_ -]?\\d{1,3}\\b, with a planted-fixture test in live_residue_scan_test.exs"
-      - "Rename the phase_120_*/phase_132_*/phase_119_* tags and helper and @phase_34_events to behavior names (no workflow or mix alias references them: git grep -E 'phase_[0-9]+' -- .github mix.exs scripts/ci docker returns nothing)"
-      - "Allowlist the phase_133_transitions receipt key under reason_class immutable-receipt with a present-tense reason, then rerun --regen-baseline and --check --require-no-pending all"
 ---
 
 # Phase 135: Repository and Code-Craft Consolidation Verification Report
 
 **Phase Goal:** The tracked repository and candidate-backed code read as intentional, self-describing work with no mechanically proven residue and no contract drift.
 **Verified:** 2026-10-20T16:45:00Z
-**Status:** gaps_found
-**Re-verification:** No, this is the initial verification.
+**Status:** passed (re-verified after gap closure; initial run below was gaps_found)
+**Re-verification:** Yes. See "Re-verification after plan 135-14" at the end of this report.
 
 All commands below were run by the verifier at HEAD 65395f2c (origin/main) in
 `/Users/jon/projects/rindle/.claude/worktrees/p135-record`. The supported toolchain was
@@ -175,3 +146,20 @@ Note that under D-135-12 an override is a human acceptance, not requirement cred
 
 _Verified: 2026-10-20T16:45:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Re-verification after plan 135-14 (2026-10-20)
+
+The CRAFT-04 gap above was closed by gap-closure plan 135-14 (PR #160, squash 35c1c5d0). Every command below ran against origin/main 35c1c5d0; credit comes from these executable gates only (D-135-12).
+
+| Requirement | Command | Result | Verdict |
+|---|---|---|---|
+| CRAFT-04 | `mix run --no-start scripts/maintainer/scan_live_residue.exs --check --require-no-pending all` (phase-ref now matches snake_case, dashed, uppercase and CamelCase forms; planted positive and negative fixtures in `live_residue_scan_test.exs`) | `ok (626 files, 203 hits, 170 allowlist entries)`, zero pending-removal in all 7 shards | SATISFIED |
+| CRAFT-04 | The initial report's `git grep -n -iE "phase[_-]?[0-9]{2,3}\b\|phase_[0-9]+_" -- lib config scripts .github test examples mix.exs ':!scripts/maintainer/live_residue_allowlist'` | 9 lines, all the `phase_133_transitions` key of the Phase 133 census receipt, each allowlisted `immutable-receipt` (D-135-03: receipt format unchanged) | SATISFIED |
+| All | `collect_phase_gate_evidence.sh` over the 14 Phase 135 squash SHAs (#143, #147–#158, #160) | verdict `pass`: 14/14 main push CI runs and CI Summary jobs concluded success; no fix:/feat: subject; `causes` empty | PASS |
+| HYGIENE-03 | Fresh clone of main at 35c1c5d0: `repo_hygiene_check.sh --release-prep --with-mix-ci` | `18 PASS, 0 WARN, 0 BLOCK`, `Result: safe to start release prep`, exit 0 | SATISFIED |
+
+All five requirements (CRAFT-03, CRAFT-04, CRAFT-05, CRAFT-06, HYGIENE-03) are satisfied by executable gates on main.
+
+**Follow-ups (not gaps):**
+- Nightly follow-up is `pending` in the collector: no scheduled Nightly has run since the incident-checkpoint fix (#159, 11d117c7). The next scheduled run should close incident #131 and write a fresh checkpoint; it must run before the current checkpoint's anchor verdict expires (~2026-10-28).
+- `deferred-items.md` keeps the items logged by plans 135-11, 135-13 and 135-14 (TRUTH-01 `! grep -q` steps do not gate; the D-04 timing heading; `test_compat_115_26.sh` outside CI; the generated-app public-compatibility scenario exits 2 locally on main as well; the `DoctorThresholdsTest` out-of-tree build-path flake).
