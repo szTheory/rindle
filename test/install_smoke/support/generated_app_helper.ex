@@ -37,8 +37,8 @@ defmodule Rindle.InstallSmoke.GeneratedAppHelper do
   def profile_enabled?(profile_mode) when profile_mode in [:image, :video, :tus, :mux, :gcs],
     do: Contracts.profile_enabled?(profile_mode)
 
-  def phase_120_scenario_enabled?(scenario, included_tags \\ nil),
-    do: Contracts.phase_120_scenario_enabled?(scenario, included_tags)
+  def scenario_enabled?(scenario, included_tags \\ nil),
+    do: Contracts.scenario_enabled?(scenario, included_tags)
 
   def prove_package_install!(profile_mode \\ :image)
       when profile_mode in [:image, :video, :tus, :mux, :gcs] do
