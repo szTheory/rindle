@@ -719,7 +719,33 @@ Plans:
   4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
   5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and a fresh exact-ten receipt within the <=480-second median/<=600-second p95 envelope after topology changes.
 
-**Plans**: TBD
+**Plans**: 11 plans
+
+Plans:
+**Wave 1**
+- [ ] 136-01-PLAN.md — Removal-only Credo complexity ledger and behavior proof
+- [ ] 136-02-PLAN.md — Narrow Dialyzer suppressions and supported fresh/restored evidence
+- [ ] 136-04-PLAN.md — Finite issue #42 async experiment and immutable first-red receipt
+- [ ] 136-05-PLAN.md — CI input integrity, bounded jobs and topology semantics
+- [ ] 136-08-PLAN.md — Current-subject timing collector mode with historical-mode regression proof
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 136-06-PLAN.md — Tested clean contributor bootstrap and command map
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 136-10-PLAN.md — Source-bound measurement and phase qualification validators
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 136-03-PLAN.md — Exact coverage validator, threshold and behavioral tests
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 136-11-PLAN.md — Commit pin and sole canonical coverage measurement
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 136-09-PLAN.md — Final-subject Dialyzer, async and bootstrap measurement receipts
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 136-07-PLAN.md — Exact-ten live PR timing and phase qualification
 
 ### Phase 137: Built-Package Twin Foundation
 
@@ -775,7 +801,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
+| 136. Measured Quality and CI Ratchets | 0/11 | Planned; prerequisite accepted | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |

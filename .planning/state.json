@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
+  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
   "phases": [
     {
       "number": "133",
@@ -40,9 +40,9 @@
     }
   ],
   "next": {
-    "command": "/gsd-progress --next",
-    "label": "Advance to the next step (plan phase 136)",
-    "reason": "Phase 4 of 7 — needs a plan"
+    "command": "$gsd-execute-phase 136",
+    "label": "Execute Phase 136",
+    "reason": "Phase 135 prerequisite accepted; eleven incomplete plans in seven waves, five ready in Wave 1"
   },
-  "updated_at": "2026-10-20T18:35:10.931Z"
+  "updated_at": "2026-10-20T20:48:16.097151Z"
 }

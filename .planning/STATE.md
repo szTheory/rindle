@@ -3,29 +3,35 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: planning
-stopped_at: Phase 135 complete, ready to plan Phase 136
-last_updated: "2026-10-20T18:35:10.919Z"
+stopped_at: Phase 136 plans recovered onto completed Phase 135 history; entry preflight passed
+last_updated: "2026-10-20T20:48:16.097151Z"
 state_head: 35c1c5d0c2642514e632c4450840a0278ac53800
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 198
+  total_plans: 209
   completed_plans: 198
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
 current_phase_name: Measured Quality and CI Ratchets
 current_plan: null
-last_activity_desc: "Phase 135 planned: 13 plans in 8 waves; checker 0 blockers after one revision, warnings patched; next /gsd-execute-phase 135."
+last_activity_desc: "Recovered eleven Phase 136 plans onto main 808d4b77; entry gate passed; ready for Wave 1."
 ---
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Core value:** Media, made durable.
-**Current focus:** Phase 135 — Repository and Code-Craft Consolidation
+**Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+The primary Phase 133 checkout is stale. This execution checkout starts from
+merged Phase 135 closeout `808d4b771bf55404529e2aad5f151baf6c70a218`
+and imports only Phase 136 planning from `cef5c06b`. Phases 133–135
+retain their completed requirements and committed evidence. Phase 136 has eleven
+incomplete plans in seven waves. Earlier position paragraphs are historical.
 
 Phase completion (2026-10-16): Phase 134 verified passed 4/4 (134-VERIFICATION.md). The live collector and validator report `ok (live)` on main 9d046059; all 7 landing records re-pass dep_landing_evidence.sh. Out-of-queue fixes shipped as releases: #124 (0.4.8, Bandit 1.13 stale conn), #135 (0.4.9, ffmpeg `-nostdin` + dead-port detection) and #137 (ACK-free MuonTrap runner; 0.4.10 via release PR #139). Open: cowlib advisory exception expires 2027-01-15; issue #131 closes on the next green scheduled Nightly; verifier warnings are recorded in todos/pending/2026-10-16-ledger-landing-record-and-collector-gaps.md. Next: /gsd-plan-phase 135.
 
@@ -169,7 +175,7 @@ Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-tr
 ## Session
 
 **Last session:** 2026-10-15T18:22:24.784Z
-**Stopped at:** Phase 135 complete, ready to plan Phase 136
+**Stopped at:** Phase 136 plans recovered onto completed Phase 135 history; entry preflight passed
 **Resume file:** None
 
 ### Blockers
