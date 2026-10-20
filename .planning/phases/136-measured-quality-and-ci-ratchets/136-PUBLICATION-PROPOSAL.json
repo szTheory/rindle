@@ -9,10 +9,13 @@
   "title": "Ratchet quality checks and bind CI evidence to frozen source",
   "body_file": "136-PR-DRAFT.md",
   "body_sha256": "02d8acfaf1bde0877eab274fb4fb308be4362727f839443fcce3d0983c829776",
-  "publication_authorized": false,
+  "publication_authorized": true,
   "pending": [
     "25seed local experiment",
     "published exact-head CI timing"
   ],
-  "rule": "Plan 08: Never publish the PR head implicitly in Phase 136; use an already published exact SHA or a separately authorized publication."
+  "rule": "Plan 08: Never publish the PR head implicitly in Phase 136; use an already published exact SHA or a separately authorized publication.",
+  "approval_status": "approved",
+  "approval_answer": "Publish Phase 136 PR",
+  "approved_at": "2026-10-20T23:21:49.562987+00:00"
 }
