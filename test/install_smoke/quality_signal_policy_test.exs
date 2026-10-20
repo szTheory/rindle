@@ -232,6 +232,51 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     refute valid_infrastructure?(mutated)
   end
 
+  @tag :tmp_dir
+  test "MinIO client copy verifies bytes before privileged installation", %{tmp_dir: dir} do
+    client =
+      infrastructure()["minio"]["runs"]["steps"]
+      |> Enum.find(&(&1["name"] == "Install MinIO client"))
+      |> Map.fetch!("run")
+
+    bytes = "reviewed client fixture"
+    digest = Base.encode16(:crypto.hash(:sha256, bytes), case: :lower)
+    script = Enum.reduce(@mc_hashes, client, &String.replace(&2, &1, digest))
+
+    for {arch, content, expected} <- [
+          {"X64", bytes, 0},
+          {"ARM64", bytes, 0},
+          {"X64", "tampered client", 1}
+        ] do
+      run_dir = Path.join(dir, "#{arch}-#{expected}")
+      File.mkdir_p!(run_dir)
+      log = Path.join(run_dir, "calls")
+
+      File.write!(Path.join(run_dir, "docker"), """
+      #!/usr/bin/env bash
+      echo copy >> '#{log}'
+      printf '%s' '#{content}' > "$4"
+      """)
+
+      File.write!(Path.join(run_dir, "sudo"), "#!/usr/bin/env bash\necho install >> '#{log}'\n")
+      for executable <- ~w(docker sudo), do: File.chmod!(Path.join(run_dir, executable), 0o755)
+
+      {output, status} =
+        System.cmd("bash", ["-c", script],
+          env: [
+            {"PATH", run_dir <> ":" <> System.get_env("PATH")},
+            {"RUNNER_TEMP", run_dir},
+            {"RUNNER_ARCH", arch}
+          ],
+          stderr_to_stdout: true
+        )
+
+      if expected == 0, do: assert(status == 0, output), else: assert(status != 0)
+      calls = File.read!(log) |> String.split("\n", trim: true)
+      assert calls == if(expected == 0, do: ["copy", "install"], else: ["copy"])
+    end
+  end
+
   defp infrastructure do
     root = Path.expand("../..", __DIR__)
 

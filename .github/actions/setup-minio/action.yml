@@ -34,8 +34,20 @@ runs:
     - name: Install MinIO client
       shell: bash
       run: |
-        sudo docker cp -L rindle-minio:/usr/bin/mc /usr/local/bin/mc
-        sudo chmod +x /usr/local/bin/mc
+        set -euo pipefail
+        # Measured from each child of the reviewed multi-architecture image
+        # digest above on 2026-10-20; update image and these checksums together.
+        case "$RUNNER_ARCH" in
+          X64) expected=f06aa7f9d4a333b9481dcb9859bb2f6da5b4345b67f2cc7ac1c982f0c7cdd06c ;;
+          ARM64) expected=160b34eaae2e32c4cce8784162a20b4449ed7e31210bf940e4698c030194f897 ;;
+          *) echo "unsupported MinIO client architecture" >&2; exit 64 ;;
+        esac
+        mc_dir="$(mktemp -d "$RUNNER_TEMP/rindle-mc.XXXXXX")"
+        trap 'rm -rf "$mc_dir"' EXIT
+        docker cp -L rindle-minio:/usr/bin/mc "$mc_dir/mc"
+        printf '%s  %s\n' "$expected" "$mc_dir/mc" > "$mc_dir/checksums.sha256"
+        sha256sum -c "$mc_dir/checksums.sha256"
+        sudo install -m 0755 "$mc_dir/mc" /usr/local/bin/mc
 
     - name: Create MinIO bucket
       shell: bash
