@@ -5,14 +5,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    # Phase 36 D-19 / external research Topic 1: `labeled` MUST be added
+    # `labeled` MUST be added
     # explicitly — defaults are [opened, synchronize, reopened] and applying
     # a label to an existing PR will not fire the workflow without it. The
     # other three are defaults but must be enumerated once `types:` is set.
     types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
-# LANE-01 / D-06: serialize runs per-workflow + per-ref so a new push to a PR
+# Serialize runs per-workflow + per-ref so a new push to a PR
 # branch supersedes its own in-flight run, while every other branch (and the
 # push:main / release run) gets an independent serialization queue.
 #   - cancel-in-progress is TRUE only for pull_request events: a stale PR run is
@@ -21,7 +21,7 @@ on:
 #     SERIALIZE and are NEVER cancelled. This is load-bearing for the release
 #     coupling: `release.yml gate-ci-green` keys off the push:main `ci.yml` run
 #     `conclusion`; cancelling a main run would destroy the full-matrix evidence
-#     that the Hex publish gate depends on (the D-06 footgun this avoids).
+#     that the Hex publish gate depends on.
 # Reads only the trusted `github.event_name` context (no PR title/body/branch
 # string interpolated into a shell) — no injection surface added.
 concurrency:
@@ -49,7 +49,7 @@ jobs:
             otp: "26"
           - elixir: "1.17"
             otp: "27"
-            # CACHE-05 (D-12): version-invariant lint (format/credo/doctor) runs
+            # Version-invariant lint (format/credo/doctor) runs
             # once on the newest home pair so the formatter enforces an
             # up-to-date contributor's local output. Guarded via `if: matrix.lint`.
             lint: true
@@ -79,14 +79,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # TRUTH-01 (D-15/D-16): merge-blocking guard that the security-invariant-13
-      # / Key-Decisions docs-truth correction landed and never regresses. A CI
-      # grep step (NOT an ExUnit test reading .planning/) on purpose: Phase 111
-      # LOCK-05 adds a merge-blocking meta-test that fails if ANY test reads a
-      # .planning/ path, so a doc-assertion test would conflict — the grep guard
-      # enforces TRUTH-01 without introducing a .planning/-reading test. Asserts
-      # the corrected invariant-13 wording is present, 'FFmpex + MuonTrap' is
-      # absent from PROJECT.md, and 'Rambo' is absent from the invariant-13 region.
+      # Merge-blocking guard that the PROJECT.md subprocess-runner invariant and
+      # its Key-Decisions wording never regress. It is a CI grep step rather than
+      # an ExUnit test on purpose: a merge-blocking meta-test fails if any test
+      # reads the planning directory, so the guard lives here. Asserts the
+      # MuonTrap-only invariant wording is present, 'FFmpex + MuonTrap' is absent
+      # from PROJECT.md, and 'Rambo' is absent from the invariant region.
       - name: TRUTH-01 docs-truth guard (PROJECT.md invariant 13)
         run: |
           set -euo pipefail
@@ -102,9 +100,9 @@ jobs:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
           mix-env: test
-          # Quality runs its own deps.get carrying the CACHE-04 gate flags
+          # Quality runs its own deps.get carrying the lock gate flags
           # (--check-locked / --check-unused), so the composite must NOT also
-          # run an unflagged deps.get (D-10).
+          # run an unflagged deps.get.
           install-deps: "false"
 
       - name: Install libvips
@@ -119,7 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      # CACHE-04 (D-10): the strict --check-locked drift gate runs only on the
+      # The strict --check-locked drift gate runs only on the
       # lock's canonical OTP (1.17/27) — same guard as --check-unused below, and for
       # the same reason: json_polyfill_dep/0 (mix.exs) adds {:json_polyfill, ...} for
       # OTP < 27, which is absent from the OTP27-resolved mix.lock, so --check-locked
@@ -134,7 +132,7 @@ jobs:
         if: matrix.otp != '27'
         run: mix deps.get
 
-      # CACHE-04 (D-11): --check-unused is guarded to matrix.otp == '27' — the
+      # --check-unused is guarded to matrix.otp == '27' — the
       # lock's resolution OTP. Under OTP26 it false-positives because
       # json_polyfill_dep/0 (mix.exs) adds {:json_polyfill, ...} for OTP < 27,
       # which is absent from the OTP27-resolved mix.lock (exit 1).
@@ -145,7 +143,7 @@ jobs:
       - name: Compile (warnings as errors)
         run: mix compile --warnings-as-errors
 
-      # CACHE-05 (D-12): version-invariant lint runs once on the lint cell
+      # Version-invariant lint runs once on the lint cell
       # (1.17/27, `lint: true`). The `lint-cell:` marker is grep-able in the run
       # log so the SUMMARY can assert lint actually fired on 1.17/27 and is
       # absent on 1.15/26 (a typo'd `if:` would otherwise skip silently).
@@ -155,7 +153,7 @@ jobs:
           echo "lint-cell: format running"
           mix format --check-formatted
 
-      # SIGNAL-02/03: the curated actionable Credo policy and measured public
+      # The curated actionable Credo policy and measured public
       # Doctor report run once on the canonical lint cell and block Quality.
       - name: Credo quality
         if: ${{ matrix.lint }}
@@ -186,17 +184,16 @@ jobs:
       - name: Run focused AV behavior tests
         run: mix test test/rindle/probe/av_probe_test.exs test/rindle/processor/image_test.exs --seed 0
 
-      # HARD-02 (D-05): mix_audit scans the transitive hex dep tree against the
-      # hex advisory DB. ADVISORY (continue-on-error) per the house default and
-      # 107-RESEARCH Open-Q2 — it is NOT a separate required check and does not
-      # gate the merge. Flip continue-on-error to false here if security findings
+      # mix_audit scans the transitive hex dep tree against the hex advisory DB.
+      # ADVISORY (continue-on-error) per the house default — it is NOT a
+      # separate required check and does not gate the merge. Flip continue-on-error to false here if security findings
       # should later block the gate.
       - name: Audit dependencies (advisory)
         if: ${{ matrix.lint }}
         run: mix deps.audit
         continue-on-error: true
 
-      # SEC-09 (D-134-06): hex.audit reports EEF/OSV advisories that mix deps.audit
+      # hex.audit reports EEF/OSV advisories that mix deps.audit
       # misses; it stays advisory so a newly published advisory never reddens
       # unrelated PRs (closure enforcement is the maintainer validator).
       - name: Audit Hex advisories (advisory)
@@ -204,7 +201,7 @@ jobs:
         run: mix hex.audit
         continue-on-error: true
 
-      # OBS-02 (additive, observational): surface schedulers_online + a bounded
+      # Additive, observational: surface schedulers_online + a bounded
       # mix compile --profile time dump in the run summary (fenced + tail-bounded
       # to stay under the 1 MiB $GITHUB_STEP_SUMMARY cap).
       - name: Surface compile profile + schedulers
@@ -219,7 +216,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Single-run dual-output coverage (COV-01..COV-03). The merge-blocking gate
+      # Single-run dual-output coverage. The merge-blocking gate
       # is `mix coveralls.multiple --type local --type json`: `--type local` runs
       # the SAME `local` analyzer as `mix coveralls` (ExCoveralls.Local.execute →
       # ensure_minimum_coverage), so the gate's pass/fail is byte-identical to the
@@ -251,18 +248,17 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      # Phase 106 (D-17): Dialyzer (and its PLT restore/create/build/save split)
-      # has been EXTRACTED from this PR `quality` job into an owned, GATING
-      # Dialyzer job in .github/workflows/nightly.yml. Removing the multi-minute
-      # PLT build + advisory analysis from the PR critical path is one of the
-      # long-pole cuts enabling the ≤7-min PR target; type-contract confidence is
-      # now a nightly-gating signal (the merge-blocking ExUnit suite still catches
-      # behavior on every PR). See 106-CONTEXT.md D-17..D-20.
+      # Dialyzer (and its PLT restore/create/build/save split) runs as an owned,
+      # GATING job in .github/workflows/nightly.yml, not in this PR `quality`
+      # job. Keeping the multi-minute PLT build off the PR critical path is one
+      # of the long-pole cuts behind the ≤7-min PR target; type-contract
+      # confidence is a nightly-gating signal (the merge-blocking ExUnit suite
+      # still catches behavior on every PR).
 
-      # OBS-01 (additive, observational): surface cache hit/miss in the run summary.
+      # Additive, observational: surface cache hit/miss in the run summary.
       # cache-hit is 'true' only on an exact key hit; a restore-keys partial hit
-      # leaves it empty, hence `|| 'false'`. No gate/topology change. The PLT row
-      # was dropped with the Dialyzer extraction (D-17).
+      # leaves it empty, hence `|| 'false'`. No gate/topology change. There is
+      # no PLT row because Dialyzer runs in nightly.yml.
       - name: Summarize cache hit/miss
         if: always()
         run: |
@@ -294,7 +290,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 / D-06: composite setup + deps/_build cache in the deliberately
+        # Composite setup + deps/_build cache in the deliberately
         # separate no-optional namespace (cache-prefix:no-optional ->
         # deps-no-optional-v1-… / build-no-optional-v1-…), so this job's
         # --no-optional-deps tree never shares a cache with the default jobs.
@@ -353,9 +349,9 @@ jobs:
 
       - name: Set up Elixir
         id: setup
-        # CACHE-01 (D-03): single source of truth for BEAM setup + deps/_build
-        # cache. install-deps:false keeps this job's own `mix deps.get` (no
-        # duplicate). OBS-01 summary below repoints to the composite outputs.
+        # Single source of truth for BEAM setup + deps/_build cache.
+        # install-deps:false keeps this job's own `mix deps.get` (no
+        # duplicate). The cache summary below reads the composite outputs.
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -363,7 +359,7 @@ jobs:
           mix-env: test
           install-deps: "false"
 
-      # OBS-01 (additive, observational): surface cache hit/miss in the run summary.
+      # Additive, observational: surface cache hit/miss in the run summary.
       - name: Summarize cache hit/miss
         if: always()
         run: |
@@ -394,7 +390,7 @@ jobs:
       - name: Install libvips
         run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
-      # OBS-02 (additive, observational): schedulers_online + bounded compile profile.
+      # Additive, observational: schedulers_online + bounded compile profile.
       - name: Surface compile profile + schedulers
         if: always()
         run: |
@@ -408,7 +404,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # --slowest 20 is additive; tee captures the slowest-test lines + the ExUnit
-      # seed into the run summary (OBS-02 D-05). The gating test invocations are
+      # seed into the run summary. The gating test invocations are
       # otherwise byte-unchanged (same files, same --include tags).
       - name: Run integration tests
         run: |
@@ -426,11 +422,11 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # OBS-02 (additive): JUnit XML is emitted by test_helper.exs when CI is set
-      # (Plan 01). No standalone coverage-JSON run here (COV-03, D-04/D-07): the
-      # integration gate above stays plain `mix test`, and no consumer reads an
-      # integration-lane coverage artifact. The upload step keeps if-no-files-found:
-      # warn, so the absent cover/excoveralls.json is tolerated (D-06).
+      # Additive: JUnit XML is emitted by test_helper.exs when CI is set. No
+      # standalone coverage-JSON run here: the integration gate above stays
+      # plain `mix test`, and no consumer reads an integration-lane coverage
+      # artifact. The upload step keeps if-no-files-found: warn, so the absent
+      # cover/excoveralls.json is tolerated.
       - name: Upload JUnit + coverage artifacts
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -475,9 +471,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
-        # keeps this job's own `mix deps.get` (no duplicate). Composite does not
-        # compile — the `Compile` step stays at job level (D-01).
+        # Composite setup + deps/_build cache. install-deps:false keeps this
+        # job's own `mix deps.get` (no duplicate). The composite does not
+        # compile — the `Compile` step stays at job level.
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -501,7 +497,8 @@ jobs:
       - name: Run AV hygiene gate
         run: bash scripts/assert_av_hygiene.sh
 
-      # Contract-tagged tests and SAFE-01 are deterministic preservation proof.
+      # Contract-tagged tests and the refactor preservation contract are
+      # deterministic preservation proof.
       - name: Run contract tests
         run: mix test --only contract --seed 0
 
@@ -511,7 +508,7 @@ jobs:
   proof:
     name: Proof
     runs-on: ubuntu-22.04
-    # Phase 75 (CI-03): merge-blocking docs parity + operator proof tests.
+    # Merge-blocking docs parity + operator proof tests.
     # See RUNNING.md `## CI lane severity` for the full matrix.
     needs: [quality, optional-dependencies]
     env:
@@ -521,7 +518,7 @@ jobs:
       PGPASSWORD: postgres
       PGHOST: localhost
       PGPORT: "5432"
-      # TRUTH-08: the adoption proof matrix gate's package authority builds a
+      # The adoption proof matrix gate's package authority builds a
       # fresh generated image consumer against S3-compatible MinIO.
       RINDLE_MINIO_URL: http://localhost:9000
       RINDLE_MINIO_ACCESS_KEY: minioadmin
@@ -549,9 +546,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
-        # keeps this job's own `mix deps.get` (no duplicate). Composite does not
-        # compile — the `Compile` step stays at job level (D-01).
+        # Composite setup + deps/_build cache. install-deps:false keeps this
+        # job's own `mix deps.get` (no duplicate). The composite does not
+        # compile — the `Compile` step stays at job level.
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -584,7 +581,7 @@ jobs:
         run: bash scripts/maintainer/check_adoption_proof_matrix.sh
 
       - name: Run Nightly evidence harnesses
-        # Phase 133 (EVID-02..04): the Nightly Dialyzer, strict summary, incident
+        # The Nightly Dialyzer, strict summary, incident
         # lifecycle and scheduled-run verifier harnesses run at every merge SHA.
         run: |
           set -euo pipefail
@@ -635,9 +632,9 @@ jobs:
 
       - name: Set up Elixir
         id: setup
-        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
-        # keeps this job's own `mix deps.get` (no duplicate). OBS-01 summary below
-        # repoints to the composite outputs. Composite does not compile (D-01).
+        # Composite setup + deps/_build cache. install-deps:false keeps this
+        # job's own `mix deps.get` (no duplicate). The cache summary below reads
+        # the composite outputs. The composite does not compile.
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -648,7 +645,7 @@ jobs:
       - name: Install libvips
         run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
-      # OBS-01 (additive, observational): surface cache hit/miss in the run summary.
+      # Additive, observational: surface cache hit/miss in the run summary.
       - name: Summarize cache hit/miss
         if: always()
         run: |
@@ -664,7 +661,7 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
-      # OBS-02 (additive, observational): schedulers_online + bounded compile
+      # Additive, observational: schedulers_online + bounded compile
       # profile for the long-pole package-consumer job. This lane drives
       # install-smoke / release-preflight scripts (not a direct ExUnit run), so
       # the slowest-test/seed surfacing lives in quality/integration; the build
@@ -684,7 +681,7 @@ jobs:
       - name: Set up MinIO for S3-compatible package-consumer proofs
         uses: ./.github/actions/setup-minio
 
-      # LOCK-02: purge the phx.new archive so the cold-runner self-install path in
+      # Purge the phx.new archive so the cold-runner self-install path in
       # scripts/install_smoke.sh (the `--version` probe + `archive.install` self-heal)
       # is genuinely exercised on every PR — not warm-cache theater. `|| true` keeps it
       # a no-op when the archive is already absent (the cold-runner case); the point is
@@ -692,9 +689,9 @@ jobs:
       - name: Purge phx.new archive to exercise the cold-runner self-install path
         run: mix archive.uninstall phx_new --force || true
 
-      # LANE-02 (D-10): ONLY the representative `image` profile on the PR critical
-      # path. The other four profiles (video/tus/mux/gcs) + release_preflight +
-      # repo_hygiene + hex.publish --dry-run moved to package-consumer-full (off-PR).
+      # ONLY the representative `image` profile on the PR critical path. The
+      # other four profiles (video/tus/mux/gcs) + release_preflight +
+      # repo_hygiene + hex.publish --dry-run run in package-consumer-full (off-PR).
       - name: Run built-artifact image-only package-consumer proof against MinIO
         run: bash scripts/install_smoke.sh image
 
@@ -704,11 +701,11 @@ jobs:
           export GITHUB_REF_NAME="v${MIX_VERSION}"
           bash scripts/assert_version_match.sh
 
-      # OBS-02 (additive): upload JUnit + coverage artifacts on every run (pass or
-      # fail). No standalone coverage-JSON run here (COV-03, D-05): this job gates
-      # on install-smoke / version checks, not the unit suite, and no consumer reads
-      # its coverage artifact. if-no-files-found: warn keeps the lane green when the
-      # absent cover/excoveralls.json is missing for this job (D-06).
+      # Additive: upload JUnit + coverage artifacts on every run (pass or
+      # fail). No standalone coverage-JSON run here: this job gates on
+      # install-smoke / version checks, not the unit suite, and no consumer reads
+      # its coverage artifact. if-no-files-found: warn keeps the lane green when
+      # cover/excoveralls.json is absent for this job.
       - name: Upload JUnit + coverage artifacts
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -723,7 +720,7 @@ jobs:
   package-consumer-full:
     name: Package Consumer Full Matrix + Release Preflight
     runs-on: ubuntu-22.04
-    # LANE-02 (D-08/D-10/D-11): the OFF-PR breadth half of the package-consumer
+    # The OFF-PR breadth half of the package-consumer
     # split. Runs the full 5-profile install-smoke matrix (fail-fast: false →
     # profiles run in parallel, so off-PR wall-clock ≈ slowest profile, not 5×
     # serial) PLUS release_preflight + repo_hygiene + hex.publish --dry-run.
@@ -734,10 +731,9 @@ jobs:
     #
     # No failure-masking (no continue_on_error key) anywhere — job OR step: a failed
     # leg MUST make the push:main run conclusion non-success so `release.yml
-    # gate-ci-green` blocks the Hex publish (D-08 masking-trap rule; D-11 release
-    # proof keys off run conclusion). This job is INTENTIONALLY ABSENT from
-    # ci-summary.needs /
-    # ci-observability.needs (D-09 omit-from-needs): the PR gate makes no claim about
+    # gate-ci-green` blocks the Hex publish (the release proof keys off run
+    # conclusion). This job is INTENTIONALLY ABSENT from ci-summary.needs /
+    # ci-observability.needs (omit-from-needs): the PR gate makes no claim about
     # this conditionally-skipped lane, and release readiness is proven by the
     # push:main run conclusion — not by CI Summary or any check name.
     needs: [quality, optional-dependencies]
@@ -780,7 +776,7 @@ jobs:
 
       - name: Set up Elixir
         id: setup
-        # Reuse the setup-elixir composite (D-12 spirit: near-zero duplication).
+        # Reuse the setup-elixir composite (near-zero duplication).
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -806,7 +802,7 @@ jobs:
 
       - name: Set up MinIO for S3-compatible package-consumer proofs
         # gcs is structural-only (no S3/MinIO traffic); skip MinIO setup on that leg
-        # to save runner-minutes (CONTEXT discretion).
+        # to save runner-minutes.
         if: matrix.profile != 'gcs'
         uses: ./.github/actions/setup-minio
 
@@ -840,7 +836,7 @@ jobs:
     runs-on: ubuntu-22.04
     # Fast, merge-blocking ExUnit lane for examples/adoption_demo: brand mark +
     # wordmark, admin-console mount, lifecycle-state display, and README
-    # walkthrough parity (Phase 91 UAT, automated). Storage-free — rows are
+    # walkthrough parity (automated). Storage-free — rows are
     # direct-inserted, so no MinIO/FFmpeg/libvips is needed. Postgres only.
     # Complements the heavier browser proof in the `Adoption Demo E2E` lane.
     needs: [quality, optional-dependencies]
@@ -872,7 +868,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 (D-03): composite setup + root deps/_build cache. install-deps:false
+        # Composite setup + root deps/_build cache. install-deps:false
         # because the real fetch is the job's `mix deps.get` inside
         # examples/adoption_demo (working-directory block below) — the composite must
         # NOT run an extra root deps.get here.
@@ -904,19 +900,19 @@ jobs:
     runs-on: ubuntu-22.04
     # Merge-blocking cold-start gate for the Docker-compose demo path
     # (scripts/demo/up.sh -> docker/compose.cohort-demo.yml). This is the boot
-    # path that broke twice across phases (prod-auth-guard compile failure, stale
-    # Elixir pin) and was previously only human-verified. Builds the demo image,
+    # path that broke twice (prod-auth-guard compile failure, stale Elixir pin)
+    # and is proven here by automation. Builds the demo image,
     # boots the full stack, and asserts the homepage + admin console serve 200
     # with seeded data. See scripts/ci/cohort_demo_smoke.sh.
     #
-    # LANE-01 (D-05): MOVED off the PR critical path to push:main. The existing
-    # repo gate is PRESERVED and COMPOSED with a push:main event gate (a
+    # Runs off the PR critical path, on push:main. The repo gate is
+    # COMPOSED with a push:main event gate (a
     # `labeled` event still yields event_name == 'pull_request', so this skips on
     # PR). This Docker-compose cold-start gave ZERO signal on fork PRs already
     # (repo-gated), and its historical breaks are compile/pin failures that
     # quality + optional-dependencies catch on PR independently; MTTD of a real
-    # cold-start regression = 1 merge. Removed from ci-summary.needs /
-    # ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-05.
+    # cold-start regression = 1 merge. Absent from ci-summary.needs /
+    # ci-observability.needs (omit-from-needs).
     needs: [quality, optional-dependencies]
     if: github.repository == 'szTheory/rindle' && github.event_name != 'pull_request'
     steps:
@@ -933,14 +929,14 @@ jobs:
     # theme, actions, and screenshot specs. The gcs-resumable spec remains
     # skipped when live GCS is absent.
     #
-    # LANE-01 (D-04): MOVED off the PR critical path to push:main — the ~502s
-    # demo-e2e chain (~8.4 min) is what would push PR p95 over the ≤7-min budget.
-    # The existing repo gate is PRESERVED and COMPOSED with a push:main event
+    # Runs off the PR critical path, on push:main — the ~502s demo-e2e chain
+    # (~8.4 min) would push PR p95 over the ≤7-min budget. The repo gate is
+    # COMPOSED with a push:main event
     # gate (a `labeled` event still yields event_name == 'pull_request', so this
     # skips on PR). Its PR-side proxy is `adoption-demo-unit` (browser-free
-    # admin-console mount + brand + lifecycle render), which STAYS on PR (D-02).
-    # MTTD of a real render regression = 1 merge. Removed from ci-summary.needs /
-    # ci-observability.needs (D-09 omit-from-needs). See 106-CONTEXT.md D-04.
+    # admin-console mount + brand + lifecycle render), which runs on PR.
+    # MTTD of a real render regression = 1 merge. Absent from ci-summary.needs /
+    # ci-observability.needs (omit-from-needs).
     needs: [quality, optional-dependencies]
     if: github.repository == 'szTheory/rindle' && github.event_name != 'pull_request'
     env:
@@ -956,11 +952,11 @@ jobs:
       RINDLE_MINIO_BUCKET: rindle-test
       RINDLE_MINIO_REGION: us-east-1
       ADOPTION_DEMO_BROWSER_PORT: "4102"
-      # D-10/D-11: the pinned Playwright browser image. scripts/ci/e2e_local.sh
-      # reads PLAYWRIGHT_IMAGE (defaulting to this same tag), so CI and the local
-      # repro run the SAME mcr.microsoft.com/playwright:v1.57.0-noble container —
-      # the image tag IS the browser + font pin. Must match the exact
-      # @playwright/test 1.57.0 npm pin in examples/adoption_demo/package.json.
+      # The pinned Playwright browser image. scripts/ci/e2e_local.sh reads
+      # PLAYWRIGHT_IMAGE (defaulting to this same tag), so CI and the local
+      # repro run the SAME container — the image tag IS the browser + font pin.
+      # Must match the exact @playwright/test 1.57.0 npm pin in
+      # examples/adoption_demo/package.json.
       PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
 
     services:
@@ -983,8 +979,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
-        # keeps this job's own `Install root dependencies` deps.get (no duplicate).
+        # Composite setup + deps/_build cache. install-deps:false keeps this
+        # job's own `Install root dependencies` deps.get (no duplicate).
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -1015,10 +1011,10 @@ jobs:
         run: node brandbook/src/cohort-contrast.mjs
 
       - name: Run adoption demo Playwright suite (pinned container)
-        # D-10: the browser leg runs inside the SAME pinned image
-        # (mcr.microsoft.com/playwright:v1.57.0-noble) that scripts/ci/e2e_local.sh
-        # uses — faithful repro by construction (no "green in CI, red locally").
-        # The container tag IS the browser + font pin (D-11). Host-side Phoenix
+        # The browser leg runs inside the SAME pinned PLAYWRIGHT_IMAGE that
+        # scripts/ci/e2e_local.sh uses — faithful repro by construction (no
+        # "green in CI, red locally"). The container tag IS the browser + font
+        # pin. Host-side Phoenix
         # bring-up + browser-in-container against the host network live in the
         # shared wrapper, so CI and local stay byte-identical.
         run: bash scripts/ci/e2e_local.sh
@@ -1036,17 +1032,17 @@ jobs:
   adoption-demo-e2e-smoke:
     name: Adoption Demo E2E Smoke
     runs-on: ubuntu-22.04
-    # GATE-01/GATE-02 (Phase 112): the lean PR-side browser-render proxy. Closes
-    # the PR↔main gap that let the 2026-06-26 render-regression cluster reach
-    # `main` — without giving back the v1.20 wall-clock win. Clones the full
+    # The lean PR-side browser-render proxy. Closes the PR↔main gap that let
+    # the 2026-06-26 render-regression cluster reach `main` — without giving
+    # back the PR wall-clock budget. Clones the full
     # `adoption-demo-e2e` job above but runs ONLY the deterministic 2-spec subset
     # (smoke + admin-console; NO screenshot spec) via ADOPTION_DEMO_E2E_SPECS.
     #
     # NO `if:` GATE BY DESIGN: this lane runs on EVERY PR (including forks). A
     # repo/event-gated lane would resolve to `skipped` on forks, and skip==pass
     # would emit a green lie for the exact regression class this lane exists to
-    # catch (T-112-02). It uses NO secrets (MinIO-local literal creds only), so
-    # fork-PR exposure is nil (T-112-01).
+    # catch. It uses NO secrets (MinIO-local literal creds only), so fork-PR
+    # exposure is nil.
     #
     # This lane is wired into both ci-summary.needs and ci-observability.needs,
     # so its deterministic browser-render result participates in the required
@@ -1064,13 +1060,13 @@ jobs:
       RINDLE_MINIO_BUCKET: rindle-test
       RINDLE_MINIO_REGION: us-east-1
       ADOPTION_DEMO_BROWSER_PORT: "4102"
-      # D-10/D-11: the pinned Playwright browser image. scripts/ci/e2e_local.sh
-      # reads PLAYWRIGHT_IMAGE (defaulting to this same tag), so CI and the local
-      # repro run the SAME mcr.microsoft.com/playwright:v1.57.0-noble container —
-      # the image tag IS the browser + font pin. Must match the exact
-      # @playwright/test 1.57.0 npm pin in examples/adoption_demo/package.json.
+      # The pinned Playwright browser image. scripts/ci/e2e_local.sh reads
+      # PLAYWRIGHT_IMAGE (defaulting to this same tag), so CI and the local
+      # repro run the SAME container — the image tag IS the browser + font pin.
+      # Must match the exact @playwright/test 1.57.0 npm pin in
+      # examples/adoption_demo/package.json.
       PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
-      # GATE-01: scope the lean lane to the deterministic browser-render subset.
+      # Scope the lean lane to the deterministic browser-render subset.
       # e2e_local.sh appends these as positional spec files; unset would run the
       # full suite (which the push:main `adoption-demo-e2e` lane above does).
       ADOPTION_DEMO_E2E_SPECS: "e2e/smoke.spec.js e2e/admin-console.spec.js"
@@ -1095,8 +1091,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
-        # keeps this job's own `Install root dependencies` deps.get (no duplicate).
+        # Composite setup + deps/_build cache. install-deps:false keeps this
+        # job's own `Install root dependencies` deps.get (no duplicate).
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -1124,9 +1120,9 @@ jobs:
           cors-allow-origin: "*"
 
       - name: Run adoption demo Playwright suite (pinned container, smoke subset)
-        # D-10: the browser leg runs inside the SAME pinned image
-        # (mcr.microsoft.com/playwright:v1.57.0-noble) that scripts/ci/e2e_local.sh
-        # uses — faithful repro by construction. ADOPTION_DEMO_E2E_SPECS (set in
+        # The browser leg runs inside the SAME pinned PLAYWRIGHT_IMAGE that
+        # scripts/ci/e2e_local.sh uses — faithful repro by construction.
+        # ADOPTION_DEMO_E2E_SPECS (set in
         # env above) scopes the run to the deterministic 2-spec subset; the
         # Cohort-contrast step is intentionally dropped (redundant with the
         # brandbook-tokens PR gate; not a browser-render check).
@@ -1183,8 +1179,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Elixir
-        # CACHE-01 (D-03): composite setup + deps/_build cache. install-deps:false
-        # keeps this job's own `mix deps.get` (no duplicate).
+        # Composite setup + deps/_build cache. install-deps:false keeps this
+        # job's own `mix deps.get` (no duplicate).
         uses: ./.github/actions/setup-elixir
         with:
           elixir-version: "1.17"
@@ -1213,7 +1209,6 @@ jobs:
       - name: Run adopter tests
         run: mix test --only adopter test/adopter/canonical_app/lifecycle_test.exs
 
-  # Phase 36 (D-19, D-20, D-22, T-36-FORK-SECRETS, T-36-ASSET-LEAK):
   # Real-Mux soak proof. Sibling top-level job (NOT a step inside
   # package-consumer). Label-gated on `streaming` so only maintainer-
   # initiated PRs hit api.mux.com. Workflow trigger is the safe
@@ -1224,7 +1219,7 @@ jobs:
   # mitigation: (1) Elixir try/after inside lifecycle_test_source(_, :mux),
   # (2) the lane's normal-path delete on success, (3) `if: always()` step
   # invoking scripts/mux_soak_cleanup.sh as a belt-and-suspenders sweep.
-  # Phase 71 (CI proof honesty): see RUNNING.md `## CI lane severity` for the full matrix.
+  # See RUNNING.md `## CI lane severity` for the full matrix.
   mux-soak:
     name: Mux Soak (real API)
     runs-on: ubuntu-22.04
@@ -1233,11 +1228,10 @@ jobs:
     env:
       MIX_ENV: test
       RINDLE_MUX_USE_REAL_API: "1"
-      # Phase 36 CR-01: stamp every Mux asset created during the soak lane
-      # with `passthrough: "rindle_soak"` so the layer-3 cleanup script
-      # (`scripts/mux_soak_cleanup.sh`) can filter on a tag the producer
-      # actually writes (the previously-used `meta.rindle_soak` tag was
-      # never written by any code path).
+      # Stamp every Mux asset created during the soak lane with
+      # `passthrough: "rindle_soak"` so the layer-3 cleanup script
+      # (`scripts/mux_soak_cleanup.sh`) filters on a tag the producer
+      # actually writes.
       RINDLE_MUX_PASSTHROUGH_TAG: "rindle_soak"
       RINDLE_MUX_TOKEN_ID: ${{ secrets.RINDLE_MUX_TOKEN_ID }}
       RINDLE_MUX_TOKEN_SECRET: ${{ secrets.RINDLE_MUX_TOKEN_SECRET }}
@@ -1295,18 +1289,17 @@ jobs:
         if: always()
         run: bash scripts/mux_soak_cleanup.sh
 
-  # Phase 106 (D-14): `gcs-soak` and `package-consumer-gcs-live` MOVED to
+  # `gcs-soak` and `package-consumer-gcs-live` live in
   # .github/workflows/nightly.yml — they are real-API GCS lanes whose natural
   # cadence is nightly (a provider outage must never block a PR/main run), and
-  # package-consumer-gcs-live's continue-on-error was DROPPED on the move so it
-  # is now real nightly signal. `mux-soak` (above) STAYS here as a label-gated
-  # PR lane (no nightly cadence — no PR label on a schedule). See 106-CONTEXT.md
-  # D-14 and nightly.yml.
+  # package-consumer-gcs-live has no continue-on-error, so it is real nightly
+  # signal. `mux-soak` (above) stays here as a label-gated PR lane (no nightly
+  # cadence — no PR label on a schedule).
 
   brandbook-tokens:
     name: brandbook-tokens
     runs-on: ubuntu-22.04
-    # Merge-blocking token->CSS pipeline gate (PIPE-01). Regenerates every
+    # Merge-blocking token->CSS pipeline gate. Regenerates every
     # committed generated artifact from brandbook/tokens/tokens.json via the .mjs
     # generators, runs the WCAG contrast gate + the gallery browser proof, syncs
     # the shipped priv/ CSS copy via sync-admin-css.mjs, then fails on ANY git
@@ -1316,7 +1309,7 @@ jobs:
     # priv/static/rindle_admin/rindle-admin.css) plus tokens.css and the gallery
     # index.html, so the shipped package artifact cannot drift silently. Pure
     # Node/Playwright — no Elixir/Postgres/MinIO/ffmpeg, no secrets. Scope fence:
-    # gates rindle-admin.css only; cohort.css (hand-authored, Phase 96) is out.
+    # gates rindle-admin.css only; cohort.css (hand-authored) is out.
     needs: [quality, optional-dependencies]
     if: github.repository == 'szTheory/rindle'
     steps:
@@ -1375,14 +1368,14 @@ jobs:
             brandbook/admin-gallery/screenshots/
           if-no-files-found: ignore
 
-  # OBS-01 aggregator (additive, ADVISORY only — D-14: never a required check).
+  # Timing aggregator (additive, ADVISORY only — never a required check).
   # Reads authoritative native per-job durations once via the Actions jobs API,
-  # then from the SAME response emits per-step durations for the three D-04
+  # then from the SAME response emits per-step durations for the three
   # long-pole jobs (quality, integration, package-consumer). actions: read is
   # declared at JOB level only (precedent: release.yml gate-ci-green) — the
-  # workflow default stays contents: read (D-03). if: always() + omitting the
+  # workflow default stays contents: read. if: always() + omitting the
   # skip-prone secret/label-gated jobs (mux-soak, gcs-soak,
-  # package-consumer-gcs-live) keeps this green on forks/unlabeled PRs (Pitfall 4).
+  # package-consumer-gcs-live) keeps this green on forks/unlabeled PRs.
   ci-observability:
     name: CI Observability
     runs-on: ubuntu-22.04
@@ -1432,8 +1425,8 @@ jobs:
                    | "| \(.[0]) | \(.[1]) | \(.[2]) |"' /tmp/ci-jobs.json
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # Per-STEP timing for the three D-04 long-pole jobs ONLY, from the SAME
-          # response (Q2 resolution: long-poles only, to keep the summary readable).
+          # Per-STEP timing for the three long-pole jobs ONLY, from the SAME
+          # response (long-poles only, to keep the summary readable).
           # Matrix variants carry a suffix (e.g. "Quality (1.15, 26)"), so match the
           # display-name prefix rather than exact equality.
           {
@@ -1495,7 +1488,7 @@ jobs:
   ci-summary:
     name: CI Summary
     runs-on: ubuntu-22.04
-    # LANE-02 (D-09 omit-from-needs / D-11): this gate lists the LEAN `package-consumer`
+    # Omit-from-needs: this gate lists the LEAN `package-consumer`
     # (the always-running PR representative) but INTENTIONALLY OMITS
     # `package-consumer-full`. The full lane is `if: != pull_request`, so on a PR it is
     # skipped; if it were in `needs:` the blanket skip-as-pass evaluation would emit a
@@ -1504,7 +1497,7 @@ jobs:
     # push:main ci.yml run *conclusion* (where package-consumer-full is a first-class,
     # non-failure-masked job) is what `release.yml gate-ci-green` reads — NOT this
     # CI Summary check name. eval_ci_summary.sh and setup_branch_protection.sh stay
-    # byte-unchanged (only `CI Summary` is required; matrix-leg names are free, D-11).
+    # byte-unchanged (only `CI Summary` is required; matrix-leg names are free).
     needs:
       - quality
       - optional-dependencies
@@ -1518,16 +1511,15 @@ jobs:
       - brandbook-tokens
       - ci-script-tests
     if: always()
-    # NO permissions: block — inherits the workflow default contents: read (D-02).
+    # NO permissions: block — inherits the workflow default contents: read.
     # The evaluation makes NO `gh api` call (only a checkout to fetch the script): it
     # is a pure evaluation of the `needs.*.result` context, so it can never false-red
-    # on a GitHub API hiccup (the 401-class flake recorded in 103-BASELINE.md) the way
-    # ci-observability can.
+    # on a GitHub API hiccup (a 401-class flake) the way ci-observability can.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Evaluate gating job results
         env:
-          # Pure evaluation of needs.*.result (skip-as-pass, D-05/D-06). The logic
+          # Pure evaluation of needs.*.result (skip-as-pass). The logic
           # lives in scripts/ci/eval_ci_summary.sh so it is unit-tested by
           # scripts/ci/test_ci_summary_gate.sh — behavior here is unchanged.
           NEEDS_JSON: ${{ toJSON(needs) }}

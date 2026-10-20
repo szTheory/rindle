@@ -1,10 +1,10 @@
 version: 2
-# HARD-02 (D-04): grouped, weekly, low-noise dependency updates for both the
-# GitHub Actions SHA pins (D-03) and the hex dep tree.
+# Grouped, weekly, low-noise dependency updates for both the GitHub Actions
+# SHA pins and the hex dep tree.
 #
 # commit-message.prefix MUST be a NON-release Conventional-Commits type
 # (ci / build / chore) so dependabot PRs never trigger a spurious release-please
-# minor (Pitfall 2). Groups bundle minor+patch updates for Actions and development
+# minor. Groups bundle minor+patch updates for Actions and development
 # Mix dependencies. Runtime Mix dependencies and all major bumps stay separate so
 # their compatibility surface remains reviewable.
 updates:

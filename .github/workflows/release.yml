@@ -503,7 +503,7 @@ jobs:
         # action which intermittently failed ("Failed to get latest johnvansickle
         # ffmpeg release") and blocked merges. apt only ships 4.4 — below the
         # >= 6.0 gate in lib/rindle/av/probe.ex. Canonical repo path, used 4x in
-        # ci.yml. See scripts/ci/install_ffmpeg.sh (CACHE-05, D-14).
+        # ci.yml. See scripts/ci/install_ffmpeg.sh.
         run: bash scripts/ci/install_ffmpeg.sh
         env:
           GITHUB_TOKEN: ${{ github.token }}
