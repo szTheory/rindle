@@ -42,7 +42,7 @@
   "next": {
     "command": "$gsd-execute-phase 136",
     "label": "Execute Phase 136",
-    "reason": "Phase136 source implementation complete:8/11 plans; Plan11 source pin and one canonical coverage run next"
+    "reason": "Phase13610/12plans; replacement canonical green on002b8582; Plan09 final collectors next, then Plan07 timing and qualification"
   },
   "updated_at": "2026-10-20T22:07:12.431395+00:00"
 }

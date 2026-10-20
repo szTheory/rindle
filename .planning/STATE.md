@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase 136 source implementation complete; Plan 11 canonical measurement next
+stopped_at: Phase136 replacement canonical green; begin Plan09 final collectors on002b8582
 last_updated: "2026-10-20T21:23:44.196328+00:00"
 state_head: fbb66229560f8dbd0651f7b85895fe555a273e69
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 209
-  completed_plans: 205
+  total_plans: 210
+  completed_plans: 207
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
 current_phase_name: Measured Quality and CI Ratchets
-current_plan: 11
+current_plan: 09
 last_activity_desc: "Wave 1 plans 01/02/04/05/08 committed and verified; begin contributor bootstrap Plan 06."
 ---
 
@@ -26,6 +26,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-20, authoritative): Ten of twelve plans complete. Plan12 replacement canonical on002b85822b4df4ecd48814cd28ba46d1cf7b24f6 exited0:1693tests,3doctests,zero failures;5206/6329=82.25628061305103percent. Local82.2 gate and exact receipt verify pass. Original first-red evidence byte-identical. Begin Plan09 real Dialyzer, async and clean bootstrap using136-SUBJECT-REMEDIATED.json. Source may not change; qualification generation must explicitly select136-COVERAGE-EVIDENCE-REMEDIATED.json. All seven requirements remain Pending until final recomputation; no PR publication.
+
+Execution update (2026-10-20, authoritative): Nine of twelve plans have finished, including first-red Plan11. Original909318d9 pin, blocked coverage receipt and full canonical output are committed unchanged. Plan12 gap repair committed002b85822b4df4ecd48814cd28ba46d1cf7b24f6: four fixture modules synchronized, exact residue ledger reviewed, two waveform validation tests added. Actual meta owners passed36/36; Credo passed. A single replacement canonical suite is RUNNING on002b8582; new pin136-SUBJECT-REMEDIATED.json. Do not rerun it or edit source. Pending process22756 writes/private/tmp/phase136-canonical-remediated.log and start/private/tmp/phase136-canonical-remediated-start. After its actual exit, write the new remediated coverage receipt, then all Plan09/07 collectors must explicitly use remediated pin and coverage. No requirement credit or publication yet.
 
 Execution update (2026-10-20, authoritative): Eight of eleven Phase136 plans complete, including coverage gate Plan03. Source/config committed; next Plan11 pins HEAD and runs exactly one canonical suite. Five coverage tests and live Credo pass after the retained floating-point fixture correction. No final coverage/collector/live timing credit yet. All seven requirements remain Pending.
 
