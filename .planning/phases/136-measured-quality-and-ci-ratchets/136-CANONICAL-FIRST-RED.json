@@ -1,0 +1,27 @@
+{
+  "subject": {
+    "subject_sha": "909318d99df0c64281ca314d5c1a2bf614eff15a",
+    "source_tree": "d7c304008e7aaf36c07bd5d350cbfd70bc1732b5"
+  },
+  "canonical_argv": [
+    "mix",
+    "coveralls.multiple",
+    "--type",
+    "local",
+    "--type",
+    "json"
+  ],
+  "exit_status": 1,
+  "tests": 1691,
+  "doctests": 3,
+  "failures": 3,
+  "excluded": 87,
+  "skipped": 4,
+  "duration_seconds": 380.1,
+  "local_gate": "Expected minimum coverage82.2; observed floored82.1",
+  "artifact_emitted": false,
+  "output_file": "136-CANONICAL-FIRST-RED.log",
+  "output_sha256": "b46366a1add3d6c225f0177d8fd707493e92783311285f655e0af927158211c3",
+  "outcome": "blocked",
+  "credit": false
+}
