@@ -88,13 +88,23 @@ defmodule Rindle.CredoQualityNormalize do
             "baseline entries require stable identity, count, owner, and removal trigger"
     end
 
+    limit =
+      case entry["check"] do
+        "Credo.Check.Refactor.CyclomaticComplexity" -> 9
+        "Credo.Check.Refactor.Nesting" -> 2
+        _ -> raise ArgumentError, "unexpected baseline check"
+      end
+
+    unless entry["removal_trigger"] == "observed_metric <= #{limit}",
+      do: raise(ArgumentError, "baseline removal trigger must be an executable metric predicate")
+
     Map.take(entry, @identity_keys ++ ["count"])
   end
 
   defp baseline_identity(_), do: raise(ArgumentError, "baseline entries must be objects")
 
   defp validate_identity!(identity) do
-    if is_binary(identity["file"]) and is_binary(identity["trigger"]) do
+    if Enum.all?(~w(file trigger), &(is_binary(identity[&1]) and identity[&1] != "")) do
       identity
     else
       raise ArgumentError, "Credo issue identity is malformed"
