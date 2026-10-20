@@ -638,6 +638,67 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     end
   end
 
+  test "current subject collects and verifies without historical transition authority", context do
+    context = current_context!(context)
+    File.rm!(context.transition_manifest)
+    {output, status} = run_current_controller(context)
+    assert status == 0, output
+    assert manifest!(context.receipt)["sha"] == context.head
+    assert File.read!(Path.join(context.fixture_dir, "count")) == "10\n"
+
+    assert {_, 0} =
+             System.cmd("bash", verify_args(context) ++ ["--subject-sha", context.head],
+               cd: context.repo_dir,
+               env: controller_env(context),
+               stderr_to_stdout: true
+             )
+  end
+
+  defp current_context!(context) do
+    source_root = Path.expand("../..", __DIR__)
+
+    for path <- ["config/ci_required_checks.json", ".github/workflows/ci.yml"] do
+      write_fixture_file!(context.repo_dir, path, File.read!(Path.join(source_root, path)))
+    end
+
+    head = commit_fixture!(context.repo_dir, "current workflow authority")
+    git!(context.repo_dir, ["checkout", "--quiet", "--detach", head])
+    %{context | head: head}
+  end
+
+  defp run_current_controller(context, extra_env \\ [], options \\ []) do
+    args =
+      [
+        @script,
+        Keyword.get(options, :mode, "current-run"),
+        "--repo",
+        "szTheory/rindle",
+        "--pr",
+        "96",
+        "--workflow",
+        "ci.yml",
+        "--summary-job",
+        "CI Summary",
+        "--label",
+        "ci-timing-sample",
+        "--subject-sha",
+        Keyword.get(options, :subject_sha, context.head),
+        "--receipt",
+        context.receipt,
+        "--state-dir",
+        context.state_dir,
+        "--poll-seconds",
+        "0",
+        "--no-publish"
+      ] ++ Keyword.get(options, :extra_args, [])
+
+    System.cmd("bash", args,
+      cd: context.repo_dir,
+      env: controller_env(context) ++ extra_env,
+      stderr_to_stdout: true
+    )
+  end
+
   defp run_controller(context, extra_env \\ [], options \\ []) do
     args = [
       "run",
@@ -977,6 +1038,10 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         exit 1
       fi
       case "$endpoint" in
+        *actions/workflows/ci.yml)
+          jq -cn --arg name "${GH_WORKFLOW_NAME:-CI}" '{name:$name,path:".github/workflows/ci.yml",state:"active"}'
+          exit 0
+          ;;
         *actions/workflows/*/runs*)
           poll_file="$GH_FIXTURE_DIR/discovery-polls"
           polls=$(cat "$poll_file" 2>/dev/null || echo 0)
