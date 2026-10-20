@@ -134,6 +134,43 @@ defmodule Rindle.CredoPolicyTest do
     refute script =~ "mix run --no-start scripts/maintainer/credo_quality_normalize.exs"
   end
 
+  test "aggregate accepts a singleton reviewed identity without a frozen inventory size" do
+    entry = hd(baseline_entries())
+    {output, status} = fixture_aggregate([entry], [entry])
+    assert status == 0, output
+  end
+
+  defp fixture_aggregate(baseline, live, evidence \\ []) do
+    dir = Path.join(System.tmp_dir!(), "credo-policy-#{System.unique_integer([:positive])}")
+    File.mkdir_p!(dir)
+    on_exit(fn -> File.rm_rf!(dir) end)
+    File.write!(Path.join(dir, "baseline.json"), Jason.encode!(%{"entries" => baseline}))
+    File.write!(Path.join(dir, "evidence.json"), Jason.encode!(%{"entries" => evidence}))
+    issues = Enum.flat_map(live, fn entry ->
+      message = if String.ends_with?(entry["check"], "Nesting"),
+        do: "Nesting was #{entry["observed_metric"]}",
+        else: "cyclomatic complexity is #{entry["observed_metric"]}"
+      List.duplicate(%{"check" => entry["check"], "filename" => entry["file"],
+        "trigger" => entry["trigger"], "message" => message}, entry["count"])
+    end)
+    File.write!(Path.join(dir, "issues.json"), Jason.encode!(%{"issues" => issues}))
+    real_mix = System.find_executable("mix")
+    File.write!(Path.join(dir, "mix"), """
+    #!/usr/bin/env bash
+    if [[ "$1" == credo ]]; then
+      if [[ "$*" == *complexity_inventory* ]]; then
+        cat "#{dir}/issues.json"
+      fi
+      exit 0
+    fi
+    exec "#{real_mix}" "$@"
+    """)
+    File.chmod!(Path.join(dir, "mix"), 0o755)
+    run_aggregate(%{"PATH" => dir <> ":" <> System.get_env("PATH"),
+      "CREDO_QUALITY_BASELINE" => Path.join(dir, "baseline.json"),
+      "CREDO_QUALITY_EVIDENCE" => Path.join(dir, "evidence.json")})
+  end
+
   defp warning_check?({module, _options}),
     do: module |> Atom.to_string() |> String.starts_with?("Elixir.Credo.Check.Warning.")
 
