@@ -204,8 +204,13 @@ defmodule Rindle.CredoQualityNormalize do
         stderr_to_stdout: true
       )
 
-    unless status == 0 and Regex.match?(~r/\b[1-9][0-9]* tests?, 0 failures\b/, output),
-      do: raise(ArgumentError, "behavior test failed or discovered no tests: #{output}")
+    unless status == 0 and Regex.match?(~r/\b[1-9][0-9]* tests?, 0 failures\b/, output) and
+             not Regex.match?(~r/\b[1-9][0-9]* (skipped|excluded|invalid)\b/, output),
+           do:
+             raise(
+               ArgumentError,
+               "behavior proof must execute all named tests successfully: #{output}"
+             )
   end
 
   defp sort_identities(entries), do: Enum.sort_by(entries, &identity/1)
