@@ -228,6 +228,75 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
            ]
   end
 
+  @tag :tmp_dir
+  test "FFmpeg checksum mismatch fails before extraction or installation", %{tmp_dir: dir} do
+    result = run_ffmpeg_fixture(dir, false)
+    assert result.status != 0
+    refute "extract" in result.log
+    refute "install" in result.log
+  end
+
+  defp run_ffmpeg_fixture(dir, valid?) do
+    shim_dir = Path.join(dir, "shims")
+    File.mkdir_p!(shim_dir)
+    script = Path.join(dir, "installer.sh")
+    log = Path.join(dir, "calls.log")
+    content = "verified fixture archive"
+    digest = Base.encode16(:crypto.hash(:sha256, content), case: :lower)
+
+    File.write!(
+      script,
+      File.read!(@install_ffmpeg_path)
+      |> String.replace(~r/archive_sha256="[0-9a-f]{64}"/, "archive_sha256=\"#{digest}\"")
+    )
+
+    File.write!(Path.join(shim_dir, "curl"), """
+    #!/usr/bin/env bash
+    if [[ "$*" == *api.github.com* ]]; then
+      cat "#{@ffmpeg_release_fixture}"
+      exit 0
+    fi
+    while [[ "$#" -gt 0 ]]; do
+      if [[ "$1" == -o ]]; then shift; printf '%s' '#{if valid?, do: content, else: "tampered bytes"}' > "$1"; exit 0; fi
+      shift
+    done
+    exit 97
+    """)
+
+    File.write!(Path.join(shim_dir, "tar"), """
+    #!/usr/bin/env bash
+    echo extract >> "#{log}"
+    while [[ "$#" -gt 0 ]]; do
+      if [[ "$1" == -C ]]; then shift; mkdir -p "$1/bin"; touch "$1/bin/ffmpeg" "$1/bin/ffprobe"; fi
+      shift
+    done
+    """)
+
+    File.write!(Path.join(shim_dir, "sudo"), "#!/usr/bin/env bash\nexec \"$@\"\n")
+    File.write!(Path.join(shim_dir, "install"), "#!/usr/bin/env bash\necho install >> '#{log}'\n")
+
+    File.write!(
+      Path.join(shim_dir, "ffmpeg"),
+      "#!/usr/bin/env bash\necho 'ffmpeg version n9.0.2'\n"
+    )
+
+    for executable <- ~w(curl tar sudo install ffmpeg),
+        do: File.chmod!(Path.join(shim_dir, executable), 0o755)
+
+    {output, status} =
+      System.cmd("bash", [script],
+        cd: @repo_root,
+        env: [
+          {"PATH", shim_dir <> ":" <> System.get_env("PATH")},
+          {"RINDLE_FFMPEG_RELEASE_API", nil},
+          {"RINDLE_FFMPEG_RESOLVE_ONLY", nil}
+        ],
+        stderr_to_stdout: true
+      )
+
+    %{output: output, status: status, log: read_log(log)}
+  end
+
   test "every static FFmpeg install authenticates its release lookup" do
     for {workflow_name, workflow_path} <- [
           {"ci.yml", @ci_path},
