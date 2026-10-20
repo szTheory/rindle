@@ -169,6 +169,15 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
     on_exit(fn -> File.rm_rf!(shim_dir) end)
     on_exit(fn -> File.rm_rf!(evidence_dir) end)
 
+    # Fixture provenance is synthetic: keep these runner tests portable across
+    # CI cells while final-subject qualification uses the actual runtime.
+    File.write!(
+      Path.join(shim_dir, "elixir"),
+      "#!/usr/bin/env bash\nprintf 'elixir-1.17.3/otp-27.3.4.15\\n'\n"
+    )
+
+    File.chmod!(Path.join(shim_dir, "elixir"), 0o755)
+
     shim = Path.join(shim_dir, "mix")
 
     File.write!(shim, """
