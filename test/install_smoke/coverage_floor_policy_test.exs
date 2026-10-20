@@ -16,6 +16,73 @@ defmodule Rindle.CoverageFloorPolicyTest do
     assert {_, 0} = invoke(fixture, "--verify-only")
   end
 
+  @tag :tmp_dir
+  test "integer boundary equality passes and one covered line below fails", %{tmp_dir: dir} do
+    for {covered, status} <- [{821_343, 0}, {821_342, 1}] do
+      fixture =
+        fixture!(
+          Path.join(dir, to_string(covered)),
+          List.duplicate(1, covered) ++ List.duplicate(0, 1_000_000 - covered)
+        )
+
+      assert {_, ^status} = invoke(fixture, "--write")
+      assert {_, ^status} = invoke(fixture, "--verify-only")
+    end
+  end
+
+  @tag :tmp_dir
+  test "receipt mutations cannot forge counts source runtime local success or payload", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir, [1, 1, 1, 1, 1])
+    assert {_, 0} = invoke(fixture, "--write")
+    original = fixture.receipt |> File.read!() |> Jason.decode!()
+
+    mutations = [
+      Map.delete(original, "covered"),
+      Map.put(original, "covered", 4),
+      Map.put(original, "subject_sha", String.duplicate("0", 40)),
+      Map.put(original, "source_tree", String.duplicate("0", 40)),
+      Map.put(original, "toolchain", "unsupported"),
+      Map.put(original, "node_version", "v26.0.0"),
+      Map.put(original, "local_exit", 2),
+      Map.put(original, "canonical_argv", ["mix", "test"]),
+      Map.put(original, "artifact_sha256", String.duplicate("0", 64)),
+      Map.put(original, "local_output_sha256", String.duplicate("0", 64))
+    ]
+
+    for mutation <- mutations do
+      File.write!(fixture.receipt, Jason.encode!(mutation))
+      assert {_, 1} = invoke(fixture, "--verify-only")
+    end
+
+    File.write!(fixture.receipt, Jason.encode!(original))
+    assert {_, 0} = invoke(fixture, "--verify-only")
+    before = File.read!(fixture.receipt)
+    assert {_, 1} = invoke(fixture, "--write")
+    assert File.read!(fixture.receipt) == before
+  end
+
+  @tag :tmp_dir
+  test "stale malformed and failed local outputs never qualify", %{tmp_dir: dir} do
+    for {label, coverage, extra} <- [
+          {"stale", [1], []},
+          {"negative", [-1], []},
+          {"boolean", [true], []},
+          {"local_red", [1], ["--local-exit", "2"]}
+        ] do
+      fixture = fixture!(Path.join(dir, label), coverage)
+
+      fixture =
+        if label == "stale",
+          do: %{fixture | started: System.system_time(:second) + 1},
+          else: fixture
+
+      assert {_, 1} = invoke(fixture, "--write", extra)
+      assert {_, 1} = invoke(fixture, "--verify-only")
+    end
+  end
+
   defp fixture!(dir, coverage) do
     source = Path.join(dir, "source")
 

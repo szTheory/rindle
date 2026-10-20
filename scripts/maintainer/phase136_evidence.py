@@ -479,18 +479,7 @@ def coverage_at_floor(covered, relevant, contract):
     return covered * floor["denominator"] >= relevant * floor["numerator"]
 
 
-def coverage_outcome(subject, path, contract):
-    receipt = read_json(path)
-    interface = contract["coverage"]
-    require(set(interface["required_fields"]).issubset(receipt), "coverage_missing_fields")
-    require(all(receipt.get(key) == value for key, value in subject.items()), "coverage_foreign_subject")
-    require(receipt["canonical_argv"] == interface["canonical_argv"], "coverage_noncanonical_argv")
-    require(type(receipt["local_exit"]) is int, "coverage_exit_type")
-    covered, relevant = receipt["covered"], receipt["relevant"]
-    require(type(covered) is int and type(relevant) is int and 0 <= covered <= relevant and relevant > 0,
-            "coverage_invalid_counts")
-    raw = base64.b64decode(receipt["artifact_base64"], validate=True)
-    require(digest(raw) == receipt["artifact_sha256"], "coverage_artifact_digest")
+def coverage_counts(raw):
     artifact = decode_json(raw)
     files = artifact.get("source_files")
     require(isinstance(files, list) and files, "coverage_missing_sources")
@@ -506,6 +495,25 @@ def coverage_outcome(subject, path, contract):
                 require(type(count) is int and count >= 0, "coverage_invalid_line_count")
                 actual_relevant += 1
                 actual_covered += int(count > 0)
+    return actual_covered, actual_relevant
+
+
+def coverage_outcome(subject, path, contract):
+    receipt = read_json(path)
+    interface = contract["coverage"]
+    require(set(interface["required_fields"]).issubset(receipt), "coverage_missing_fields")
+    require(all(receipt.get(key) == value for key, value in subject.items()), "coverage_foreign_subject")
+    require(receipt["canonical_argv"] == interface["canonical_argv"], "coverage_noncanonical_argv")
+    require(type(receipt["local_exit"]) is int, "coverage_exit_type")
+    require(receipt.get("toolchain") == TOOLCHAIN and
+            re.fullmatch(r"v20\.[0-9]+\.[0-9]+", receipt.get("node_version", "")),
+            "coverage_unsupported_runtime")
+    covered, relevant = receipt["covered"], receipt["relevant"]
+    require(type(covered) is int and type(relevant) is int and 0 <= covered <= relevant and relevant > 0,
+            "coverage_invalid_counts")
+    raw = base64.b64decode(receipt["artifact_base64"], validate=True)
+    require(digest(raw) == receipt["artifact_sha256"], "coverage_artifact_digest")
+    actual_covered, actual_relevant = coverage_counts(raw)
     require((actual_covered, actual_relevant) == (covered, relevant), "coverage_artifact_count_mismatch")
     local = base64.b64decode(receipt["local_output_base64"], validate=True)
     require(len(local) <= LIMIT and digest(local) == receipt["local_output_sha256"], "coverage_local_output_digest")
@@ -695,12 +703,55 @@ def coverage_main(root, argv):
     parser.add_argument("--local-exit", type=int)
     parser.add_argument("--run-started-at", type=float)
     args = parser.parse_args(argv)
-    result = {"outcome": "blocked", "reason": "coverage_writer_not_implemented"}
-    if args.write:
-        with Path(args.receipt).open("x") as output:
-            json.dump(result, output)
-    print(json.dumps(result))
-    return 0
+    result = {"outcome": "blocked"}
+    descriptor = None
+    try:
+        require(args.write != args.verify_only, "choose_one_coverage_mode")
+        subject = source_subject(root, args.subject_file)
+        contract, _ = evidence_contract(root)
+        result.update(subject)
+        if args.verify_only:
+            result["outcome"] = coverage_outcome(subject, args.receipt, contract)
+        else:
+            descriptor = os.open(args.receipt, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            require(args.artifact and args.local_output and args.local_exit is not None and
+                    args.run_started_at is not None and 0 < args.run_started_at <= time.time(),
+                    "coverage_run_inputs_required")
+            for name in (args.artifact, args.local_output):
+                path = Path(name)
+                require(path.is_file() and not path.is_symlink() and
+                        path.stat().st_mtime >= args.run_started_at, "coverage_missing_or_stale_artifact")
+            raw = Path(args.artifact).read_bytes()
+            local = Path(args.local_output).read_bytes()
+            require(len(raw) <= 32 * 1024 * 1024 and len(local) <= LIMIT, "coverage_output_limit")
+            code, version, _ = execute(["elixir", "--eval", ELIXIR_PROBE], root, budget=30)
+            result["toolchain"] = version.decode().strip()
+            require(code == 0 and result["toolchain"] == TOOLCHAIN, "coverage_unsupported_toolchain")
+            code, version, _ = execute(["node", "--version"], root, budget=30)
+            result["node_version"] = version.decode().strip()
+            require(code == 0 and re.fullmatch(r"v20\.[0-9]+\.[0-9]+", result["node_version"]),
+                    "coverage_unsupported_node")
+            covered, relevant = coverage_counts(raw)
+            complete = args.local_exit == 0 and coverage_at_floor(covered, relevant, contract)
+            result.update(covered=covered, relevant=relevant, canonical_argv=CANONICAL_COVERAGE,
+                          local_exit=args.local_exit, artifact_sha256=digest(raw),
+                          artifact_base64=base64.b64encode(raw).decode(),
+                          local_output_base64=base64.b64encode(local).decode(),
+                          local_output_sha256=digest(local), run_started_at=args.run_started_at,
+                          outcome="complete" if complete else "open")
+            require(re.search(rb"\b[1-9][0-9]* tests?, 0 failures\b", local),
+                    "coverage_missing_suite_proof")
+    except (Rejected, OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+        result.update(outcome="blocked", reason=str(error) if isinstance(error, Rejected)
+                      else "invalid_coverage_or_prerequisite")
+    finally:
+        if descriptor is not None:
+            with os.fdopen(descriptor, "w") as output:
+                json.dump(result, output, sort_keys=True)
+                output.write("\n")
+    print(json.dumps({key: value for key, value in result.items()
+                      if key not in ("artifact_base64", "local_output_base64")}, sort_keys=True))
+    return 0 if result["outcome"] == "complete" else 1
 
 
 def main():

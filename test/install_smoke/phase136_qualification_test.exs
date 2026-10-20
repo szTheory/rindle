@@ -261,6 +261,8 @@ defmodule Rindle.PhaseEvidenceQualificationTest do
       "local_exit" => 0,
       "artifact_sha256" => hash(artifact),
       "outcome" => "complete",
+      "toolchain" => "elixir-1.17.3/otp-27.3.4.15",
+      "node_version" => "v20.18.1",
       "artifact_base64" => Base.encode64(artifact),
       "local_output_base64" => Base.encode64(local),
       "local_output_sha256" => hash(local)
