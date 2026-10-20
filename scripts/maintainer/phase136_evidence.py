@@ -684,10 +684,31 @@ def qualification_main(root, argv):
                 output.write("\n")
 
 
+def coverage_main(root, argv):
+    parser = argparse.ArgumentParser(prog="verify_coverage_floor.exs")
+    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--verify-only", action="store_true")
+    parser.add_argument("--subject-file", required=True)
+    parser.add_argument("--receipt", required=True)
+    parser.add_argument("--artifact")
+    parser.add_argument("--local-output")
+    parser.add_argument("--local-exit", type=int)
+    parser.add_argument("--run-started-at", type=float)
+    args = parser.parse_args(argv)
+    result = {"outcome": "blocked", "reason": "coverage_writer_not_implemented"}
+    if args.write:
+        with Path(args.receipt).open("x") as output:
+            json.dump(result, output)
+    print(json.dumps(result))
+    return 0
+
+
 def main():
     family, root = sys.argv[1], Path(sys.argv[2]).resolve()
     if family == "qualify":
         return qualification_main(root, sys.argv[3:])
+    if family == "coverage":
+        return coverage_main(root, sys.argv[3:])
     parser = argparse.ArgumentParser(prog="phase136_measure.sh")
     parser.add_argument("operation")
     parser.add_argument("--subject-file", required=True)
