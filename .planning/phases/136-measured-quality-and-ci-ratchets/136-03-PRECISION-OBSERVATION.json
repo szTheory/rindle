@@ -1,0 +1,8 @@
+{
+  "command": "Phase136 combined owner regression --seed 0",
+  "exit_status": 2,
+  "tests": 138,
+  "failures": 1,
+  "output": "Running ExUnit with seed: 0, max_cases: 36\nExcluding tags: [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]\n\n.........................................................................................................................................\n\n  1) test configured local analyzer rejects floored values below the exact accepted ratio (Rindle.CoverageFloorPolicyTest)\n     test/install_smoke/coverage_floor_policy_test.exs:86\n     Assertion with == failed\n     code:  assert ExCoveralls.Stats.get_coverage(1_000_000, 822_000) == 82.2\n     left:  82.1\n     right: 82.2\n     stacktrace:\n       test/install_smoke/coverage_floor_policy_test.exs:92: (test)\n\n\nFinished in 138.4 seconds (15.6s async, 122.8s sync)\n138 tests, 1 failure\nWrote JUnit report to: _build/test/junit/rindle-junit.xml\n",
+  "finding": "Installed ExCoveralls floors Float(822000 / 1000000 * 100) to 82.1. Keep configured minimum82.2 conservative; explicitly test this behavior and use82.21 as stable green fixture."
+}

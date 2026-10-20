@@ -89,7 +89,8 @@ defmodule Rindle.CoverageFloorPolicyTest do
     assert options["minimum_coverage"] == 82.2
     assert ExCoveralls.Stats.get_coverage(1_000_000, 821_342) == 82.1
     assert ExCoveralls.Stats.get_coverage(1_000_000, 821_343) == 82.1
-    assert ExCoveralls.Stats.get_coverage(1_000_000, 822_000) == 82.2
+    assert ExCoveralls.Stats.get_coverage(1_000_000, 822_000) == 82.1
+    assert ExCoveralls.Stats.get_coverage(1_000_000, 822_100) == 82.2
 
     below = [
       %{
@@ -107,7 +108,7 @@ defmodule Rindle.CoverageFloorPolicyTest do
       %{
         name: "fixture.ex",
         source: "fixture",
-        coverage: List.duplicate(1, 822) ++ List.duplicate(0, 178)
+        coverage: List.duplicate(1, 8_221) ++ List.duplicate(0, 1_779)
       }
     ]
 
