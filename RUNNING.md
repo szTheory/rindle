@@ -312,3 +312,17 @@ variants: [
 
 That is the same public posture taught in [README](readme.html) and
 [Getting Started](getting_started.html).
+
+## Contributor verification commands
+
+[CONTRIBUTING.md](CONTRIBUTING.md#clean-supported-setup) owns the clean supported
+setup and the focused/full/nightly/measurement/release command map. Select the
+accepted Elixir 1.17.3 / OTP 27.3.4.15 cell and CI's Node 20 before using it; the
+older checked-in OTP hint is not a reason to change `.tool-versions` locally.
+
+`bash scripts/maintainer/verify_contributor_bootstrap.sh --validate` checks the
+ordered bootstrap contract without installing dependencies. `--run --full`
+executes it and `mix ci` in a clean detached copy with private Mix/Hex homes,
+300-second command bounds and a 1200-second overall bound, writing a new receipt.
+It is local contributor evidence, not a new CI coverage lane. The one canonical
+coverage-floor measurement remains `mix coveralls.multiple --type local --type json`.

@@ -54,12 +54,41 @@ checkout, with private Mix/Hex homes and a 20-minute total budget:
 ```sh
 bash scripts/maintainer/verify_contributor_bootstrap.sh --validate
 bash scripts/maintainer/verify_contributor_bootstrap.sh --run \
-  --subject-sha "$(git rev-parse HEAD)" --receipt /tmp/rindle-bootstrap-new.json
+  --subject-sha "$(git rev-parse HEAD)" --receipt /tmp/rindle-bootstrap-new.json --full
 ```
 
 Choose a new receipt path on every attempt. The probe refuses existing targets,
 wrong runtime versions, dirty source and failed documented commands; it removes
 the disposable source and private dependency/build directories afterwards.
+
+## Choose a verification lane
+
+Run focused checks while editing. Before a PR, run `mix ci`; it exercises the
+ordinary default suite once. Use the canonical local+JSON coverage command once
+for a floor measurement. The finite async experiment is separate local evidence,
+not another CI lane. Fresh/restored Dialyzer analyses belong to Nightly breadth;
+release hygiene belongs to release preparation.
+
+<!-- rindle-verification-map -->
+| Surface | Lane | Command |
+| --- | --- | --- |
+| Complexity policy | focused | `mix test test/install_smoke/credo_policy_test.exs --seed 0` |
+| Current complexity inventory | focused | `mix credo_quality` |
+| CI input and topology policy | focused | `mix test test/install_smoke/quality_signal_policy_test.exs test/install_smoke/ci_cache_hygiene_test.exs --seed 0` |
+| Supported type analysis from cold PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh fresh` |
+| Supported type analysis from restored PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh restored` |
+| Exact coverage floor measurement | measurement | `mix coveralls.multiple --type local --type json` |
+| Async matrix declaration | focused | `bash scripts/maintainer/async_isolation_evidence.sh --validate` |
+| Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |
+| Complete local PR verification | full | `mix ci` |
+| Release repository hygiene | release | `bash scripts/maintainer/repo_hygiene_check.sh --ci` |
+<!-- /rindle-verification-map -->
+
+Replace `NEW.jsonl` with a new filename; preserve every existing first-red report.
+Add `--full` to the bootstrap probe to run the documented focused path followed
+by `mix ci` in the same clean copy. It retains the default suite's documented tag
+exclusions, and needs no MinIO credentials or browser installation. The final
+supported bootstrap receipt uses this full option.
 
 ## Reproduce the PR gate locally: `mix ci`
 

@@ -12,7 +12,11 @@ action.add_argument('--validate', action='store_true')
 parser.add_argument('--source-root', default=sys.argv[1])
 parser.add_argument('--subject-sha')
 parser.add_argument('--receipt')
+parser.add_argument('--full', action='store_true')
+parser.add_argument('--timeout-seconds', type=int, default=1200)
 args = parser.parse_args(sys.argv[2:])
+if not 1 <= args.timeout_seconds <= 1200:
+    parser.error('--timeout-seconds must be between 1 and 1200')
 source = pathlib.Path(args.source_root).resolve()
 supported = {'elixir': '1.17.3', 'otp': '27.3.4.15', 'node_major': 20}
 expected_commands = [
@@ -20,9 +24,9 @@ expected_commands = [
     ['mix', 'deps.get', '--check-locked'], ['mix', 'compile', '--warnings-as-errors'],
     ['mix', 'test', 'test/install_smoke/quality_signal_policy_test.exs', '--seed', '0']]
 result = {'schema_version': 1, 'outcome': 'blocked', 'subject_sha': args.subject_sha,
-          'commands': [], 'clean_checkout': False, 'full': False}
+          'commands': [], 'clean_checkout': False, 'full': args.full}
 started = time.monotonic()
-deadline = started + 1200
+deadline = started + args.timeout_seconds
 output_limit = 4 * 1024 * 1024
 
 class Blocked(Exception):
@@ -98,7 +102,7 @@ try:
     commands = documented_commands(source)
     if args.validate:
         print(json.dumps({'runtime': supported, 'commands': commands,
-                          'timeout_seconds': 1200, 'command_timeout_seconds': 300}))
+                          'timeout_seconds': args.timeout_seconds, 'command_timeout_seconds': 300}))
         sys.exit(0)
     head = git('rev-parse', 'HEAD')
     if not args.subject_sha or not re.fullmatch(r'[0-9a-f]{40}', args.subject_sha) or args.subject_sha != head:
@@ -133,13 +137,15 @@ try:
         for key in ('MIX_BUILD_PATH', 'MIX_DEPS_PATH', 'MIX_ARCHIVES', 'HEX_OFFLINE'):
             env.pop(key, None)
         env.update(MIX_ENV='test', MIX_HOME=str(scratch / 'mix'), HEX_HOME=str(scratch / 'hex'))
-        for argv in commands:
+        for argv in commands + ([['mix', 'ci']] if args.full else []):
             record, output = command(argv, checkout, env)
             result['commands'].append(record)
             if record['exit_status'] != 0:
                 result['outcome'] = 'open'
                 raise Blocked('documented_command_failed')
-            if argv[1] == 'test' and not re.search(r'\b[1-9][0-9]* tests?, 0 failures\b', output):
+            if argv[1] in ('test', 'ci') and (not re.search(r'\b[1-9][0-9]* tests?, 0 failures\b', output) or re.search(r'\b[1-9][0-9]* invalid\b', output)):
+                raise Blocked('focused_or_full_test_did_not_execute')
+            if argv[1] == 'test' and re.search(r'\b[1-9][0-9]* (skipped|excluded)\b', output):
                 raise Blocked('focused_test_did_not_execute')
         result['outcome'] = 'complete'
 except (Blocked, OSError, ValueError, KeyError) as error:
