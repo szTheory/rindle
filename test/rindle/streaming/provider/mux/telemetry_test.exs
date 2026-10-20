@@ -38,7 +38,7 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
       delivery: [signed_url_ttl_seconds: 900]
   end
 
-  @phase_34_events [
+  @provider_telemetry_events [
     [:rindle, :provider, :ingest, :start],
     [:rindle, :provider, :ingest, :stop],
     [:rindle, :provider, :ingest, :exception],
@@ -112,11 +112,11 @@ defmodule Rindle.Streaming.Provider.Mux.TelemetryTest do
     }
 
     test_pid = self()
-    handler_id = "phase34-telemetry-#{System.unique_integer([:positive])}"
+    handler_id = "mux-provider-telemetry-#{System.unique_integer([:positive])}"
 
     :telemetry.attach_many(
       handler_id,
-      @phase_34_events,
+      @provider_telemetry_events,
       fn evt, measurements, metadata, _ ->
         send(test_pid, {:tele, evt, measurements, metadata})
       end,

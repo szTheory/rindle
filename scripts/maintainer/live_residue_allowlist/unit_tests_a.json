@@ -3,38 +3,6 @@
   "area": "unit_tests_a",
   "entries": [
     {
-      "path": "test/rindle/admin/live/variants_runtime_actions_test.exs",
-      "class": "phase-ref",
-      "text": "@tag :phase_119_refusal",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/admin/queries_test.exs",
-      "class": "phase-ref",
-      "text": "@tag :phase_119_redaction",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/delivery/webhook_plug_test.exs",
-      "class": "phase-ref",
-      "text": "@secret \"test_webhook_secret_phase35\"",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
-      "path": "test/rindle/doctor_test.exs",
-      "class": "phase-ref",
-      "text": "@tag :phase_119_redaction",
-      "count": 1,
-      "reason_class": "pending-removal",
-      "reason": ""
-    },
-    {
       "path": "test/rindle/error_streaming_freeze_test.exs",
       "class": "milestone-ref",
       "text": "For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.",

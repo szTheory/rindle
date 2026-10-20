@@ -259,7 +259,7 @@ defmodule Rindle.Admin.QueriesTest do
     end
   end
 
-  @tag :phase_119_redaction
+  @tag :diagnostic_redaction
   test "runtime_doctor/1 projects runtime failures and migration failures into bounded diagnostic data" do
     sentinel = "SELECT secret FROM pg_catalog -- Postgrex.Error credential=demo-password"
     previous = Application.get_env(:rindle, RuntimeStatus)

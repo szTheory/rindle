@@ -271,7 +271,7 @@ if Code.ensure_loaded?(Phoenix.LiveView) do
       assert html =~ "Waiting for lifecycle events"
     end
 
-    @tag :phase_119_refusal
+    @tag :ownership_refusal
     test "Runtime/Doctor renders a bounded ownership refusal without querying a report", %{
       conn: conn
     } do

@@ -8,9 +8,9 @@ const {
   expectNoHorizontalScroll,
 } = require("./support/admin");
 
-// Discharges the phase-90 human-verification item ("visual styling clearly indicates a
-// destructive action; the layout of the receipt and warnings is clear") with deterministic
-// assertions. The fast ExUnit suite guards the *markup* contract (which classes are present);
+// Proves with deterministic assertions that ("visual styling clearly indicates a
+// destructive action; the layout of the receipt and warnings is clear"). The fast ExUnit
+// suite guards the *markup* contract (which classes are present);
 // this browser suite proves the classes actually *paint* destructively with the stylesheet
 // loaded, in both light and dark themes.
 

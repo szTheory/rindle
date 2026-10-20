@@ -21,19 +21,6 @@ Out-of-scope discoveries logged by executors. Not fixed in the plan that found t
   and classed it `contract`. Rewording it, for example to `(long-pole jobs)`, is a
   one-line follow-up that also removes its allowlist entry.
 
-## From 135-10
-
-- **Phase-numbered tag atoms and helper names in the generated-app smoke suite.**
-  `test/install_smoke/generated_app_smoke_test.exs`, `support/generated_app_helper.ex`
-  and `support/generated_app/contracts.ex` use `:phase_120_public_compat`,
-  `:phase_120_isolation_upgrade`, `:phase_120_compat_contract`,
-  `:phase_120_upgrade_contract`, `:phase_120_fast_contract`,
-  `:phase_132_generator_contract` and `GeneratedAppHelper.phase_120_scenario_enabled?/2`.
-  These are functional identifiers (scenario keys, `--include` selectors and a helper
-  function), not comments or test names, and the residue scanner does not flag them.
-  Renaming them is a code change across three files plus any `--only`/`--include`
-  invocations, so it was left out of this rename-only tranche.
-
 ## From 135-11
 
 - **`scripts/ci/test_compat_115_26.sh` is a Docker toolchain repro, not a fixture harness.**
