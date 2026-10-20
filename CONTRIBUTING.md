@@ -12,6 +12,55 @@ local command — `mix ci` — that reproduces the PR verdict before you push.
 
 Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions.
 
+## Clean supported setup
+
+Use Elixir 1.17.3 with OTP 27.3.4.15, the accepted maintenance cell, and Node 20
+(the CI selection; 20.18.1 is the repository's existing Node pin). Install Postgres,
+libvips and FFmpeg using [RUNNING.md](RUNNING.md), then ensure Postgres is running.
+The checked-in OTP 27.2 hint predates the accepted cell; use explicit environment
+selection without editing `.tool-versions`. With an existing asdf installation:
+
+```sh
+asdf install erlang 27.3.4.15
+asdf install elixir 1.17.3-otp-27
+asdf install nodejs 20.18.1
+export ASDF_ERLANG_VERSION=27.3.4.15
+export ASDF_ELIXIR_VERSION=1.17.3-otp-27
+export ASDF_NODEJS_VERSION=20.18.1
+export PATH="$HOME/.asdf/shims:$PATH"
+```
+
+The following ordered commands bootstrap a fresh clone and run focused CI-policy
+checks. Hex/Rebar and dependencies are the existing project tools and locked deps.
+The machine-readable runtime annotation keeps the probe and this setup aligned.
+
+<!-- rindle-bootstrap-runtime -->
+{"elixir":"1.17.3","otp":"27.3.4.15","node_major":20}
+<!-- /rindle-bootstrap-runtime -->
+
+<!-- rindle-bootstrap-commands -->
+```sh
+mix local.hex --force
+mix local.rebar --force
+mix deps.get --check-locked
+mix compile --warnings-as-errors
+mix test test/install_smoke/quality_signal_policy_test.exs --seed 0
+```
+<!-- /rindle-bootstrap-commands -->
+
+To check the same path in a disposable detached copy of a **clean committed**
+checkout, with private Mix/Hex homes and a 20-minute total budget:
+
+```sh
+bash scripts/maintainer/verify_contributor_bootstrap.sh --validate
+bash scripts/maintainer/verify_contributor_bootstrap.sh --run \
+  --subject-sha "$(git rev-parse HEAD)" --receipt /tmp/rindle-bootstrap-new.json
+```
+
+Choose a new receipt path on every attempt. The probe refuses existing targets,
+wrong runtime versions, dirty source and failed documented commands; it removes
+the disposable source and private dependency/build directories afterwards.
+
 ## Reproduce the PR gate locally: `mix ci`
 
 `mix ci` runs the same merge-blocking checks the PR gate runs, in a sensible local order:

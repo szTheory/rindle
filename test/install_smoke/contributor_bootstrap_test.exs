@@ -48,7 +48,7 @@ defmodule Rindle.ContributorBootstrapTest do
 
     File.write!(Path.join(bin, "mix"), """
     #!/usr/bin/env bash
-    echo "$*" >> "$BOOTSTRAP_CALL_LOG"
+    echo "mix $*" >> "$BOOTSTRAP_CALL_LOG"
     echo '1 test, 0 failures'
     """)
 
