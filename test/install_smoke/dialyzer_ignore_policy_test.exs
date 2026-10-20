@@ -67,6 +67,53 @@ defmodule Rindle.InstallSmoke.DialyzerIgnorePolicyTest do
     assert_invalid([{"lib/rindle.ex"}])
   end
 
+  test "each approved identity rejects duplicates and broader discriminators" do
+    Enum.each(@approved_filters, fn {path, discriminator} = approved ->
+      assert valid_ignore_list?([approved])
+      assert valid_ignore_list?([])
+      refute valid_ignore_list?([approved, approved])
+      refute valid_ignore_list?([{path}])
+      refute valid_ignore_list?([{path, ~r/.*/}])
+
+      if is_binary(discriminator) do
+        refute valid_ignore_list?([{path, String.slice(discriminator, 0, 12)}])
+      end
+    end)
+  end
+
+  test "Dialyxir matches the migration warning by exact path and formatted function identity" do
+    filters = Dialyxir.FilterMap.from_file(@ignore_path, false, false)
+
+    warning =
+      {:warn_return_no_exit, {~c"lib/rindle/migration.ex", 42},
+       {:no_return, [:only_normal, :up, 0]}}
+
+    assert {true, [{"lib/rindle/migration.ex", "Function up/0 has no local return."}]} =
+             Dialyxir.Project.filter_warning?(warning, filters)
+
+    different_function =
+      {:warn_return_no_exit, {~c"lib/rindle/migration.ex", 42},
+       {:no_return, [:only_normal, :unreviewed_function, 0]}}
+
+    assert {false, []} = Dialyxir.Project.filter_warning?(different_function, filters)
+
+    different_path =
+      {:warn_return_no_exit, {~c"lib/rindle.ex", 42}, {:no_return, [:only_normal, :up, 0]}}
+
+    assert {false, []} = Dialyxir.Project.filter_warning?(different_path, filters)
+
+    without_selected = %{
+      filters
+      | counters:
+          Map.delete(
+            filters.counters,
+            {"lib/rindle/migration.ex", "Function up/0 has no local return."}
+          )
+    }
+
+    assert {false, []} = Dialyxir.Project.filter_warning?(warning, without_selected)
+  end
+
   defp assert_invalid(ignores), do: refute(valid_ignore_list?(ignores))
 
   defp valid_ignore_list?(ignores) when is_list(ignores) do
