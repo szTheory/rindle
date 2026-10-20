@@ -37,10 +37,10 @@ defmodule Rindle.InstallSmoke.DocsParity.ProductAndAdminTest do
           "detach now, purge later",
           "cleanup_orphans",
           "maintenance-only",
-          # TRUTH-07: user_flows now affirms the mountable admin console instead
-          # of denying "an admin UI". The old required `"admin ui"` snippet was
-          # replaced with the truthful "admin console" token (asserted below);
-          # leaving it here would relock the scope-reversed denial (T-93-05).
+          # user_flows affirms the mountable admin console rather than denying
+          # "an admin UI", so the required token is "admin console" (asserted
+          # below); requiring the bare "admin ui" snippet would lock in the
+          # stale denial.
           "admin console",
           "preview_batch_owner_erasure",
           "erase_batch_owner_erasure",
@@ -66,10 +66,10 @@ defmodule Rindle.InstallSmoke.DocsParity.ProductAndAdminTest do
     refute user_flows =~ "being standardized for `v1.10`"
     refute user_flows =~ "The full executable facade lands in later `v1.10` phase work"
 
-    # TRUTH-07: the JTBD admin-UI exclusion is reversed. user_flows must not
-    # carry the old denial phrasings now that the mountable console ships.
+    # The mountable console ships, so user_flows must not carry the old
+    # admin-UI denial phrasings.
     refute Regex.match?(~r/\ban admin UI\b/i, user_flows),
-           "user_flows.md must not deny an admin UI (scope reversed in v1.18)"
+           "user_flows.md must not deny an admin UI (the admin console ships)"
 
     refute user_flows =~ "Admin UI, force-delete",
            "user_flows.md must not list the admin UI among deferred work"
@@ -85,13 +85,13 @@ defmodule Rindle.InstallSmoke.DocsParity.ProductAndAdminTest do
       |> normalize_whitespace()
 
     assert facade_moduledoc =~ "rindle_admin",
-           "Rindle facade moduledoc must reference the rindle_admin router macro (TRUTH-07)"
+           "Rindle facade moduledoc must reference the rindle_admin router macro"
 
     assert facade_moduledoc =~ "admin console",
-           "Rindle facade moduledoc must affirm the mountable admin console (TRUTH-07)"
+           "Rindle facade moduledoc must affirm the mountable admin console"
 
     refute Regex.match?(~r/no admin ui/i, facade_moduledoc),
-           "Rindle facade moduledoc must not deny an admin UI (scope reversed in v1.18)"
+           "Rindle facade moduledoc must not deny an admin UI (the admin console ships)"
 
     # Retain the deferred owner-erasure truths the facade still promises.
     assert facade_moduledoc =~ "force-delete"
@@ -99,7 +99,7 @@ defmodule Rindle.InstallSmoke.DocsParity.ProductAndAdminTest do
 
     # (2) admin_console guide exists, is in extras, and names the router macro.
     assert File.exists?(@admin_console_path),
-           "guides/admin_console.md must exist (created by Plan 03)"
+           "guides/admin_console.md must exist"
 
     admin_guide = File.read!(@admin_console_path)
 

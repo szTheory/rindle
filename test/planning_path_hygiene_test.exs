@@ -1,6 +1,6 @@
 defmodule Rindle.PlanningPathHygieneTest do
   @moduledoc """
-  Phase 111 (Regression Locks) LOCK-05 regression lock: NO test under `test/`
+  Planning-path hygiene regression lock: NO test under `test/`
   may read a live repository planning-doc path at runtime.
 
   Internal planning directories move when a milestone is archived (gsd-cleanup
@@ -48,7 +48,7 @@ defmodule Rindle.PlanningPathHygieneTest do
     {:ok, files: files}
   end
 
-  test "no test/**/*.exs file reads a live repository planning path at runtime (LOCK-05)", %{
+  test "no test/**/*.exs file reads a live repository planning path at runtime", %{
     files: files
   } do
     offenders =
@@ -68,7 +68,7 @@ defmodule Rindle.PlanningPathHygieneTest do
     assert offenders == [], failure_message(offenders)
   end
 
-  test "LOCK-05 distinguishes repository paths from disposable fixture roots" do
+  test "the planning-read check distinguishes repository paths from disposable fixture roots" do
     requirements_path = @planning_dir_token <> "/REQUIREMENTS.md"
     repository_read = "File." <> "read!(Path.join(repo_root, \"" <> requirements_path <> "\"))"
     fixture_read = "File." <> "read!(Path.join(fixture.root, \"" <> requirements_path <> "\"))"

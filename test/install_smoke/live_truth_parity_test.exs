@@ -357,7 +357,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :derived_authority
-  test "TRUTH-08: claims the derived model cannot classify fail instead of passing as prose" do
+  test "claims the derived model cannot classify fail instead of passing as prose" do
     model = Rindle.ValidateLiveTruth.derive!(@repo_root, [])
 
     for {claim, message} <- [

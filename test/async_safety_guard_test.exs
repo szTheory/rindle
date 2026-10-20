@@ -1,6 +1,6 @@
 defmodule Rindle.AsyncSafetyGuardTest do
   @moduledoc """
-  Static async-safety guard (HARD-01, D-02).
+  Static async-safety guard.
 
   A meta-test that globs `test/**/*_test.exs`, parses each file to an AST, and for
   every module whose `use ExUnit.Case` / `use Rindle.DataCase` header declares
@@ -62,7 +62,7 @@ defmodule Rindle.AsyncSafetyGuardTest do
       files
       |> Enum.flat_map(&parse_async_true_modules/1)
 
-    # ISO-04 (D-08): the :global_repo_swap rule scans EVERY module (the
+    # The :global_repo_swap rule scans EVERY module (the
     # mutators/swappers are async: false), so it needs a separate all-modules list
     # built without the async filter; the existing per-async:true `modules` above
     # are untouched.
@@ -107,7 +107,7 @@ defmodule Rindle.AsyncSafetyGuardTest do
     assert offenders == [], failure_message(offenders)
   end
 
-  # ISO-04 (D-07/D-08/D-11): no test module — async:true OR async:false — may swap
+  # No test module — async:true OR async:false — may swap
   # the globally-read `:rindle, :repo` library config via Application.put_env/delete_env.
   # The footgun is un-reintroducible: a new global swap goes RED and points the author
   # at the sanctioned process-local `Rindle.Config.put_repo_override/1`. The 9 legitimate
@@ -156,7 +156,7 @@ defmodule Rindle.AsyncSafetyGuardTest do
     end)
   end
 
-  # ISO-04 (D-08): mirrors `parse_async_true_modules/1` MINUS the
+  # Mirrors `parse_async_true_modules/1` MINUS the
   # `Enum.filter(&async_true?/1)` line — returns every module in `path` (async:true
   # OR async:false) as %{module, relpath, allow, body}, honoring the same
   # `@async_safety_allow` allow-list. Used ONLY by the :global_repo_swap all-modules
@@ -305,7 +305,7 @@ defmodule Rindle.AsyncSafetyGuardTest do
     Enum.reverse(offenders)
   end
 
-  # ISO-04 (D-07): collects every :rindle/:repo global swap in a module body. Applies
+  # Collects every :rindle/:repo global swap in a module body. Applies
   # ONLY `classify_global_repo_swap/1` (a separate pass from `collect_offenders/2`, which
   # owns the async:true-only primitives); never touches the existing classifiers.
   defp collect_global_repo_swaps(body) do
@@ -320,11 +320,11 @@ defmodule Rindle.AsyncSafetyGuardTest do
     Enum.reverse(swaps)
   end
 
-  # ISO-04 (D-07/D-11): matches `Application.put_env(:rindle, :repo, _)` /
-  # `Application.delete_env(:rindle, :repo)` (research §iv locked AST shape). The
+  # Matches `Application.put_env(:rindle, :repo, _)` /
+  # `Application.delete_env(:rindle, :repo)` (the locked AST shape). The
   # `[:rindle, :repo | _]` head pins the first two positional args to the app/key
   # atoms, so `:rindle, :repo_probe_owner` and `:rindle, :counting_failing_txn_repo`
-  # (D-11) do NOT match.
+  # do NOT match.
   defp classify_global_repo_swap(
          {{:., meta, [{:__aliases__, _, [:Application]}, m]}, _, [:rindle, :repo | _]}
        )
@@ -394,8 +394,8 @@ defmodule Rindle.AsyncSafetyGuardTest do
   # named/registered process: any *.start_link / *.start / start_supervised(ed!) /
   # GenServer.start* call whose args include a FIXED `name:` (a literal atom or a
   # bare `__MODULE__`). A name derived from `System.unique_integer` is per-test
-  # unique and async-safe, so it is NOT flagged (RESEARCH: "name: __MODULE__ or a
-  # fixed atom" is the unsafe shape).
+  # unique and async-safe, so it is NOT flagged ("name: __MODULE__ or a fixed
+  # atom" is the unsafe shape).
   defp classify({{:., meta, [_mod, fun]}, _, args}, _tmp)
        when fun in [:start_link, :start, :start_supervised, :start_supervised!] do
     if fixed_name_kwarg?(args), do: {:named_process, line(meta)}, else: nil
@@ -527,7 +527,7 @@ defmodule Rindle.AsyncSafetyGuardTest do
     """
     Found #{length(offenders)} :global_repo_swap offender(s): test module(s) mutating the \
     globally-read `:rindle, :repo` library config with `Application.put_env`/`delete_env`. \
-    This cross-pollutes any concurrent async reader of `Rindle.Config.repo/0` (ISO-04).
+    This cross-pollutes any concurrent async reader of `Rindle.Config.repo/0`.
 
     #{lines}
 

@@ -1,16 +1,16 @@
 defmodule Rindle.FocusVisibleModalityGuardTest do
   @moduledoc """
-  LOCK-04 (Phase 111, D-03) — focus-visible keyboard-modality regression lock.
+  Focus-visible keyboard-modality regression lock.
 
-  A merge-blocking meta-test that locks the Plan 03 dedupe: post-dedupe the raw
+  A merge-blocking meta-test that locks the dedupe: the raw
   `:focus-visible` modality call lives in EXACTLY ONE place — the shared
   `focusVisibly(page, locator)` helper in `admin-polish.js`. This guard asserts the
-  POST-DEDUPE invariant so a future fourth focus check that copies the raw modality
+  single-source invariant so a future fourth focus check that copies the raw modality
   call (without the Tab press, without the shared helper) goes RED in CI — the exact
   "duplicated in two places at once" footgun that produced the original
   `:focus-visible` flake.
 
-  ## What it asserts (dual-assert, D-03)
+  ## What it asserts (dual-assert)
 
   1. **Tab-first ordering** — the `focusVisibly` helper presses a real `Tab`
      (flipping headless Chromium into keyboard-focus mode) BEFORE it runs the
@@ -28,23 +28,23 @@ defmodule Rindle.FocusVisibleModalityGuardTest do
   count would see those comment occurrences and assert a wrong number — either
   always-red or, worse, masking a real bypass. The call-form expression
   (`.focus(` + `{` + the focusVisible option + `}` + `)`) appears ONLY at real call
-  sites, never in those prose comments, so counting it is immune to the comment noise
-  (T-111-09). The call-form regex is built at runtime from fragments so the bare prose
+  sites, never in those prose comments, so counting it is immune to the comment noise.
+  The call-form regex is built at runtime from fragments so the bare prose
   literal is not written as a standalone grep-able token in this file.
 
   ## Anti-vacuous guards
 
   - `assert files != []` so a mis-rooted or empty harness list fails loudly instead of
-    vacuously passing (T-111-10).
+    vacuously passing.
   - The guard keys off the PRESENCE of the call-form / helper, so a file that silently
     drops the feature cannot exempt itself.
 
   ## SHIPPED artifacts ONLY
 
-  Reads `examples/` and `brandbook/` SHIPPED harness paths only — never a `.planning/`
-  path (those move when a milestone is archived; the LOCK-05 planning-path-hygiene
-  sibling would red-gate this file otherwise). `async: true`, no exclude tag → rides the
-  default suite / merge-blocking `quality` lane like the other Phase 111 meta-tests.
+  Reads `examples/` and `brandbook/` SHIPPED harness paths only — never a planning doc
+  path (those move when a milestone is archived; the planning-path-hygiene sibling
+  would red-gate this file otherwise). `async: true`, no exclude tag → rides the
+  default suite / merge-blocking `quality` lane like the other meta-tests.
   """
   use ExUnit.Case, async: true
 
@@ -86,11 +86,11 @@ defmodule Rindle.FocusVisibleModalityGuardTest do
 
     #{listing}
 
-    Post-dedupe (Plan 03), the raw `:focus-visible` modality call lives ONLY inside the \
+    The raw `:focus-visible` modality call lives ONLY inside the \
     shared `focusVisibly(page, locator)` helper in admin-polish.js. A new occurrence here \
     is a future copy that bypasses the helper (and likely forgets the Tab press) — \
     reintroducing the original flake. Route the new focus site through `focusVisibly` \
-    instead of inlining the raw call-form (LOCK-04, D-03).
+    instead of inlining the raw call-form.
     """
   end
 
@@ -121,13 +121,13 @@ defmodule Rindle.FocusVisibleModalityGuardTest do
       |> Enum.map(&Path.join(@repo_root, &1))
       |> Enum.filter(&File.exists?/1)
 
-    # Anti-vacuous (T-111-10 / RESEARCH Pitfall 5): an empty or mis-rooted harness list
+    # Anti-vacuous: an empty or mis-rooted harness list
     # must fail loudly, not silently pass.
     assert files != [],
            "expected the focus-visible harness list to resolve to files under " <>
              "#{@repo_root}, got none — the guard would otherwise pass vacuously"
 
-    # Count-based dual-assert (RESEARCH Pattern 2 / Open Q1, D-03): admin-polish.js has
+    # Count-based dual-assert: admin-polish.js has
     # EXACTLY ONE call-form (inside focusVisibly); the gallery has ZERO (it calls the
     # helper). This pair catches a future 4th copy in EITHER file.
     polish_offenders = call_form_offenders(@admin_polish)

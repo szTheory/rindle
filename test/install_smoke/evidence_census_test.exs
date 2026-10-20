@@ -51,7 +51,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   @inapplicable_dimension "performance"
   @inapplicable_reason "not exercised by the minimal tracer fixture"
 
-  test "EVID-01: clean exact-head receipt validates against a separate reviewed ledger" do
+  test "clean exact-head receipt validates against a separate reviewed ledger" do
     fixture = census_fixture!()
 
     assert {collector_output, 0} = run_collector(fixture)
@@ -78,7 +78,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
            end)
   end
 
-  test "EVID-01: unchanged inputs produce byte-stable canonical receipts" do
+  test "unchanged inputs produce byte-stable canonical receipts" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
     first = File.read!(fixture.receipt)
@@ -88,7 +88,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert String.ends_with?(first, "\n")
   end
 
-  test "EVID-01: foreign SHA and dirty diagnostic receipts cannot become authoritative" do
+  test "foreign SHA and dirty diagnostic receipts cannot become authoritative" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -105,8 +105,8 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "diagnostic dirty receipt is not authoritative")
   end
 
-  @tag :plan108
-  test "Plan 109 rejects two byte-identical invalid copied census receipts independently" do
+  @tag :copied_receipt_isolation
+  test "rejects two byte-identical invalid copied census receipts independently" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -133,7 +133,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end
   end
 
-  test "EVID-01: taxonomy and observation assignment mutations fail closed" do
+  test "taxonomy and observation assignment mutations fail closed" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -175,7 +175,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "every observation must be assigned to exactly one candidate")
   end
 
-  test "EVID-01: adjacent observations sharing a detector and file stay separate candidates" do
+  test "adjacent observations sharing a detector and file stay separate candidates" do
     fixture = complete_census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -212,7 +212,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert length(same_site) == 2
   end
 
-  test "EVID-01: candidate identity and disposition mutations fail closed" do
+  test "candidate identity and disposition mutations fail closed" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -245,7 +245,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end
   end
 
-  test "EVID-01: complete registry covers every locked dimension with repository-owned inputs" do
+  test "complete registry covers every locked dimension with repository-owned inputs" do
     fixture = complete_census_fixture!()
 
     assert {_output, 0} = run_collector(fixture)
@@ -259,7 +259,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "detector authority differs from repository-owned registry")
   end
 
-  test "EVID-01: mixed applicability preserves exact authority for every applicable detector" do
+  test "mixed applicability preserves exact authority for every applicable detector" do
     fixture = census_fixture!()
 
     assert {_output, 0} = run_collector(fixture)
@@ -282,7 +282,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end
   end
 
-  test "EVID-01: inapplicability requires an allowlisted dimension and exact bounded reason" do
+  test "inapplicability requires an allowlisted dimension and exact bounded reason" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -312,7 +312,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "taxonomy inapplicability is not repository-authorized")
   end
 
-  test "EVID-01: candidate set changes and unexplained observation transitions fail closed" do
+  test "candidate set changes and unexplained observation transitions fail closed" do
     for mutation <- [
           fn ledger -> update_in(ledger, ["candidates"], &tl/1) end,
           fn ledger ->
@@ -360,7 +360,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "changed candidate requires one Phase 133 transition")
   end
 
-  test "EVID-01: an explicit stable-ID transition reconciles changed observations" do
+  test "an explicit stable-ID transition reconciles changed observations" do
     fixture = complete_census_fixture!()
     ledger = fixture.ledger |> File.read!() |> Jason.decode!()
     candidate_id = "candidate-automation-first"
@@ -388,7 +388,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "changed candidate requires one Phase 133 transition")
   end
 
-  test "EVID-01: registry, candidates, and transitions serialize canonically" do
+  test "registry, candidates, and transitions serialize canonically" do
     fixture = complete_census_fixture!()
     assert {_output, 0} = run_collector(fixture)
     canonical = File.read!(fixture.receipt)
@@ -406,7 +406,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert {_output, 0} = run_validator(fixture)
   end
 
-  test "EVID-01: zero-cardinality and imprecise count boundaries fail closed" do
+  test "zero-cardinality and imprecise count boundaries fail closed" do
     fixture = complete_census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -436,7 +436,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert_invalid(fixture, "observation count attributes must be integers")
   end
 
-  test "EVID-01: volatile evidence attributes do not replace reviewer-owned candidate identity" do
+  test "volatile evidence attributes do not replace reviewer-owned candidate identity" do
     fixture = complete_census_fixture!()
     assert {_output, 0} = run_collector(fixture)
 
@@ -460,7 +460,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert {_output, 0} = run_validator(fixture)
   end
 
-  test "EVID-01: collector canonicalizes contained locations and rejects every escape family" do
+  test "collector canonicalizes contained locations and rejects every escape family" do
     fixture = census_fixture!()
 
     mutate_json!(fixture.ledger, &put_observation_location(&1, "./nested/../mix.exs"))
@@ -493,7 +493,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     refute output =~ external
   end
 
-  test "EVID-01: validator independently rejects lexical and symlink observation escapes" do
+  test "validator independently rejects lexical and symlink observation escapes" do
     for location <- ["../outside", "nested/../../outside", "/tmp/outside"] do
       fixture = census_fixture!()
       assert {_output, 0} = run_collector(fixture)
@@ -515,7 +515,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     refute output =~ external
   end
 
-  test "EVID-01: collector rejects detector input symlinks that escape the subject" do
+  test "collector rejects detector input symlinks that escape the subject" do
     fixture = census_fixture!()
     external = Path.join(Path.dirname(fixture.root), "external-detector-input")
     File.write!(external, "external detector bytes must not be read\n")
@@ -541,7 +541,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     refute File.exists?(nested.receipt)
   end
 
-  test "EVID-01: collector rejects invalid detector input physical shapes" do
+  test "collector rejects invalid detector input physical shapes" do
     for {input, setup, diagnostic} <- [
           {"dangling-input",
            fn root ->
@@ -578,7 +578,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     end
   end
 
-  test "EVID-01: collector preserves identity and digest for contained detector inputs" do
+  test "collector preserves identity and digest for contained detector inputs" do
     fixture = census_fixture!()
     target = Path.join(fixture.root, "contained-input")
     contents = "physically contained detector bytes\n"
@@ -599,7 +599,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     assert receipt["inputs"] == Enum.sort_by(receipt["inputs"], &{&1["detector_id"], &1["path"]})
   end
 
-  test "EVID-01: validator rejects self-consistent external detector input evidence" do
+  test "validator rejects self-consistent external detector input evidence" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
     move_default_observation!(fixture)
@@ -619,7 +619,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     refute output =~ external
   end
 
-  test "EVID-01: validator rejects same-byte post-receipt symlink substitution" do
+  test "validator rejects same-byte post-receipt symlink substitution" do
     fixture = census_fixture!()
     assert {_output, 0} = run_collector(fixture)
     move_default_observation!(fixture)
@@ -817,7 +817,7 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   end
 
   @tag :nested_mix_census
-  test "EVID-01: nested census tools inherit test dependencies and reject escaping evidence" do
+  test "nested census tools inherit test dependencies and reject escaping evidence" do
     fixture = census_fixture!()
 
     assert {collector_output, 0} = run_collector(fixture)

@@ -2,16 +2,15 @@ Code.require_file("support/generated_app_helper.ex", __DIR__)
 
 defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   @moduledoc """
-  Freezes the SHIPPED Phoenix tus contract (Phase 50): the adopter-facing guide,
+  Freezes the SHIPPED Phoenix tus contract: the adopter-facing guide,
   the `Rindle.LiveView` helper seam, and the generated-app proof helper.
 
   Deliberately asserts SHIPPED artifacts ONLY (guide, lib, test support). It does
-  NOT couple to internal `.planning/` doc paths: those move/disappear when a
+  NOT couple to internal planning doc paths: those move/disappear when a
   milestone is archived (gsd-cleanup) or as GSD tooling rewrites STATE.md /
-  research/, which would break this lock for a non-shipped reason. The previous
-  planning-doc "truth parity" test asserted internal-only doc content (redirect
-  notes, absence of a stale phrase) that protects no shipped behavior — the
-  adopter-facing truth is fully locked by the guide + lib assertions below.
+  research/, which would break this lock for a non-shipped reason. Internal-only
+  planning content protects no shipped behavior — the adopter-facing truth is
+  fully locked by the guide + lib assertions below.
   """
   use ExUnit.Case, async: true
 
@@ -21,7 +20,7 @@ defmodule Rindle.InstallSmoke.PhoenixTusTruthParityTest do
   @storage_capabilities_path Path.expand("../../guides/storage_capabilities.md", __DIR__)
   @profiles_guide_path Path.expand("../../guides/profiles.md", __DIR__)
 
-  test "guide, helper seam, and generated-app proof freeze the Phase 50 Phoenix contract" do
+  test "guide, helper seam, and generated-app proof freeze the Phoenix tus contract" do
     guide = File.read!(@guide_path)
     storage_capabilities = File.read!(@storage_capabilities_path)
     profiles_guide = File.read!(@profiles_guide_path)

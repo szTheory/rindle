@@ -6,7 +6,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.ProfileHelpers do
     Path.join(Workspace.repo_root(), "test/support/fixtures/smartphone/android_capture.webm")
   end
 
-  # Phase 36 Pitfall 2: Mox `import` is required at the top of the generated
+  # Mox `import` is required at the top of the generated
   # test module ONLY for the `:mux` profile mode. For `:image` and `:video`,
   # the generated app does not depend on Mox.
   def mux_test_imports(:mux), do: "  import Mox\n"

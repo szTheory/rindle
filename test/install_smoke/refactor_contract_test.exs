@@ -20,10 +20,11 @@ defmodule Rindle.RefactorContractTest do
      meaningful_lines: meaningful_lines(File.read!(@script_path))}
   end
 
-  test "SAFE-01 remains an executable, planning-independent preservation command", %{
-    script: script
-  } do
-    assert executable?(@script_path), "SAFE-01 runner must remain executable"
+  test "the preservation contract remains an executable, planning-independent preservation command",
+       %{
+         script: script
+       } do
+    assert executable?(@script_path), "preservation contract runner must remain executable"
     assert script =~ "set -euo pipefail"
     assert script =~ "BASH_SOURCE[0]"
     assert script =~ "repo_root="
@@ -31,15 +32,18 @@ defmodule Rindle.RefactorContractTest do
     refute script =~ ".planning/"
   end
 
-  test "SAFE-01 keeps every behavior-preservation domain represented", %{script: script} do
+  test "the preservation contract keeps every behavior-preservation domain represented", %{
+    script: script
+  } do
     for suite <- @required_suites do
-      assert script =~ suite, "SAFE-01 is missing #{suite}"
+      assert script =~ suite, "preservation contract is missing #{suite}"
     end
   end
 
-  test "SAFE-01 fails closed on compile-connected cycles before preservation tests", %{
-    meaningful_lines: lines
-  } do
+  test "the preservation contract fails closed on compile-connected cycles before preservation tests",
+       %{
+         meaningful_lines: lines
+       } do
     compile_line = "MIX_ENV=test mix compile --force"
 
     xref_line =
@@ -55,13 +59,14 @@ defmodule Rindle.RefactorContractTest do
              Enum.find_index(lines, &String.contains?(&1, "mix test"))
   end
 
-  test "SAFE-01 uses one foreground Mix test process with the telemetry contract enabled", %{
-    meaningful_lines: lines
-  } do
+  test "the preservation contract uses one foreground Mix test process with the telemetry contract enabled",
+       %{
+         meaningful_lines: lines
+       } do
     mix_test_lines = Enum.filter(lines, &String.contains?(&1, "mix test"))
 
-    assert mix_test_lines != [], "SAFE-01 must not have an empty test selection"
-    assert length(mix_test_lines) == 1, "SAFE-01 must use one Mix test process"
+    assert mix_test_lines != [], "preservation contract must not have an empty test selection"
+    assert length(mix_test_lines) == 1, "preservation contract must use one Mix test process"
 
     [mix_test_line] = mix_test_lines
     assert mix_test_line =~ "exec mix test"
@@ -69,7 +74,9 @@ defmodule Rindle.RefactorContractTest do
     refute mix_test_line =~ "--only contract"
   end
 
-  test "SAFE-01 cannot background, hide, or mask test failures", %{meaningful_lines: lines} do
+  test "the preservation contract cannot background, hide, or mask test failures", %{
+    meaningful_lines: lines
+  } do
     refute Enum.any?(lines, &background_or_failure_mask?(&1))
   end
 

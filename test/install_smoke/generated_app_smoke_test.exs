@@ -298,7 +298,7 @@ defmodule Rindle.InstallSmoke.GeneratedAppPhase120FastContractTest do
     assert flush_position < move_position
   end
 
-  test "focused Phase 120 MinIO commands exclude sibling generated-app scenarios" do
+  test "focused compatibility MinIO commands exclude sibling generated-app scenarios" do
     assert GeneratedAppHelper.phase_120_scenario_enabled?(:phase_120_public_compat, [
              :minio,
              :phase_120_public_compat
@@ -977,7 +977,7 @@ if GeneratedAppHelper.profile_enabled?(:video) and
       {:ok, report: report}
     end
 
-    test "generated Phoenix app upgrades a pre-v1.4 image-only adopter through the public migration path",
+    test "generated Phoenix app upgrades a legacy image-only adopter through the public migration path",
          %{report: report} do
       assert_install_source!(report)
       assert_host_owned_migrations!(report)

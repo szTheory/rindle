@@ -1,28 +1,28 @@
 defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   @moduledoc """
-  Phase 106 (Trigger Split + Matrix/Lane Refinement) LANE-topology regression
-  lock. Mirrors the release_docs_parity_test / ci_cache_hygiene_test
+  CI lane-topology regression lock (trigger split, matrix and lane
+  placement). Mirrors the release_docs_parity_test / ci_cache_hygiene_test
   `setup_all` + `File.read!` `=~`/`refute =~` style so the trigger-split lane
   contract regresses inside the default `mix test` / `mix ci` suite (no exclude
   tag — same as the sibling install_smoke parity tests).
 
-  ASSERTS CURRENT SHIPPED STATE. Phase 107 ran AFTER 106 and SHA-pinned every
-  `uses:` + added job permissions, so NOTHING here asserts a mutable `@vX`
-  action tag or any pre-107 detail — only the LANE topology facts (triggers,
+  ASSERTS CURRENT SHIPPED STATE. Every `uses:` is SHA-pinned and jobs carry
+  explicit permissions, so NOTHING here asserts a mutable `@vX` action tag —
+  only the lane topology facts (triggers,
   concurrency expression, the package-consumer lean/full split, the nightly
   lane placement, and the release-coupling invariants) that are true on disk
   right now. Every literal asserted below was grep-confirmed against the live
   files.
 
   Deliberately asserts SHIPPED artifacts ONLY (workflows, scripts, CONTRIBUTING).
-  It does NOT couple to internal `.planning/` doc paths: those move when a
+  It does NOT couple to internal planning doc paths: those move when a
   milestone is archived (gsd-cleanup), which would break this suite for a
-  non-shipped reason. LANE-04's substance is locked via the CONTRIBUTING.md
-  trust/speed-label assertion below.
+  non-shipped reason. The PR feedback contract is locked via the
+  CONTRIBUTING.md trust/speed-label assertion below.
 
   Deliberately does NOT duplicate ci_cache_hygiene_test.exs: composite adoption
   counts, the cache-key schema, .tool-versions, ffmpeg, and the PLT
-  restore/save *split* (CACHE-03) are owned there. This file owns LANE
+  restore/save *split* are owned there. This file owns LANE
   *placement* only.
   """
   use ExUnit.Case, async: true
@@ -52,10 +52,10 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     "brandbook-tokens",
     "ci-script-tests"
   ]
-  @phase_132_projection_path Path.expand(
-                               "../fixtures/ci_timing/phase_132_topology_projection.json",
-                               __DIR__
-                             )
+  @topology_projection_path Path.expand(
+                              "../fixtures/ci_timing/topology_projection.json",
+                              __DIR__
+                            )
 
   setup_all do
     {:ok,
@@ -73,40 +73,40 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   # ------------------------------------------------------------------
-  # LANE-01: concurrency — stale PR runs cancel; push:main/dispatch serialize.
+  # Concurrency — stale PR runs cancel; push:main/dispatch serialize.
   # ------------------------------------------------------------------
-  test "LANE-01: ci.yml has a top-level concurrency block keyed on workflow + ref", %{ci: ci} do
+  test "ci.yml has a top-level concurrency block keyed on workflow + ref", %{ci: ci} do
     assert ci =~ "concurrency:",
-           "ci.yml must declare a top-level concurrency block (LANE-01)"
+           "ci.yml must declare a top-level concurrency block"
 
     assert ci =~ "group: ${{ github.workflow }}-${{ github.ref }}",
-           "concurrency group must key on github.workflow + github.ref so each ref serializes independently (LANE-01)"
+           "concurrency group must key on github.workflow + github.ref so each ref serializes independently"
   end
 
-  test "LANE-01: cancel-in-progress is true ONLY for pull_request events", %{ci: ci} do
+  test "cancel-in-progress is true ONLY for pull_request events", %{ci: ci} do
     # The exact shipped expression: cancellation fires on PR, evaluates false on
     # push:main / workflow_dispatch (which then SERIALIZE and are never cancelled —
     # load-bearing for release.yml gate-ci-green reading the push:main conclusion).
     assert ci =~
              "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
-           "cancel-in-progress must be true ONLY for pull_request — push:main/dispatch must never cancel (LANE-01)"
+           "cancel-in-progress must be true ONLY for pull_request — push:main/dispatch must never cancel"
 
-    # Guard against the D-06 footgun: a bare `cancel-in-progress: true` would
+    # Guard against the footgun: a bare `cancel-in-progress: true` would
     # cancel push:main runs and destroy the full-matrix release evidence.
     refute ci =~ "cancel-in-progress: true",
-           "cancel-in-progress must NOT be an unconditional `true` (would cancel push:main runs, D-06 footgun, LANE-01)"
+           "cancel-in-progress must NOT be an unconditional `true` (would cancel push:main runs)"
   end
 
   # ------------------------------------------------------------------
-  # LANE-02: package-consumer lean (PR) + package-consumer-full (off-PR) split.
+  # Package-consumer lean (PR) + package-consumer-full (off-PR) split.
   # ------------------------------------------------------------------
-  test "LANE-02: both the lean package-consumer and the off-PR package-consumer-full jobs exist",
+  test "both the lean package-consumer and the off-PR package-consumer-full jobs exist",
        %{ci: ci} do
     assert ci =~ "\n  package-consumer:\n",
-           "the lean PR `package-consumer` job must exist (LANE-02)"
+           "the lean PR `package-consumer` job must exist"
 
     assert ci =~ "\n  package-consumer-full:\n",
-           "the off-PR `package-consumer-full` job must exist (LANE-02)"
+           "the off-PR `package-consumer-full` job must exist"
   end
 
   test "the required image consumer starts independently and carries only image prerequisites",
@@ -121,93 +121,92 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     assert consumer =~ "mix run --no-start --no-compile"
   end
 
-  test "LANE-02: package-consumer-full is off-PR (event gate) with a fail-fast:false 5-profile matrix and NO continue-on-error",
+  test "package-consumer-full is off-PR (event gate) with a fail-fast:false 5-profile matrix and NO continue-on-error",
        %{ci: ci} do
     full = package_consumer_full_block(ci)
 
     assert full =~ "if: github.event_name != 'pull_request'",
-           "package-consumer-full must be gated `if: github.event_name != 'pull_request'` to stay off the PR critical path (LANE-02)"
+           "package-consumer-full must be gated `if: github.event_name != 'pull_request'` to stay off the PR critical path"
 
     assert full =~ "fail-fast: false",
-           "package-consumer-full matrix must be `fail-fast: false` so one red profile never masks the others (LANE-02)"
+           "package-consumer-full matrix must be `fail-fast: false` so one red profile never masks the others"
 
     assert full =~ "profile: [video, image, tus, mux, gcs]",
-           "package-consumer-full must carry the full 5-profile matrix video/image/tus/mux/gcs (LANE-02)"
+           "package-consumer-full must carry the full 5-profile matrix video/image/tus/mux/gcs"
 
     refute yaml_keys_only(full) =~ "continue-on-error",
-           "package-consumer-full must have NO continue-on-error key — a failed leg must make the push:main conclusion non-success so the release gate blocks (LANE-02, D-08)"
+           "package-consumer-full must have NO continue-on-error key — a failed leg must make the push:main conclusion non-success so the release gate blocks"
   end
 
-  test "LANE-02: ci-summary needs the lean package-consumer but OMITS package-consumer-full (D-09)",
+  test "ci-summary needs the lean package-consumer but OMITS package-consumer-full",
        %{ci: ci} do
     needs = ci_summary_needs_block(ci)
 
     assert needs =~ "- package-consumer\n",
-           "ci-summary.needs must include the lean `package-consumer` (the always-running PR representative, LANE-02)"
+           "ci-summary.needs must include the lean `package-consumer` (the always-running PR representative)"
 
     refute needs =~ "package-consumer-full",
-           "ci-summary.needs must OMIT `package-consumer-full` — it is `if: != pull_request`, so listing it would emit a green-checkmark lie about a skipped lane (D-09, LANE-02)"
+           "ci-summary.needs must OMIT `package-consumer-full` — it is `if: != pull_request`, so listing it would emit a green-checkmark lie about a skipped lane"
   end
 
   # ------------------------------------------------------------------
-  # GATE-01 / GATE-04 (Phase 112): the lean `adoption-demo-e2e-smoke` PR-side
-  # browser-render proxy is wired into the merge gate transitively via
-  # `CI Summary`. These assert SHIPPED ci.yml topology ONLY (no `.planning/`
-  # path, no mutable `@vX` tag): the job exists, runs on EVERY PR (no repo/event
+  # The lean `adoption-demo-e2e-smoke` PR-side browser-render proxy is wired
+  # into the merge gate transitively via `CI Summary`. These assert SHIPPED
+  # ci.yml topology ONLY (no planning doc path, no mutable `@vX` tag): the job exists, runs on EVERY PR (no repo/event
   # `if:` gate, so it never skips-as-pass), carries the deterministic 2-spec
   # subset (excluding the screenshot spec), and is present in BOTH
   # `ci-summary.needs` and `ci-observability.needs`.
   # ------------------------------------------------------------------
-  test "GATE-01: the adoption-demo-e2e-smoke job exists in ci.yml", %{ci: ci} do
+  test "the adoption-demo-e2e-smoke job exists in ci.yml", %{ci: ci} do
     assert ci =~ "\n  adoption-demo-e2e-smoke:\n",
-           "the lean PR `adoption-demo-e2e-smoke` browser-render proxy job must exist (GATE-01)"
+           "the lean PR `adoption-demo-e2e-smoke` browser-render proxy job must exist"
   end
 
-  test "GATE-01: the smoke job runs on EVERY PR (no repo/event if: gate) with the 2-spec subset, screenshot spec excluded",
+  test "the smoke job runs on EVERY PR (no repo/event if: gate) with the 2-spec subset, screenshot spec excluded",
        %{ci: ci} do
     smoke = adoption_demo_e2e_smoke_block(ci)
 
     # No repo/event gate — a gated lane would resolve to `skipped` on forks and
     # skip==pass would emit a green lie for the exact regression class this lane
-    # exists to catch (T-112-02, GATE-01).
+    # exists to catch.
     refute smoke =~ "if: github.repository",
-           "the smoke job must have NO `if: github.repository` gate — it must run on every PR incl forks (skip==pass safety, GATE-01)"
+           "the smoke job must have NO `if: github.repository` gate — it must run on every PR incl forks (skip==pass safety)"
 
     refute smoke =~ "github.event_name != 'pull_request'",
-           "the smoke job must have NO event gate — it must never be skipped on a PR (skip==pass safety, GATE-01)"
+           "the smoke job must have NO event gate — it must never be skipped on a PR (skip==pass safety)"
 
     assert smoke =~ ~s(ADOPTION_DEMO_E2E_SPECS:),
-           "the smoke job must set ADOPTION_DEMO_E2E_SPECS to scope the lean run (GATE-01)"
+           "the smoke job must set ADOPTION_DEMO_E2E_SPECS to scope the lean run"
 
     assert smoke =~ "e2e/smoke.spec.js e2e/admin-console.spec.js",
-           "ADOPTION_DEMO_E2E_SPECS must be the deterministic 2-spec subset smoke + admin-console (GATE-01)"
+           "ADOPTION_DEMO_E2E_SPECS must be the deterministic 2-spec subset smoke + admin-console"
 
     refute smoke =~ "admin-screenshots.spec.js",
-           "the smoke job must EXCLUDE the screenshot spec — it is not a browser-render regression check (GATE-01)"
+           "the smoke job must EXCLUDE the screenshot spec — it is not a browser-render regression check"
   end
 
-  test "GATE-01/GATE-04: the smoke lane is present in BOTH ci-summary.needs and ci-observability.needs",
+  test "the smoke lane is present in BOTH ci-summary.needs and ci-observability.needs",
        %{ci: ci} do
     summary_needs = ci_summary_needs_block(ci)
     observability_needs = ci_observability_needs_block(ci)
 
     assert summary_needs =~ "- adoption-demo-e2e-smoke\n",
-           "ci-summary.needs must include `adoption-demo-e2e-smoke` — the lane is merge-blocking transitively via CI Summary (GATE-01/GATE-04)"
+           "ci-summary.needs must include `adoption-demo-e2e-smoke` — the lane is merge-blocking transitively via CI Summary"
 
     assert observability_needs =~ "- adoption-demo-e2e-smoke\n",
-           "ci-observability.needs must include `adoption-demo-e2e-smoke` for timing parity with the gate (GATE-01/GATE-04)"
+           "ci-observability.needs must include `adoption-demo-e2e-smoke` for timing parity with the gate"
   end
 
-  @tag :phase_132_topology_recovery
-  test "D-08 exact six-edge topology", %{ci: ci} do
+  @tag :required_job_topology
+  test "integration, contract and the e2e smoke lane have no prerequisites", %{ci: ci} do
     for job <- ["integration", "contract", "adoption-demo-e2e-smoke"] do
       assert job_needs(ci, job) == [],
-             "#{job} must have no prerequisites: D-08 removes only quality and optional-dependencies"
+             "#{job} must have no prerequisites: it must not wait on quality or optional-dependencies"
     end
   end
 
-  @tag :phase_132_topology_recovery
-  test "DX-04 documents the three independent required jobs in present tense", %{
+  @tag :required_job_topology
+  test "RUNNING.md and ci.yml document the three independent required jobs in present tense", %{
     ci: ci,
     running: running
   } do
@@ -233,8 +232,8 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     assert contract =~ "Starts independently from the quality matrix"
   end
 
-  @tag :phase_132_topology_recovery
-  test "phase 132 D-09 freezes affected job authorities and the required aggregation graph", %{
+  @tag :required_job_topology
+  test "required jobs keep their runner authorities and the aggregation graph", %{
     ci: ci
   } do
     for {job, tokens} <- [
@@ -267,7 +266,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
            ]}
         ],
         token <- tokens do
-      assert job_block(ci, job) =~ token, "#{job} must retain #{inspect(token)} (D-09)"
+      assert job_block(ci, job) =~ token, "#{job} must retain #{inspect(token)}"
     end
 
     assert job_needs(ci, "adopter") == [
@@ -284,9 +283,9 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     assert job_block(ci, "ci-summary") =~ "run: bash scripts/ci/eval_ci_summary.sh"
   end
 
-  @tag :phase_132_topology_recovery
-  test "phase 132 deterministic topology projection is source-attributed and non-accepting" do
-    fixture = @phase_132_projection_path |> File.read!() |> Jason.decode!()
+  @tag :required_job_topology
+  test "the deterministic topology projection is source-attributed and non-accepting" do
+    fixture = @topology_projection_path |> File.read!() |> Jason.decode!()
     runs = fixture["runs"]
 
     assert fixture["immutable_head"] == "394550944bbff63c0e61c258528c8f8764298745"
@@ -309,36 +308,36 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   # ------------------------------------------------------------------
-  # LANE-03: nightly.yml lane placement (invisible to release-please-automerge).
+  # nightly.yml lane placement (invisible to release-please-automerge).
   # ------------------------------------------------------------------
-  test "LANE-03: nightly.yml is a separate `name: Nightly` workflow with schedule + dispatch and NO pull_request/push triggers",
+  test "nightly.yml is a separate `name: Nightly` workflow with schedule + dispatch and NO pull_request/push triggers",
        %{nightly: nightly} do
     assert nightly =~ "name: Nightly",
-           "nightly.yml must be `name: Nightly` (a separate workflow id, invisible to release-please-automerge workflows:[CI], LANE-03)"
+           "nightly.yml must be `name: Nightly` (a separate workflow id, invisible to release-please-automerge workflows:[CI])"
 
     assert nightly =~ "schedule:",
-           "nightly.yml must carry a `schedule:` trigger (LANE-03)"
+           "nightly.yml must carry a `schedule:` trigger"
 
     assert nightly =~ "cron:",
-           "nightly.yml schedule must declare a cron expression (LANE-03)"
+           "nightly.yml schedule must declare a cron expression"
 
     assert nightly =~ "workflow_dispatch:",
-           "nightly.yml must allow manual workflow_dispatch (LANE-03)"
+           "nightly.yml must allow manual workflow_dispatch"
 
     # Structural invisibility to release consumers: a pull_request OR push
     # trigger would re-expose the nightly lane to the release/automerge train.
     refute nightly =~ "pull_request",
-           "nightly.yml must have NO pull_request trigger — it must never become a PR-required check (LANE-03, D-12)"
+           "nightly.yml must have NO pull_request trigger — it must never become a PR-required check"
 
     refute nightly =~ "push:",
-           "nightly.yml must have NO push trigger — a `CI`/push run would fire release-please-automerge (LANE-03, D-12)"
+           "nightly.yml must have NO push trigger — a `CI`/push run would fire release-please-automerge"
   end
 
-  test "LANE-03: nightly.yml carries the broad OTP×Elixir compat matrix (multiple cells)", %{
+  test "nightly.yml carries the broad OTP×Elixir compat matrix (multiple cells)", %{
     nightly: nightly
   } do
     assert nightly =~ "compat-matrix:",
-           "nightly.yml must declare the broad compat-matrix job (LANE-03)"
+           "nightly.yml must declare the broad compat-matrix job"
 
     # Multiple cells straddling the OTP-27 json_polyfill branch. OTP 25 is not a
     # supported cell because the current JOSE dependency requires OTP 26+.
@@ -349,32 +348,32 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
           ~s(otp: "28")
         ] do
       assert nightly =~ cell,
-             "compat-matrix must include the #{inspect(cell)} cell (broad OTP×Elixir breadth, LANE-03)"
+             "compat-matrix must include the #{inspect(cell)} cell (broad OTP×Elixir breadth)"
     end
 
     refute nightly =~ ~s(otp: "25"),
-           "compat-matrix must not claim the unsupported OTP 25 toolchain (LANE-03)"
+           "compat-matrix must not claim the unsupported OTP 25 toolchain"
   end
 
-  test "LANE-03: the owned nightly Dialyzer job runs gating (no continue-on-error YAML key in its block)",
+  test "the owned nightly Dialyzer job runs gating (no continue-on-error YAML key in its block)",
        %{nightly: nightly} do
     dialyzer = nightly_dialyzer_block(nightly)
 
     assert dialyzer =~ "bash scripts/ci/run_nightly_dialyzer.sh fresh",
-           "the nightly Dialyzer job must run the owned fresh-PLT analyzer (LANE-03, D-17)"
+           "the nightly Dialyzer job must run the owned fresh-PLT analyzer"
 
     assert dialyzer =~ "bash scripts/ci/run_nightly_dialyzer.sh restored",
-           "the nightly Dialyzer job must run the owned restored-PLT analyzer (LANE-03, D-17)"
+           "the nightly Dialyzer job must run the owned restored-PLT analyzer"
 
     # Scope to actual YAML keys, not the `# ... NO continue-on-error` doc comment
     # that legitimately appears inside the block (the verifier flagged these 5
     # grep hits as comment text, not keys). Strip comment lines, then refute the
     # real key in any form.
     refute yaml_keys_only(dialyzer) =~ "continue-on-error",
-           "the nightly Dialyzer job must have NO continue-on-error key — it is the owned GATING type-contract signal (LANE-03, D-17)"
+           "the nightly Dialyzer job must have NO continue-on-error key — it is the owned GATING type-contract signal"
   end
 
-  test "LANE-03: probabilistic :epipe stress is bounded and advisory-only", %{
+  test "probabilistic :epipe stress is bounded and advisory-only", %{
     nightly: nightly,
     epipe_regression: epipe_regression
   } do
@@ -387,39 +386,39 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     assert nightly =~ "--include canary"
   end
 
-  test "LANE-03: the moved gcs-soak + package-consumer-gcs-live jobs live in nightly.yml, not ci.yml",
+  test "the gcs-soak + package-consumer-gcs-live jobs live in nightly.yml, not ci.yml",
        %{nightly: nightly, ci: ci} do
     assert nightly =~ "gcs-soak:",
-           "gcs-soak must live in nightly.yml (moved off ci.yml by Phase 106, LANE-03/D-14)"
+           "gcs-soak must live in nightly.yml, not ci.yml"
 
     assert nightly =~ "package-consumer-gcs-live:",
-           "package-consumer-gcs-live must live in nightly.yml (moved off ci.yml by Phase 106, LANE-03/D-14)"
+           "package-consumer-gcs-live must live in nightly.yml, not ci.yml"
 
     refute ci =~ "gcs-soak:",
-           "gcs-soak must NOT remain a job in ci.yml — it was moved to nightly.yml (LANE-03/D-14)"
+           "gcs-soak must NOT be a job in ci.yml — it runs in nightly.yml"
 
     refute ci =~ "package-consumer-gcs-live:",
-           "package-consumer-gcs-live must NOT remain a job in ci.yml — it was moved to nightly.yml (LANE-03/D-14)"
+           "package-consumer-gcs-live must NOT be a job in ci.yml — it runs in nightly.yml"
   end
 
-  test "LANE-03: nightly-failure-issue declares least-privilege permissions (issues: write only)",
+  test "nightly-failure-issue declares least-privilege permissions (issues: write only)",
        %{nightly: nightly} do
     issue_job = nightly_failure_issue_block(nightly)
 
     assert issue_job =~ "permissions:",
-           "nightly-failure-issue must declare a job-scoped permissions block (least privilege, LANE-03/D-16)"
+           "nightly-failure-issue must declare a job-scoped permissions block (least privilege)"
 
     assert issue_job =~ "issues: write",
-           "nightly-failure-issue must grant `issues: write` to open/update the tracking issue (LANE-03/D-16)"
+           "nightly-failure-issue must grant `issues: write` to open/update the tracking issue"
 
     refute issue_job =~ "contents: write",
-           "nightly-failure-issue must NOT grant contents: write — least privilege, it cannot push code (LANE-03/D-16)"
+           "nightly-failure-issue must NOT grant contents: write — least privilege, it cannot push code"
   end
 
   # ------------------------------------------------------------------
-  # LANE-04: trust/speed label in CONTRIBUTING (shipped artifact). The internal
-  # A–E classification doc (106-LANE-CLASSIFICATION.md) is intentionally NOT
-  # asserted here — it is an archived planning artifact, not shipped code.
+  # Trust/speed label in CONTRIBUTING (shipped artifact). The internal lane
+  # classification doc is intentionally NOT asserted here — it is a planning
+  # artifact, not shipped code.
   # ------------------------------------------------------------------
   test "CONTRIBUTING.md carries the current PR feedback target and proof split",
        %{contributing: contributing} do
@@ -432,28 +431,28 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
           "caught on `main` within one merge"
         ] do
       assert contributing =~ phrase,
-             "CONTRIBUTING.md trust/speed label must contain #{inspect(phrase)} (LANE-04)"
+             "CONTRIBUTING.md trust/speed label must contain #{inspect(phrase)}"
     end
   end
 
   # ------------------------------------------------------------------
-  # RELEASE-COUPLING INVARIANT (supports LANE SC5): a future lane edit must not
+  # RELEASE-COUPLING INVARIANT: a future lane edit must not
   # silently break the release train.
   # ------------------------------------------------------------------
   test "RELEASE-COUPLING: ci.yml line 1 is `name: CI` (release-train coupling)", %{ci: ci} do
     [first_line | _] = String.split(ci, "\n", parts: 2)
 
     assert first_line == "name: CI",
-           "ci.yml line 1 must be exactly `name: CI` — release-please-automerge workflows:[CI] + release.yml gate-ci-green couple on it (SC5)"
+           "ci.yml line 1 must be exactly `name: CI` — release-please-automerge workflows:[CI] + release.yml gate-ci-green couple on it"
   end
 
   test "RELEASE-COUPLING: setup_branch_protection.sh requires exactly one check — `CI Summary`",
        %{branch_protection: branch_protection, required_checks_policy: policy} do
     assert policy["contexts"] == ["CI Summary"],
-           "required-check policy must contain only CI Summary — got #{inspect(policy["contexts"])} (SC5)"
+           "required-check policy must contain only CI Summary — got #{inspect(policy["contexts"])}"
 
     assert branch_protection =~ "jq -r '.contexts[]' \"${POLICY_FILE}\"",
-           "setup_branch_protection.sh must project required contexts from the policy (SC5)"
+           "setup_branch_protection.sh must project required contexts from the policy"
   end
 
   test "RELEASE-COUPLING: automerge listens on the `CI` workflow and release.yml gate reads `ci.yml`",
@@ -461,7 +460,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     # release-please-automerge.yml workflow_run listener keys on the `CI`
     # workflow name (which is ci.yml's `name: CI`).
     assert automerge =~ "workflows:\n      - CI",
-           "release-please-automerge.yml must listen on the `CI` workflow (couples to ci.yml `name: CI`, SC5)"
+           "release-please-automerge.yml must listen on the `CI` workflow (couples to ci.yml `name: CI`)"
 
     assert automerge =~ "workflow_dispatch:",
            "release-please-automerge.yml must retain a manual recovery seam for an already-green release PR"
@@ -475,7 +474,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
 
     # release.yml gate-ci-green reads the ci.yml run conclusion by workflow_id.
     assert release =~ "workflow_id: 'ci.yml'",
-           "release.yml gate-ci-green must read the ci.yml run by `workflow_id: 'ci.yml'` (SC5)"
+           "release.yml gate-ci-green must read the ci.yml run by `workflow_id: 'ci.yml'`"
   end
 
   # ------------------------------------------------------------------
