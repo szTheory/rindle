@@ -17,6 +17,149 @@ defmodule Rindle.PhaseEvidenceQualificationTest do
     assert {_, 0} = qualify(fixture, "verify")
   end
 
+  @tag :tmp_dir
+  test "handwritten green and changed evidence cannot replace recomputed authorities", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir)
+    assert {_, 0} = qualify(fixture, "generate")
+    original = File.read!(fixture.manifest)
+    manifest = Jason.decode!(original)
+    assert File.read!(fixture.timing_log) =~ "--subject-sha #{fixture.sha}"
+
+    File.write!(
+      fixture.manifest,
+      Jason.encode!(%{
+        "schema_version" => 1,
+        "subject_sha" => fixture.sha,
+        "source_tree" => fixture.tree,
+        "outcome" => "complete",
+        "requirements" => manifest["requirements"]
+      })
+    )
+
+    assert {_, 1} = qualify(fixture, "verify")
+    File.write!(fixture.manifest, original)
+    coverage_path = Path.join(fixture.evidence, "coverage.json")
+    coverage = coverage_path |> File.read!() |> Jason.decode!()
+
+    File.write!(
+      coverage_path,
+      Jason.encode!(Map.put(coverage, "subject_sha", String.duplicate("0", 40)))
+    )
+
+    assert {_, 1} = qualify(fixture, "verify")
+  end
+
+  @tag :tmp_dir
+  test "missing authority blocks qualification and an existing manifest stays byte-identical", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir)
+    File.rm!(Path.join(fixture.evidence, "coverage.json"))
+    assert {_, 1} = qualify(fixture, "generate")
+    before = File.read!(fixture.manifest)
+    manifest = Jason.decode!(before)
+    assert manifest["outcome"] == "blocked"
+    assert manifest["requirements"]["COV-06"]["status"] == "blocked"
+    assert {_, 0} = qualify(fixture, "verify")
+    assert {_, 1} = qualify(fixture, "generate")
+    assert File.read!(fixture.manifest) == before
+  end
+
+  @tag :tmp_dir
+  test "first-red async remains open while other supported authorities retain their verdicts", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir)
+    mix = Path.join(fixture.bin, "mix")
+
+    File.write!(
+      mix,
+      String.replace(
+        File.read!(mix),
+        "#!/usr/bin/env bash\n",
+        """
+        #!/usr/bin/env bash
+        if [[ "$1" == coveralls.multiple && " $* " == *" --seed 17 "* ]]; then
+          echo '** (RuntimeError) fixture.ex:42' >&2
+          exit 23
+        fi
+        """,
+        global: false
+      )
+    )
+
+    receipt = Path.join(fixture.evidence, "first-red-async.json")
+    jsonl = Path.join(fixture.evidence, "async-isolation/first-red.jsonl")
+    script = Path.join(fixture.source, "scripts/maintainer/phase136_measure.sh")
+
+    assert {_, 1} =
+             System.cmd(
+               "bash",
+               [
+                 script,
+                 "async",
+                 "--subject-file",
+                 fixture.subject,
+                 "--receipt",
+                 receipt,
+                 "--jsonl",
+                 jsonl
+               ],
+               cd: fixture.source,
+               env: environment(fixture),
+               stderr_to_stdout: true
+             )
+
+    assert {_, 1} = qualify(fixture, "generate", %{"async-receipt" => receipt})
+    manifest = fixture.manifest |> File.read!() |> Jason.decode!()
+    assert manifest["outcome"] == "open"
+    assert manifest["requirements"]["TEST-08"]["status"] == "open"
+    assert manifest["requirements"]["TYPE-03"]["status"] == "complete"
+    assert manifest["requirements"]["DX-05"]["status"] == "complete"
+    assert {_, 0} = qualify(fixture, "verify")
+  end
+
+  @tag :tmp_dir
+  test "timing above the fixed p95 envelope is open despite an authentic population", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir)
+    path = Path.join(fixture.evidence, "timing.md")
+    text = File.read!(path)
+    [_, body] = String.split(text, "CI_TIMING_CURRENT_SOURCE_BEGIN\n", parts: 2)
+    [body | _] = String.split(body, "\nCI_TIMING_CURRENT_SOURCE_END", parts: 2)
+    data = Jason.decode!(body)
+    runs = List.update_at(data["runs"], 9, &Map.put(&1, "duration_seconds", 601))
+    changed = data |> Map.put("runs", runs) |> Map.put("p95_seconds", 601)
+    File.write!(path, String.replace(text, body, Jason.encode!(changed)))
+    assert {_, 1} = qualify(fixture, "generate")
+    manifest = fixture.manifest |> File.read!() |> Jason.decode!()
+    assert manifest["requirements"]["CI-16"]["status"] == "open"
+    assert manifest["outcome"] == "open"
+  end
+
+  test "coverage interface compares exact integer equality and adjacent count boundaries" do
+    program = """
+    import importlib.util, json, pathlib
+    root = pathlib.Path(#{Jason.encode!(@root)})
+    spec = importlib.util.spec_from_file_location('phase_evidence', root/'scripts/maintainer/phase136_evidence.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    contract, _ = module.evidence_contract(root)
+    print(json.dumps([module.coverage_at_floor(c, 1000000, contract) for c in [821342, 821343, 821344]]))
+    """
+
+    assert {output, 0} =
+             System.cmd("python3", ["-c", program],
+               env: [{"PYTHONDONTWRITEBYTECODE", "1"}],
+               stderr_to_stdout: true
+             )
+
+    assert Jason.decode!(output) == [false, true, true]
+  end
+
   defp fixture!(dir) do
     source = Path.join(dir, "repo")
     bin = Path.join(dir, "bin")
@@ -144,18 +287,15 @@ defmodule Rindle.PhaseEvidenceQualificationTest do
     fixture
   end
 
-  defp qualify(fixture, operation) do
+  defp qualify(fixture, operation, overrides \\ %{}) do
     script = Path.join(fixture.source, "scripts/maintainer/verify_phase136_qualification.sh")
 
     args =
       [script, operation, "--subject-file", fixture.subject, "--manifest", fixture.manifest] ++
         Enum.flat_map(~w(coverage dialyzer async-receipt bootstrap timing), fn kind ->
-          filename =
-            if kind == "async-receipt",
-              do: "async.json",
-              else: kind <> if(kind == "timing", do: ".md", else: ".json")
+          filename = evidence_filename(kind)
 
-          ["--" <> kind, Path.join(fixture.evidence, filename)]
+          ["--" <> kind, Map.get(overrides, kind, Path.join(fixture.evidence, filename))]
         end)
 
     System.cmd("bash", args,
@@ -164,6 +304,10 @@ defmodule Rindle.PhaseEvidenceQualificationTest do
       stderr_to_stdout: true
     )
   end
+
+  defp evidence_filename("async-receipt"), do: "async.json"
+  defp evidence_filename("timing"), do: "timing.md"
+  defp evidence_filename(kind), do: kind <> ".json"
 
   defp environment(fixture) do
     [

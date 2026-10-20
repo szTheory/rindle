@@ -1,5 +1,6 @@
 """Source-bound Phase 136 evidence; all subprocess owners come from the frozen tree."""
 import argparse
+import base64
 import contextlib
 import hashlib
 import json
@@ -20,6 +21,7 @@ ELIXIR_PROBE = ('otp = :code.root_dir() |> Path.join("releases/" <> System.otp_r
 PREPARE = [["mix", "local.hex", "--force"], ["mix", "local.rebar", "--force"],
            ["mix", "deps.get", "--check-locked"], ["mix", "compile", "--warnings-as-errors"]]
 FOCUSED = ["mix", "test", "test/install_smoke/quality_signal_policy_test.exs", "--seed", "0"]
+CANONICAL_COVERAGE = ["mix", "coveralls.multiple", "--type", "local", "--type", "json"]
 LIMIT = 4 * 1024 * 1024
 
 
@@ -40,17 +42,23 @@ def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
 
 
-def read_json(path):
-    path = Path(path)
-    require(path.is_file() and path.stat().st_size <= 32 * 1024 * 1024, "missing_or_oversized_json")
+def decode_json(data):
     def unique(items):
         value = {}
         for key, item in items:
             require(key not in value, "duplicate_json_key")
             value[key] = item
         return value
-    return json.loads(path.read_text(), object_pairs_hook=unique,
-                      parse_constant=lambda _: (_ for _ in ()).throw(Rejected("nonfinite_json")))
+    value = json.loads(data, object_pairs_hook=unique,
+                       parse_constant=lambda _: (_ for _ in ()).throw(Rejected("nonfinite_json")))
+    require(isinstance(value, dict), "json_object_required")
+    return value
+
+
+def read_json(path):
+    path = Path(path)
+    require(path.is_file() and path.stat().st_size <= 32 * 1024 * 1024, "missing_or_oversized_json")
+    return decode_json(path.read_bytes())
 
 
 def git(root, *argv):
@@ -119,6 +127,8 @@ class Artifacts:
         self.count = 0
         if create:
             self.root.mkdir(mode=0o700)
+        else:
+            require(not self.root.is_symlink(), "symlink_artifact_directory")
 
     def run(self, argv, cwd, env=None, budget=300):
         status, raw, elapsed = execute(argv, cwd, env, budget)
@@ -438,20 +448,240 @@ def collect(root, subject, args):
     return result
 
 
+QUALITY_CHECKS = [
+    ("credo_policy", ["mix", "test", "test/install_smoke/credo_policy_test.exs", "--seed", "0"]),
+    ("credo_inventory", ["mix", "credo_quality"]),
+    ("ci_structure", ["mix", "test", "test/install_smoke/quality_signal_policy_test.exs",
+                      "test/install_smoke/ci_cache_hygiene_test.exs",
+                      "test/install_smoke/ci_lane_split_test.exs", "--seed", "0"])]
+
+
+def evidence_contract(root):
+    path = root / "scripts/maintainer/phase136_evidence_contract.json"
+    contract = read_json(path)
+    require(type(contract.get("schema_version")) is int and contract["schema_version"] == 1 and
+            contract.get("supported_toolchain") == TOOLCHAIN and
+            contract.get("node_major") == 20 and
+            contract.get("subject_fields") == ["subject_sha", "source_tree"], "evidence_contract_identity")
+    require(contract["coverage"].get("canonical_argv") == CANONICAL_COVERAGE,
+            "coverage_canonical_contract")
+    require(contract["coverage"]["floor"] == {"numerator": 821343, "denominator": 1000000,
+                                               "percent": "82.1343"}, "coverage_floor_contract")
+    return contract, digest(path.read_bytes())
+
+
+def coverage_at_floor(covered, relevant, contract):
+    require(type(covered) is int and type(relevant) is int and 0 <= covered <= relevant and relevant > 0,
+            "coverage_invalid_counts")
+    floor = contract["coverage"]["floor"]
+    require(type(floor["numerator"]) is int and type(floor["denominator"]) is int,
+            "coverage_floor_types")
+    return covered * floor["denominator"] >= relevant * floor["numerator"]
+
+
+def coverage_outcome(subject, path, contract):
+    receipt = read_json(path)
+    interface = contract["coverage"]
+    require(set(interface["required_fields"]).issubset(receipt), "coverage_missing_fields")
+    require(all(receipt.get(key) == value for key, value in subject.items()), "coverage_foreign_subject")
+    require(receipt["canonical_argv"] == interface["canonical_argv"], "coverage_noncanonical_argv")
+    require(type(receipt["local_exit"]) is int, "coverage_exit_type")
+    covered, relevant = receipt["covered"], receipt["relevant"]
+    require(type(covered) is int and type(relevant) is int and 0 <= covered <= relevant and relevant > 0,
+            "coverage_invalid_counts")
+    raw = base64.b64decode(receipt["artifact_base64"], validate=True)
+    require(digest(raw) == receipt["artifact_sha256"], "coverage_artifact_digest")
+    artifact = decode_json(raw)
+    files = artifact.get("source_files")
+    require(isinstance(files, list) and files, "coverage_missing_sources")
+    actual_covered, actual_relevant, names = 0, 0, set()
+    for source in files:
+        require(isinstance(source, dict), "coverage_invalid_source")
+        name = source.get("name")
+        require(isinstance(name, str) and name not in names, "coverage_duplicate_or_missing_file")
+        names.add(name)
+        require(isinstance(source.get("coverage"), list), "coverage_missing_line_counts")
+        for count in source["coverage"]:
+            if count is not None:
+                require(type(count) is int and count >= 0, "coverage_invalid_line_count")
+                actual_relevant += 1
+                actual_covered += int(count > 0)
+    require((actual_covered, actual_relevant) == (covered, relevant), "coverage_artifact_count_mismatch")
+    local = base64.b64decode(receipt["local_output_base64"], validate=True)
+    require(len(local) <= LIMIT and digest(local) == receipt["local_output_sha256"], "coverage_local_output_digest")
+    require(re.search(rb"\b[1-9][0-9]* tests?, 0 failures\b", local), "coverage_missing_suite_proof")
+    complete = receipt["local_exit"] == 0 and coverage_at_floor(covered, relevant, contract)
+    outcome = "complete" if complete else "open"
+    require(receipt["outcome"] == outcome, "coverage_forged_outcome")
+    return outcome
+
+
+def collect_quality(root, subject, artifacts):
+    result = {"schema_version": 1, "kind": "quality", **subject, "outcome": "blocked", "checks": []}
+    try:
+        runtime(artifacts, root, result)
+        with pinned_checkout(root, subject) as (checkout, _, env):
+            if not prepare(artifacts, checkout, env, result):
+                return result
+            for name, argv in QUALITY_CHECKS:
+                record = artifacts.run(argv, checkout, env, budget=600)
+                record["check"] = name
+                result["checks"].append(record)
+                if record["exit_status"] != 0:
+                    result.update(outcome="open", reason=name + "_first_red")
+                    return result
+        result["outcome"] = "complete"
+    except (Rejected, OSError, ValueError, subprocess.SubprocessError) as error:
+        result["reason"] = str(error) if isinstance(error, Rejected) else "quality_prerequisite_failed"
+    return result
+
+
+def quality_states(subject, artifacts, quality):
+    require(all(quality.get(key) == value for key, value in subject.items()), "quality_foreign_subject")
+    verify_runtime(artifacts, quality)
+    if verify_preparation(artifacts, quality) == "open":
+        require(not quality.get("checks"), "quality_after_preparation_red")
+        return {"maint": "open", "ci": "blocked"}
+    checks = quality.get("checks", [])
+    require(0 < len(checks) <= len(QUALITY_CHECKS), "quality_missing_checks")
+    passed = set()
+    red = False
+    for index, record in enumerate(checks):
+        name, argv = QUALITY_CHECKS[index]
+        require(record.get("check") == name and record.get("argv") == argv, "quality_owner_identity")
+        text = artifacts.log(record)
+        if record["exit_status"] != 0:
+            require(index == len(checks) - 1, "quality_after_first_red")
+            red = True
+            break
+        if name == "credo_inventory":
+            require("[credo-quality] blocking warnings, public contract, and complexity inventory passed" in text,
+                    "quality_missing_credo_proof")
+        else:
+            require(re.search(r"\b[1-9][0-9]* tests?, 0 failures\b", text) and
+                    not re.search(r"\b[1-9][0-9]* invalid\b", text), "quality_missing_test_proof")
+        passed.add(name)
+    require(red or len(checks) == len(QUALITY_CHECKS), "quality_partial_green")
+    require(quality.get("outcome") == ("open" if red else "complete"), "quality_forged_outcome")
+    return {"maint": "complete" if {"credo_policy", "credo_inventory"}.issubset(passed) else "open",
+            "ci": "complete" if "ci_structure" in passed else "open"}
+
+
+def timing_state(root, subject, path):
+    text = Path(path).read_text()
+    require(text.count("CI_TIMING_CURRENT_SOURCE_BEGIN") == 1 and
+            text.count("CI_TIMING_CURRENT_SOURCE_END") == 1, "timing_missing_or_duplicate_source")
+    section = text.split("CI_TIMING_CURRENT_SOURCE_BEGIN\n", 1)[1].split("\nCI_TIMING_CURRENT_SOURCE_END", 1)[0]
+    timing = decode_json(section)
+    require(timing.get("sha") == subject["subject_sha"] and timing.get("repo") == "szTheory/rindle" and
+            type(timing.get("pr")) is int and timing["pr"] > 0, "timing_foreign_identity")
+    runs = timing.get("runs", [])
+    require(len(runs) == 10 and len({run["id"] for run in runs}) == 10, "timing_not_exact_ten")
+    require(all(type(run.get("id")) is int and run["id"] > 0 and
+                type(run.get("duration_seconds")) is int and 0 <= run["duration_seconds"] <= 1800
+                for run in runs), "timing_invalid_run")
+    values = sorted(run["duration_seconds"] for run in runs)
+    median, p95 = (values[4] + values[5]) / 2, values[9]
+    require(timing.get("median_seconds") == median and timing.get("p95_seconds") == p95,
+            "timing_statistics_mismatch")
+    argv = ["bash", "scripts/ci/collect_pr_timing_receipt.sh", "verify", "--repo", "szTheory/rindle",
+            "--pr", str(timing["pr"]), "--workflow", "ci.yml", "--summary-job", "CI Summary",
+            "--samples", "10", "--median-max", "480", "--p95-max", "600", "--subject-sha",
+            subject["subject_sha"], "--receipt", str(Path(path).resolve())]
+    status, output, _ = execute(argv, root, budget=1800)
+    if status != 0:
+        require(b"misses inclusive CI-14 timing thresholds" in output, "timing_api_authentication_failed")
+    return "complete" if median <= 480 and p95 <= 600 else "open"
+
+
+def assessment(callback):
+    try:
+        return {"status": callback()}
+    except (Rejected, OSError, ValueError, KeyError, TypeError, IndexError, subprocess.SubprocessError) as error:
+        return {"status": "blocked", "reason": str(error) if isinstance(error, Rejected) else "missing_or_invalid_authority"}
+
+
+def derive_qualification(root, subject, paths, quality, artifacts, contract, contract_sha):
+    quality_assessment = assessment(lambda: quality_states(subject, artifacts, quality))
+    if isinstance(quality_assessment["status"], dict):
+        qstates = quality_assessment["status"]
+    else:
+        qstates = {"maint": "blocked", "ci": "blocked"}
+    authorities = {"coverage": assessment(lambda: coverage_outcome(subject, paths["coverage"], contract))}
+    for kind in ("dialyzer", "async", "bootstrap"):
+        authorities[kind] = assessment(lambda kind=kind: verify_receipt(root, subject, paths[kind], kind)["outcome"])
+    authorities["timing"] = assessment(lambda: timing_state(root, subject, paths["timing"]))
+    requirements = {
+        "MAINT-04": {"status": qstates["maint"], "authority": "quality.credo"},
+        "TYPE-03": {**authorities["dialyzer"], "authority": "dialyzer"},
+        "COV-06": {**authorities["coverage"], "authority": "coverage"},
+        "TEST-08": {**authorities["async"], "authority": "async"},
+        "CI-15": {"status": qstates["ci"], "authority": "quality.ci_structure"},
+        "CI-16": {"status": authorities["timing"]["status"] if qstates["ci"] == "complete" else qstates["ci"],
+                  "authority": "timing+quality.ci_structure"},
+        "DX-05": {**authorities["bootstrap"], "authority": "bootstrap"}}
+    references = {}
+    for kind, path in paths.items():
+        references[kind] = {"path": relative_evidence(root, path),
+                            "sha256": digest(Path(path).read_bytes()) if Path(path).is_file() else None}
+    statuses = [value["status"] for value in requirements.values()]
+    outcome = "blocked" if "blocked" in statuses else "open" if "open" in statuses else "complete"
+    result = {"schema_version": 1, **subject, "contract_sha256": contract_sha, "outcome": outcome,
+              "requirements": requirements, "evidence": references, "authorities": authorities,
+              "quality": quality}
+    if outcome != "complete":
+        result["next_trigger"] = "Resolve each recorded open/blocked authority; preserve prior receipts and use new authorized evidence paths."
+    return result
+
+
 def qualification_main(root, argv):
     parser = argparse.ArgumentParser(prog="verify_phase136_qualification.sh")
-    parser.add_argument("operation")
+    parser.add_argument("operation", choices=("generate", "verify"))
     parser.add_argument("--subject-file", required=True)
     parser.add_argument("--manifest", required=True)
     for name in ("coverage", "dialyzer", "async-receipt", "bootstrap", "timing"):
         parser.add_argument("--" + name)
     args = parser.parse_args(argv)
-    result = {"outcome": "blocked", "reason": "qualification_not_implemented"}
-    if args.operation == "generate":
-        with Path(args.manifest).open("x") as output:
-            json.dump(result, output)
-    print(json.dumps(result))
-    return 0
+    descriptor = None
+    result = {"outcome": "blocked"}
+    try:
+        subject = source_subject(root, args.subject_file)
+        contract, contract_sha = evidence_contract(root)
+        path = Path(args.manifest).resolve()
+        if args.operation == "generate":
+            descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            artifacts = Artifacts(path, create=True)
+            phase = root / ".planning/phases/136-measured-quality-and-ci-ratchets"
+            defaults = {"coverage": "136-COVERAGE-EVIDENCE.json", "dialyzer": "136-DIALYZER-EVIDENCE.json",
+                        "async": "136-ASYNC-RESULT.json", "bootstrap": "136-BOOTSTRAP-EVIDENCE.json",
+                        "timing": "136-PR-TIMING.md"}
+            paths = {kind: Path(getattr(args, "async_receipt" if kind == "async" else kind) or phase / name).resolve()
+                     for kind, name in defaults.items()}
+            quality = collect_quality(root, subject, artifacts)
+        else:
+            stored = read_json(path)
+            require(type(stored.get("schema_version")) is int and stored["schema_version"] == 1,
+                    "qualification_schema")
+            require(all(stored.get(key) == value for key, value in subject.items()), "qualification_foreign_subject")
+            require(set(stored.get("evidence", {})) == {"coverage", "dialyzer", "async", "bootstrap", "timing"},
+                    "qualification_missing_authority")
+            paths = {kind: root / reference["path"] for kind, reference in stored["evidence"].items()}
+            artifacts, quality = Artifacts(path), stored["quality"]
+        result = derive_qualification(root, subject, paths, quality, artifacts, contract, contract_sha)
+        if args.operation == "verify":
+            require(canonical(result) == canonical(stored), "qualification_claim_or_evidence_drift")
+        print(json.dumps(result, sort_keys=True))
+        return 0 if args.operation == "verify" or result["outcome"] == "complete" else 1
+    except (Rejected, OSError, ValueError, KeyError, TypeError, IndexError, subprocess.SubprocessError) as error:
+        result = {"outcome": "blocked", "reason": str(error) if isinstance(error, Rejected)
+                  else "qualification_prerequisite_failed"}
+        print(json.dumps(result))
+        return 1
+    finally:
+        if descriptor is not None:
+            with os.fdopen(descriptor, "w") as output:
+                json.dump(result, output, sort_keys=True)
+                output.write("\n")
 
 
 def main():
