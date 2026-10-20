@@ -21,6 +21,21 @@ Out-of-scope discoveries logged by executors. Not fixed in the plan that found t
   and classed it `contract`. Rewording it, for example to `(long-pole jobs)`, is a
   one-line follow-up that also removes its allowlist entry.
 
+## From 135-14
+
+- **`Rindle.DoctorThresholdsTest` setup_all is order-dependent on this host.** With
+  `MIX_BUILD_PATH` outside the worktree, running it in the same `mix test` invocation
+  as `test/install_smoke` sometimes invalidates its two tests with
+  `FunctionClauseError` in `Doctor.ModuleInformation.build/2`
+  (`{:error, :module_not_found}` for `Mix.Tasks.Rindle.AbortIncompleteUploads`). The
+  file passes alone, and the same invalidation shows up in the pre-edit baseline on
+  e8f6895a. Whether CI's in-tree build path shows it was not checked.
+- **Generated-app `:public_compatibility_scenario` fails locally with
+  `smoke_exit_code` 2** on this branch and identically on origin/main 65395f2c
+  (`--only phase_120_public_compat`), MinIO running via `scripts/ensure_minio.sh`.
+  Exporting `MIX_DEPS_PATH`/`MIX_BUILD_PATH` for that scenario also leaks them into the
+  generated app, which then fetches its own newer deps into the shared deps dir.
+
 ## From 135-11
 
 - **`scripts/ci/test_compat_115_26.sh` is a Docker toolchain repro, not a fixture harness.**
