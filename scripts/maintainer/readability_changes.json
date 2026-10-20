@@ -32,7 +32,7 @@
       ],
       "id": "craft-sweep-orphaned-temp-files-nesting",
       "intent": "cohesion",
-      "pr": null,
+      "pr": 152,
       "proof": [
         "bash scripts/maintainer/credo_quality.sh",
         "bash scripts/maintainer/refactor_contract.sh",
@@ -56,7 +56,7 @@
       ],
       "id": "craft-lifecycle-repair-nesting",
       "intent": "cohesion",
-      "pr": null,
+      "pr": 152,
       "proof": [
         "bash scripts/maintainer/credo_quality.sh",
         "bash scripts/maintainer/refactor_contract.sh",
@@ -80,7 +80,7 @@
       ],
       "id": "craft-core-checks-nesting",
       "intent": "cohesion",
-      "pr": null,
+      "pr": 152,
       "proof": [
         "bash scripts/maintainer/credo_quality.sh",
         "bash scripts/maintainer/refactor_contract.sh",
@@ -104,7 +104,7 @@
       ],
       "id": "craft-runtime-checks-nesting",
       "intent": "cohesion",
-      "pr": null,
+      "pr": 152,
       "proof": [
         "bash scripts/maintainer/credo_quality.sh",
         "bash scripts/maintainer/refactor_contract.sh",
@@ -128,7 +128,7 @@
       ],
       "id": "craft-tus-protocol-nesting",
       "intent": "failure-semantics",
-      "pr": null,
+      "pr": 152,
       "proof": [
         "bash scripts/maintainer/credo_quality.sh",
         "bash scripts/maintainer/refactor_contract.sh",

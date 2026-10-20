@@ -174,6 +174,25 @@ Dialyzer remains an owned, gating Nightly signal, outside the PR-local alias and
 path. Push-main/full-verification-only lanes likewise remain outside `mix ci`; the release
 workflow still relies on the complete `ci.yml` run for the exact release SHA.
 
+### Repository craft gates
+
+These commands are the supported way to check repository craft locally. The test suite runs
+the residue scan and the public surface snapshot, CI Script Tests runs the artifact ledger
+and readability trace checks, and `repo_hygiene_check.sh --ci` runs on main. Maintainers run
+the refactor boundary check and the evidence collector by hand; their harnesses run in
+CI Script Tests.
+
+| Gate | Command | What it enforces |
+|------|---------|------------------|
+| Live residue scan | `MIX_ENV=test mix run --no-start scripts/maintainer/scan_live_residue.exs --check --require-no-pending all` | Every planning-era identifier or craft residue hit in shipped files has an allowlist entry, no entry is stale, and no `pending-removal` entry remains. |
+| Residue baseline refresh | `MIX_ENV=test mix run --no-start scripts/maintainer/scan_live_residue.exs --regen-baseline` | Only after an approved change to a `contract`, `policy`, `immutable-receipt` or `fixture` entry. Never use it to add `pending-removal` entries: remove the residue instead. |
+| Artifact ledger | `bash scripts/maintainer/validate_artifact_ledger.sh --offline --require-settled` | Every tracked path belongs to exactly one class in `scripts/maintainer/artifact_ledger.json`, and no class still has disposition `delete`. A new tracked path needs a matching class pattern. The retained evidence receipt directory is a `retain` class and must not be archived; moving it fails with a `retained receipt` message. |
+| Readability trace | `bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json` | Every readability refactor cites a frozen candidate id, a removed complexity-baseline identity and its proof commands. On the refactor branch, `--base origin/main` also checks that each removed identity existed in the base baseline. |
+| Refactor boundary | `bash scripts/maintainer/craft_boundary_check.sh origin/main` | A readability refactor leaves release, migration, lock, telemetry-contract and public-surface files untouched. |
+| Public surface snapshot | `mix test test/rindle/public_surface_snapshot_test.exs` | Public exports match `test/fixtures/public_surface.txt`. The fixture is pinned to the canonical Elixir 1.17 / OTP 27 lane; regenerate it there with the command the test prints, and only for an intended public API change. |
+| Repository hygiene | `./scripts/maintainer/repo_hygiene_check.sh --ci`, `--release-prep`, `--release-prep --with-mix-ci` | `--ci` runs repo-owned checks, the artifact ledger and tracked junk. `--release-prep` adds fetch, branch, behind/ahead, generated drift and post-verification residue checks. `--with-mix-ci` also runs `mix ci` and requires its completion sentinel. |
+| Phase gate evidence | `bash scripts/maintainer/collect_phase_gate_evidence.sh --repo szTheory/rindle --shas-file FILE --hygiene-log FILE --hygiene-exit N [--nightly-after SHA]` | Read-only. For each listed squash SHA it records the main push CI run and its `CI Summary` job, rejects `fix:` and `feat:` subjects, parses a release-prep hygiene log, and records the next scheduled Nightly as a non-blocking follow-up. Exit 0 means every check passed. |
+
 ### Release train
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) `gate-ci-green` waits for
