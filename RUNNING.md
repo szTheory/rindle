@@ -323,6 +323,8 @@ older checked-in OTP hint is not a reason to change `.tool-versions` locally.
 `bash scripts/maintainer/verify_contributor_bootstrap.sh --validate` checks the
 ordered bootstrap contract without installing dependencies. `--run --full`
 executes it and `mix ci` in a clean detached copy with private Mix/Hex homes,
-300-second command bounds and a 1200-second overall bound, writing a new receipt.
+300-second setup/focused command bounds, a 600-second full `mix ci` bound, and a
+1200-second overall bound, writing a new receipt. Started commands that time out
+remain terminal failed records with their argv, output digest and exit 124.
 It is local contributor evidence, not a new CI coverage lane. The one canonical
 coverage-floor measurement remains `mix coveralls.multiple --type local --type json`.

@@ -145,6 +145,14 @@ defmodule Rindle.CoverageFloorPolicyTest do
 
   defp fixture!(dir, coverage) do
     source = Path.join(dir, "source")
+    probe_bin = Path.join(dir, "probe-bin")
+    File.mkdir_p!(probe_bin)
+
+    for {name, version} <- [{"elixir", "elixir-1.17.3/otp-27.3.4.15"}, {"node", "v20.18.1"}] do
+      path = Path.join(probe_bin, name)
+      File.write!(path, "#!/usr/bin/env bash\necho '#{version}'\n")
+      File.chmod!(path, 0o755)
+    end
 
     Enum.each(@files, fn path ->
       target = Path.join(source, path)
@@ -175,7 +183,7 @@ defmodule Rindle.CoverageFloorPolicyTest do
 
     %{
       host_bin: nil,
-      probe_bin: nil,
+      probe_bin: probe_bin,
       source: source,
       sha: sha,
       subject: subject,
@@ -210,7 +218,10 @@ defmodule Rindle.CoverageFloorPolicyTest do
       cd: fixture.source,
       env: [
         {"PATH",
-         Enum.join(Enum.reject([fixture.host_bin, System.get_env("PATH")], &is_nil/1), ":")}
+         Enum.join(
+           Enum.reject([fixture.probe_bin, fixture.host_bin, System.get_env("PATH")], &is_nil/1),
+           ":"
+         )}
       ],
       stderr_to_stdout: true
     )

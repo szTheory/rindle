@@ -129,6 +129,40 @@ defmodule Rindle.PhaseEvidenceMeasureTest do
     assert {_, 1} = measure(fixture, "verify-dialyzer")
   end
 
+  @tag :tmp_dir
+  test "a timed-out bootstrap command remains a verified first-red receipt", %{tmp_dir: dir} do
+    fixture = fixture!(dir)
+    owner = Path.join(fixture.source, "scripts/maintainer/verify_contributor_bootstrap.sh")
+
+    File.write!(
+      owner,
+      String.replace(File.read!(owner), "type=int, default=1200)", "type=int, default=3)")
+    )
+
+    File.write!(Path.join(fixture.bin, "mix"), """
+    #!/usr/bin/env bash
+    if [[ "$1" == ci ]]; then sleep 6; fi
+    echo '1 test, 0 failures'
+    """)
+
+    repin!(fixture)
+    assert {_, 1} = measure(fixture, "bootstrap")
+    receipt = fixture.receipt |> File.read!() |> Jason.decode!()
+    assert receipt["outcome"] == "open"
+
+    inner =
+      Path.join(fixture.receipt <> ".artifacts", "bootstrap.json")
+      |> File.read!()
+      |> Jason.decode!()
+
+    assert List.last(inner["commands"])["argv"] == ["mix", "ci"]
+    assert List.last(inner["commands"])["exit_status"] == 124
+    assert {output, 0} = measure(fixture, "verify-bootstrap")
+    assert Jason.decode!(output)["outcome"] == "open"
+    File.write!(fixture.receipt, Jason.encode!(Map.put(receipt, "outcome", "complete")))
+    assert {_, 1} = measure(fixture, "verify-bootstrap")
+  end
+
   defp repin!(fixture) do
     git!(fixture.source, ["add", "scripts"])
     git!(fixture.source, ["commit", "--quiet", "-m", "fixture owner variation"])

@@ -53,15 +53,18 @@ def command(argv, cwd, env=None, budget=300):
                 except subprocess.TimeoutExpired:
                     os.killpg(child.pid, signal.SIGKILL)
                     child.wait()
-                raise Blocked(reason)
+                break
             time.sleep(0.02)
         output.seek(0)
         data = output.read(output_limit + 1)
     if len(data) > output_limit:
-        raise Blocked('command_output_limit')
-    record = {'argv': argv, 'exit_status': child.returncode,
+        reason = 'command_output_limit'
+        data = data[:output_limit]
+    record = {'argv': argv, 'exit_status': 124 if reason == 'command_timeout' else 125 if reason else child.returncode,
               'output_sha256': hashlib.sha256(data).hexdigest(), 'output_bytes': len(data),
               'duration_seconds': round(time.monotonic() - begin, 3)}
+    if reason:
+        record['failure_reason'] = reason
     return record, data.decode('utf-8', errors='replace')
 
 def git(*argv):
@@ -102,7 +105,8 @@ try:
     commands = documented_commands(source)
     if args.validate:
         print(json.dumps({'runtime': supported, 'commands': commands,
-                          'timeout_seconds': args.timeout_seconds, 'command_timeout_seconds': 300}))
+                          'timeout_seconds': args.timeout_seconds, 'command_timeout_seconds': 300,
+                          'full_command_timeout_seconds': 600}))
         sys.exit(0)
     head = git('rev-parse', 'HEAD')
     if not args.subject_sha or not re.fullmatch(r'[0-9a-f]{40}', args.subject_sha) or args.subject_sha != head:
@@ -138,11 +142,11 @@ try:
             env.pop(key, None)
         env.update(MIX_ENV='test', MIX_HOME=str(scratch / 'mix'), HEX_HOME=str(scratch / 'hex'))
         for argv in commands + ([['mix', 'ci']] if args.full else []):
-            record, output = command(argv, checkout, env)
+            record, output = command(argv, checkout, env, budget=600 if argv == ['mix', 'ci'] else 300)
             result['commands'].append(record)
             if record['exit_status'] != 0:
                 result['outcome'] = 'open'
-                raise Blocked('documented_command_failed')
+                raise Blocked(record.get('failure_reason', 'documented_command_failed'))
             if argv[1] in ('test', 'ci') and (not re.search(r'\b[1-9][0-9]* tests?, 0 failures\b', output) or re.search(r'\b[1-9][0-9]* invalid\b', output)):
                 raise Blocked('focused_or_full_test_did_not_execute')
             if argv[1] == 'test' and re.search(r'\b[1-9][0-9]* (skipped|excluded)\b', output):
