@@ -115,6 +115,34 @@ defmodule Rindle.CoverageFloorPolicyTest do
     assert ExCoveralls.Stats.ensure_minimum_coverage(representable) == nil
   end
 
+  @tag :tmp_dir
+  test "unit receipts model the accepted owner independently of the host probe", %{tmp_dir: dir} do
+    fixture = fixture!(dir, [1])
+    host_bin = Path.join(dir, "host-bin")
+    File.mkdir_p!(host_bin)
+
+    File.write!(
+      Path.join(host_bin, "elixir"),
+      "#!/usr/bin/env bash\necho 'elixir-1.15.8/otp-26.2'\n"
+    )
+
+    File.chmod!(Path.join(host_bin, "elixir"), 0o755)
+    fixture = %{fixture | host_bin: host_bin}
+    assert {_, 0} = invoke(fixture, "--write")
+    assert {_, 0} = invoke(fixture, "--verify-only")
+
+    File.write!(
+      Path.join(fixture.probe_bin, "elixir"),
+      "#!/usr/bin/env bash\necho 'elixir-1.15.8/otp-26.2'\n"
+    )
+
+    fixture = %{fixture | receipt: fixture.receipt <> ".unsupported"}
+    assert {_, 1} = invoke(fixture, "--write")
+
+    assert Jason.decode!(File.read!(fixture.receipt))["reason"] ==
+             "coverage_unsupported_toolchain"
+  end
+
   defp fixture!(dir, coverage) do
     source = Path.join(dir, "source")
 
@@ -146,6 +174,8 @@ defmodule Rindle.CoverageFloorPolicyTest do
     File.write!(local, "1 test, 0 failures\n")
 
     %{
+      host_bin: nil,
+      probe_bin: nil,
       source: source,
       sha: sha,
       subject: subject,
@@ -160,7 +190,7 @@ defmodule Rindle.CoverageFloorPolicyTest do
     script = Path.join(fixture.source, "scripts/maintainer/verify_coverage_floor.exs")
 
     System.cmd(
-      "elixir",
+      System.find_executable("elixir"),
       [
         script,
         mode,
@@ -178,6 +208,10 @@ defmodule Rindle.CoverageFloorPolicyTest do
         to_string(fixture.started)
       ] ++ extra,
       cd: fixture.source,
+      env: [
+        {"PATH",
+         Enum.join(Enum.reject([fixture.host_bin, System.get_env("PATH")], &is_nil/1), ":")}
+      ],
       stderr_to_stdout: true
     )
   end
