@@ -21,13 +21,30 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
 
   # --------------------------------------------------------------- live tree
 
-  test "live tree is fully accounted for by the allowlist shards" do
-    {output, status} = run_script(["--check"])
+  test "live tree is fully accounted for by the allowlist shards with zero pending-removal" do
+    {output, status} = run_script(["--check", "--require-no-pending", "all"])
 
     assert status == 0, output
 
     assert [_, files] = Regex.run(~r/\((\d+) files,/, output)
     assert String.to_integer(files) > 500, "scan looks vacuous: #{output}"
+  end
+
+  test "a planted pending-removal entry fails the zero-pending check naming its area" do
+    text = "# per " <> "CRAFT" <> "-04"
+    root = fixture(%{"examples/planted.exs" => text <> "\n"})
+
+    dir =
+      shards(root, %{
+        "examples_docs" => [
+          entry("examples/planted.exs", "requirement-id", text, 1)
+        ]
+      })
+
+    {output, status} = run_fixture(root, dir, ["--check", "--require-no-pending", "all"])
+
+    assert status == 1
+    assert output =~ "pending-removal entry remains in examples_docs"
   end
 
   # --------------------------------------------------------------- Task 1
