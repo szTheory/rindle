@@ -25,7 +25,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 - [x] **Phase 133: Evidence Charter and Live Truth** - Establish immutable evidence authority and restore truthful Nightly, incident, release, and adoption signals. (completed 2026-10-15)
 - [x] **Phase 134: Dependency, Security, and Inbox Disposition** - Give every live advisory and remote item an attributable, evidence-backed disposition. (completed 2026-10-16)
 - [x] **Phase 135: Repository and Code-Craft Consolidation** - Remove only proven residue and improve candidate-backed readability under preserved contracts. (completed 2026-10-20)
-- [ ] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed.
+- [x] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed. (completed 2026-10-21)
 - [ ] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup.
 - [ ] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries.
 - [ ] **Phase 139: Exact-Head Readiness Closure** - Produce one fail-closed, exact-head readiness verdict while keeping independent adoption open.
@@ -719,7 +719,7 @@ Plans:
   4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
   5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and required CI green. The exact-ten <=480-second median/<=600-second p95 target is deferred unfinished to SEED-261021-918 by the 2026-10-21 user decision, with no speed acceptance credit.
 
-**Plans**: 15 plans
+**Plans**: 15/15 plans complete
 
 Plans:
 **Wave 1**
@@ -805,10 +805,10 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 15/15 | Verifying | - |
+| 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-10-12 after Plan 178 passed independent plan review. Phase 133 remains active; Plan 177 is terminal no-attempt history, and Plan 178 is ready in effective Wave 28. All five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero. Next: `$gsd-execute-phase 133 --gaps-only --wave 28`.*
+*Last updated: 2026-10-21 after Phase 136 completed 15/15 plans and passed 41/41 active must-haves. Numeric CI speed acceptance remains deferred unfinished to SEED-261021-918 with zero credit. Next: `$gsd-discuss-phase 137`.*

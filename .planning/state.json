@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
+  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
   "phases": [
     {
       "number": "133",
@@ -21,7 +21,7 @@
     {
       "number": "136",
       "name": "Measured Quality and CI Ratchets",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "137",
@@ -40,9 +40,9 @@
     }
   ],
   "next": {
-    "command": "$gsd-execute-phase 136",
-    "label": "Execute Phase 136",
-    "reason": "Monitor existing async collector32373 onFINAL4dc73fa9; do not duplicate or overlap DB suites; then verify receipt and finish Plan09/07"
+    "command": "$gsd-progress",
+    "label": "Route Phase 137 discussion or planning",
+    "reason": "Phase 136 verified complete; Phase 137 has not started. Numeric CI speed target remains deferred unfinished."
   },
-  "updated_at": "2026-10-20T22:07:12.431395+00:00"
+  "updated_at": "2026-10-21T19:41:07.819504+00:00"
 }

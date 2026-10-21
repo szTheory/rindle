@@ -27,6 +27,12 @@ real adopter through an evidence-led quality pass and a maintainer-operated synt
 
 User decision (2026-10-21): defer the exact-ten CI speed target (<=480-second median / <=600-second p95) to SEED-261021-918; merge PR #162 when required CI is green. The numeric target remains unfinished, receives no acceptance credit, and is no longer a merge gate. Existing failed/blocked receipts remain immutable historical evidence.
 
+**Phase 136 result (2026-10-21):** All 15 plans and 41 active must-haves verified.
+Removal-only complexity and Dialyzer policies, exact coverage (5206/6329), clean
+supported bootstrap, finite 25-seed isolation, and CI structure have executable
+acceptance evidence. Required PR and main CI passed on the final source. The
+numeric speed target remains deferred unfinished with zero acceptance credit.
+
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
 delete historical planning or generated assets without consumer/provenance proof. Preserve public API,
@@ -981,4 +987,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-09-09 after authorizing v1.26 Pre-Adopter Readiness & Quality Consolidation.*
+*Last updated: 2026-10-21 after Phase 136 verification and transition to Phase 137.*
