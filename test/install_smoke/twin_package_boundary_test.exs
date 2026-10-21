@@ -30,6 +30,31 @@ defmodule Rindle.TwinPackageBoundaryTest do
     assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
   end
 
+  test "effective mounts and effective capabilities fail closed" do
+    code = """
+    import sys,copy
+    sys.path.insert(0, 'scripts/maintainer')
+    from built_package_twin import validate_mounts, validate_runtime, Refused
+    def refused(f):
+        try:f()
+        except Refused:return
+        raise AssertionError('invalid capability accepted')
+    good=[{'type':'volume','source':'retained','target':'/retained'}]
+    validate_mounts(good)
+    for target in ['/checkout','/home/user','/var/run/docker.sock']:
+        refused(lambda:validate_mounts([{'type':'bind','source':target,'target':target}]))
+    expected={'elixir':'1.17.3','otp':'27.3.4.15','oban':'2.21.1','phoenix':'1.8.12'}
+    health=dict(expected,lock_sha256='a'*64,origin='/twin/_build/prod/lib/rindle/ebin/Elixir.Rindle.beam')
+    validate_runtime(health,{'toolchain':expected,'lock_sha256':'a'*64})
+    for key in expected:
+        wrong=dict(health);wrong[key]='0.0.0';refused(lambda:validate_runtime(wrong,{'toolchain':expected,'lock_sha256':'a'*64}))
+    for key,value in [('lock_sha256','b'*64),('origin','/checkout/_build/Elixir.Rindle.beam')]:
+        wrong=dict(health);wrong[key]=value;refused(lambda:validate_runtime(wrong,{'toolchain':expected,'lock_sha256':'a'*64}))
+    """
+
+    assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
+  end
+
   test "archive byte, metadata and extracted-tree identities cannot substitute for one another" do
     code = """
     import sys,io,tarfile,gzip,tempfile
