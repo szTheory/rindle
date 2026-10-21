@@ -115,3 +115,7 @@ Coverage audit: all fourteen plans and all seven requirements map to executable 
 | Gaps found | 0 |
 | Resolved | 0 |
 | Escalated | 0 |
+
+## User scope decision and Plan15 coverage (2026-10-21)
+
+The numeric CI-16 target is deferred unfinished to SEED-261021-918 under 136-SPEED-DEFERRAL.json and no longer gates merge. This decision earns no acceptance credit. Plan15 adds executable overlap and each failing-child propagation tests against the actual parsed YAML run body; focused39/0 and full owner/meta/topology104/0 pass. All four real harnesses pass in both modes. The existing job timeout and strict sole CI Summary gate remain enforced. The prior exact-source qualification receipts remain historical; no stale authority is promoted by this audit.

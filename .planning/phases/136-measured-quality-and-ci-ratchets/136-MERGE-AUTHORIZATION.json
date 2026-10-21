@@ -8,7 +8,7 @@
   "user_instruction": "okay whats next do we squash merge that once CI grene i authorize u",
   "observed_head": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
   "recorded_at": "2026-10-21T13:47:36.820490+00:00",
-  "status": "waiting_for_required_ci",
+  "status": "github_auto_merge_enabled_waiting_for_required_ci",
   "release_authorized": false,
   "merge_guard_script": "/private/tmp/phase136-qualified-merge-guard.py",
   "merge_guard_session": 4143,
@@ -20,5 +20,16 @@
   "qualification_next": "136-QUALIFICATION-MERGE.json",
   "verification_rule": "Do not infer numeric speed acceptance; no exact-ten measurement merge gate after explicit user deferral.",
   "speed_deferral": "136-SPEED-DEFERRAL.json",
-  "obsolete_guard": "Prior guard session 4143 is terminal and must not be resumed."
+  "obsolete_guard": "Prior guard session 4143 is terminal and must not be resumed.",
+  "auto_merge": {
+    "method": "SQUASH",
+    "enabled_at": "2026-10-21T14:53:58Z",
+    "head_sha": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
+    "run_id": 39620867248,
+    "required_contexts": [
+      "CI Summary"
+    ],
+    "strict": true,
+    "admin_bypass": false
+  }
 }

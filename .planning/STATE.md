@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 conditional squash merge authorized; Proof retry and timing/verification gates pending
-last_updated: "2026-10-21T14:01:06.832957+00:00"
+stopped_at: Phase136 repair published; GitHub squash auto-merge waits for required CI; numeric speed target deferred unfinished
+last_updated: "2026-10-21T14:54:53.887398+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 212
+  total_plans: 213
   completed_plans: 211
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
 current_phase_name: Measured Quality and CI Ratchets
-current_plan: 09
+current_plan: 15
 last_activity_desc: "Wave 1 plans 01/02/04/05/08 committed and verified; begin contributor bootstrap Plan 06."
 ---
 
@@ -26,6 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21, authoritative): User explicitly answered “Defer speed target; merge when required CI is green.” Numeric CI-16 exact-ten <=480-second median / <=600-second p95 acceptance is deferred unfinished to SEED-261021-918 with zero acceptance credit (136-SPEED-DEFERRAL.json). Source e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9 is published to PR #162 and pinned in 136-SUBJECT-SPEED.json. The fixed four-child Nightly step waits every exit and propagates any failure; actual sequential/parallel harnesses passed in 94.292/66.352 seconds. Final owner/meta/topology suite104/0 and focused39/0; no timeout, assertion or required-context weakening. GitHub run39620867248 is queued. Explicit authorized squash auto-merge enabled2026-10-21T14:53:58Z; live branch protection is strict with sole CI Summary. No admin bypass or release. All old local/timing/merge-guard controllers are terminal and obsolete; DO NOT resume them or enqueue ten runs. HYGIENE receipts remain historical for4fdd3fba and may not be relabeled. No active local measurement collector. Phase136 acceptance/Plan07 remains open; do not falsely mark deferred speed passed. Earlier updates below are historical.
 
 Execution update (2026-10-21, authoritative): User explicitly authorized squash merge of PR #162 after green CI. Authorization and guarded merge owner are recorded in136-MERGE-AUTHORIZATION.json. Original HYGIENE local pipeline completed: bootstrap379.476seconds, mix ci331.833seconds, regression226/0, replacement25/25seeds; qualification verified six complete requirements withCI-16blocked only by missing timing. All results committed57d43f59; Plan14 summary committed4c6b6392. Initial live Proof hit its15minute ceiling after its40test adoption authority suite passed in596seconds; raw output and failure retained. A single unchanged-head failed-job rerun (run39530200284,attempt2) is active. Timing retry controller94985 waits for this run to pass before exact-ten collection; original stopped controller is immutable. Conditional merge guard4143 waits for the timing terminal marker, generates new136-QUALIFICATION-MERGE.json, requires all7complete plus fresh GSD verification.status=passed, security0, exact published4fdd3fba and greenCI Summary, then uses squash with match-head and no admin bypass. If qualification is blocked/open or phase report is missing/stale/gaps, merge stays withheld. Root must finish Plan07 summary, actual goal verification/fingerprint and tracking after successful timing; the guard cannot substitute for those steps. Source remains frozen; do not duplicate collectors or ask again for merge authorization. Earlier updates below are historical.
 
