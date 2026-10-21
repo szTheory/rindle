@@ -764,7 +764,23 @@ Plans:
   4. Retry evidence comes from persisted database-backed Oban execution, while restart evidence terminates and resumes a separately supervised runtime without duplicate stimulus.
   5. Every registered scenario emits a schema-validated, redacted receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue, stamped as maintainer-operated synthetic evidence that cannot satisfy the independent-pilot gate.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+**Wave 1**
+- [ ] 137-01-PLAN.md — Run one real packaged image lifecycle through committed retry, quiescent pause, whole-host restart, automatic completion and cleanup.
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 137-02-PLAN.md — Prove exact archive, finite consumer inputs and effective host capabilities.
+- [ ] 137-03-PLAN.md — Harden the documented atomic storage fault and persisted Oban retry boundary.
+
+**Wave 3** *(blocked on Wave 2 package boundary)*
+- [ ] 137-04-PLAN.md — Validate typed receipts and redaction on every exported surface.
+
+**Wave 4** *(blocked on Wave 3 receipt)*
+- [ ] 137-05-PLAN.md — Prove complete pre-disposal inventories and idempotent owned-resource cleanup.
+
+**Wave 5** *(blocked on Waves 2–4)*
+- [ ] 137-06-PLAN.md — Finalize one maintainer CLI, documentation and phase-wide automated regression.
 
 ### Phase 138: Lifecycle Failure and Recovery Matrix
 

@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
+  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
   "phases": [
     {
       "number": "133",
@@ -40,9 +40,9 @@
     }
   ],
   "next": {
-    "command": "$gsd-progress",
-    "label": "Route Phase 137 discussion or planning",
-    "reason": "Phase 136 verified complete; Phase 137 has not started. Numeric CI speed target remains deferred unfinished."
+    "command": "$gsd-execute-phase 137",
+    "label": "Execute Phase 137",
+    "reason": "Six plans independently checked; five waves ready in .claude/worktrees/phase136-execution. All TWIN acceptance remains pending."
   },
-  "updated_at": "2026-10-21T19:41:07.819504+00:00"
+  "updated_at": "2026-10-21T20:40:45.446628+00:00"
 }

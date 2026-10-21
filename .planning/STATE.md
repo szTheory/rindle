@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: ready_to_plan
-stopped_at: Phase 137 context gathered through primary-source research and adversarial review; ready for standard plan-phase
-last_updated: "2026-10-21T20:14:27.697Z"
-state_head: 12587ed7fe1375a977859897ead267d26e795f1c
+status: ready_to_execute
+stopped_at: Phase 137 planning and independent verification complete; ready to execute six plans
+last_updated: "2026-10-21T20:40:13.969Z"
+state_head: 4d9e814c922328839bfb1ccc74e31f309053c0e3
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 213
+  total_plans: 219
   completed_plans: 213
 last_activity: 2026-10-21
-last_activity_desc: Phase 137 research and adversarial review complete; 15 decisions captured; ready for standard plan-phase, no acceptance credit.
 current_phase: 137
 current_phase_name: Built-Package Twin Foundation
 current_plan: Not started
+last_activity_desc: "Phase 137 planned: six plans, twelve tasks, five waves; independent checker passed; 6/6 requirements and 15/15 decisions covered; implementation pending."
 ---
 
 ## Project Reference
@@ -29,9 +29,11 @@ The primary checkout retains separate historical Phase 133 work; preserve it.
 ## Current Position
 
 Phase 136 is complete: 15/15 plans, 41/41 active must-haves verified.
-The passing covered-file fingerprint is in 136-VERIFICATION.md. Phase 137 context
-is gathered and ready for planning; no implementation has started. Progress:
-4/7 phases complete (57%).
+The passing covered-file fingerprint is in 136-VERIFICATION.md. Phase 137 is
+ready to execute: six plans, twelve tasks, five waves. The independent plan checker
+passed; all six TWIN requirements and 15 decisions have executable plan coverage.
+No Phase 137 implementation or runtime acceptance has run. Progress: 4/7 phases
+complete (57%).
 
 Final subject: e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9; source projection:
 9e66e48b2fc64a29f5b973ce28c922eed053cfc3. The existing external job was
@@ -43,11 +45,14 @@ Review: zero findings. Security: 22 threats, zero open. UI review: no UI scope.
 
 ## Next GSD Command
 
-Run `$gsd-plan-phase 137` in `/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`.
-Phase 137 research-first discussion is complete; CONTEXT.md records the selected
-host/package/runtime/evidence boundary and canonical references. No plan or TWIN
-acceptance has been executed. Auto-advance remains disabled. Use standard OpenGSD
-planning, execution and verification; do not add custom qualification workflows.
+Run `$gsd-execute-phase 137` now in `/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`.
+Planning is complete and independently checked. Start with Plan 01, the real
+package/retry/restart tracer; later waves harden package, fault, receipt, cleanup
+and CLI boundaries. Fast default tests remain separate from explicit Docker
+acceptance. Verification requires retained runner inputs plus the receipt, and
+cleanup refuses active or unknown runtimes. All TWIN requirements remain open
+until executable acceptance passes. Auto-advance remains disabled; follow normal
+OpenGSD execution and verification without custom qualification workflows.
 
 ## Decisions and Verification Debt
 
@@ -64,6 +69,6 @@ planning, execution and verification; do not add custom qualification workflows.
 
 ## Session
 
-Last session: 2026-10-21T20:14:06.233Z
-Stopped at: Phase 137 context gathered through primary-source research and adversarial review; ready for standard plan-phase
-Resume file: .planning/phases/137-built-package-twin-foundation/137-CONTEXT.md
+Last session: 2026-10-21T20:40:13.502Z
+Stopped at: Phase 137 planning and independent verification complete; ready to execute six plans
+Resume file: .planning/phases/137-built-package-twin-foundation/137-01-PLAN.md
