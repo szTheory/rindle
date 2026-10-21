@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 hygiene CI repair green; local bootstrap and remote initial CI active
-last_updated: "2026-10-21T02:05:00.908437+00:00"
+stopped_at: Phase136 conditional squash merge authorized; Proof retry and timing/verification gates pending
+last_updated: "2026-10-21T14:01:06.832957+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 212
-  completed_plans: 210
+  completed_plans: 211
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
@@ -26,6 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21, authoritative): User explicitly authorized squash merge of PR #162 after green CI. Authorization and guarded merge owner are recorded in136-MERGE-AUTHORIZATION.json. Original HYGIENE local pipeline completed: bootstrap379.476seconds, mix ci331.833seconds, regression226/0, replacement25/25seeds; qualification verified six complete requirements withCI-16blocked only by missing timing. All results committed57d43f59; Plan14 summary committed4c6b6392. Initial live Proof hit its15minute ceiling after its40test adoption authority suite passed in596seconds; raw output and failure retained. A single unchanged-head failed-job rerun (run39530200284,attempt2) is active. Timing retry controller94985 waits for this run to pass before exact-ten collection; original stopped controller is immutable. Conditional merge guard4143 waits for the timing terminal marker, generates new136-QUALIFICATION-MERGE.json, requires all7complete plus fresh GSD verification.status=passed, security0, exact published4fdd3fba and greenCI Summary, then uses squash with match-head and no admin bypass. If qualification is blocked/open or phase report is missing/stale/gaps, merge stays withheld. Root must finish Plan07 summary, actual goal verification/fingerprint and tracking after successful timing; the guard cannot substitute for those steps. Source remains frozen; do not duplicate collectors or ask again for merge authorization. Earlier updates below are historical.
 
 Execution update (2026-10-21, authoritative): Published hygiene4fdd3fba has live CI Script Tests SUCCESS, including both artifact-ledger steps, repo-hygiene and phase-gate harnesses (136-HYGIENE-CI-REPAIR.json). Its one canonical run passed1698tests plus3doctests, zero failures, exact5206/6329=82.2563percent; receipt verified and committed5b155a63. Fresh/restored Dialyzer verified complete55.331/3.047seconds and committed18016bc2. Local pipeline98749 is now in clean full bootstrap; it will run prior-phase regression, the replacement fixed25seed experiment, then qualification after the remote timing marker. Timing pipeline4637 is still waiting for initial run39530200284 to finish; no failures observed at this checkpoint. Do not duplicate either pipeline or run local database tests in parallel. Full execution pointers remain136-HYGIENE-EXECUTION.json. No phase completion, requirement closure or merge claimed. Earlier updates below are historical.
 

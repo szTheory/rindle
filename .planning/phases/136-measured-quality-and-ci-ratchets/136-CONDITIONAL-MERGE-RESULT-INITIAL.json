@@ -1,0 +1,10 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "status": "replaced_before_action",
+  "pr": 162,
+  "method": "squash",
+  "authorization": "136-MERGE-AUTHORIZATION.json",
+  "rule": "No merge without complete source-bound qualification, passed fresh phase verification, security gate and green current-head required CI.",
+  "reason": "Validated security predicate requires explicit phase-dir; controller restarted with that path. No GitHub write or qualification run occurred."
+}

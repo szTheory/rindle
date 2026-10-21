@@ -8,6 +8,15 @@
   "user_instruction": "okay whats next do we squash merge that once CI grene i authorize u",
   "observed_head": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
   "recorded_at": "2026-10-21T13:47:36.820490+00:00",
-  "status": "waiting_for_gates",
-  "release_authorized": false
+  "status": "guard_queued_waiting_for_gates",
+  "release_authorized": false,
+  "merge_guard_script": "/private/tmp/phase136-qualified-merge-guard.py",
+  "merge_guard_session": 4143,
+  "merge_guard_log": "/private/tmp/phase136-qualified-merge-guard.txt",
+  "merge_guard_state": "136-CONDITIONAL-MERGE-RESULT.json",
+  "timing_retry_session": 94985,
+  "timing_retry_log": "/private/tmp/phase136-hygiene-timing-retry.txt",
+  "timing_retry_state": "136-HYGIENE-TIMING-RETRY-CONTROLLER.json",
+  "qualification_next": "136-QUALIFICATION-MERGE.json",
+  "verification_rule": "Guard requires the GSD verification.status owner to return passed on a fresh fingerprint before merging. If missing/stale/gaps, finish execute-phase 136; do not bypass it."
 }
