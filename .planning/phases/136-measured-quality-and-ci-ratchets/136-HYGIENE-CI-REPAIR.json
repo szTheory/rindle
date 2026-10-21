@@ -1,0 +1,16 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "run_id": 39530200284,
+  "job": "CI Script Tests",
+  "conclusion": "success",
+  "passed_steps": [
+    "Artifact ledger validator harness",
+    "Artifact ledger partition (offline)",
+    "Repo hygiene harness",
+    "Phase gate evidence collector harness"
+  ],
+  "evidence": "gh run view 39530200284 -R szTheory/rindle --json jobs",
+  "checked_at": "2026-10-21T02:01:37.509408+00:00",
+  "qualification_credit": "This resolves the observed hygiene blocker only; whole-run CI and exact-ten timing remain separately authoritative."
+}
