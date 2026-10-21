@@ -8,7 +8,7 @@
   "user_instruction": "okay whats next do we squash merge that once CI grene i authorize u",
   "observed_head": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
   "recorded_at": "2026-10-21T13:47:36.820490+00:00",
-  "status": "github_auto_merge_enabled_waiting_for_required_ci",
+  "status": "merged_after_required_ci_success",
   "release_authorized": false,
   "merge_guard_script": "/private/tmp/phase136-qualified-merge-guard.py",
   "merge_guard_session": 4143,
@@ -31,5 +31,8 @@
     ],
     "strict": true,
     "admin_bypass": false
-  }
+  },
+  "result": "136-MERGE-RESULT.json",
+  "merge_sha": "a046e5be585618d4dfc8f559870e4585b1abb06a",
+  "merged_at": "2026-10-21T15:15:57Z"
 }
