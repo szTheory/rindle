@@ -25,6 +25,8 @@ def fixture():
                            for i, q in enumerate(["rindle_promote", "rindle_process", "rindle_purge"], 1)],
                      temp_files=0, fault_claims=1, writers_paused=True, objects=0, multipart=0,
                      versioning_disabled=True, processes=0, complete=True, sequence=3)
+    inventory.update(relations={"public": ["oban_jobs", "oban_peers", "schema_migrations", "twin_fault_counters"], "rindle": sorted(DOMAIN)},
+                     fixture_rows=2, schema_migration_rows=1, peer_rows=1, listing_complete=True)
     receipt = dict(schema_version=1, kind=KIND, independent_pilot_credit=False, inputs=copy.deepcopy(inputs),
                    outcome="complete", reason="complete", stage="complete", dependency="none",
                    before=before, after=after, old_runtime=dict(health, boot_id=old), new_runtime=dict(health, boot_id=new),

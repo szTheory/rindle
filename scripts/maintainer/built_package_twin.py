@@ -18,6 +18,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
+from twin_cleanup import dispose, validate_descriptor
 from twin_receipt import SCENARIO, KIND, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic
 
 TOOLCHAIN = {"ASDF_ERLANG_VERSION": "27.3.4.15", "ASDF_ELIXIR_VERSION": "1.17.3-otp-27", "ASDF_NODEJS_VERSION": "20.18.1"}
@@ -129,7 +130,7 @@ class Runner:
         self.sequence += 1
         logs = self.evidence / "private"
         logs.mkdir(mode=0o700, exist_ok=True)
-        target = logs / ("command-%03d.txt" % self.sequence)
+        target = logs / ("command-%03d-%s.txt" % (self.sequence, uuid.uuid4().hex[:12]))
         # Exclusive bounded private capture; raw output never reaches parent console.
         with open(target, "xb", opener=lambda p, f: os.open(p, f, 0o600)) as output:
             proc = subprocess.Popen(argv, cwd=cwd or ROOT, env={**os.environ, **TOOLCHAIN},
@@ -228,12 +229,20 @@ class Runner:
         self.descriptor = {"kind": KIND, "independent_pilot_credit": False, "schema_version": 1, "run_id": run_id, "project": "rindle-twin-" + run_id,
                            "database": "twin_" + run_id, "bucket": "twin-" + run_id,
                            "workspace": str(self.context), "evidence": str(self.evidence)}
-        write_json(self.evidence / "resources.json", self.descriptor)
         secret = secrets.token_hex(24)
         env = {"TWIN_PROJECT": self.descriptor["project"], "TWIN_RUN_ID": run_id,
                "TWIN_DATABASE": self.descriptor["database"], "TWIN_BUCKET": self.descriptor["bucket"], "TWIN_SECRET": secret}
         with open(self.evidence / ".env", "x", opener=lambda p, f: os.open(p, f, 0o600)) as out:
             out.write("".join(k + "=" + v + "\n" for k, v in env.items()))
+
+        self.descriptor.update({"host_names": [self.descriptor["project"] + "-host-1"],
+            "volumes": [self.descriptor["project"] + suffix for suffix in ("_database", "_objects", "_retained")],
+            "network": self.descriptor["project"] + "_default", "image": self.descriptor["project"] + ":local",
+            "compose_sha256": digest((self.context / "compose.yml").read_bytes()),
+            "env_sha256": digest((self.evidence / ".env").read_bytes()),
+            "inputs_sha256": digest((self.evidence / "inputs.json").read_bytes())})
+        write_json(self.evidence / "resources.json", self.descriptor)
+        validate_descriptor(self)
 
     def validate_stage(self):
         require({p.name for p in self.context.iterdir()} == {"host", "package", "Dockerfile", "compose.yml"}, "stage_inputs")
@@ -360,23 +369,6 @@ class Runner:
         if verify:
             verify_receipt(read_json(self.evidence / "inputs.json"), read_json(self.evidence / "receipt.json"))
         return receipt
-
-
-def dispose(runner):
-    descriptor = runner.descriptor
-    require(re.fullmatch(r"[0-9a-f]{32}", descriptor["run_id"]), "descriptor_run")
-    require(descriptor["project"] == "rindle-twin-" + descriptor["run_id"], "descriptor_project")
-    require(Path(descriptor["workspace"]) == runner.evidence / "workspace", "descriptor_path")
-    raw = runner.compose("ps", "--all", "--format", "json")
-    states = [json.loads(line) for line in raw.splitlines()] if raw.strip() else []
-    if isinstance(states, dict):
-        states = [states]
-    require(all(s["State"] in ["exited", "created"] for s in states if s["Service"] == "host"), "cleanup_active_runtime")
-    runner.compose("down", "--volumes", "--remove-orphans", timeout=90)
-    require(not runner.compose("ps", "--all", "--quiet").strip(), "disposal_process_residue")
-    if runner.context.exists():
-        shutil.rmtree(runner.context)
-    return True
 
 
 def main():

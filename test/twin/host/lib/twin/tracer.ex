@@ -219,10 +219,24 @@ defmodule Twin.Tracer do
           select: %{id: j.id, state: j.state, attempt: j.attempt, queue: j.queue}
       )
 
+    relations =
+      Repo.query!(
+        "SELECT schemaname,tablename FROM pg_tables WHERE schemaname IN ('public','rindle') ORDER BY schemaname,tablename"
+      ).rows
+      |> Enum.group_by(&hd/1, &List.last/1)
+
+    [[fixture_rows]] = Repo.query!("SELECT count(*) FROM twin_fault_counters").rows
+    [[migration_rows]] = Repo.query!("SELECT count(*) FROM public.schema_migrations").rows
+    [[peer_rows]] = Repo.query!("SELECT count(*) FROM public.oban_peers").rows
     files = Path.wildcard("/retained/tmp/**/*", match_dot: true) |> Enum.reject(&File.dir?/1)
 
     %{
       "domain" => domain,
+      "relations" => relations,
+      "fixture_rows" => fixture_rows,
+      "schema_migration_rows" => migration_rows,
+      "peer_rows" => peer_rows,
+      "listing_complete" => true,
       "jobs" => jobs,
       "temp_files" => length(files),
       "fault_claims" => fault_claims(),

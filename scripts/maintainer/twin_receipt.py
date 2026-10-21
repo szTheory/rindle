@@ -135,11 +135,16 @@ def verify_receipt(inputs, receipt):
         integer(caps[k], 6, 99)
     require(all(caps[k] is True for k in ("database_schema", "image_exercised", "storage_exercised")) and caps["av_exercised"] is False and caps["doctor_status"] == "not_used_known_migration_ledger_issue", "capability_claim")
     inventory = receipt["inventory"]
-    keys(inventory, {"domain", "jobs", "temp_files", "fault_claims", "writers_paused", "objects", "multipart", "versioning_disabled", "processes", "complete", "sequence"})
+    keys(inventory, {"domain", "jobs", "temp_files", "fault_claims", "writers_paused", "objects", "multipart", "versioning_disabled", "processes", "complete", "sequence", "relations", "fixture_rows", "schema_migration_rows", "peer_rows", "listing_complete"})
     require(all(inventory[k] is True for k in ("complete", "writers_paused", "versioning_disabled")), "unknown_inventory")
     for k in ("objects", "multipart", "temp_files", "processes"):
         integer(inventory[k], 0, 0)
     integer(inventory["fault_claims"], 1, 1)
+    require(inventory["listing_complete"] is True, "incomplete_listing")
+    require(inventory["relations"] == {"public": ["oban_jobs", "oban_peers", "schema_migrations", "twin_fault_counters"], "rindle": sorted(DOMAIN)}, "relation_inventory")
+    integer(inventory["fixture_rows"], 2, 2)
+    integer(inventory["schema_migration_rows"], 1, 1)
+    integer(inventory["peer_rows"], 0, 1)
     keys(inventory["domain"], DOMAIN)
     for k, n in inventory["domain"].items():
         integer(n, 1 if k == "rindle_migration_versions" else 0, 1 if k == "rindle_migration_versions" else 0)
