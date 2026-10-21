@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 threat-ID blocker repaired; Plan07 final-subject qualification records four missing measurement receipts
+stopped_at: Phase136 Plan07 final-subject collection ACTIVE session6863; do not duplicate or overlap database tests
 last_updated: "2026-10-21T14:54:53.887398+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
@@ -26,6 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21T16:58:05.206341+00:00, authoritative): User asked to continue through GSD closeout. A single bounded final-subject pipeline is ACTIVE in session6863, controller pid90682, log/private/tmp/phase136-speed-local-pipeline.txt. Durable job.planning/async-jobs/136-07-final-measurements.json (plan136-07, local-subprocess) and progress136-SPEED-LOCAL-COLLECTION.json own its state. Source e2d3b5c remains frozen. Pipeline order: canonical coverage and receipt verification; fresh/restored Dialyzer; clean bootstrap; prior-phase regression; fixed25seed async experiment; new136-QUALIFICATION-CLOSEOUT.json generate/verify. All receipts use SPEED paths; blocked136-QUALIFICATION-SPEED.json is historical. No timing sampler or timing-controller wait. Do not duplicate collectors, run concurrent DB tests, change source, or rerun the submitted job. After terminal status, inspect every receipt and current scope, finish Plan07 summary and final goal verification/fingerprint, retain numeric speed as deferred unfinished, then advance metadata to137 only on genuine passed acceptance. All earlier updates below are historical.
 
 Execution update (2026-10-21T16:55:36.054875+00:00, authoritative): User authorized unblocking the duplicate threat register. Commit bea89f08 renumbers Plan15 threats to T-136-20/T-136-21 and updates security/validation references; init reports zero duplicates and Plan07 runnable. Preflight and frozen e2d3b5c source projection pass; GitHub confirms PR162 merged and main CI39624064249 success. Fresh source-bound quality collection at136-QUALIFICATION-SPEED.json passes Credo11/0, inventory and CI structure61/0; owner verify exits0 with truthful blocked outcome. Final-subject coverage, Dialyzer, bootstrap and async SPEED receipts are missing; the earlier4fdd measurements remain historical and cannot be relabeled. Numeric exact-ten timing stays deferred unfinished; no sampler or replacement25-seed run was started. Collector session39728 is terminal. Plan07 and Phase136 remain open; this repair does not satisfy pending measurement requirements. Earlier updates below are historical.
 

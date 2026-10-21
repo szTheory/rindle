@@ -5,7 +5,7 @@
   "phase": "136",
   "backend": "local-subprocess",
   "submit_command": "python3 .planning/phases/136-measured-quality-and-ci-ratchets/136-closeout-pipeline.py",
-  "status": "submitted",
+  "status": "running",
   "expected_artifacts": [
     ".planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-SPEED.json",
     ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-SPEED.json",

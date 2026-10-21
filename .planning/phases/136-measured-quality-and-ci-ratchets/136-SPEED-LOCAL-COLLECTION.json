@@ -1,0 +1,25 @@
+{
+  "subject_sha": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
+  "source_tree": "9e66e48b2fc64a29f5b973ce28c922eed053cfc3",
+  "status": "running",
+  "steps": [
+    {
+      "name": "projection",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "verify-subject",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-SPEED.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792601854.0414212,
+      "duration_seconds": 0.184,
+      "output": "/private/tmp/phase136-speed-projection.txt"
+    }
+  ],
+  "pid": 90682,
+  "purpose": "Progress only; acceptance comes from immutable owner receipts.",
+  "active_step": "canonical",
+  "updated_at": "2026-10-21T16:57:34.225946+00:00"
+}
