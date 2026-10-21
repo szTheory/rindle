@@ -12,7 +12,7 @@ defmodule Twin.Repo.Migrations.InstallTwin do
       add :claims, :integer, null: false, default: 0
     end
 
-    create unique_index(:twin_fault_counters, [:run_id, :operation, :source_key])
+    create unique_index(:twin_fault_counters, [:run_id, :operation])
   end
 
   def down do

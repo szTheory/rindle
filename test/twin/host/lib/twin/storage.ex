@@ -29,16 +29,38 @@ defmodule Twin.StorageFault do
 
   @impl true
   def delete(key, opts) do
-    # Atomic claim commits before network I/O; absent/foreign/variant keys delegate.
-    %{num_rows: claimed} =
-      Twin.Repo.query!(
-        "UPDATE twin_fault_counters SET claims = claims + 1 WHERE run_id = $1 AND operation = 'delete' AND source_key = $2 AND claims = 0 RETURNING claims",
-        [System.fetch_env!("TWIN_RUN_ID"), key]
-      )
+    run = System.fetch_env!("TWIN_RUN_ID")
 
-    if claimed == 1,
-      do: {:error, :twin_source_delete_once},
-      else: Rindle.Storage.S3.delete(key, opts)
+    expected =
+      Twin.Repo.query!(
+        "SELECT source_key FROM twin_fault_counters WHERE run_id=$1 AND operation='stimulus'",
+        [run]
+      ).rows
+
+    if expected == [[key]] do
+      # Conditional update commits before delegate I/O; a concurrent loser reads 1.
+      result =
+        Twin.Repo.query!(
+          "UPDATE twin_fault_counters SET claims = 1 WHERE run_id=$1 AND operation='delete' AND source_key=$2 AND claims=0 RETURNING claims",
+          [run, key]
+        )
+
+      case result.num_rows do
+        1 ->
+          {:error, :twin_source_delete_once}
+
+        0 ->
+          case Twin.Repo.query!(
+                 "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='delete' AND source_key=$2",
+                 [run, key]
+               ).rows do
+            [[1]] -> Rindle.Storage.S3.delete(key, opts)
+            _ -> {:error, :twin_fixture_missing}
+          end
+      end
+    else
+      Rindle.Storage.S3.delete(key, opts)
+    end
   end
 end
 
