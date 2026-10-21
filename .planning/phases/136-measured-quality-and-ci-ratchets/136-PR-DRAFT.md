@@ -14,7 +14,9 @@ Phase 136 — Measured Quality and CI Ratchets.
 - Repair owner and whole-tree guard suite: 65 tests, zero failures.
 - Artifact-ledger shell harness: 58 passed, zero failed, including archive simulation and live repository partition.
 - Repository Credo gate passed; all 31 output relocations and 38 unchanged receipt JSON hashes verified.
-- New canonical coverage, supported fresh/restored Dialyzer, clean bootstrap and fixed 25-seed measurements are running sequentially against the frozen replacement source. Initial PR CI and exactly ten authenticated timing samples remain pending, with median ≤ 480 seconds and p95 ≤ 600 seconds required.
+- Replacement canonical run: 1,698 tests and 3 doctests, zero failures; exact 5,206/6,329 = 82.2563% coverage. Local gate and source-bound receipt verification passed.
+- Live CI Script Tests passed, including artifact-ledger validation, archive simulation and repository hygiene.
+- Supported fresh/restored Dialyzer, clean bootstrap and fixed 25-seed measurements are running sequentially against the frozen replacement source. Whole-run PR CI and exactly ten authenticated timing samples remain pending, with median ≤ 480 seconds and p95 ≤ 600 seconds required.
 - The earlier source completed its 25-seed matrix, but its measurements are retained as historical evidence and receive no replacement-source qualification credit.
 
 ## Checklist
