@@ -16,12 +16,14 @@ Phase 136 — Measured Quality and CI Ratchets.
 - Repository Credo gate passed; all 31 output relocations and 38 unchanged receipt JSON hashes verified.
 - Replacement canonical run: 1,698 tests and 3 doctests, zero failures; exact 5,206/6,329 = 82.2563% coverage. Local gate and source-bound receipt verification passed.
 - Live CI Script Tests passed, including artifact-ledger validation, archive simulation and repository hygiene.
-- Supported fresh/restored Dialyzer, clean bootstrap and fixed 25-seed measurements are running sequentially against the frozen replacement source. Whole-run PR CI and exactly ten authenticated timing samples remain pending, with median ≤ 480 seconds and p95 ≤ 600 seconds required.
+- Fresh/restored Dialyzer passed in 55.331/3.047 seconds. Clean full bootstrap passed all six commands in 379.476 seconds; mix ci passed in 331.833 seconds.
+- Prior-phase regression passed 226 tests with zero failures; the replacement fixed 25-seed experiment completed with every seed green and its receipt verified.
+- Source-bound qualification recomputes six complete authorities. CI-16 remains blocked: initial Proof reached its 15-minute job limit during passing Nightly harness assertions. A single failed-job rerun is underway on unchanged source. Exactly ten authenticated timing samples remain pending, with median ≤ 480 seconds and p95 ≤ 600 seconds required.
 - The earlier source completed its 25-seed matrix, but its measurements are retained as historical evidence and receive no replacement-source qualification credit.
 
 ## Checklist
 
-- [ ] `mix ci` is green locally or in CI on the replacement source.
+- [x] `mix ci` is green locally or in CI on the replacement source.
 - [x] Docs are updated when behavior, setup, or contributor workflow changes.
 - [x] Docs-only changes do not alter `lib/` behavior.
 - [x] Security reports are routed through GitHub advisories, not public issues.

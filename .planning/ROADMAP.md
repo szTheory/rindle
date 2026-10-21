@@ -747,7 +747,7 @@ Plans:
 - [x] 136-09-PLAN.md — Final-subject Dialyzer, async and bootstrap measurement receipts
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 136-14-PLAN.md — Repair observed CI hygiene failure and measure a replacement subject
+- [x] 136-14-PLAN.md — Repair observed CI hygiene failure and measure a replacement subject
 - [ ] 136-07-PLAN.md — Exact-ten live PR timing and phase qualification
 
 ### Phase 137: Built-Package Twin Foundation
@@ -804,7 +804,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 12/14 | In progress | - |
+| 136. Measured Quality and CI Ratchets | 13/14 | In progress | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |

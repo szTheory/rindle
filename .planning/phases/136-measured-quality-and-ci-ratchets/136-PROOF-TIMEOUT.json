@@ -1,0 +1,23 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "run_id": 39530200284,
+  "attempt": 1,
+  "job_id": 118997121937,
+  "job": "Proof",
+  "conclusion": "cancelled",
+  "started_at": "2026-10-21T02:06:38Z",
+  "completed_at": "2026-10-21T02:21:54Z",
+  "reason": "15-minute job ceiling reached while the Nightly evidence harnesses were still passing assertions.",
+  "adoption_authority_tests": {
+    "tests": 40,
+    "failures": 0,
+    "excluded": 16,
+    "seconds": 596.0
+  },
+  "output": "136-PROOF-TIMEOUT.txt",
+  "output_sha256": "768934712d39b2bee6f0901a701e4e03faba48ea3a3f2daaef70004bae65e823",
+  "recovery": "One failed-job rerun requested on unchanged source; no timeout, assertion, workflow gate or source change.",
+  "merge_authorized": true,
+  "merge_waits_for": "Green required checks and the remaining timing qualification."
+}
