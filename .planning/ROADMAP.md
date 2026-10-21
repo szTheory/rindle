@@ -764,10 +764,10 @@ Plans:
   4. Retry evidence comes from persisted database-backed Oban execution, while restart evidence terminates and resumes a separately supervised runtime without duplicate stimulus.
   5. Every registered scenario emits a schema-validated, redacted receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue, stamped as maintainer-operated synthetic evidence that cannot satisfy the independent-pilot gate.
 
-**Plans**: 6 plans
+**Plans**: 1/6 plans executed
 
 **Wave 1**
-- [ ] 137-01-PLAN.md — Run one real packaged image lifecycle through committed retry, quiescent pause, whole-host restart, automatic completion and cleanup.
+- [x] 137-01-PLAN.md — Run one real packaged image lifecycle through committed retry, quiescent pause, whole-host restart, automatic completion and cleanup.
 
 **Wave 2** *(blocked on Wave 1)*
 - [ ] 137-02-PLAN.md — Prove exact archive, finite consumer inputs and effective host capabilities.
@@ -822,7 +822,7 @@ Plans:
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
-| 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
+| 137. Built-Package Twin Foundation | 1/6 | In Progress | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
