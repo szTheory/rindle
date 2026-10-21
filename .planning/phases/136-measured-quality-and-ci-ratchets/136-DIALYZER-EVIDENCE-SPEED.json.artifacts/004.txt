@@ -1,0 +1,153 @@
+Resolving Hex dependencies...
+Resolution completed in 0.131s
+Unchanged:
+  bunt 1.0.0
+  bypass 2.1.0
+  cc_precompiler 0.1.11
+  color 0.13.0
+  cowboy 2.18.0
+  cowboy_telemetry 0.4.0
+  cowlib 2.19.0 VULNERABLE!
+    EEF-CVE-2026-43971 (MEDIUM)
+    aka: CVE-2026-43971
+    Link Header Directive Smuggling via Unescaped target/rel/Attribute Keys in cow_link:link/1
+    https://osv.dev/vulnerability/EEF-CVE-2026-43971
+
+    EEF-CVE-2026-43966 (MEDIUM)
+    aka: CVE-2026-43966, GHSA-w4f7-4cxr-rv3c
+    HTTP Response Splitting via Non-VCHAR Bytes in cow_http_struct_hd:escape_string/2
+    https://osv.dev/vulnerability/EEF-CVE-2026-43966
+
+    EEF-CVE-2026-43969 (LOW)
+    aka: CVE-2026-43969, GHSA-g2wm-735q-3f56
+    Cookie Request Header Injection via Unvalidated Encoder in cow_cookie:cookie/1
+    https://osv.dev/vulnerability/EEF-CVE-2026-43969
+  credo 1.7.19
+  db_connection 2.10.2
+  decimal 3.2.0
+  dialyxir 1.4.8
+  doctor 0.23.0
+  earmark_parser 1.4.46
+  ecto 3.14.2
+  ecto_sql 3.14.0
+  elixir_make 0.10.0
+  erlex 0.2.9
+  ex_aws 2.7.0
+  ex_aws_s3 2.5.9
+  ex_doc 0.40.4
+  ex_machina 2.8.2
+  ex_marcel 0.2.0
+  excoveralls 0.18.5
+  file_system 1.1.1
+  finch 0.24.0
+  fine 0.1.6
+  gcs_signed_url 0.6.0
+  goth 1.4.5
+  hpax 1.1.0
+  image 0.72.0
+  jason 1.4.5
+  jose 1.11.12
+  junit_formatter 3.4.0
+  lazy_html 0.1.13
+  makeup 1.2.3
+  makeup_elixir 1.0.1
+  makeup_erlang 1.1.0
+  mime 2.0.7
+  mint 1.11.0
+  mix_audit 2.1.5
+  mox 1.3.2
+  muontrap 1.7.0
+  mux 3.2.2
+  nimble_options 1.1.1
+  nimble_ownership 1.0.2
+  nimble_parsec 1.4.2
+  nimble_pool 1.1.0
+  oban 2.21.1
+  phoenix 1.8.12
+  phoenix_html 4.3.0
+  phoenix_live_view 1.2.10
+  phoenix_pubsub 2.2.0
+  phoenix_template 1.0.4
+  plug 1.20.3
+  plug_cowboy 2.9.0
+  plug_crypto 2.2.0
+  postgrex 0.22.4
+  ranch 1.8.1
+  req 0.7.5
+  sweet_xml 0.7.5
+  telemetry 1.4.2
+  tesla 1.21.2
+  vix 0.42.0
+  websock 0.5.3
+  websock_adapter 0.6.0
+  yamerl 0.10.0
+  yaml_elixir 2.12.2
+* Getting ecto_sql (Hex package)
+* Getting postgrex (Hex package)
+* Getting jason (Hex package)
+* Getting muontrap (Hex package)
+* Getting oban (Hex package)
+* Getting image (Hex package)
+* Getting phoenix_live_view (Hex package)
+* Getting mux (Hex package)
+* Getting jose (Hex package)
+* Getting goth (Hex package)
+* Getting finch (Hex package)
+* Getting gcs_signed_url (Hex package)
+* Getting nimble_options (Hex package)
+* Getting ex_marcel (Hex package)
+* Getting ex_aws (Hex package)
+* Getting ex_aws_s3 (Hex package)
+* Getting req (Hex package)
+* Getting telemetry (Hex package)
+* Getting plug (Hex package)
+* Getting lazy_html (Hex package)
+* Getting junit_formatter (Hex package)
+* Getting mox (Hex package)
+* Getting bypass (Hex package)
+* Getting ex_machina (Hex package)
+* Getting credo (Hex package)
+* Getting dialyxir (Hex package)
+* Getting doctor (Hex package)
+* Getting mix_audit (Hex package)
+* Getting yaml_elixir (Hex package)
+* Getting excoveralls (Hex package)
+* Getting ex_doc (Hex package)
+* Getting earmark_parser (Hex package)
+* Getting makeup_elixir (Hex package)
+* Getting makeup_erlang (Hex package)
+* Getting makeup (Hex package)
+* Getting nimble_parsec (Hex package)
+* Getting yamerl (Hex package)
+* Getting decimal (Hex package)
+* Getting erlex (Hex package)
+* Getting bunt (Hex package)
+* Getting file_system (Hex package)
+* Getting plug_cowboy (Hex package)
+* Getting ranch (Hex package)
+* Getting cowboy (Hex package)
+* Getting cowboy_telemetry (Hex package)
+* Getting cowlib (Hex package)
+* Getting nimble_ownership (Hex package)
+* Getting cc_precompiler (Hex package)
+* Getting elixir_make (Hex package)
+* Getting fine (Hex package)
+* Getting mime (Hex package)
+* Getting plug_crypto (Hex package)
+* Getting mint (Hex package)
+* Getting nimble_pool (Hex package)
+* Getting hpax (Hex package)
+* Getting tesla (Hex package)
+* Getting phoenix (Hex package)
+* Getting phoenix_html (Hex package)
+* Getting phoenix_template (Hex package)
+* Getting phoenix_pubsub (Hex package)
+* Getting websock_adapter (Hex package)
+* Getting websock (Hex package)
+* Getting color (Hex package)
+* Getting sweet_xml (Hex package)
+* Getting vix (Hex package)
+* Getting db_connection (Hex package)
+* Getting ecto (Hex package)
+Found packages with security advisories, see above for details
+You have added/upgraded packages you could sponsor, run `mix hex.sponsor` to learn more

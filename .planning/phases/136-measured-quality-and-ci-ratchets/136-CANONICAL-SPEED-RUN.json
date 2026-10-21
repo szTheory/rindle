@@ -1,0 +1,17 @@
+{
+  "subject_sha": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
+  "source_tree": "9e66e48b2fc64a29f5b973ce28c922eed053cfc3",
+  "name": "canonical",
+  "argv": [
+    "mix",
+    "coveralls.multiple",
+    "--type",
+    "local",
+    "--type",
+    "json"
+  ],
+  "exit_status": 0,
+  "run_started_at": 1792601854.2259462,
+  "duration_seconds": 299.873,
+  "output": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-SPEED.txt"
+}
