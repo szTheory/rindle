@@ -92,3 +92,44 @@ the exact-ref publish path, as described in `.planning/RELEASE-TRAIN.md` and
 - GSD planning artifacts may live on milestone branches before merge
 - Patch train work should not be inflated into a milestone unless it changes scope, support truth, or public contract
 - Do not run `/gsd-plan-phase` or `/gsd-autonomous` on `main` during pause
+
+## GSD command handoffs
+
+Preserve the user's command loop: `$gsd-discuss-phase N` → `$gsd-plan-phase N`
+→ `$gsd-execute-phase N`, with verification and next-phase routing owned by GSD.
+Honor existing context/config when choosing which of those steps is actually next.
+
+Every GSD status, pause, completion, and resume response must include:
+
+1. The actual workflow state: executing, external job waiting, blocked, gaps found,
+   or verified complete. PR merged and CI green do not imply phase completion.
+2. One primary literal `$gsd-...` command the user can run next, its correct
+   worktree, and whether to run it now or after an existing job finishes.
+3. For an external job, its durable owner and current status. Use `$gsd-progress`
+   while it runs and the manifest's phase-specific execute command after it ends.
+   Verify results before writing a summary or advancing; never resubmit the job
+   merely because the plan lacks a summary. Background collection does not imply
+   an agent will automatically wake up and finish verification after the turn ends.
+
+Run `python3 .planning/tools/check_gsd_handoff.py` before giving a handoff. This
+read-only check rejects conflicting phases and duplicate job ownership, and uses
+GSD's verification owner when no job is outstanding. Validate changes to this
+contract with `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .planning/tools -p 'test_gsd_handoff.py'`.
+
+Keep STATE.md current and concise. It must name the active plan, real wait,
+worktree, and next command. Archive an obsolete HANDOFF.json after successful
+resumption, preserving its evidence under forensics; never leave a different
+phase's one-shot handoff active. Historical authorization and failure narratives
+belong in explicitly historical artifacts, not current blockers.
+
+Carry an authorized command through its required gates. Fix permitted routine
+reversible blockers within scope. If a mandatory skill gate requires stopping,
+name the gate and provide the concrete GSD recovery command. Do not stop merely
+because an intermediate repair passed. Reuse already recorded authorization.
+
+An explicit scope deferral stays unfinished with zero acceptance credit. Reconcile
+it against active success criteria before continuing; do not restart its collectors
+from obsolete plan text. Keep other required evidence gates intact. Older shared-file
+verification fingerprints can become stale during a later phase: surface that debt,
+retain the current job's ownership, and re-verify through GSD rather than silently
+rewinding active execution or rewriting old fingerprints to green.
