@@ -133,7 +133,7 @@ class Artifacts:
     def run(self, argv, cwd, env=None, budget=300):
         status, raw, elapsed = execute(argv, cwd, env, budget)
         data = sanitized(raw)
-        path = self.root / f"{self.count:03d}.log"
+        path = self.root / f"{self.count:03d}.txt"
         self.count += 1
         with path.open("xb") as output:
             output.write(data)
@@ -142,11 +142,16 @@ class Artifacts:
                 "output_bytes": len(data), "duration_seconds": elapsed}
 
     def log(self, record):
-        require(isinstance(record, dict) and re.fullmatch(r"[0-9]{3}\.log", record.get("artifact", "")),
+        require(isinstance(record, dict) and re.fullmatch(r"[0-9]{3}\.(?:log|txt)", record.get("artifact", "")),
                 "invalid_command_artifact")
         require(type(record.get("exit_status")) is int and -128 <= record["exit_status"] <= 255,
                 "invalid_command_exit")
         path = self.root / record["artifact"]
+        # Historical receipts keep their original bytes and digests after the
+        # retained output moves to hygiene-safe .txt names. Never fall back
+        # around an existing original, including a dangling symlink.
+        if path.suffix == ".log" and not path.exists() and not path.is_symlink():
+            path = path.with_suffix(".txt")
         require(path.is_file() and not path.is_symlink() and path.stat().st_size <= LIMIT,
                 "missing_command_output")
         data = path.read_bytes()

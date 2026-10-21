@@ -328,3 +328,10 @@ executes it and `mix ci` in a clean detached copy with private Mix/Hex homes,
 remain terminal failed records with their argv, output digest and exit 124.
 It is local contributor evidence, not a new CI coverage lane. The one canonical
 coverage-floor measurement remains `mix coveralls.multiple --type local --type json`.
+
+Source-bound measurement collectors retain numbered command output as `.txt`
+artifacts so evidence can be committed without relaxing the tracked-junk policy.
+Historical receipts keep their original `.log` references: when that path is absent,
+the verifier accepts the same-basename `.txt` relocation after the existing size,
+symlink and digest checks. An existing original path is never bypassed. The retained
+output relocation manifest records the exact original paths, new paths and hashes.

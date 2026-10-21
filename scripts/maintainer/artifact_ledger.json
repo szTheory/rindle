@@ -301,7 +301,8 @@
       "package": "excluded",
       "pathspecs": [
         ":(glob)scripts/maintainer/*.sh",
-        ":(glob)scripts/maintainer/*.exs"
+        ":(glob)scripts/maintainer/*.exs",
+        ":(glob)scripts/maintainer/*.py"
       ],
       "reason": "Maintainer validators, collectors and release helpers."
     },

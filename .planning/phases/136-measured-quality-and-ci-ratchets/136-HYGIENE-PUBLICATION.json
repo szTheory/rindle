@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "pr": 162,
+  "branch": "gsd/phase-136-quality-ratchets",
+  "base": "main",
+  "authorization": "User replied \"yeah do it\" after the published PR failure report, authorizing repair of that PR and continuation of Phase 136.",
+  "publication_authorized": true,
+  "scope": "Publish the verified hygiene repair to existing PR #162, then run bounded ten-run timing on its new frozen subject. No merge or release.",
+  "subject_sha": null,
+  "status": "preparing",
+  "recorded_at": "2026-10-21T01:51:53.714504+00:00"
+}

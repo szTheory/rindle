@@ -719,7 +719,7 @@ Plans:
   4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
   5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and a fresh exact-ten receipt within the <=480-second median/<=600-second p95 envelope after topology changes.
 
-**Plans**: 11 plans
+**Plans**: 14 plans
 
 Plans:
 **Wave 1**
@@ -744,9 +744,10 @@ Plans:
 - [x] 136-13-PLAN.md — Retain timeout records and measure final bootstrap-budget candidate
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 136-09-PLAN.md — Final-subject Dialyzer, async and bootstrap measurement receipts
+- [x] 136-09-PLAN.md — Final-subject Dialyzer, async and bootstrap measurement receipts
 
 **Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 136-14-PLAN.md — Repair observed CI hygiene failure and measure a replacement subject
 - [ ] 136-07-PLAN.md — Exact-ten live PR timing and phase qualification
 
 ### Phase 137: Built-Package Twin Foundation
@@ -803,7 +804,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 11/13 | In progress | - |
+| 136. Measured Quality and CI Ratchets | 12/14 | In progress | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
