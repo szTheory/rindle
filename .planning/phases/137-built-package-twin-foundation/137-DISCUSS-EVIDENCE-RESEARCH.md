@@ -230,3 +230,27 @@ Phase 137 should implement the high-value foundation subset: malformed/forged gr
 No routine choice here needs a maintainer question: use existing Jason, one simple receipt validator, local-first execution, documented public seams, one owned namespace, a bounded safe-output policy, and ordinary GSD plans/tests. Do not reopen receipt wording, helper names, or minor schema layout in discussion.
 
 Escalate only if implementation demonstrates one of these concrete conditions: a required lifecycle claim cannot be observed or driven through existing supported public contracts; proposed cleanup would affect shared/live resources; live provider credentials/spend are newly necessary; a production API/schema/telemetry change is required; or CI scheduling materially changes the release gate or adds unjustified recurring cost. Otherwise record the evidence and make the routine choice. If the same gate fails twice, rescope under D-134-01 instead of inventing a new evidence protocol.
+
+
+## Validation Architecture
+
+Planning normalization of the existing research above; no new runtime evidence.
+Use the repository's existing ExUnit/Jason and shell tooling, without a new test
+dependency. Fast tests exercise receipt semantics through valid fixtures and
+mutations, staged-package/public-boundary rejection, persistent fault consumption,
+redaction canaries and namespace-safe cleanup against decoys. Each new executable
+command must be created by its owning task before it is used for acceptance.
+
+A bounded Docker/Compose run is the acceptance authority for the combined image
+tracer: fresh external archive, ordinary Repo/default Oban, real MinIO, committed
+first-attempt failure, quiescent restart barrier, observed runtime replacement,
+same-job automatic completion, terminal observations and complete cleanup. Fast
+fixture tests cannot substitute for this run. Verify receipts independently with
+trusted expected identities; missing/unknown/skipped evidence and nonzero residue
+fail. Record elapsed time rather than promising a fabricated runtime budget.
+
+Automate every TWIN-01–06 predicate. No human verification closes a requirement.
+Map per-task commands and threat references in 137-VALIDATION.md as plans become
+concrete; mark new test paths as pending creation and do not claim them green.
+Preserve existing CI topology and run the automation-first contract whenever
+active planning artifacts change. Full RECOV coverage remains Phase 138.
