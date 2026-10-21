@@ -1,4 +1,5 @@
 Code.require_file("../twin/host/lib/twin/repo.ex", __DIR__)
+Code.require_file("../twin/host/lib/twin/storage.ex", __DIR__)
 Code.require_file("../twin/host/lib/twin/tracer.ex", __DIR__)
 
 defmodule Rindle.TwinTracerContractTest do
@@ -35,14 +36,14 @@ defmodule Rindle.TwinTracerContractTest do
     import sys
     sys.path.insert(0, 'scripts/maintainer')
     from built_package_twin import verify_receipt, Refused, SCENARIO
-    inputs = {'scenario': SCENARIO}
-    r = {'inputs':inputs, 'kind':'maintainer-operated-synthetic', 'independent_pilot_credit':False,
-         'outcome':'complete', 'before':{'paused':True, 'running':0, 'state':'retryable',
-         'attempt':1, 'error_count':1, 'stimuli':{'upload':1, 'attach':1, 'detach':2}}, 'after':{}}
+    sys.path.insert(0, 'test/install_smoke/support')
+    from twin_fixture import fixture
+    inputs,r=fixture()
+    r['before']['stimuli']['detach']=2
     try:
         verify_receipt(inputs, r)
     except Refused as e:
-        assert str(e) == 'duplicate_stimulus'
+        assert str(e) == 'integer_bounds'
     else:
         raise AssertionError('duplicate accepted')
     """

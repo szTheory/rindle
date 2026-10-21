@@ -18,18 +18,10 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
-SCENARIO = "image-delete-once-between-attempts"
+from twin_receipt import SCENARIO, KIND, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic
+
 TOOLCHAIN = {"ASDF_ERLANG_VERSION": "27.3.4.15", "ASDF_ELIXIR_VERSION": "1.17.3-otp-27", "ASDF_NODEJS_VERSION": "20.18.1"}
 LIMIT = 4 * 1024 * 1024
-
-
-class Refused(Exception):
-    pass
-
-
-def require(ok, reason):
-    if not ok:
-        raise Refused(reason)
 
 
 def digest(data):
@@ -43,16 +35,9 @@ def write_json(path, value):
 
 
 def read_json(path):
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            require(key not in result, "duplicate_json_key")
-            result[key] = value
-        return result
     path = Path(path)
-    require(path.is_file() and not path.is_symlink() and path.stat().st_size <= LIMIT, "invalid_json_file")
-    return json.loads(path.read_text(), object_pairs_hook=unique,
-                      parse_constant=lambda _: require(False, "nonfinite_json"))
+    require(path.is_file() and not path.is_symlink(), "invalid_json_file")
+    return decode(path.read_text())
 
 
 def tree_hash(root):
@@ -170,7 +155,7 @@ class Runner:
 
     def progress(self, stage):
         self.stage = stage
-        print("RUNNING " + stage, flush=True)
+        print("RUNNING " + safe_diagnostic({"stage": stage})["stage"], flush=True)
 
     def rpc(self, operation, body):
         # The control header is expanded inside the disposable container, never in argv/log prose.
@@ -180,7 +165,8 @@ class Runner:
         value = json.loads(text)
         if value.get("outcome") == "incomplete":
             code = value.get("reason", "scenario_failed")
-            require(isinstance(code, str) and re.fullmatch(r"[a-z_]{1,48}", code), "host_reason_invalid")
+            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier") for suffix in ("_match", "_failed")}
+            require(code in allowed, "host_reason_invalid")
             raise Refused("host_" + code)
         return value
 
@@ -229,17 +215,17 @@ class Runner:
         source = self.command(["git", "rev-parse", "HEAD"]).strip()
         source_tree = self.command(["git", "diff", "HEAD", "--", "lib", "priv", "mix.exs"]).strip()
         require(not source_tree, "dirty_package_source")
-        self.inputs = {"schema_version": 1, "scenario": SCENARIO, "run_id": run_id,
+        self.inputs = {"kind": KIND, "independent_pilot_credit": False, "schema_version": 1, "scenario": SCENARIO, "run_id": run_id,
                        "source_sha": source, **archive_fields,
                        "package_tree_sha256": tree_hash(package), "host_sha256": tree_hash(self.context / "host"),
                        "lock_sha256": digest((self.context / "host/mix.lock").read_bytes()),
                        "config_sha256": tree_hash(self.context / "host/config"),
-                       "contract_sha256": digest(Path(__file__).read_bytes()),
+                       "contract_sha256": digest(b"".join((ROOT / "scripts/maintainer" / name).read_bytes() for name in ("built_package_twin.py", "twin_receipt.py", "twin_cleanup.py") if (ROOT / "scripts/maintainer" / name).exists())),
                        "fixture_sha256": digest(__import__("base64").b64decode(re.search(r'Base.decode64!\(\s*"([A-Za-z0-9+/=]+)"', (self.context / "host/lib/twin/tracer.ex").read_text()).group(1))),
                        "build_sha256": digest((self.context / "Dockerfile").read_bytes() + (self.context / "compose.yml").read_bytes()),
                        "toolchain": {"elixir": "1.17.3", "otp": "27.3.4.15", "oban": "2.21.1", "phoenix": "1.8.12"}}
         write_json(self.evidence / "inputs.json", self.inputs)
-        self.descriptor = {"schema_version": 1, "run_id": run_id, "project": "rindle-twin-" + run_id,
+        self.descriptor = {"kind": KIND, "independent_pilot_credit": False, "schema_version": 1, "run_id": run_id, "project": "rindle-twin-" + run_id,
                            "database": "twin_" + run_id, "bucket": "twin-" + run_id,
                            "workspace": str(self.context), "evidence": str(self.evidence)}
         write_json(self.evidence / "resources.json", self.descriptor)
@@ -280,6 +266,15 @@ class Runner:
         require(not env_keys.intersection({"MIX_PATH", "MIX_HOME", "MIX_ARCHIVES", "MIX_BUILD_PATH", "ERL_LIBS"}), "runtime_mix_paths")
         return {"image_id": observed["Image"], "mounts_verified": True}
 
+    def export_canaries(self):
+        secret = next(line.split("=", 1)[1] for line in (self.evidence / ".env").read_text().splitlines() if line.startswith("TWIN_SECRET="))
+        values = [secret, "https://canary.invalid/object?X-Amz-Signature=SIGNED_CANARY", "BODY_CANARY", "JOB_ERROR_CANARY"]
+        body = json.dumps({"signed_url": values[1], "credential": values[0], "body": values[2], "error": values[3]})
+        response = self.compose("exec", "-T", "host", "sh", "-c",
+            'exec curl --fail --silent --max-time 10 -H "x-twin-control: $TWIN_SECRET" -X POST --data "$1" http://localhost:4100/canary', "twin-canary", body)
+        logs = self.compose("logs", "--no-color", "--tail", "200", "host")
+        require(all(value not in response + logs for value in values), "export_canary")
+
     def capabilities(self):
         majors = {}
         for binary in ("ffmpeg", "ffprobe"):
@@ -303,7 +298,7 @@ class Runner:
 
     def run(self, verify, cleanup):
         receipt = {"schema_version": 1, "kind": "maintainer-operated-synthetic", "independent_pilot_credit": False,
-                   "outcome": "incomplete", "reason": "not_completed"}
+                   "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
         try:
             self.stage_inputs()
             receipt["inputs"] = self.inputs
@@ -316,10 +311,12 @@ class Runner:
             self.compose("up", "-d", "host")
             first_health = self.health()
             validate_runtime(first_health, self.inputs)
+            self.export_canaries()
             isolation = self.runtime_isolation()
             capabilities = self.capabilities()
             self.progress("retry-barrier")
             before = self.rpc("begin", {})
+            before["sequence"] = 1
             old_container = self.stop_host()
             self.progress("restart")
             self.compose("up", "-d", "--force-recreate", "host")
@@ -328,20 +325,24 @@ class Runner:
             require(self.runtime_isolation() == isolation, "restart_isolation")
             after = self.rpc("resume", {"job_id": before["job_id"], "asset_id": before["asset_id"]})
             self.progress("domain-cleanup")
+            after["sequence"] = 2
             inventory = self.rpc("inventory", {})
+            inventory["sequence"] = 3
             new_container = self.stop_host()
             objects = self.minio('mc ls --json --recursive local/' + self.descriptor["bucket"])
             multipart = self.minio('mc ls --json --incomplete --recursive local/' + self.descriptor["bucket"])
             versioning = self.minio('mc version info --json local/' + self.descriptor["bucket"])
             self.validate_stage()
-            receipt.update({"isolation": isolation, "capabilities": capabilities, "before": before, "after": after, "old_runtime": first_health, "new_runtime": second_health,
+            candidate = {**receipt, "isolation": isolation, "capabilities": capabilities, "before": before, "after": after, "old_runtime": first_health, "new_runtime": second_health,
                             "old_container": old_container, "new_container": new_container,
                             "old_exited": True, "new_exited": True,
                             "inventory": {**inventory, "objects": len(objects.splitlines()), "multipart": len(multipart.splitlines()),
                                           "versioning_disabled": (json.loads(versioning).get("status") == "success" and json.loads(versioning).get("versioning") == {"status": "", "MFADelete": ""}),
-                                          "processes": 0, "complete": True}, "outcome": "complete", "reason": "complete"})
-            verify_receipt(self.inputs, receipt)
+                                          "processes": 0, "complete": True}, "outcome": "complete", "reason": "complete", "stage": "complete", "dependency": "none"}
+            verify_receipt(self.inputs, candidate)
+            receipt = candidate
         except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
+            receipt["stage"] = self.stage
             receipt["outcome"] = "incomplete"
             receipt["reason"] = str(exc) if isinstance(exc, Refused) else "runner_failed"
             # Stop this run's writers before the explicitly requested cleanup.
@@ -359,31 +360,6 @@ class Runner:
         if verify:
             verify_receipt(read_json(self.evidence / "inputs.json"), read_json(self.evidence / "receipt.json"))
         return receipt
-
-
-def barrier_ok(queue, job):
-    return (queue == {"paused": True, "running": 0} and job.get("state") == "retryable"
-            and type(job.get("attempt")) is int and job["attempt"] == 1
-            and type(job.get("error_count")) is int and job["error_count"] > 0)
-
-
-def verify_receipt(inputs, receipt):
-    require(receipt["inputs"] == inputs and inputs["scenario"] == SCENARIO, "input_identity")
-    require(receipt["kind"] == "maintainer-operated-synthetic" and receipt["independent_pilot_credit"] is False, "synthetic_identity")
-    require(receipt["outcome"] == "complete", "incomplete_receipt")
-    before, after = receipt["before"], receipt["after"]
-    require(barrier_ok({"paused": before["paused"], "running": before["running"]}, before), "raced_barrier")
-    require(before["stimuli"] == {"upload": 1, "attach": 1, "detach": 1}, "duplicate_stimulus")
-    require(before["job_id"] == after["job_id"] and after["attempt"] == 2 and after["state"] == "completed", "job_continuity")
-    require(before["boot_id"] != after["boot_id"] and receipt["old_container"] != receipt["new_container"]
-            and receipt["old_exited"] is True and receipt["new_exited"] is True, "runtime_replacement")
-    require(before["asset_retained"] is True and after["asset_absent"] is True and after["fault_claims"] == 1, "lifecycle_effects")
-    inventory = receipt["inventory"]
-    require(inventory["complete"] is True and inventory["writers_paused"] is True and inventory["versioning_disabled"] is True, "unknown_inventory")
-    require(all(inventory[k] == 0 for k in ["objects", "multipart", "temp_files", "processes"]), "cleanup_residue")
-    require(all(n == 0 or (table == "rindle_migration_versions" and n == 1) for table, n in inventory["domain"].items()), "domain_residue")
-    require(inventory["jobs"] and all(j["state"] == "completed" for j in inventory["jobs"]), "job_residue")
-    return True
 
 
 def dispose(runner):
