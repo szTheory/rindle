@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 PR162 initial CI artifact-ledger red; async owner32373 active
+stopped_at: Phase136 PR162 repair published; pipelines98749 and4637 collecting on4fdd3fba
 last_updated: "2026-10-20T22:57:34.315624+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 211
-  completed_plans: 209
+  total_plans: 212
+  completed_plans: 210
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
@@ -26,6 +26,10 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21, authoritative): Repair4fdd3fba is published to PR #162. Replacement local pipeline is ACTIVE session98749, log/private/tmp/phase136-hygiene-local-pipeline.txt, metadata136-HYGIENE-LOCAL-COLLECTION.json. It owns the single canonical, coverage receipt, Dialyzer, full bootstrap, prior-phase regression, fixed25seed async and final qualification in that sequence. DO NOT run overlapping local DB tests or duplicate it. Remote timing pipeline is ACTIVE session4637, log/private/tmp/phase136-hygiene-timing-pipeline.txt, marker136-HYGIENE-TIMING-CONTROLLER.json; it gates sampling on success of initial run39530200284, then invokes the existing exact-ten/max-two-sequence owner in private detached checkout/private/tmp/phase136-timing-hygiene-4fdd3fba. Source is frozen at136-SUBJECT-HYGIENE.json. Full resume metadata is136-HYGIENE-EXECUTION.json. New qualification uses every HYGIENE receipt explicitly and runs only after local async and remote timing terminate. Original4dc73fa9 all25seeds passed; its receipts remain historical. New candidate source review/security/validation audit refreshed, but actual acceptance remains pending. Earlier updates below are historical.
+
+Execution update (2026-10-21, authoritative): User authorized CI repair and continuation. Original FINAL 4dc73fa9 completed all 25 seeds, immutable receipt/JSONL committed fa9dc88c. PR initial CI failed artifact-ledger only; no timing samples started. Gap Plan 14 source repair is committed 4fdd3fba5ef5bc73be52473bc72de03fe56926d4: new output .txt, strict legacy relocation reader, Python maintainer classification, 31 byte-preserving output moves and 38 unchanged receipt hashes. Owner/meta tests 65/65, artifact-ledger/archive harness 58/58, live Credo passed. New frozen pin 136-SUBJECT-HYGIENE.json (tree 02903fa7e28f22041a0562f29c34f86b6bb76ecc); no more source edits. Collect one new canonical run and all HYGIENE measurements. Existing PR #162 may be updated to this frozen repair under the user’s explicit “yeah do it” instruction; no merge/release. Earlier updates below are historical.
 
 Execution update (2026-10-20, authoritative): Published PR #162 initial CI found a real artifact-ledger failure (job 118944104302, 54 harness cases passed / 4 failed). The new Python collector is unclassified and retained .log evidence violates the tracked-junk policy, including archival simulation. Local offline --require-settled validator reproduced exit 1. Evidence: 136-INITIAL-CI-FAILURE.json and its two .txt logs. Timing controller session 42763 will stop on this initial red; no ten-run sequence may start or receive credit. Preserve the source at 4dc73fa9 while async owner 32373 is active (seed 0 and 17 passed; seed 43 running at last observation). After that owner ends, gap repair must reconcile repository hygiene and re-freeze a new candidate; all source-bound measurements must match that replacement. No merge/release authorized. Earlier updates below are historical.
 

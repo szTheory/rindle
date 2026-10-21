@@ -7,13 +7,13 @@ threats_total: 20
 asvs_level: 1
 register_authored_at_plan_time: true
 method: inline-L1-mitigation-audit
-source_sha: 4dc73fa91c60ae870c7289a151d9d53460140906
+source_sha: 4fdd3fba5ef5bc73be52473bc72de03fe56926d4
 created: "2026-10-20"
 ---
 
 # Phase136 — Security
 
-The configured L1 audit verifies the20unique declared threats, deduplicating the repeated supply-chain row. Every required mitigation is present and has a named executable owner; current supported canonical1695tests and focused60test regressions are green. This is an inline source/behavior-evidence audit, not an independent reviewer. No new risk is accepted by this audit and no measured requirement is closed by it.
+The configured L1 audit verifies the20unique declared threats, deduplicating the repeated supply-chain row. Every required mitigation is present and has a named executable owner; the prior supported canonical and the replacement focused65test regression provide behavior evidence; replacement measurement acceptance remains pending. This is an inline source/behavior-evidence audit, not an independent reviewer. No new risk is accepted by this audit and no measured requirement is closed by it.
 
 ## Trust Boundaries
 
@@ -73,3 +73,7 @@ Closing a mitigation means the control exists and its behavioral verification is
 - [x] No new accepted risk or weakened source/runtime/provenance check.
 - [x] threats_open:0 at the configured high threshold; all declared threats are closed.
 - [x] status:verified records this source audit, without phase qualification credit.
+
+## Hygiene repair audit
+
+The replacement source preserves all twenty declared threat mitigations. Legacy command-output relocation crosses the existing local-artifact boundary, with the same fixed-name allowlist, output-size and exact digest checks. Fallback cannot bypass an existing original or dangling symlink. New owner tests execute tamper, missing-output and both original/relocated symlink rejection. The 31 original outputs retain their exact bytes and all 38 receipt JSON files retain their original hashes. No junk/ignore rule, package, toolchain or security exception was broadened. This remains an inline L1 audit with zero open threats, without granting pending measurement credit.

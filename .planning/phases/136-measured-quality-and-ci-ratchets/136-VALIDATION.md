@@ -24,7 +24,7 @@ Existing ExUnit, Bash fixtures, parsed YAML policies, and authenticated GitHub r
 
 ## Sampling Rate
 
-Run relevant focused behavior and actual whole-tree guards after source changes. Each immutable candidate owns one canonical default local+JSON measurement. Original909318d9 was first-red, replacement002b8582 had green coverage but exposed a clean-bootstrap timeout/reporting gap, and FINAL4dc73fa9 has green canonical1695tests/3doctests and exact5206/6329coverage. Prior receipts remain immutable and cannot qualify a later source. Verify-only never launches a suite. Plans09/07 now explicitly use136-SUBJECT-FINAL.json and final-named coverage/Dialyzer/bootstrap receipts. The25seed experiment is separately declared finite local evidence, not another CI lane.
+Run relevant focused behavior and actual whole-tree guards after source changes. Each immutable candidate owns one canonical default local+JSON measurement. Original909318d9 was first-red, replacement002b8582 had green coverage but exposed a clean-bootstrap timeout/reporting gap, and FINAL4dc73fa9 has green canonical1695tests/3doctests and exact5206/6329coverage. Prior receipts remain immutable and cannot qualify a later source. Verify-only never launches a suite. Plan14 supersedes the initial PR hygiene failure; Plan07 now selects136-SUBJECT-HYGIENE.json and explicitly named HYGIENE coverage/Dialyzer/bootstrap/async receipts. The25seed experiment is separately declared finite local evidence, not another CI lane.
 
 ## Per-Task Verification Map
 
@@ -51,14 +51,17 @@ Phase 135 completion and its supported source/toolchain evidence gate **every** 
 | 2 | 136-06 T2 | DX-05 | Same test executes command-map ownership and focused/full selection | T-136-11 | Owner fixtures green in FINAL canonical; see plan summary. |
 | 5 | 136-11 T1 | COV-06 | Task action pins committed SHA/tree, invokes canonical suite once, writes count receipt; `verify_coverage_floor.exs --verify-only` consumes it | T-136-19 | Historical first-red retained; superseded by Plan13. |
 | 5 | 136-11 T2 | COV-06 | `phase136_measure.sh verify-subject` rejects source drift after evidence commit | T-136-19 | Historical first-red retained; superseded by Plan13. |
-| 8 | 136-09 T1 | TYPE-03 | `phase136_measure.sh verify-dialyzer --subject-file` validates actual pinned-checkout fresh/restored receipt | T-136-18 | Final T1 collected; T2 bootstrap/async pending. |
-| 8 | 136-09 T2 | TEST-08, DX-05 | `phase136_measure.sh verify-async/verify-bootstrap --subject-file` validates pinned-checkout receipts | T-136-18 | Final T1 collected; T2 bootstrap/async pending. |
+| 8 | 136-09 T1 | TYPE-03 | `phase136_measure.sh verify-dialyzer --subject-file` validates actual pinned-checkout fresh/restored receipt | T-136-18 | Original subject complete: fresh/restored analysis, clean bootstrap and all25seeds verified; replacement measurements pending. |
+| 8 | 136-09 T2 | TEST-08, DX-05 | `phase136_measure.sh verify-async/verify-bootstrap --subject-file` validates pinned-checkout receipts | T-136-18 | Original subject complete: fresh/restored analysis, clean bootstrap and all25seeds verified; replacement measurements pending. |
 | 9 | 136-07 T1 | CI-16 | `collect_pr_timing_receipt.sh verify --subject-sha` authenticates exact ten PR runs to pin | T-136-12 | Pending live exact-head timing/qualification; fixtures green. |
 | 9 | 136-07 T2 | all seven | `verify_phase136_qualification.sh verify --subject-file` recomputes seven verdicts from pinned artifacts | T-136-12, T-136-13, T-136-17 | Pending live exact-head timing/qualification; fixtures green. |
 | 6 | 136-12 T1 | COV-06, CI-15 | Actual async-safety and residue owners plus waveform postconditions | T-136-04, T-136-09 | Green36test repair, retained first-red. |
 | 6 | 136-12 T2 | COV-06 | Distinct source pin and exact receipt, no overwritten historical attempt | T-136-19 | Archived green002b8582; later bootstrap first-red retained. |
 | 7 | 136-13 T1 | DX-05, COV-06 | Real timeout record,600second full bound, foreign-host fixture and receipt-consumer regressions | T-136-04, T-136-11, T-136-18 | Green60/60; both JUnit REDs preserved. |
 | 7 | 136-13 T2 | COV-06, TYPE-03, DX-05 | FINAL source pin, one canonical run and exact verify-only | T-136-19 | Green1695tests/3doctests,5206/6329; final projection passes. |
+
+| 9 | 136-14 T1 | CI-15, CI-16 | Command-output owner/consumer tests, exact relocation hashes and full ledger/archive harness | T-136-13, T-136-16 | GREEN65/65 owner/meta tests and58/58 shell cases; genuine JUnit RED preserved. |
+| 9 | 136-14 T2 | all seven | New source pin, one canonical measurement and all source-bound collectors, authenticated current-head timing | T-136-12, T-136-17, T-136-19 | Pipeline active on HYGIENE4fdd3fba; no replacement acceptance credit yet. |
 
 The eleven original plans carry T-136-SC for package supply; gap Plans12/13 add no package and preserve that boundary. There is no CONTEXT.md by explicit user decision. The nine spec-less edge probes are carried as flagged assumptions in the corresponding plans (MAINT-04 three; each other requirement one); six unclassified rows remain flagged rather than inferred green. Prohibition recall found no bespoke value/safety prohibition beyond existing requirement truthfulness; canon security concerns map to T-136-05 through T-136-19. Assumption-delta scan matched the word “second” only inside “480-second”; no primary identity changes, so the plans record `no-change`.
 
@@ -103,7 +106,7 @@ None. All phase behaviors require automated verification. Credentials or irrever
 - [x] Long collectors have finite budgets and preserve first-red evidence.
 - [ ] Fresh final acceptance evidence exists before requirement closure.
 
-Coverage audit: validated on FINAL4dc73fa9 with all seven requirements mapped to executable green owner tests. Requirement acceptance remains pending final actual receipts and authenticated PR timing; the last sign-off box stays open until that evidence exists. No manual-only acceptance or unsupported-host substitution is authorized.
+Coverage audit: all fourteen plans and all seven requirements map to executable owners; the HYGIENE repair passed65 owner/meta tests and58 shell cases. Requirement acceptance remains pending final actual receipts and authenticated PR timing; the last sign-off box stays open until that evidence exists. No manual-only acceptance or unsupported-host substitution is authorized.
 
 ## Validation Audit 2026-10-20
 
