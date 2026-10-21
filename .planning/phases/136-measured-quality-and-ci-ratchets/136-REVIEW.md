@@ -25,3 +25,7 @@ All 31 retained outputs match their pre-relocation hashes and byte counts; all 3
 The broader guard suite initially found the exact Python path introduced a planning identifier in the ledger. Using the existing namespace category with a `*.py` pattern removed that residue; the same whole-tree scan and regeneration-idempotence tests then passed without an allowlist change.
 
 Replacement canonical coverage and actual measurements are running on the reviewed subject. Authenticated exact-ten CI timing and qualification remain pending; this advisory review supplies no measurement credit. The two pre-existing actionlint matrix diagnostics are not represented as a globally clean result. Historical initial PR hygiene failure and original 25/25 seed evidence remain retained.
+
+## Parallel harness delta (2026-10-21)
+
+Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; T-136-09 and T-136-10 retain executable mitigation. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.

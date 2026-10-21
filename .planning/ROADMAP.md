@@ -717,9 +717,9 @@ Plans:
   2. One fresh canonical coverage run preserves or raises the exact accepted floor, and executable tests cover changed risk branches through behavior rather than source-literal or percentage-only assertions.
   3. Issue #42's finite isolation experiment either completes successfully or emits a reproducible failing receipt with explicit uncertainty and an evidence-triggered next action; reruns cannot erase the result.
   4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
-  5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and a fresh exact-ten receipt within the <=480-second median/<=600-second p95 envelope after topology changes.
+  5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and required CI green. The exact-ten <=480-second median/<=600-second p95 target is deferred unfinished to SEED-261021-918 by the 2026-10-21 user decision, with no speed acceptance credit.
 
-**Plans**: 14 plans
+**Plans**: 15 plans
 
 Plans:
 **Wave 1**
@@ -748,7 +748,8 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [x] 136-14-PLAN.md — Repair observed CI hygiene failure and measure a replacement subject
-- [ ] 136-07-PLAN.md — Exact-ten live PR timing and phase qualification
+- [ ] 136-15-PLAN.md — Parallelize isolated Nightly harnesses after measured Proof timeouts
+- [ ] 136-07-PLAN.md — Truthful qualification; numeric timing target deferred unfinished
 
 ### Phase 137: Built-Package Twin Foundation
 
@@ -804,7 +805,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 13/14 | In progress | - |
+| 136. Measured Quality and CI Ratchets | 13/15 | In progress | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |

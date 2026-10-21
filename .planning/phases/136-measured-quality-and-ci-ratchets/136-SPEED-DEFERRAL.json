@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-21T14:52:22.367983+00:00",
+  "user_answer": "Defer speed target; merge when required CI is green",
+  "requirement": "CI-16",
+  "deferred_scope": "Exact-ten live PR timing population, median <=480 seconds and p95 <=600 seconds",
+  "acceptance_status": "deferred_unfinished",
+  "acceptance_credit": false,
+  "follow_up": ".planning/seeds/SEED-261021-918-required-ci-critical-path-and-proof-runtime.md",
+  "merge_condition": "Required GitHub CI green on the exact PR head; authorized squash merge to main",
+  "historical_receipts": "Preserved unchanged; no timing success is inferred from authorization"
+}

@@ -10,7 +10,10 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
   end
 
   @tag :tmp_dir
-  test "Nightly proof harnesses overlap before any one completes", %{workflow: workflow, tmp_dir: dir} do
+  test "Nightly proof harnesses overlap before any one completes", %{
+    workflow: workflow,
+    tmp_dir: dir
+  } do
     script = step(workflow, "proof", "Run Nightly evidence harnesses")["run"]
     assert {_, 0} = run_nightly_harness_fixture(script, dir, true)
     assert length(File.ls!(Path.join(dir, "finished"))) == 4
@@ -27,7 +30,9 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
       fixture = Path.join(dir, Integer.to_string(index))
       assert {_, status} = run_nightly_harness_fixture(script, fixture, false, name)
       refute status == 0
-      assert Enum.sort(File.ls!(Path.join(fixture, "finished"))) == Enum.sort(nightly_harness_names())
+
+      assert Enum.sort(File.ls!(Path.join(fixture, "finished"))) ==
+               Enum.sort(nightly_harness_names())
     end
   end
 
@@ -47,7 +52,7 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
       touch "started/$name"
       if [ "$REQUIRE_OVERLAP" = true ]; then
         ready=false
-        for attempt in {1..100}; do
+          for attempt in {1..1000}; do
           set -- started/*
           if [ "$#" -eq 4 ]; then ready=true; break; fi
           sleep 0.01
@@ -56,7 +61,7 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
       fi
       sleep 0.02
       touch "finished/$name"
-      if [ "$name" = "$FAIL_HARNESS" ]; then exit 7; fi
+        if [ "$name" = "${FAIL_HARNESS:-}" ]; then exit 7; fi
       """)
     end
 

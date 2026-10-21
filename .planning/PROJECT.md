@@ -22,7 +22,10 @@ real adopter through an evidence-led quality pass and a maintainer-operated synt
   failure-and-recovery digital twin that consumes the built package, exercises real job behavior,
   and emits machine-readable lifecycle, retry, residue, cleanup, and readiness receipts.
 - Close from a clean checkout with supported-toolchain, package, docs, CI, Nightly, remote-inbox,
-  release-train, and clean-worktree evidence while preserving the accepted PR feedback envelope.
+  release-train, and clean-worktree evidence. Phase 136 numeric CI speed acceptance is deferred,
+  unfinished, to SEED-261021-918; required CI must remain green before merge.
+
+User decision (2026-10-21): defer the exact-ten CI speed target (<=480-second median / <=600-second p95) to SEED-261021-918; merge PR #162 when required CI is green. The numeric target remains unfinished, receives no acceptance credit, and is no longer a merge gate. Existing failed/blocked receipts remain immutable historical evidence.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not

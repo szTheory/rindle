@@ -592,11 +592,23 @@ jobs:
       - name: Run Nightly evidence harnesses
         # The Nightly Dialyzer, strict summary, incident
         # lifecycle and scheduled-run verifier harnesses run at every merge SHA.
+        # Each owns isolated fixtures; overlap them and retain every exit status.
         run: |
           set -euo pipefail
+          pids=()
           for harness in test_nightly_dialyzer.sh test_nightly_summary_gate.sh test_nightly_incident.sh test_verify_nightly_run.sh; do
-            bash "scripts/ci/${harness}"
+            bash "scripts/ci/${harness}" &
+            pids+=("$!")
           done
+          status=0
+          for pid in "${pids[@]}"; do
+            if wait "$pid"; then
+              :
+            else
+              status=1
+            fi
+          done
+          exit "$status"
 
       - name: Run batch owner erasure task proof
         run: mix test test/rindle/batch_owner_erasure_task_test.exs

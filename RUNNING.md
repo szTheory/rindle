@@ -335,3 +335,7 @@ Historical receipts keep their original `.log` references: when that path is abs
 the verifier accepts the same-basename `.txt` relocation after the existing size,
 symlink and digest checks. An existing original path is never bypassed. The retained
 output relocation manifest records the exact original paths, new paths and hashes.
+
+Proof runs its four isolated Nightly evidence harnesses concurrently within the
+existing job. It waits for every harness and fails if any harness fails; the
+15-minute job ceiling and merge-blocking `CI Summary` authority are unchanged.

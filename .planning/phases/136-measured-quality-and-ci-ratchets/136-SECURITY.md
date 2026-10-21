@@ -77,3 +77,7 @@ Closing a mitigation means the control exists and its behavioral verification is
 ## Hygiene repair audit
 
 The replacement source preserves all twenty declared threat mitigations. Legacy command-output relocation crosses the existing local-artifact boundary, with the same fixed-name allowlist, output-size and exact digest checks. Fallback cannot bypass an existing original or dangling symlink. New owner tests execute tamper, missing-output and both original/relocated symlink rejection. The 31 original outputs retain their exact bytes and all 38 receipt JSON files retain their original hashes. No junk/ignore rule, package, toolchain or security exception was broadened. This remains an inline L1 audit with zero open threats, without granting pending measurement credit.
+
+## Parallel harness delta (2026-10-21)
+
+Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; T-136-09 and T-136-10 retain executable mitigation. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.

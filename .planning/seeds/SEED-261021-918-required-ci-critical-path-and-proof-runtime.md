@@ -35,4 +35,4 @@ A focused infra slice: collect step-level critical-path timings, inspect the fre
 
 ## Notes
 
-The immediate low-risk candidate is parallel execution of the four independent Nightly harnesses, with executable overlap and failure-propagation tests. Track that small fix in Phase 136. Broader pipeline restructuring belongs to this seed. Capturing a seed does not close or waive active CI-16 timing acceptance.
+The immediate low-risk candidate is parallel execution of the four independent Nightly harnesses, with executable overlap and failure-propagation tests. Track that small fix in Phase 136. Broader pipeline restructuring belongs to this seed. User decision (2026-10-21): defer the exact-ten CI speed target (<=480-second median / <=600-second p95) to SEED-261021-918; merge PR #162 when required CI is green. The numeric target remains unfinished, receives no acceptance credit, and is no longer a merge gate. Existing failed/blocked receipts remain immutable historical evidence.
