@@ -6,11 +6,14 @@ defmodule Rindle.TwinPackageBoundaryTest do
     import sys, io, tarfile, tempfile
     from pathlib import Path
     sys.path.insert(0, 'scripts/maintainer')
-    from built_package_twin import extract_tar, validate_package_files, validate_host_dependency, Refused
+    from built_package_twin import extract_tar, validate_package_files, validate_host_dependency, Refused, LIMIT
+    import gzip
     def refused(f):
         try: f()
         except Refused: return
         raise AssertionError('contamination accepted')
+    with tempfile.TemporaryDirectory() as d:
+        refused(lambda:extract_tar(gzip.compress(b"x"*(16*LIMIT+1)),Path(d),compressed=True))
     for name,kind in [('../escape',tarfile.REGTYPE),('/absolute',tarfile.REGTYPE),('link',tarfile.SYMTYPE),('device',tarfile.CHRTYPE)]:
         b=io.BytesIO()
         with tarfile.open(fileobj=b,mode='w') as t:

@@ -88,7 +88,8 @@ The CLI reports `passed`, `failed`, `incomplete` or `blocked`. Every unsuccessfu
 outcome exits nonzero. `RUNNING` identifies a started stage rather than a percentage
 or completed claim. Child output is capped at 4 MiB, builds at 900 seconds, service
 readiness at 120 seconds and each lifecycle wait at 90 seconds. Individual cleanup
-commands are also bounded. Diagnostics use safe stage/reason/dependency codes.
+commands are also bounded. Archive bytes and decompressed tar material are capped
+at 64 MiB, with at most 10,000 members. Diagnostics use safe stage/reason/dependency codes.
 For machine output add `--json` after the operation; well-formed invocations emit
 one labeled JSON result. Argument errors use normal argparse usage and nonzero exit.
 

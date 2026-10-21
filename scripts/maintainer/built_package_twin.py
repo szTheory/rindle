@@ -2,6 +2,7 @@
 """One finite, synthetic external-package consumer trace. Python standard library only."""
 import argparse
 import hashlib
+import gzip
 import io
 import json
 import os
@@ -55,8 +56,14 @@ def tree_hash(root):
 
 def extract_tar(data, destination, compressed=False):
     """Reject all links, devices, aliases, traversal and oversized members before writing."""
-    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz" if compressed else "r:") as archive:
+    require(len(data) <= 16 * LIMIT, "archive_size")
+    if compressed:
+        with gzip.GzipFile(fileobj=io.BytesIO(data)) as stream:
+            data = stream.read(16 * LIMIT + 1)
+        require(len(data) <= 16 * LIMIT, "archive_expanded_size")
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:") as archive:
         members = archive.getmembers()
+        require(len(members) <= 10_000, "archive_member_count")
         seen = set()
         total = 0
         for member in members:
@@ -102,6 +109,7 @@ def validate_runtime(health, inputs):
 
 
 def archive_identity(archive):
+    require(Path(archive).is_file() and not Path(archive).is_symlink() and Path(archive).stat().st_size <= 16 * LIMIT, "archive_file_size")
     with tempfile.TemporaryDirectory(prefix="rindle-twin-archive-") as d:
         outer = Path(d) / "hex"; outer.mkdir()
         extract_tar(Path(archive).read_bytes(), outer)
@@ -116,6 +124,8 @@ def archive_identity(archive):
 
 
 def validate_archive(archive, inputs):
+    require(Path(archive).is_file() and Path(archive).stat().st_size <= 16 * LIMIT, "archive_file_size")
+    require(digest(Path(archive).read_bytes()) == inputs["package_tar_sha256"], "archive_identity")
     actual = archive_identity(archive)
     require(all(inputs[k] == v for k, v in actual.items()), "archive_identity")
 
