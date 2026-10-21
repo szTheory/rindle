@@ -3,8 +3,8 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 PR162 repair published; pipelines98749 and4637 collecting on4fdd3fba
-last_updated: "2026-10-20T22:57:34.315624+00:00"
+stopped_at: Phase136 hygiene CI repair green; local bootstrap and remote initial CI active
+last_updated: "2026-10-21T02:05:00.908437+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
   total_phases: 7
@@ -26,6 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21, authoritative): Published hygiene4fdd3fba has live CI Script Tests SUCCESS, including both artifact-ledger steps, repo-hygiene and phase-gate harnesses (136-HYGIENE-CI-REPAIR.json). Its one canonical run passed1698tests plus3doctests, zero failures, exact5206/6329=82.2563percent; receipt verified and committed5b155a63. Fresh/restored Dialyzer verified complete55.331/3.047seconds and committed18016bc2. Local pipeline98749 is now in clean full bootstrap; it will run prior-phase regression, the replacement fixed25seed experiment, then qualification after the remote timing marker. Timing pipeline4637 is still waiting for initial run39530200284 to finish; no failures observed at this checkpoint. Do not duplicate either pipeline or run local database tests in parallel. Full execution pointers remain136-HYGIENE-EXECUTION.json. No phase completion, requirement closure or merge claimed. Earlier updates below are historical.
 
 Execution update (2026-10-21, authoritative): Repair4fdd3fba is published to PR #162. Replacement local pipeline is ACTIVE session98749, log/private/tmp/phase136-hygiene-local-pipeline.txt, metadata136-HYGIENE-LOCAL-COLLECTION.json. It owns the single canonical, coverage receipt, Dialyzer, full bootstrap, prior-phase regression, fixed25seed async and final qualification in that sequence. DO NOT run overlapping local DB tests or duplicate it. Remote timing pipeline is ACTIVE session4637, log/private/tmp/phase136-hygiene-timing-pipeline.txt, marker136-HYGIENE-TIMING-CONTROLLER.json; it gates sampling on success of initial run39530200284, then invokes the existing exact-ten/max-two-sequence owner in private detached checkout/private/tmp/phase136-timing-hygiene-4fdd3fba. Source is frozen at136-SUBJECT-HYGIENE.json. Full resume metadata is136-HYGIENE-EXECUTION.json. New qualification uses every HYGIENE receipt explicitly and runs only after local async and remote timing terminate. Original4dc73fa9 all25seeds passed; its receipts remain historical. New candidate source review/security/validation audit refreshed, but actual acceptance remains pending. Earlier updates below are historical.
 
