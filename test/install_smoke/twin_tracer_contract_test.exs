@@ -21,6 +21,35 @@ defmodule Rindle.TwinTracerContractTest do
     assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
   end
 
+  test "host pause predicate rejects a state changed after pause acknowledgement" do
+    queue = %{paused: true, running: []}
+    job = %{state: "retryable", attempt: 1, errors: [%{}]}
+    assert Twin.Tracer.barrier?(queue, job)
+    refute Twin.Tracer.barrier?(queue, %{job | state: "executing"})
+    refute Twin.Tracer.barrier?(queue, %{job | attempt: 2})
+    refute Twin.Tracer.barrier?(%{queue | running: [42]}, job)
+  end
+
+  test "duplicate stimulus cannot verify as one lifecycle" do
+    code = """
+    import sys
+    sys.path.insert(0, 'scripts/maintainer')
+    from built_package_twin import verify_receipt, Refused, SCENARIO
+    inputs = {'scenario': SCENARIO}
+    r = {'inputs':inputs, 'kind':'maintainer-operated-synthetic', 'independent_pilot_credit':False,
+         'outcome':'complete', 'before':{'paused':True, 'running':0, 'state':'retryable',
+         'attempt':1, 'error_count':1, 'stimuli':{'upload':1, 'attach':1, 'detach':2}}, 'after':{}}
+    try:
+        verify_receipt(inputs, r)
+    except Refused as e:
+        assert str(e) == 'duplicate_stimulus'
+    else:
+        raise AssertionError('duplicate accepted')
+    """
+
+    assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
+  end
+
   test "verification requires separate inputs authority and no default container run" do
     assert {output, 2} =
              System.cmd("python3", ["-B", "scripts/maintainer/built_package_twin.py", "verify"],
