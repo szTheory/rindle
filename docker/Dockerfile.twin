@@ -1,0 +1,14 @@
+# Exact supported toolchain; runtime probes remain the acceptance authority.
+FROM hexpm/elixir:1.17.3-erlang-27.3.4.15-debian-trixie-20260713-slim
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential ca-certificates curl libvips42t64 ffmpeg && rm -rf /var/lib/apt/lists/*
+ENV MIX_ENV=prod
+RUN mix local.hex --force && mix local.rebar --force
+WORKDIR /twin
+COPY package /package
+COPY host/mix.exs host/mix.lock ./
+RUN mix deps.get --check-locked
+COPY host/config ./config
+COPY host/lib ./lib
+COPY host/priv ./priv
+RUN mix compile --warnings-as-errors
+CMD ["sh", "-c", "mix ecto.migrate --quiet && exec mix run --no-halt"]
