@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "pr": 162,
+  "authorized": true,
+  "method": "squash",
+  "base": "main",
+  "condition": "Required CI checks green; complete existing Phase 136 qualification gates before merge.",
+  "user_instruction": "okay whats next do we squash merge that once CI grene i authorize u",
+  "observed_head": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "recorded_at": "2026-10-21T13:47:36.820490+00:00",
+  "status": "waiting_for_gates",
+  "release_authorized": false
+}
