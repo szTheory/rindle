@@ -339,3 +339,21 @@ output relocation manifest records the exact original paths, new paths and hashe
 Proof runs its four isolated Nightly evidence harnesses concurrently within the
 existing job. It waits for every harness and fails if any harness fails; the
 15-minute job ceiling and merge-blocking `CI Summary` authority are unchanged.
+
+### Built-package synthetic twin
+
+Maintainers can run one external packaged image lifecycle, persisted purge retry,
+and controlled between-attempt host restart with:
+
+```sh
+python3 scripts/maintainer/built_package_twin.py check
+python3 scripts/maintainer/built_package_twin.py run --verify --cleanup
+```
+
+Use the supported toolchain overrides above. See
+[Built-package twin](guides/built_package_twin.md) for prerequisites, explicit
+`verify --inputs ... --receipt ...`, retained private evidence, JSON results,
+active-host cleanup refusal and the known Doctor migration-ledger issue.
+This is maintainer-operated synthetic evidence with `independent_pilot_credit: false`.
+Default tests remain Docker-free; the real run is explicit and grants no independent
+adoption, AV execution or readiness credit.
