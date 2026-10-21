@@ -9,6 +9,64 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
     {:ok, %{workflow: YamlElixir.read_from_file!(@ci_path), mix: File.read!(@mix_path)}}
   end
 
+  @tag :tmp_dir
+  test "Nightly proof harnesses overlap before any one completes", %{workflow: workflow, tmp_dir: dir} do
+    script = step(workflow, "proof", "Run Nightly evidence harnesses")["run"]
+    assert {_, 0} = run_nightly_harness_fixture(script, dir, true)
+    assert length(File.ls!(Path.join(dir, "finished"))) == 4
+  end
+
+  @tag :tmp_dir
+  test "Nightly proof waits for every harness and preserves each failure", %{
+    workflow: workflow,
+    tmp_dir: dir
+  } do
+    script = step(workflow, "proof", "Run Nightly evidence harnesses")["run"]
+
+    for {name, index} <- Enum.with_index(nightly_harness_names()) do
+      fixture = Path.join(dir, Integer.to_string(index))
+      assert {_, status} = run_nightly_harness_fixture(script, fixture, false, name)
+      refute status == 0
+      assert Enum.sort(File.ls!(Path.join(fixture, "finished"))) == Enum.sort(nightly_harness_names())
+    end
+  end
+
+  defp nightly_harness_names do
+    ~w(test_nightly_dialyzer.sh test_nightly_summary_gate.sh test_nightly_incident.sh test_verify_nightly_run.sh)
+  end
+
+  defp run_nightly_harness_fixture(script, dir, barrier, failing \\ "") do
+    File.mkdir_p!(Path.join(dir, "scripts/ci"))
+    File.mkdir_p!(Path.join(dir, "started"))
+    File.mkdir_p!(Path.join(dir, "finished"))
+
+    for name <- nightly_harness_names() do
+      File.write!(Path.join(dir, "scripts/ci/" <> name), ~S"""
+      set -euo pipefail
+      name="${0##*/}"
+      touch "started/$name"
+      if [ "$REQUIRE_OVERLAP" = true ]; then
+        ready=false
+        for attempt in {1..100}; do
+          set -- started/*
+          if [ "$#" -eq 4 ]; then ready=true; break; fi
+          sleep 0.01
+        done
+        if [ "$ready" != true ]; then echo 'other harnesses never started'; exit 41; fi
+      fi
+      sleep 0.02
+      touch "finished/$name"
+      if [ "$name" = "$FAIL_HARNESS" ]; then exit 7; fi
+      """)
+    end
+
+    System.cmd("bash", ["-e", "-o", "pipefail", "-c", script],
+      cd: dir,
+      env: [{"REQUIRE_OVERLAP", to_string(barrier)}, {"FAIL_HARNESS", failing}],
+      stderr_to_stdout: true
+    )
+  end
+
   test "deterministic quality signals block through the existing Quality carrier", %{
     workflow: workflow
   } do
