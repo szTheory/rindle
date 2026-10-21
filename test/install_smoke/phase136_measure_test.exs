@@ -4,6 +4,69 @@ defmodule Rindle.PhaseEvidenceMeasureTest do
   @root Path.expand("../..", __DIR__)
 
   @tag :tmp_dir
+  test "retained command output uses hygiene-safe text artifacts", %{tmp_dir: dir} do
+    fixture = fixture!(dir)
+    assert {_, 0} = measure(fixture, "dialyzer")
+    artifacts = File.ls!(fixture.receipt <> ".artifacts")
+    assert Enum.any?(artifacts, &String.ends_with?(&1, ".txt"))
+    refute Enum.any?(artifacts, &String.ends_with?(&1, ".log"))
+    assert {_, 0} = measure(fixture, "verify-dialyzer")
+  end
+
+  @tag :tmp_dir
+  test "legacy command receipts verify unchanged after byte-preserving text relocation", %{
+    tmp_dir: dir
+  } do
+    fixture = fixture!(dir)
+    assert {_, 0} = measure(fixture, "dialyzer")
+    legacy_receipt!(fixture)
+    original = File.read!(fixture.receipt)
+    assert {_, 0} = measure(fixture, "verify-dialyzer")
+
+    for name <- File.ls!(fixture.receipt <> ".artifacts"), String.ends_with?(name, ".log") do
+      path = Path.join(fixture.receipt <> ".artifacts", name)
+      File.rename!(path, String.replace_suffix(path, ".log", ".txt"))
+    end
+
+    assert {_, 0} = measure(fixture, "verify-dialyzer")
+    assert File.read!(fixture.receipt) == original
+    path = Path.join(fixture.receipt <> ".artifacts", "000.txt")
+    File.write!(path, "tampered output")
+    assert {_, 1} = measure(fixture, "verify-dialyzer")
+  end
+
+  @tag :tmp_dir
+  test "legacy relocation cannot hide a symlink or missing command output", %{tmp_dir: dir} do
+    fixture = fixture!(dir)
+    assert {_, 0} = measure(fixture, "dialyzer")
+    legacy_receipt!(fixture)
+    path = Path.join(fixture.receipt <> ".artifacts", "000.log")
+    relocated = String.replace_suffix(path, ".log", ".txt")
+    File.rename!(path, relocated)
+    assert {_, 0} = measure(fixture, "verify-dialyzer")
+    File.ln_s!(relocated, path)
+    assert {_, 1} = measure(fixture, "verify-dialyzer")
+    File.rm!(path)
+    File.rename!(relocated, relocated <> ".saved")
+    File.ln_s!(relocated <> ".saved", relocated)
+    assert {_, 1} = measure(fixture, "verify-dialyzer")
+    File.rm!(relocated)
+    assert {_, 1} = measure(fixture, "verify-dialyzer")
+  end
+
+  defp legacy_receipt!(fixture) do
+    directory = fixture.receipt <> ".artifacts"
+
+    for name <- File.ls!(directory), String.ends_with?(name, ".txt") do
+      path = Path.join(directory, name)
+      File.rename!(path, String.replace_suffix(path, ".txt", ".log"))
+    end
+
+    text = File.read!(fixture.receipt)
+    File.write!(fixture.receipt, Regex.replace(~r/"([0-9]{3})\.txt"/, text, "\"\\1.log\""))
+  end
+
+  @tag :tmp_dir
   test "supported fresh and restored analysis produces a verifiable pinned receipt", %{
     tmp_dir: dir
   } do
