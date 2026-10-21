@@ -10,6 +10,7 @@ import re
 import secrets
 import shutil
 import signal
+import shlex
 import subprocess
 import sys
 import tarfile
@@ -19,7 +20,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 from twin_cleanup import dispose, validate_descriptor
-from twin_receipt import SCENARIO, KIND, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic
+from twin_receipt import SCENARIO, KIND, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic, MAX_BYTES
 
 TOOLCHAIN = {"ASDF_ERLANG_VERSION": "27.3.4.15", "ASDF_ELIXIR_VERSION": "1.17.3-otp-27", "ASDF_NODEJS_VERSION": "20.18.1"}
 LIMIT = 4 * 1024 * 1024
@@ -38,7 +39,9 @@ def write_json(path, value):
 def read_json(path):
     path = Path(path)
     require(path.is_file() and not path.is_symlink(), "invalid_json_file")
-    return decode(path.read_text())
+    require(path.stat().st_size <= MAX_BYTES, "json_size")
+    with path.open() as source:
+        return decode(source.read(MAX_BYTES + 1))
 
 
 def tree_hash(root):
@@ -117,6 +120,12 @@ def validate_archive(archive, inputs):
     require(all(inputs[k] == v for k, v in actual.items()), "archive_identity")
 
 
+def validate_host_surface(source):
+    forbidden = r"Rindle\.(?:Workers|FSM|Config)\b|perform_job|Oban\.(?:drain_queue|retry_job|Testing)|testing\s*:|SQL\.Sandbox|:beam_lib|:code\.get_object_code|Repo\.(?:update|delete|insert)!?\(|scheduled_at\s*=|(?:UPDATE|INSERT INTO|DELETE FROM)\s+(?!twin_fault_counters\b)[a-z_]+"
+    require(re.search(forbidden, source) is None, "unsupported_host_call")
+    require(re.search(r'File\.(?:read|read!)\([^\n]*(?:/lib/|\.beam|/checkout/)', source) is None, "host_source_inspection")
+
+
 class Runner:
     def __init__(self, evidence, descriptor=None):
         self.evidence = Path(evidence).resolve()
@@ -125,6 +134,7 @@ class Runner:
         existing = list((self.evidence / "private").glob("command-*.txt"))
         self.sequence = max((int(p.stem.split("-")[1]) for p in existing), default=0)
         self.stage = "initialization"
+        self.machine = False
 
     def command(self, argv, timeout=120, cwd=None):
         self.sequence += 1
@@ -133,7 +143,7 @@ class Runner:
         target = logs / ("command-%03d-%s.txt" % (self.sequence, uuid.uuid4().hex[:12]))
         # Exclusive bounded private capture; raw output never reaches parent console.
         with open(target, "xb", opener=lambda p, f: os.open(p, f, 0o600)) as output:
-            proc = subprocess.Popen(argv, cwd=cwd or ROOT, env={**os.environ, **TOOLCHAIN},
+            proc = subprocess.Popen(argv, cwd=cwd or ROOT, env={**{k: v for k, v in os.environ.items() if k not in {"MIX_PATH", "MIX_EXS", "MIX_BUILD_PATH", "ERL_LIBS"}}, **TOOLCHAIN},
                                     stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
             deadline = time.monotonic() + timeout
             try:
@@ -156,7 +166,8 @@ class Runner:
 
     def progress(self, stage):
         self.stage = stage
-        print("RUNNING " + safe_diagnostic({"stage": stage})["stage"], flush=True)
+        if not self.machine:
+            print("RUNNING " + safe_diagnostic({"stage": stage})["stage"], flush=True)
 
     def rpc(self, operation, body):
         # The control header is expanded inside the disposable container, never in argv/log prose.
@@ -209,6 +220,9 @@ class Runner:
         extract_tar((outer / "contents.tar.gz").read_bytes(), package, compressed=True)
         validate_package_files(package)
         validate_host_dependency((self.context / "host/mix.exs").read_text())
+        for source_file in (self.context / "host").rglob("*"):
+            if source_file.suffix in {".ex", ".exs"}:
+                validate_host_surface(source_file.read_text())
         archive_fields = archive_identity(archive)
         shutil.rmtree(outer)
         shutil.copyfile(ROOT / "docker/Dockerfile.twin", self.context / "Dockerfile")
@@ -371,6 +385,25 @@ class Runner:
         return receipt
 
 
+def emit(operation, outcome, stage, reason, dependency, evidence, machine):
+    result = {"kind": KIND, "independent_pilot_credit": False, "operation": operation,
+              "outcome": outcome, "stage": stage, "reason": reason, "dependency": dependency}
+    if evidence:
+        result.update(evidence=str(evidence), inputs=str(evidence / "inputs.json"), receipt=str(evidence / "receipt.json"),
+                      descriptor=str(evidence / "resources.json"),
+                      reproduce="python3 scripts/maintainer/built_package_twin.py run --verify --cleanup",
+                      cleanup="python3 scripts/maintainer/built_package_twin.py cleanup --descriptor " + shlex.quote(str(evidence / "resources.json")))
+    if machine:
+        print(json.dumps(result, sort_keys=True))
+    else:
+        stream = sys.stdout if outcome == "passed" else sys.stderr
+        print("Maintainer-operated synthetic evidence; independent_pilot_credit: false", file=stream)
+        print(outcome.upper() + " " + operation + ": " + reason, file=stream)
+        if evidence:
+            for name in ("inputs", "receipt", "descriptor", "reproduce", "cleanup"):
+                print(name.capitalize() + ": " + result[name], file=stream)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest="operation", required=True)
@@ -378,14 +411,17 @@ def main():
     run = subs.add_parser("run", help="build once and run the finite synthetic lifecycle")
     run.add_argument("--verify", action="store_true")
     run.add_argument("--cleanup", action="store_true")
-    run.add_argument("--evidence", type=Path)
+    run.add_argument("--evidence", "--evidence-dir", dest="evidence", type=Path, help="new or empty private evidence directory")
     check = subs.add_parser("verify", help="verify retained evidence against independent runner inputs")
     check.add_argument("--inputs", type=Path, required=True)
     check.add_argument("--receipt", type=Path, required=True)
     clean = subs.add_parser("cleanup", help="dispose exact run-owned resources after writers stop")
     clean.add_argument("--descriptor", type=Path, required=True)
+    for command in subs.choices.values():
+        command.add_argument("--json", action="store_true", help="emit one labeled JSON result")
     args = parser.parse_args()
     evidence = None
+    runner = None
     try:
         if args.operation == "verify":
             inputs = read_json(args.inputs)
@@ -393,30 +429,37 @@ def main():
             verify_receipt(inputs, read_json(args.receipt))
         elif args.operation == "cleanup":
             descriptor = read_json(args.descriptor)
+            evidence = args.descriptor.resolve().parent
             runner = Runner(args.descriptor.resolve().parent, descriptor)
             dispose(runner)
         else:
             evidence = args.evidence if args.operation == "run" else None
             if evidence:
-                evidence.mkdir(mode=0o700, parents=True, exist_ok=False)
+                require(not evidence.is_symlink(), "evidence_symlink")
+                if evidence.exists():
+                    require(evidence.is_dir() and not any(evidence.iterdir()), "evidence_not_empty")
+                else:
+                    evidence.mkdir(mode=0o700, parents=True)
+                evidence = evidence.resolve()
+                evidence.chmod(0o700)
             else:
                 evidence = Path(tempfile.mkdtemp(prefix="rindle-twin-"))
                 evidence.chmod(0o700)
             runner = Runner(evidence)
+            runner.machine = args.json
             runner.command(["docker", "version", "--format", "{{.Server.Version}}"], timeout=15)
             runner.command(["docker", "compose", "version"], timeout=15)
+            version = runner.command(["elixir", "-e", 'IO.puts(System.version()); IO.puts(File.read!(Path.join([:code.root_dir(), "releases", System.otp_release(), "OTP_VERSION"])) |> String.trim())'], timeout=30)
+            require(version.splitlines() == ["1.17.3", "27.3.4.15"], "build_toolchain")
             if args.operation == "run":
                 runner.run(args.verify, args.cleanup)
-        print("PASSED " + args.operation)
-        if evidence:
-            print("Evidence: " + str(evidence))
+        emit(args.operation, "passed", "complete", "complete", "none", evidence, args.json)
         return 0
     except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
         reason = str(exc) if isinstance(exc, Refused) else "invalid_or_unavailable_input"
-        print("INCOMPLETE " + args.operation + ": " + reason, file=sys.stderr)
-        if evidence:
-            print("Evidence: " + str(evidence), file=sys.stderr)
-            print("Cleanup: python3 scripts/maintainer/built_package_twin.py cleanup --descriptor " + str(evidence / "resources.json"), file=sys.stderr)
+        outcome = "failed" if args.operation == "verify" else "blocked" if args.operation == "check" or reason == "cleanup_active_runtime" else "incomplete"
+        stage = runner.stage if runner else "initialization"
+        emit(args.operation, outcome, stage, reason, "docker" if args.operation == "check" else "none", evidence, args.json)
         return 1
 
 
