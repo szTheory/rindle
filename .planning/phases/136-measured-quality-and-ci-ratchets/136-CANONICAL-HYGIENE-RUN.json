@@ -1,0 +1,17 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "name": "canonical",
+  "argv": [
+    "mix",
+    "coveralls.multiple",
+    "--type",
+    "local",
+    "--type",
+    "json"
+  ],
+  "exit_status": 0,
+  "run_started_at": 1792547762.25162,
+  "duration_seconds": 314.968,
+  "output": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-HYGIENE.txt"
+}
