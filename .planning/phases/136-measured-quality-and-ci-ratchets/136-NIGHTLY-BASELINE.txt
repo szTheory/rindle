@@ -1,0 +1,337 @@
+ok   — approved repository PLT child resets from an external caller directory
+ok   — empty PLT override rejects before work
+ok   — dot PLT override rejects before work
+ok   — filesystem-root PLT override rejects before work
+ok   — parent traversal rejects before work
+ok   — multi-parent traversal rejects before work
+ok   — repository-root override rejects before work
+ok   — external absolute override rejects before work
+ok   — fresh symlink escape rejects without deletion
+ok   — restored Old PLT symlink escape rejects before analysis
+ok   — fresh builds then analyzes once
+ok   — fresh builds then analyzes once: persisted first-red/analysis bytes exact
+ok   — valid restored PLT analyzes once
+ok   — valid restored PLT analyzes once: persisted first-red/analysis bytes exact
+ok   — old restored PLT rebuilds and re-analyzes once
+ok   — old restored PLT rebuilds and re-analyzes once: persisted first-red/analysis bytes exact
+ok   — missing restored PLT stays red without rebuild
+ok   — missing restored PLT stays red without rebuild: persisted first-red/analysis bytes exact
+ok   — corrupt restored PLT stays red without rebuild
+ok   — corrupt restored PLT stays red without rebuild: persisted first-red/analysis bytes exact
+ok   — fresh PLT build failure stays red
+ok   — fresh genuine warning stays red without rebuild
+ok   — fresh genuine warning stays red without rebuild: persisted first-red/analysis bytes exact
+ok   — genuine warning stays red without rebuild
+ok   — genuine warning stays red without rebuild: persisted first-red/analysis bytes exact
+ok   — unknown analysis failure stays red without rebuild
+ok   — unknown analysis failure stays red without rebuild: persisted first-red/analysis bytes exact
+ok   — failed stale rebuild stays red without re-analysis
+ok   — failed stale rebuild stays red without re-analysis: persisted first-red/analysis bytes exact
+ok   — failed post-rebuild analysis stays red without another retry
+ok   — failed post-rebuild analysis stays red without another retry: persisted first-red/analysis bytes exact
+ok   — bounded #93/#101 failure fingerprint is complete
+ok   — composite exposes resolved Elixir output
+ok   — composite forwards exact installed Elixir
+ok   — composite exposes resolved OTP output
+ok   — composite forwards exact installed OTP
+ok   — Nightly invokes fresh mode exactly once
+ok   — Nightly invokes restored mode exactly once
+ok   — PLT key uses resolved Elixir patch
+ok   — PLT key uses resolved OTP patch
+ok   — PLT key retains input hashes
+ok   — PLT key rejects requested-only identity
+ok   — PLT restore has no cross-toolchain fallback
+ok   — fresh evidence precedes cache save
+ok   — exact restore precedes restored evidence
+—
+passed: 45  failed: 0
+ok   — exact declared jobs with executed applicable successes and visible exemption (exit 0, verdict green)
+ok   — all applicable jobs executed successfully (exit 0, verdict green)
+ok   — repository-gated skip is explicit not-run (exit 0, verdict green)
+ok   — inapplicable successful no-op remains visibly not-run (exit 0, verdict green)
+ok   — GitHub needs outputs coexist with the result envelope (exit 0, verdict green)
+ok   — applicable failure is red (exit 1, verdict red)
+ok   — applicable cancelled is red (exit 1, verdict red)
+ok   — applicable skipped is red (exit 1, verdict red)
+ok   — applicable unknown is red (exit 1, verdict red)
+ok   — applicable timed_out is red (exit 1, verdict red)
+ok   — applicable action_required is red (exit 1, verdict red)
+ok   — applicable neutral is red (exit 1, verdict red)
+ok   — applicable stale is red (exit 1, verdict red)
+ok   — failed inapplicable job stays red (exit 1, verdict red)
+ok   — cancelled inapplicable job stays red (exit 1, verdict red)
+ok   — missing declared job is red (exit 1, verdict red)
+ok   — unexpected observed job is red (exit 1, verdict red)
+ok   — missing observed result is red (exit 1, verdict red)
+ok   — non-string observed result is red (exit 1, verdict red)
+ok   — missing applicable is red (exit 1, verdict red)
+ok   — missing applicability_rule is red (exit 1, verdict red)
+ok   — missing execution is red (exit 1, verdict red)
+ok   — missing reason is red (exit 1, verdict red)
+ok   — always job requires applicable boolean true (false) (exit 1, verdict red)
+ok   — always job requires applicable boolean true (null) (exit 1, verdict red)
+ok   — always job requires applicable boolean true ("true") (exit 1, verdict red)
+ok   — always job requires applicable boolean true (1) (exit 1, verdict red)
+ok   — applicable success requires passed execution (not-run) (exit 1, verdict red)
+ok   — applicable success requires passed execution (skipped) (exit 1, verdict red)
+ok   — applicable success requires passed execution (missing) (exit 1, verdict red)
+ok   — applicable success requires passed execution (unknown) (exit 1, verdict red)
+ok   — applicable success requires passed execution (empty) (exit 1, verdict red)
+ok   — applicable success rejects an exemption reason (exit 1, verdict red)
+ok   — always rule cannot claim inapplicability (exit 1, verdict red)
+ok   — unknown applicability rule is red (exit 1, verdict red)
+ok   — gated applicable job requires passed execution (exit 1, verdict red)
+ok   — inapplicable job requires not-run execution (exit 1, verdict red)
+ok   — inapplicable job requires an allowlisted reason (exit 1, verdict red)
+ok   — inapplicable job rejects empty reason (exit 1, verdict red)
+ok   — applicable skipped job cannot borrow an exemption reason (exit 1, verdict red)
+ok   — empty needs is red (exit 1, verdict red)
+ok   — empty policy is red (exit 1, verdict red)
+ok   — needs array is red (exit 1, verdict red)
+ok   — policy array is red (exit 1, verdict red)
+ok   — malformed needs is red (exit 1, verdict red)
+ok   — malformed policy is red (exit 1, verdict red)
+ok   — absent NEEDS_JSON is red (exit 1, verdict red)
+ok   — absent NIGHTLY_POLICY_JSON is red (exit 1, verdict red)
+ok   — all red job diagnostics render before exit
+—
+passed: 49  failed: 0
+ok   — red-A/green-B history opens, updates, and closes exactly once
+ok   — same complete log replay is mutation-idempotent
+ok   — repeated green with no incident is an unmarked no-op
+ok   — delayed middle artifact is retried before mutation
+ok   — missing middle artifact fails before issue mutation
+ok   — duplicate event artifact fails before issue mutation
+ok   — malformed event fails before issue mutation
+ok   — foreign repository event fails before issue mutation
+ok   — run/artifact identity mismatch fails before issue mutation
+ok   — historical event SHA mismatch fails before issue mutation
+ok   — foreign high-watermark SHA fails before issue mutation
+ok   — duplicate marker ownership fails closed
+ok   — simultaneous open incidents fail closed
+ok   — workflow-run API failure performs no issue mutation
+ok   — stale mutation preimage restarts full replay
+ok   — uncertain mutation outcome restarts and converges
+ok   — bounded uncertain mutation exhaustion fails without skipping
+ok   — lagging issue list after a mutation does not duplicate the create
+ok   — mutation never visible fails closed without a second create
+ok   — both scheduled attempts replay as distinct ordered events
+ok   — a missing earlier attempt fails before incident mutation
+ok   — expired evidence before authenticated checkpoint permits replay
+ok   — expired evidence after checkpoint fails before mutation
+ok   — tampered checkpoint fails before mutation
+ok   — concurrent issue-history advancement invalidates checkpoint
+ok   — repository retention cap below 14 days fails before mutation
+ok   — edit to pre-checkpoint issue body still invalidates checkpoint
+ok   — backdated marker at or before the checkpoint cursor still invalidates checkpoint
+ok   — unmarked issue created after the checkpoint still invalidates checkpoint
+ok   — forged post-checkpoint marker with the wrong action fails before mutation
+ok   — post-checkpoint marker for a run with no verdict event fails before mutation
+ok   — post-checkpoint marker for an attempt with no verdict event fails before mutation
+ok   — issue opened after the checkpoint by a run that died before checkpointing converges
+ok   — issue opened after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+ok   — update after the checkpoint by a run that died before checkpointing converges
+ok   — update after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+ok   — close after the checkpoint by a run that died before checkpointing converges
+ok   — close after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+ok   — checkpoint inside expiry safety margin fails before mutation
+ok   — near-expiry checkpoint advances through active high-watermark
+ok   — genesis adopts the legacy open incident and closes it citing the green run
+ok   — genesis adopts the legacy open incident and closes it citing the green run: re-run on the same run is mutation-idempotent
+ok   — genesis adopts the legacy open incident and updates it citing the red run
+ok   — genesis adopts the legacy open incident and updates it citing the red run: re-run on the same run is mutation-idempotent
+ok   — genesis with duplicate legacy open incidents fails closed
+ok   — genesis with an unlabelled open incident fails closed
+ok   — genesis with a mutation marker before the genesis run fails closed
+ok   — a missing verdict artifact after genesis still fails closed
+—
+passed: 48  failed: 0
+ok   — uncompiled exact subject reaches all three detached authorities without application startup
+ok   — detached authority log locks exact ordered context
+ok   — missing no-start guard is detected for census generator
+ok   — missing no-start guard is detected for census validator
+ok   — missing no-start guard is detected for live-truth validator
+ok   — exact first-attempt run writes canonical receipt
+ok   — success argv is one dispatch plus read-only inspection
+ok   — initial run inventory snapshot precedes the sole dispatch
+ok   — older runs appear before the exact run
+ok   — old history waits for and selects only the exact run
+ok   — same-second old run is excluded when one new run appears
+ok   — same-second pre-existing run cannot impersonate the new dispatch
+ok   — same-second old-only history has zero new matches
+ok   — same-second old-only history polls without selecting the old run
+ok   — multiple new exact matches are ambiguous
+ok   — multiple new exact matches fail immediately before downstream calls
+ok   — pre-dispatch run-list API failure
+ok   — pre_list_failure rejects before dispatch
+ok   — malformed pre-dispatch run inventory
+ok   — malformed_pre_list rejects before dispatch
+ok   — duplicate pre-dispatch run IDs
+ok   — duplicate_pre_ids rejects before dispatch
+ok   — non-integer pre-dispatch run ID
+ok   — non_integer_pre_id rejects before dispatch
+ok   — unrelated new run precedes the exact new run
+ok   — unrelated new run is ignored until one exact new ID appears
+ok   — old exact run precedes a delayed exact new run
+ok   — old exact run remains excluded while the new exact run is delayed
+ok   — post-dispatch malformed inventory
+ok   — post-dispatch duplicate IDs
+ok   — selected run detail ID mismatch
+ok   — selected ID must equal the detailed run databaseId
+ok   — transient watch rate limit
+ok   — transient watch rate limit preserves one dispatch-owned run
+ok   — persistent watch rate limit
+ok   — persistent watch rate limit exhausts the original deadline
+ok   — transient post-dispatch run-list rate limit
+ok   — post_list_rate_limit_once preserves identity and mutation count
+ok   — persistent post-dispatch run-list rate limit
+ok   — post_list_rate_limit_persistent exhausts without a receipt
+ok   — transient run-detail rate limit
+ok   — detail_rate_limit_once preserves identity and mutation count
+ok   — persistent run-detail rate limit
+ok   — detail_rate_limit_persistent exhausts without a receipt
+ok   — transient job-log rate limit
+ok   — job_log_rate_limit_once preserves identity and mutation count
+ok   — persistent job-log rate limit
+ok   — job_log_rate_limit_persistent exhausts without a receipt
+ok   — transient post-dispatch incident-snapshot rate limit
+ok   — incident_after_rate_limit_once preserves identity and mutation count
+ok   — persistent post-dispatch incident-snapshot rate limit
+ok   — incident_after_rate_limit_persistent exhausts without a receipt
+ok   — malformed run detail after rate-limit recovery
+ok   — malformed detail after recovery fails closed
+ok   — unrelated run-detail 403
+ok   — unrelated detail 403 is not retried
+ok   — foreign_repository fails closed
+ok   — foreign_workflow fails closed
+ok   — missing_ref fails closed
+ok   — foreign_sha fails closed
+ok   — foreign_run_sha fails closed
+ok   — foreign_run_ref fails closed
+ok   — foreign_run_workflow fails closed
+ok   — rerun fails closed
+ok   — missing_job fails closed
+ok   — extra_job fails closed
+ok   — red_job fails closed
+ok   — skipped_job fails closed
+ok   — cancelled_job fails closed
+ok   — nonterminal fails closed
+ok   — red_run fails closed
+ok   — missing_fresh fails closed
+ok   — missing_restored fails closed
+ok   — unsupported_elixir_11_17 fails closed
+ok   — unsupported_elixir_1_170 fails closed
+ok   — unsupported_otp_127 fails closed
+ok   — bad_local_authority fails closed
+ok   — missing_cache fails closed
+ok   — stale_rebuild fails closed
+ok   — red_verdict fails closed
+ok   — incident_changed fails closed
+ok   — timeout fails closed
+ok   — zero exact matches poll until timeout without a receipt
+ok   — api_failure fails closed
+ok   — watch_failure fails closed
+ok   — dirty ledger fails closed before collection
+ok   — untracked ledger fails closed before collection
+ok   — created_at mutation fails closed
+ok   — schema version mutation fails closed
+ok   — repository mutation fails closed
+ok   — workflow mutation fails closed
+ok   — event mutation fails closed
+ok   — subject SHA mutation fails closed
+ok   — remote ref mutation fails closed
+ok   — run id mutation fails closed
+ok   — run attempt mutation fails closed
+ok   — conclusion mutation fails closed
+ok   — job id mutation fails closed
+ok   — job name mutation fails closed
+ok   — job status mutation fails closed
+ok   — job conclusion mutation fails closed
+ok   — job order mutation fails closed
+ok   — duplicate job mutation fails closed
+ok   — strict verdict mutation fails closed
+ok   — strict source job mutation fails closed
+ok   — requested Elixir mutation fails closed
+ok   — requested OTP mutation fails closed
+ok   — resolved Elixir mutation fails closed
+ok   — resolved OTP mutation fails closed
+ok   — resolved Elixir 11.17 near-match fails closed
+ok   — resolved Elixir 1.170 near-match fails closed
+ok   — resolved OTP 127 near-match fails closed
+ok   — cache key mutation fails closed
+ok   — fresh status mutation fails closed
+ok   — fresh builds mutation fails closed
+ok   — fresh analyses mutation fails closed
+ok   — restored status mutation fails closed
+ok   — restored analyses mutation fails closed
+ok   — stale rebuild mutation fails closed
+ok   — preflight repository mutation fails closed
+ok   — preflight workflow mutation fails closed
+ok   — preflight ref mutation fails closed
+ok   — preflight SHA mutation fails closed
+ok   — preflight status mutation fails closed
+ok   — missing top-level key fails closed
+ok   — extra top-level key fails closed
+ok   — extra job key fails closed
+ok   — extra Dialyzer key fails closed
+ok   — extra fresh key fails closed
+ok   — extra restored key fails closed
+ok   — extra strict-verdict key fails closed
+ok   — extra preflight key fails closed
+ok   — both incident snapshots forged together fail closed
+ok   — local census authority removed fails closed
+ok   — local live-truth authority removed fails closed
+ok   — extra local-authority key fails closed
+ok   — census status mutation fails closed
+ok   — census ledger path mutation fails closed
+ok   — census ledger SHA-256 mutation fails closed
+ok   — census ledger blob mutation fails closed
+ok   — census ledger commit mutation fails closed
+ok   — census subject mutation fails closed
+ok   — census detailed receipt mutation fails closed
+ok   — missing census ledger field fails closed
+ok   — extra census key fails closed
+ok   — live-truth status mutation fails closed
+ok   — live-truth subject mutation fails closed
+ok   — live-truth model digest mutation fails closed
+ok   — missing live-truth field fails closed
+ok   — extra live-truth key fails closed
+ok   — receipt validation has no substring toolchain fallback
+ok   — later unrelated incident comment preserves historical receipt
+ok   — later successive incident marker preserves historical receipt
+ok   — later closed incident preserves historical receipt
+ok   — later body append preserves historical receipt
+ok   — later unrelated issue preserves historical receipt
+ok   — missing historical incident fails closed
+ok   — contradictory historical incident fails closed
+ok   — occupied destination fails before preflight and dispatch
+ok   — concurrent receipt creator wins without being replaced
+ok   — foreign live run identity fails closed
+ok   — local validator failure fails closed
+ok   — ledger path missing at recorded commit fails closed
+ok   — ledger blob mismatch fails closed
+ok   — materialized ledger hash mismatch fails closed
+ok   — regenerated census receipt drift fails closed
+ok   — regenerated live-truth model drift fails closed
+ok   — caller-worktree ledger edit cannot change stored authority
+ok   — verify-scheduled records a green scheduled run
+ok   — verify-scheduled records a consistent red scheduled run
+ok   — verify-scheduled rejects a missing run
+ok   — verify-scheduled rejects an incomplete run
+ok   — verify-scheduled rejects a workflow_dispatch run
+ok   — verify-scheduled rejects a push run
+ok   — verify-scheduled rejects a different head SHA
+ok   — verify-scheduled rejects attempt greater than 1
+ok   — verify-scheduled rejects a run whose detail contradicts the listing
+ok   — verify-scheduled rejects a missing verdict artifact
+ok   — verify-scheduled rejects a verdict artifact for another run
+ok   — verify-scheduled rejects a verdict artifact for another SHA
+ok   — verify-scheduled rejects a gating need that disagrees with job conclusions
+ok   — verify-scheduled rejects a verdict that disagrees with Nightly Summary
+ok   — verify-scheduled rejects ambiguous same-SHA runs without --run-id
+ok   — verify-scheduled selects a pinned run among same-SHA runs
+ok   — verify-scheduled rejects a pinned run that does not qualify
+ok   — verify-scheduled receipt is byte-reproducible and issues only read calls
+ok   — verify-scheduled refuses an existing receipt destination
+—
+passed: 187  failed: 0

@@ -7,55 +7,26 @@
 #
 # Source choice:
 #   * BtbN publishes versioned static linux64 builds as GitHub release assets,
-#     served from GitHub's CDN — reliable and retryable (unlike johnvansickle,
-#     which returns HTTP 415 to CI runners). The rolling release removes old
-#     major assets, so resolve the highest stable build instead of pinning a
-#     filename that eventually becomes a permanent 404.
+#     served from GitHub's CDN. A dated release plus a reviewed SHA-256 pins
+#     the consumed bytes; disappearance fails closed and requires a pin update.
 #   * apt on ubuntu-22.04 only ships ffmpeg 4.4 — below the hard >= 6.0 gate in
 #     lib/rindle/av/probe.ex.
 #   * BtbN's `ffmpeg -version` reports the git tag (e.g. "ffmpeg version n7.1-...");
 #     Rindle's probe accepts the optional `n` prefix.
 set -euo pipefail
 
-release_api="${RINDLE_FFMPEG_RELEASE_API:-https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest}"
-api_auth_args=(-H "Accept: application/vnd.github+json")
-
-# GitHub-hosted runners share unauthenticated API limits. Use the ephemeral Actions
-# token when present, but keep local/file-fixture resolution token-free.
-if [ -n "${GITHUB_TOKEN:-}" ]; then
-  api_auth_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+# Source: BtbN dated release and its checksums.sha256, independently matched
+# to GitHub asset 659366397 digest on 2026-10-20. Update URL + digest together.
+# No latest fallback: expired/replaced upstream assets must fail closed.
+asset="ffmpeg-n9.0.2-29-g6dfaba896f-linux64-gpl-9.0.tar.xz"
+url="https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-20-13-08/$asset"
+archive_sha256="6a40dd0b5a020854573aa8bf11449694fabd4fdff1be09b43f6713ca8a2abab1"
+if [ -n "${RINDLE_FFMPEG_RELEASE_API:-}" ]; then
+  echo "[install_ffmpeg] release lookup overrides are not supported; update the reviewed pin" >&2
+  exit 64
 fi
-
-read -r asset url < <(
-  curl -fsSL --retry 5 --retry-all-errors --retry-delay 5 "${api_auth_args[@]}" "$release_api" |
-    jq -er '
-      [
-        .assets[]
-        | . as $asset
-        | ($asset.name
-           | capture("^ffmpeg-n(?<major>[0-9]+)\\.(?<minor>[0-9]+)(?:\\.(?<patch>[0-9]+))?-[A-Za-z0-9][A-Za-z0-9._-]*-linux64-gpl-[0-9]+(?:\\.[0-9]+){1,2}\\.tar\\.xz$")) as $version
-        | select((.browser_download_url | type) == "string" and (.browser_download_url | length) > 0)
-        | {
-            name: $asset.name,
-            url: $asset.browser_download_url,
-            major: ($version.major | tonumber),
-            minor: ($version.minor | tonumber),
-            patch: ($version.patch // "0" | tonumber)
-          }
-      ]
-      | if length == 0 then
-          error("no stable linux64 GPL FFmpeg asset found in release response")
-        else
-          max_by([.major, .minor, .patch])
-          | [.name, .url]
-          | @tsv
-        end
-    '
-)
-
 if [ "${RINDLE_FFMPEG_RESOLVE_ONLY:-0}" = "1" ]; then
-  printf '%s\n' "$asset"
-  printf '%s\n' "$url"
+  printf '%s\n' "$asset" "$url" "$archive_sha256"
   exit 0
 fi
 
@@ -64,6 +35,8 @@ trap 'rm -rf "$tmp"' EXIT
 
 echo "[install_ffmpeg] downloading ${asset} ..."
 curl -fL --retry 5 --retry-all-errors --retry-delay 5 -o "$tmp/ffmpeg.tar.xz" "$url"
+printf '%s  %s\n' "$archive_sha256" "$tmp/ffmpeg.tar.xz" > "$tmp/checksums.sha256"
+sha256sum -c "$tmp/checksums.sha256" >/dev/null
 tar -xf "$tmp/ffmpeg.tar.xz" -C "$tmp" --strip-components=1
 sudo install -m 0755 "$tmp/bin/ffmpeg" /usr/local/bin/ffmpeg
 sudo install -m 0755 "$tmp/bin/ffprobe" /usr/local/bin/ffprobe

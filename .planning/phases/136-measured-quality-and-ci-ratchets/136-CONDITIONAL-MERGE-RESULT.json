@@ -1,0 +1,13 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "status": "blocked_by_qualification",
+  "pr": 162,
+  "method": "squash",
+  "pid": 27880,
+  "authorization": "136-MERGE-AUTHORIZATION.json",
+  "rule": "No merge without complete source-bound qualification, passed fresh phase verification, security gate and green current-head required CI.",
+  "updated_at": "2026-10-21T14:04:15.892607+00:00",
+  "manifest": "136-QUALIFICATION-MERGE.json",
+  "qualification_outcome": "blocked"
+}

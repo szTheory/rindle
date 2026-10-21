@@ -37,9 +37,10 @@ normalize_issues < "$issues_json" > "$actual_json" ||
 normalize_baseline < "$baseline_path" > "$expected_json" ||
   fail "complexity baseline is malformed"
 
-cmp -s "$expected_json" "$actual_json" || {
-  diff -u "$expected_json" "$actual_json" >&2 || true
-  fail "complexity/nesting identity multiset differs from the reviewed baseline"
-}
+evidence_path="${CREDO_QUALITY_EVIDENCE:-$repo_root/scripts/maintainer/credo_removal_evidence.json}"
+[ -f "$evidence_path" ] || fail "behavior evidence not found: $evidence_path"
+mix run --no-compile --no-start scripts/maintainer/credo_quality_normalize.exs \
+  compare "$actual_json" "$expected_json" "$evidence_path" ||
+  fail "complexity baseline growth or unproved reduction"
 
 echo "[credo-quality] blocking warnings, public contract, and complexity inventory passed"

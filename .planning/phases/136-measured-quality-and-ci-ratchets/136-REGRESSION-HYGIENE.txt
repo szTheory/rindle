@@ -1,0 +1,7 @@
+Running ExUnit with seed: 0, max_cases: 36
+Excluding tags: [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]
+
+.................................................................................................................................................................................................................
+Finished in 107.4 seconds (66.5s async, 40.8s sync)
+226 tests, 0 failures, 17 excluded
+Wrote JUnit report to: _build/test/junit/rindle-junit.xml

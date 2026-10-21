@@ -1,0 +1,253 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "status": "complete",
+  "steps": [
+    {
+      "name": "projection",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "verify-subject",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792547762.07422,
+      "duration_seconds": 0.177,
+      "output": "/private/tmp/phase136-hygiene-projection.txt"
+    },
+    {
+      "name": "canonical",
+      "argv": [
+        "mix",
+        "coveralls.multiple",
+        "--type",
+        "local",
+        "--type",
+        "json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792547762.25162,
+      "duration_seconds": 314.968,
+      "output": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-HYGIENE.txt"
+    },
+    {
+      "name": "coverage-write",
+      "argv": [
+        "mix",
+        "run",
+        "scripts/maintainer/verify_coverage_floor.exs",
+        "--",
+        "--write",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-HYGIENE.json",
+        "--artifact",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/cover/excoveralls.json",
+        "--local-output",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-HYGIENE.txt",
+        "--local-exit",
+        "0",
+        "--run-started-at",
+        "1792547762.25162"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548077.2203572,
+      "duration_seconds": 3.284,
+      "output": "/private/tmp/phase136-hygiene-coverage-write.txt"
+    },
+    {
+      "name": "coverage-verify",
+      "argv": [
+        "mix",
+        "run",
+        "scripts/maintainer/verify_coverage_floor.exs",
+        "--",
+        "--verify-only",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548080.505176,
+      "duration_seconds": 3.44,
+      "output": "/private/tmp/phase136-hygiene-coverage-verify.txt"
+    },
+    {
+      "name": "dialyzer",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "dialyzer",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548083.9460218,
+      "duration_seconds": 103.22,
+      "output": "/private/tmp/phase136-hygiene-dialyzer.txt"
+    },
+    {
+      "name": "verify-dialyzer",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "verify-dialyzer",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548187.166294,
+      "duration_seconds": 0.184,
+      "output": "/private/tmp/phase136-hygiene-verify-dialyzer.txt"
+    },
+    {
+      "name": "bootstrap",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "bootstrap",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548187.350611,
+      "duration_seconds": 381.233,
+      "output": "/private/tmp/phase136-hygiene-bootstrap.txt"
+    },
+    {
+      "name": "verify-bootstrap",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "verify-bootstrap",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548568.5838132,
+      "duration_seconds": 0.238,
+      "output": "/private/tmp/phase136-hygiene-verify-bootstrap.txt"
+    },
+    {
+      "name": "regression",
+      "argv": [
+        "mix",
+        "test",
+        "test/install_smoke/artifact_package_set_test.exs",
+        "test/install_smoke/dependabot_policy_test.exs",
+        "test/install_smoke/evidence_census_test.exs",
+        "test/install_smoke/generated_app_smoke_test.exs",
+        "test/install_smoke/live_residue_scan_test.exs",
+        "test/install_smoke/live_truth_parity_test.exs",
+        "test/install_smoke/nightly_policy_test.exs",
+        "test/install_smoke/quality_signal_policy_test.exs",
+        "test/rindle/admin/live/variants_runtime_actions_test.exs",
+        "test/rindle/admin/queries_test.exs",
+        "test/rindle/delivery/webhook_plug_test.exs",
+        "test/rindle/doctor_test.exs",
+        "test/rindle/ops/runtime_checks_test.exs",
+        "test/rindle/public_surface_snapshot_test.exs",
+        "test/rindle/streaming/provider/mux/telemetry_test.exs",
+        "test/rindle/test/mux_webhook_fixtures_test.exs",
+        "--seed",
+        "0"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548568.822301,
+      "duration_seconds": 110.329,
+      "output": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-REGRESSION-HYGIENE.txt"
+    },
+    {
+      "name": "async",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "async",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT-HYGIENE.json",
+        "--jsonl",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/evidence/async-isolation/136-async-isolation-hygiene.jsonl"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792548679.152179,
+      "duration_seconds": 13799.248,
+      "output": "/private/tmp/phase136-hygiene-async.txt"
+    },
+    {
+      "name": "verify-async",
+      "argv": [
+        "bash",
+        "scripts/maintainer/phase136_measure.sh",
+        "verify-async",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792562478.400901,
+      "duration_seconds": 3.008,
+      "output": "/private/tmp/phase136-hygiene-verify-async.txt"
+    },
+    {
+      "name": "qualification-generate",
+      "argv": [
+        "bash",
+        "scripts/maintainer/verify_phase136_qualification.sh",
+        "generate",
+        "--manifest",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-HYGIENE.json",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json",
+        "--coverage",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-HYGIENE.json",
+        "--dialyzer",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-HYGIENE.json",
+        "--bootstrap",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-HYGIENE.json",
+        "--async-receipt",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT-HYGIENE.json",
+        "--timing",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-PR-TIMING.md"
+      ],
+      "exit_status": 1,
+      "run_started_at": 1792562481.412422,
+      "duration_seconds": 190.055,
+      "output": "/private/tmp/phase136-hygiene-qualification-generate.txt"
+    },
+    {
+      "name": "qualification-verify",
+      "argv": [
+        "bash",
+        "scripts/maintainer/verify_phase136_qualification.sh",
+        "verify",
+        "--manifest",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-HYGIENE.json",
+        "--subject-file",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-HYGIENE.json"
+      ],
+      "exit_status": 0,
+      "run_started_at": 1792562671.46844,
+      "duration_seconds": 2.885,
+      "output": "/private/tmp/phase136-hygiene-qualification-verify.txt"
+    }
+  ],
+  "pid": 99538,
+  "purpose": "Progress only; acceptance comes from immutable owner receipts.",
+  "updated_at": "2026-10-21T06:04:34.355147+00:00",
+  "qualification_outcome": "blocked"
+}

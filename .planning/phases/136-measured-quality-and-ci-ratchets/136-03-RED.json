@@ -1,0 +1,13 @@
+{
+  "command": "mix test test/install_smoke/coverage_floor_policy_test.exs --seed 0",
+  "exitCode": 2,
+  "output": "<?xml version=\"1.0\"?><testsuites><testsuite errors=\"0\" failures=\"1\" skipped=\"0\" name=\"Elixir.Rindle.CoverageFloorPolicyTest\" tests=\"1\" time=\"0.4188\"><properties><property name=\"date\" value=\"2026-10-20T22:11:49.273961Z\"/><property name=\"seed\" value=\"0\"/></properties><testcase file=\"test/install_smoke/coverage_floor_policy_test.exs\" classname=\"Elixir.Rindle.CoverageFloorPolicyTest\" name=\"test one same-run artifact reaches an exact source-bound floor verdict\" time=\"0.4188\"><failure message=\"Assertion with == failed\">  1) test one same-run artifact reaches an exact source-bound floor verdict (Rindle.CoverageFloorPolicyTest)\n     test/install_smoke/coverage_floor_policy_test.exs:8\n     Assertion with == failed\n     code:  assert receipt[\"outcome\"] == \"complete\"\n     left:  \"blocked\"\n     right: \"complete\"\n     stacktrace:\n       test/install_smoke/coverage_floor_policy_test.exs:12: (test)\n</failure></testcase></testsuite></testsuites>",
+  "reportPath": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/_build/test/junit/rindle-junit.xml",
+  "runStartedAt": "1792534174.144856",
+  "reportModifiedAt": "2026-10-20T22:11:49.716323+00:00",
+  "targetTest": "test one same-run artifact reaches an exact source-bound floor verdict",
+  "targetFile": "test/install_smoke/coverage_floor_policy_test.exs",
+  "expected": "complete exact-count receipt",
+  "actual": "scaffold blocked",
+  "semanticAssessment": "Real wrapper and fixture repository succeed; assertion fails at blocked versus complete; actual Mix exit 2 observed."
+}

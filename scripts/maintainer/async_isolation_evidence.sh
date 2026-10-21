@@ -70,7 +70,7 @@ case "${report_path}" in
     ;;
 esac
 
-if [ -e "${report_path}" ]; then
+if [ -e "${report_path}" ] || [ -L "${report_path}" ]; then
   echo "report target already exists: ${report_path}" >&2
   exit 64
 fi
@@ -78,13 +78,26 @@ fi
 mkdir -p "${evidence_dir}"
 
 umask 077
+# Resolve the direct parent physically so traversal/symlink parents cannot escape.
+if [ "$(cd "$(dirname "$report_path")" && pwd -P)" != "$(cd "$evidence_dir" && pwd -P)" ]; then
+  echo "report target must be directly under the evidence directory" >&2
+  exit 64
+fi
+# Reserve once with O_EXCL semantics and keep the descriptor for every append.
+# Concurrent attempts cannot overwrite an existing report or follow a symlink.
+set -o noclobber
+if ! exec 3> "$report_path"; then
+  echo "report target could not be reserved" >&2
+  exit 64
+fi
+set +o noclobber
 sha="$(git rev-parse HEAD)"
-toolchain="$(elixir -v | awk '/Elixir / { print "elixir-" $2; exit }')"
+toolchain="$(elixir --eval 'otp = :code.root_dir() |> Path.join("releases/" <> System.otp_release() <> "/OTP_VERSION") |> File.read!() |> String.trim(); IO.puts("elixir-#{System.version()}/otp-#{otp}")')"
 command='mix coveralls.multiple --type local --type json --seed SEED --slowest 20'
 tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/rindle-async-isolation.XXXXXX")"
 trap 'rm -rf "${tmp_dir}"' EXIT
 
-printf '{"kind":"async_isolation_evidence","schema":["iteration","seed","sha","toolchain","argv","exit_status","failure_location"]}\n' > "${report_path}"
+printf '{"kind":"async_isolation_evidence","schema":["iteration","seed","sha","toolchain","argv","exit_status","failure_location"]}\n' >&3
 
 for index in "${!seeds[@]}"; do
   iteration=$((index + 1))
@@ -101,10 +114,10 @@ for index in "${!seeds[@]}"; do
 
   if [ "${location}" = null ]; then
     printf '{"iteration":%s,"seed":%s,"sha":"%s","toolchain":"%s","argv":"%s","exit_status":%s,"failure_location":null}\n' \
-      "${iteration}" "${seed}" "${sha}" "${toolchain}" "${command/SEED/${seed}}" "${status}" >> "${report_path}"
+      "${iteration}" "${seed}" "${sha}" "${toolchain}" "${command/SEED/${seed}}" "${status}" >&3
   else
     printf '{"iteration":%s,"seed":%s,"sha":"%s","toolchain":"%s","argv":"%s","exit_status":%s,"failure_location":"%s"}\n' \
-      "${iteration}" "${seed}" "${sha}" "${toolchain}" "${command/SEED/${seed}}" "${status}" "${location}" >> "${report_path}"
+      "${iteration}" "${seed}" "${sha}" "${toolchain}" "${command/SEED/${seed}}" "${status}" "${location}" >&3
   fi
 
   if [ "${status}" -ne 0 ]; then

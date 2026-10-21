@@ -1,0 +1,14 @@
+{
+  "command": [
+    "bash",
+    "-e",
+    "-o",
+    "pipefail",
+    "/private/tmp/phase136-nightly-after.sh"
+  ],
+  "step_source": "Replacement parsed Proof run block",
+  "mode": "parallel-four",
+  "duration_seconds": 66.352,
+  "exit_status": 0,
+  "output": "136-NIGHTLY-PARALLEL.txt"
+}

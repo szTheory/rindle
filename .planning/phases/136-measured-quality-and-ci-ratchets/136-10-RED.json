@@ -1,0 +1,13 @@
+{
+  "command": "PATH=/Users/jon/.asdf/installs/nodejs/20.18.1/bin:$PATH ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test CI=true mix test test/install_smoke/phase136_measure_test.exs --seed 0",
+  "exitCode": 2,
+  "output": "<?xml version=\"1.0\"?><testsuites><testsuite errors=\"0\" failures=\"1\" skipped=\"0\" name=\"Elixir.Rindle.PhaseEvidenceMeasureTest\" tests=\"1\" time=\"0.2277\"><properties><property name=\"date\" value=\"2026-10-20T21:40:02.398404Z\"/><property name=\"seed\" value=\"0\"/></properties><testcase file=\"test/install_smoke/phase136_measure_test.exs\" classname=\"Elixir.Rindle.PhaseEvidenceMeasureTest\" name=\"test supported fresh and restored analysis produces a verifiable pinned receipt\" time=\"0.2277\"><failure message=\"Assertion with == failed\">  1) test supported fresh and restored analysis produces a verifiable pinned receipt (Rindle.PhaseEvidenceMeasureTest)\n     test/install_smoke/phase136_measure_test.exs:7\n     Assertion with == failed\n     code:  assert receipt[\"outcome\"] == \"complete\"\n     left:  \"blocked\"\n     right: \"complete\"\n     stacktrace:\n       test/install_smoke/phase136_measure_test.exs:13: (test)\n</failure></testcase></testsuite></testsuites>",
+  "reportPath": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/_build/test/junit/rindle-junit.xml",
+  "runStartedAt": "2026-10-20T21:39:58.742878+00:00",
+  "reportModifiedAt": "2026-10-20T21:40:02.647837+00:00",
+  "targetTest": "test supported fresh and restored analysis produces a verifiable pinned receipt",
+  "targetFile": "test/install_smoke/phase136_measure_test.exs",
+  "expected": "fresh/restored fixture owner reaches a verified pinned receipt",
+  "actual": "collector scaffold produces blocked receipt",
+  "semanticAssessment": "Real shell entrypoint and Python interface run after successful fixture Git setup; target assertion fails on blocked versus complete. The exact Mix rerun exit was observed as 2."
+}

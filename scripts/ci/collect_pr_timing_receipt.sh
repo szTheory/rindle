@@ -6,8 +6,9 @@ usage() {
   cat <<'EOF' >&2
 usage:
   collect_pr_timing_receipt.sh preflight|run [options]
+  collect_pr_timing_receipt.sh current-preflight|current-run --subject-sha SHA [options]
   collect_pr_timing_receipt.sh verify --repo OWNER/REPO --pr N --workflow FILE --summary-job NAME
-    --samples N --median-max SECONDS --p95-max SECONDS --receipt PATH
+    --samples N --median-max SECONDS --p95-max SECONDS --receipt PATH [--subject-sha SHA]
 
 run/preflight options:
   --repo OWNER/REPO --pr N --workflow FILE --summary-job NAME --label NAME
@@ -45,6 +46,9 @@ transition_manifest=""
 receipt=""
 state_dir=".gsd/ci-timing"
 publish_head=1
+publish_explicit=0
+subject_sha=""
+current_mode=0
 poll_seconds=15
 creation_timeout=300
 run_timeout=1800
@@ -60,12 +64,13 @@ while [ "$#" -gt 0 ]; do
     --max-sequences) max_sequences="$2"; shift 2 ;;
     --median-max) median_max="$2"; shift 2 ;;
     --p95-max) p95_max="$2"; shift 2 ;;
+    --subject-sha) subject_sha="$2"; shift 2 ;;
     --correction-sha) correction_sha="$2"; shift 2 ;;
     --preserved-subject-sha) preserved_subject_sha="$2"; shift 2 ;;
     --transition-manifest) transition_manifest="$2"; shift 2 ;;
     --receipt) receipt="$2"; shift 2 ;;
     --state-dir) state_dir="$2"; shift 2 ;;
-    --publish-head) publish_head=1; shift ;;
+    --publish-head) publish_head=1; publish_explicit=1; shift ;;
     --no-publish) publish_head=0; shift ;;
     --poll-seconds) poll_seconds="$2"; shift 2 ;;
     --creation-timeout) creation_timeout="$2"; shift 2 ;;
@@ -345,7 +350,10 @@ if [ "$mode" = verify ]; then
   [ "$summary_job" = "CI Summary" ] || die "verify requires --summary-job CI Summary"
   [ -n "$receipt" ] || die "--receipt is required"
   [ "$samples" -eq 10 ] || die "--samples must be exactly 10 for the CI-14 contract"
-  verify_api_backed_receipt "$receipt" || {
+  if [ -n "$subject_sha" ]; then
+    [[ "$subject_sha" =~ ^[0-9a-f]{40}$ ]] || die "--subject-sha must be a full immutable SHA"
+  fi
+  verify_api_backed_receipt "$receipt" "$subject_sha" || {
     status=$?
     [ "$status" -eq 2 ] && die "current receipt misses inclusive CI-14 timing thresholds"
     exit "$status"
@@ -354,16 +362,27 @@ if [ "$mode" = verify ]; then
   exit 0
 fi
 
-case "$mode" in preflight|run) ;; *) usage; exit 64 ;; esac
+case "$mode" in
+  preflight|run) [ -z "$subject_sha" ] || die "--subject-sha requires current mode" ;;
+  current-preflight|current-run)
+    current_mode=1
+    [[ "$subject_sha" =~ ^[0-9a-f]{40}$ ]] || die "--subject-sha must be a full immutable SHA"
+    [ "$publish_explicit" -eq 0 ] || die "current mode never publishes a PR head"
+    publish_head=0
+    ;;
+  *) usage; exit 64 ;;
+esac
 
 require_command gh
 require_command git
 [ -n "$repo" ] || die "--repo is required"
 [ -n "$pr" ] || die "--pr is required"
 [[ "$pr" =~ ^[1-9][0-9]*$ ]] || die "--pr must be a positive integer"
+if [ "$current_mode" -eq 0 ]; then
 [ -n "$correction_sha" ] || die "--correction-sha is required"
 [ -n "$preserved_subject_sha" ] || die "--preserved-subject-sha is required"
 [ -n "$transition_manifest" ] || die "--transition-manifest is required"
+fi
 [ -n "$receipt" ] || die "--receipt is required"
 [[ "$samples" =~ ^[0-9]+$ ]] && [ "$samples" -eq 10 ] || die "--samples must be exactly 10 for the CI-14 contract"
 [[ "$max_sequences" =~ ^[0-9]+$ ]] && [ "$max_sequences" -ge 1 ] && [ "$max_sequences" -le 2 ] || die "--max-sequences must be 1 or 2"
@@ -371,11 +390,28 @@ require_command git
 [[ "$creation_timeout" =~ ^[0-9]+$ ]] || die "--creation-timeout must be a non-negative integer"
 
 head_sha="$(git rev-parse HEAD)"
+if [ "$current_mode" -eq 1 ]; then
+  [ "$head_sha" = "$subject_sha" ] || die "subject SHA does not match local HEAD"
+  if git symbolic-ref --quiet HEAD >/dev/null; then
+    die "current mode requires the pinned subject in a detached checkout"
+  fi
+  [ "$repo" = "szTheory/rindle" ] || die "current mode requires --repo szTheory/rindle"
+  [ "$workflow" = ci.yml ] && [ "$summary_job" = "CI Summary" ] || die "current required-check identity changed"
+  jq -e '.schema_version == "rindle-required-checks-v1" and
+    .workflow == {file:"ci.yml",name:"CI",job_id:"ci-summary"} and
+    .contexts == ["CI Summary"]' config/ci_required_checks.json >/dev/null ||
+    die "current required-check authority is invalid"
+  [ -f .github/workflows/ci.yml ] || die "current ci.yml is missing"
+  git diff --quiet HEAD -- config/ci_required_checks.json .github/workflows/ci.yml ||
+    die "current workflow authority differs from the pinned subject"
+else
 correction_sha="$(git rev-parse "$correction_sha")"
 preserved_subject_sha="$(git rev-parse "$preserved_subject_sha")"
 [ "${#head_sha}" -eq 40 ] || die "HEAD did not resolve to a full SHA"
 git merge-base --is-ancestor "$correction_sha" "$head_sha" || die "correction SHA is not an ancestor of HEAD"
 git merge-base --is-ancestor "$preserved_subject_sha" "$head_sha" || die "preserved subject SHA is not an ancestor of HEAD"
+
+fi
 
 state_file="$state_dir/pr-${pr}-${head_sha}.json"
 if [ -f "$state_file" ]; then
@@ -396,7 +432,14 @@ if jq -e --arg label_name "$label" 'any(.labels[]?; .name == $label_name)' <<<"$
   die "PR already has $label; refusing to take ownership of a pre-existing trigger label"
 fi
 
-validate_transition_manifest "$transition_manifest"
+if [ "$current_mode" -eq 1 ]; then
+  [ "$remote_sha" = "$subject_sha" ] || die "published PR head differs from subject SHA"
+  workflow_identity="$(gh_api_json "repos/${repo}/actions/workflows/${workflow}" "" "$(( $(date +%s) + run_timeout ))")"
+  jq -e '.name == "CI" and .path == ".github/workflows/ci.yml" and .state == "active"' <<<"$workflow_identity" >/dev/null ||
+    die "published CI workflow identity changed"
+else
+  validate_transition_manifest "$transition_manifest"
+fi
 
 published_now=0
 if [ "$publish_head" -eq 1 ] && [ "$remote_sha" != "$head_sha" ]; then
@@ -418,7 +461,7 @@ elif [ "$remote_sha" != "$head_sha" ]; then
 fi
 
 echo "[ci-timing] preflight passed: $repo#$pr @ $head_sha"
-[ "$mode" = preflight ] && exit 0
+{ [ "$mode" = preflight ] || [ "$mode" = current-preflight ]; } && exit 0
 
 mkdir -p "$state_dir"
 label_owned=0
@@ -455,17 +498,40 @@ cleanup_controller() {
 trap cleanup_controller EXIT
 trap 'cleanup_controller; exit 143' INT TERM
 
+list_runs() {
+  local deadline="$1"
+  gh_api_json \
+    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate "$deadline"
+}
+
+same_sha_runs() {
+  local deadline="$1"
+  list_runs "$deadline" | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
+    [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
+      select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
+  '
+}
+
+
+initial_boundary="[]"
+
 write_initial_state() {
   local tmp
   tmp="$(mktemp "${TMPDIR:-/tmp}/rindle-ci-timing-state.XXXXXX")"
   jq -n \
     --arg repo "$repo" --argjson pr "$pr" --arg sha "$head_sha" --arg label_name "$label" \
-    --argjson max_sequences "$max_sequences" \
-    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,population_boundary_ids:[],status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
+    --argjson max_sequences "$max_sequences" --argjson boundary "$initial_boundary" \
+    '{schema_version:2,repo:$repo,pr:$pr,sha:$sha,label:$label_name,max_sequences:$max_sequences,sequence_attempt:1,population_boundary_ids:$boundary,status:"running",runs:[],pending_trigger:null,current_run_id:null,current_run_status:null,errors:[]}' > "$tmp"
   mv "$tmp" "$state_file"
 }
 
 if [ ! -f "$state_file" ]; then
+  if [ "$current_mode" -eq 1 ]; then
+    initial_population="$(same_sha_runs "$(( $(date +%s) + run_timeout ))")"
+    jq -e 'all(.[]; .status == "completed")' <<<"$initial_population" >/dev/null ||
+      die "existing published-head PR runs must finish before current sampling"
+    initial_boundary="$(jq -c 'map(.id) | sort | if unique == . then . else error("duplicate boundary IDs") end' <<<"$initial_population")"
+  fi
   write_initial_state
 fi
 
@@ -485,21 +551,6 @@ if [ "$(jq -r '.status // ""' "$state_file")" = complete ]; then
   [ "$completed_verdict" = PASS ] && exit 0
   exit 2
 fi
-
-list_runs() {
-  local deadline="$1"
-  gh_api_json \
-    "repos/${repo}/actions/workflows/${workflow}/runs?event=pull_request&branch=${encoded_head_ref}&per_page=100" paginate "$deadline"
-}
-
-same_sha_runs() {
-  local deadline="$1"
-  list_runs "$deadline" | jq -c --arg sha "$head_sha" --argjson pr "$pr" '
-    [(if type == "array" then .[].workflow_runs[] else .workflow_runs[] end) |
-      select(.event == "pull_request" and .head_sha == $sha and any(.pull_requests[]?; .number == $pr))]
-  '
-}
-
 
 wait_for_published_head_quiescence() {
   local deadline runs ids previous_ids active observed stable
@@ -759,7 +810,10 @@ else
   die "deadline expired while collecting final canonical population"
 fi
 selected="$(jq -c 'map(.id)' <<<"$runs")"
-[ "$eligible" = "$selected" ] || die "selected run IDs do not equal the complete canonical eligible population"
+if [ "$eligible" != "$selected" ]; then
+  terminalize_state "selected run IDs do not equal the complete canonical eligible population"
+  die "selected run IDs do not equal the complete canonical eligible population"
+fi
 
 sorted="$(jq -c '[.[].duration_seconds] | sort' <<<"$runs")"
 median="$(jq -r '(.[4] + .[5]) / 2' <<<"$sorted")"
@@ -779,10 +833,16 @@ trap 'cleanup_controller; rm -f "${section:-}" "${next_receipt:-}"; exit 143' IN
 
 {
   echo
-  echo "## Fresh corrected-head receipt"
-  echo
-  echo "Corrected implementation SHA: \`$correction_sha\`"
-  echo "Preserved subject SHA: \`$preserved_subject_sha\`"
+  if [ "$current_mode" -eq 1 ]; then
+    echo "## Fresh current-subject receipt"
+    echo
+    echo "Pinned subject SHA: \`$subject_sha\`"
+  else
+    echo "## Fresh corrected-head receipt"
+    echo
+    echo "Corrected implementation SHA: \`$correction_sha\`"
+    echo "Preserved subject SHA: \`$preserved_subject_sha\`"
+  fi
   echo "Measured immutable PR head: \`$head_sha\`"
   echo
   echo "CI_TIMING_CURRENT_TABLE_BEGIN"

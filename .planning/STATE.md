@@ -2,30 +2,72 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: planning
-stopped_at: Phase 135 complete, ready to plan Phase 136
-last_updated: "2026-10-20T18:35:10.919Z"
-state_head: 35c1c5d0c2642514e632c4450840a0278ac53800
+status: executing
+stopped_at: Phase136 conditional squash merge authorized; Proof retry and timing/verification gates pending
+last_updated: "2026-10-21T14:01:06.832957+00:00"
+state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 198
-  completed_plans: 198
+  total_plans: 212
+  completed_plans: 211
   percent: 43
 last_activity: 2026-10-18
 current_phase: 136
 current_phase_name: Measured Quality and CI Ratchets
-current_plan: null
-last_activity_desc: "Phase 135 planned: 13 plans in 8 waves; checker 0 blockers after one revision, warnings patched; next /gsd-execute-phase 135."
+current_plan: 09
+last_activity_desc: "Wave 1 plans 01/02/04/05/08 committed and verified; begin contributor bootstrap Plan 06."
 ---
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Core value:** Media, made durable.
-**Current focus:** Phase 135 — Repository and Code-Craft Consolidation
+**Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21, authoritative): User explicitly authorized squash merge of PR #162 after green CI. Authorization and guarded merge owner are recorded in136-MERGE-AUTHORIZATION.json. Original HYGIENE local pipeline completed: bootstrap379.476seconds, mix ci331.833seconds, regression226/0, replacement25/25seeds; qualification verified six complete requirements withCI-16blocked only by missing timing. All results committed57d43f59; Plan14 summary committed4c6b6392. Initial live Proof hit its15minute ceiling after its40test adoption authority suite passed in596seconds; raw output and failure retained. A single unchanged-head failed-job rerun (run39530200284,attempt2) is active. Timing retry controller94985 waits for this run to pass before exact-ten collection; original stopped controller is immutable. Conditional merge guard4143 waits for the timing terminal marker, generates new136-QUALIFICATION-MERGE.json, requires all7complete plus fresh GSD verification.status=passed, security0, exact published4fdd3fba and greenCI Summary, then uses squash with match-head and no admin bypass. If qualification is blocked/open or phase report is missing/stale/gaps, merge stays withheld. Root must finish Plan07 summary, actual goal verification/fingerprint and tracking after successful timing; the guard cannot substitute for those steps. Source remains frozen; do not duplicate collectors or ask again for merge authorization. Earlier updates below are historical.
+
+Execution update (2026-10-21, authoritative): Published hygiene4fdd3fba has live CI Script Tests SUCCESS, including both artifact-ledger steps, repo-hygiene and phase-gate harnesses (136-HYGIENE-CI-REPAIR.json). Its one canonical run passed1698tests plus3doctests, zero failures, exact5206/6329=82.2563percent; receipt verified and committed5b155a63. Fresh/restored Dialyzer verified complete55.331/3.047seconds and committed18016bc2. Local pipeline98749 is now in clean full bootstrap; it will run prior-phase regression, the replacement fixed25seed experiment, then qualification after the remote timing marker. Timing pipeline4637 is still waiting for initial run39530200284 to finish; no failures observed at this checkpoint. Do not duplicate either pipeline or run local database tests in parallel. Full execution pointers remain136-HYGIENE-EXECUTION.json. No phase completion, requirement closure or merge claimed. Earlier updates below are historical.
+
+Execution update (2026-10-21, authoritative): Repair4fdd3fba is published to PR #162. Replacement local pipeline is ACTIVE session98749, log/private/tmp/phase136-hygiene-local-pipeline.txt, metadata136-HYGIENE-LOCAL-COLLECTION.json. It owns the single canonical, coverage receipt, Dialyzer, full bootstrap, prior-phase regression, fixed25seed async and final qualification in that sequence. DO NOT run overlapping local DB tests or duplicate it. Remote timing pipeline is ACTIVE session4637, log/private/tmp/phase136-hygiene-timing-pipeline.txt, marker136-HYGIENE-TIMING-CONTROLLER.json; it gates sampling on success of initial run39530200284, then invokes the existing exact-ten/max-two-sequence owner in private detached checkout/private/tmp/phase136-timing-hygiene-4fdd3fba. Source is frozen at136-SUBJECT-HYGIENE.json. Full resume metadata is136-HYGIENE-EXECUTION.json. New qualification uses every HYGIENE receipt explicitly and runs only after local async and remote timing terminate. Original4dc73fa9 all25seeds passed; its receipts remain historical. New candidate source review/security/validation audit refreshed, but actual acceptance remains pending. Earlier updates below are historical.
+
+Execution update (2026-10-21, authoritative): User authorized CI repair and continuation. Original FINAL 4dc73fa9 completed all 25 seeds, immutable receipt/JSONL committed fa9dc88c. PR initial CI failed artifact-ledger only; no timing samples started. Gap Plan 14 source repair is committed 4fdd3fba5ef5bc73be52473bc72de03fe56926d4: new output .txt, strict legacy relocation reader, Python maintainer classification, 31 byte-preserving output moves and 38 unchanged receipt hashes. Owner/meta tests 65/65, artifact-ledger/archive harness 58/58, live Credo passed. New frozen pin 136-SUBJECT-HYGIENE.json (tree 02903fa7e28f22041a0562f29c34f86b6bb76ecc); no more source edits. Collect one new canonical run and all HYGIENE measurements. Existing PR #162 may be updated to this frozen repair under the user’s explicit “yeah do it” instruction; no merge/release. Earlier updates below are historical.
+
+Execution update (2026-10-20, authoritative): Published PR #162 initial CI found a real artifact-ledger failure (job 118944104302, 54 harness cases passed / 4 failed). The new Python collector is unclassified and retained .log evidence violates the tracked-junk policy, including archival simulation. Local offline --require-settled validator reproduced exit 1. Evidence: 136-INITIAL-CI-FAILURE.json and its two .txt logs. Timing controller session 42763 will stop on this initial red; no ten-run sequence may start or receive credit. Preserve the source at 4dc73fa9 while async owner 32373 is active (seed 0 and 17 passed; seed 43 running at last observation). After that owner ends, gap repair must reconcile repository hygiene and re-freeze a new candidate; all source-bound measurements must match that replacement. No merge/release authorized. Earlier updates below are historical.
+
+Execution update (2026-10-20, authoritative): User explicitly approved publishing the frozen candidate and the bounded ten-run measurement. PR #162 is published at https://github.com/szTheory/rindle/pull/162 on gsd/phase-136-quality-ratchets, exact head 4dc73fa91c60ae870c7289a151d9d53460140906. Initial CI run 39514749448 must finish before current-head sampling begins. Private detached timing checkout: /private/tmp/phase136-timing-final-4dc73fa9. Local fixed 25-seed collector remains active in session 32373; seed 0 passed, seed 17 running. Do not duplicate it or overlap local database tests. Source remains frozen; publication does not authorize merge or release. Earlier updates below are historical.
+
+Execution update (2026-10-20, authoritative): The actual25seed async collector is ACTIVE process32373 onFINAL4dc73fa9. Its stdout is/private/tmp/phase136-async-final-collector.log; immutable result136-ASYNC-RESULT.json is reserved and empty until completion, sidecars at136-ASYNC-RESULT.json.artifacts, live rows at.planning/evidence/async-isolation/136-async-isolation.jsonl. Seed0 has started; read JSONL for current progress. DO NOT start another collector, canonical suite, bootstrap or database-using regression while it runs. Poll the existing process; if session control is unavailable, inspect original owner/process and files before assuming it ended. Final coverage, Dialyzer, full bootstrap and226test prior-phase regression are already verified/committed. When async finishes, verify-async against FINAL pin, retain complete or first-red-open outcome and all artifacts, then finish Plan09 summary. Plan07 needs a published exact4dc73fa9 PR; no publication authorized yet. Qualification generate MUST explicitly use FINAL coverage/Dialyzer/bootstrap paths.
+
+Execution update (2026-10-20, authoritative): FINAL4dc73fa9 clean bootstrap verified complete:388.54seconds total, six documented commands, full mix ci333.031seconds within corrected600second cap; receipt committed4210fb0e. Prior-phase regression gate passed226tests/0failures/17excluded over16files in118.8seconds, under GSD600second timeout. Review refreshed forFINAL in7e445e9a. Next is the fixed25seed async collector, not yet launched at this checkpoint. No further database-using full suite may overlap it. Final source remains immutable; live exact-head timing/publication still pending.
+
+Execution update (2026-10-20, authoritative): FINAL4dc73fa9 coverage and fresh/restored Dialyzer are verified; Dialyzer54.847/2.973seconds committed251fcf0b. Clean-bootstrap FINAL is ACTIVE process94318, stdout/private/tmp/phase136-bootstrap-final-collector.log, new136-BOOTSTRAP-EVIDENCE-FINAL.json plus sidecar directory. Do not duplicate it. When it finishes, verify-bootstrap with FINAL pin, commit receipt+sidecars, then run the unstarted25seed async collector once at136-ASYNC-RESULT.json and.planning/evidence/async-isolation/136-async-isolation.jsonl. All collectors use acceptedASDF OTP27.3.4.15/Elixir1.17.3 and prepend Node20.18.1 PATH. Security L1 audit20/20 closed committed6f3be6be; Nyquist executable coverage audit validated committed402d7ba4, actual acceptance still pending. Code review85e6c4fc names old002b8582 and must be refreshed for4dc73fa9 before final verification. No source edits, PR publication or current-subject timing yet.
+
+Execution update (2026-10-20, authoritative): Eleven of thirteen plans complete. FINAL source4dc73fa91c60ae870c7289a151d9d53460140906 has its single green canonical receipt:1695tests,3doctests,zero failures,5206/6329=82.25628061305103percent. Both exact verifier and source projection pass. Plan09 now recollects FINAL Dialyzer/bootstrap and runs25seed async once. Use136-SUBJECT-FINAL.json and explicitly named *-FINAL.json receipts for coverage/Dialyzer/bootstrap; no source changes. All earlier attempts remain immutable. No live timing, publication or overall requirement credit yet.
+
+Execution update (2026-10-20, authoritative): Plan13 repairs the actual clean-bootstrap300second timeout and missing terminal command record; the old343.89second first-red receipt is committed eb30a02d and remains invalid for credit. Owner/consumer/portable-fixture/full-tree guard suite passed60/60; live Credo passed. Source fix4dc73fa91c60ae870c7289a151d9d53460140906 is now pinned in136-SUBJECT-FINAL.json (tree7914e96ccfe3420a453f81e34066c88912691602). Exactly one canonical FINAL run is ACTIVE process83836, stdout/private/tmp/phase136-canonical-final.log, start/private/tmp/phase136-canonical-final-start. Do not rerun or edit source. After actual exit, write136-COVERAGE-EVIDENCE-FINAL.json using exact stdout/artifact/exit, close Plan13, then Plan09 recollects Dialyzer and bootstrap into *-FINAL.json paths and runs the still-unrun25seed async experiment. Qualification generation must explicitly select FINAL pin/coverage/Dialyzer/bootstrap paths; Plan07 remains blocked until separately authorized exact-SHA PR publication. Source002b8582 coverage and Dialyzer were green but are historical for this new subject. First909318d9 failed canonical evidence also remains untouched. No requirement credit or publication yet.
+
+Execution update (2026-10-20, authoritative): Ten of twelve plans complete. Plan12 replacement canonical on002b85822b4df4ecd48814cd28ba46d1cf7b24f6 exited0:1693tests,3doctests,zero failures;5206/6329=82.25628061305103percent. Local82.2 gate and exact receipt verify pass. Original first-red evidence byte-identical. Begin Plan09 real Dialyzer, async and clean bootstrap using136-SUBJECT-REMEDIATED.json. Source may not change; qualification generation must explicitly select136-COVERAGE-EVIDENCE-REMEDIATED.json. All seven requirements remain Pending until final recomputation; no PR publication.
+
+Execution update (2026-10-20, authoritative): Nine of twelve plans have finished, including first-red Plan11. Original909318d9 pin, blocked coverage receipt and full canonical output are committed unchanged. Plan12 gap repair committed002b85822b4df4ecd48814cd28ba46d1cf7b24f6: four fixture modules synchronized, exact residue ledger reviewed, two waveform validation tests added. Actual meta owners passed36/36; Credo passed. A single replacement canonical suite is RUNNING on002b8582; new pin136-SUBJECT-REMEDIATED.json. Do not rerun it or edit source. Pending process22756 writes/private/tmp/phase136-canonical-remediated.log and start/private/tmp/phase136-canonical-remediated-start. After its actual exit, write the new remediated coverage receipt, then all Plan09/07 collectors must explicitly use remediated pin and coverage. No requirement credit or publication yet.
+
+Execution update (2026-10-20, authoritative): Eight of eleven Phase136 plans complete, including coverage gate Plan03. Source/config committed; next Plan11 pins HEAD and runs exactly one canonical suite. Five coverage tests and live Credo pass after the retained floating-point fixture correction. No final coverage/collector/live timing credit yet. All seven requirements remain Pending.
+
+Execution update (2026-10-20, authoritative): Seven of eleven Phase 136 plans are complete (01/02/04/05/06/08/10). Wave 3 collectors and qualification pass 13 fixture tests plus live Credo. Shared standard-library implementation is scripts/maintainer/phase136_evidence.py; receipts own immutable sidecar .artifacts directories. Begin Wave 4 Plan 03 to implement exact coverage and finish source/config before Plan 11 pins anything. No canonical suite, final measurement, live timing, publication or requirement credit yet. All requirements remain Pending. Earlier updates below are historical.
+
+Execution update (2026-10-20, authoritative): Six of eleven Phase 136 plans are complete (01/02/04/05/06/08), with committed summaries. Wave 2 contributor bootstrap passed six fixture/owner/timeout tests plus live Credo. Begin Wave 3 Plan 10, which runs fixtures only and builds final-source collectors and qualification contracts. Real coverage, Dialyzer, async, bootstrap and exact-ten timing remain unrun; all requirements stay Pending. Runtime remains Elixir 1.17.3 / OTP 27.3.4.15; select Node 20.18.1 explicitly. Earlier updates below are historical.
+
+Execution update (2026-10-20, authoritative): Wave 1 is verified in /Users/jon/projects/rindle/.claude/worktrees/phase136-execution on gsd/phase-136-execution. Plans 01/02/04/05/08 have committed summaries. Combined targeted tests passed 114/114; a subsequent skipped/excluded behavior-evidence hardening passed its full 11-test policy suite and live Credo. Schema/UI gates do not block; codebase drift skipped because no STRUCTURE.md. Next is Wave 2 Plan 06. Run Elixir 1.17.3 / OTP 27.3.4.15 via ASDF env overrides, preserve .tool-versions, and select installed Node 20.18.1 for current CI parity (default PATH currently points to Node 26). No live qualification or remote publication yet; all seven requirements remain Pending. Earlier updates below are historical.
+
+Execution update (2026-10-20, authoritative): In /Users/jon/projects/rindle/.claude/worktrees/phase136-execution, branch gsd/phase-136-execution. Plans 136-01, 136-02 and 136-04 complete with committed summaries. Wave 1 Plan 05 next. Supported runtime: Elixir 1.17.3 / OTP 27.3.4.15 via environment overrides. GSD base-check auto-degraded this run to sequential inline execution. All seven Phase 136 requirements remain Pending until final evidence; no phase qualification yet. Earlier updates below are historical.
+
+The primary Phase 133 checkout is stale. This execution checkout starts from
+merged Phase 135 closeout `808d4b771bf55404529e2aad5f151baf6c70a218`
+and imports only Phase 136 planning from `cef5c06b`. Phases 133–135
+retain their completed requirements and committed evidence. Phase 136 has eleven
+incomplete plans in seven waves. Earlier position paragraphs are historical.
 
 Phase completion (2026-10-16): Phase 134 verified passed 4/4 (134-VERIFICATION.md). The live collector and validator report `ok (live)` on main 9d046059; all 7 landing records re-pass dep_landing_evidence.sh. Out-of-queue fixes shipped as releases: #124 (0.4.8, Bandit 1.13 stale conn), #135 (0.4.9, ffmpeg `-nostdin` + dead-port detection) and #137 (ACK-free MuonTrap runner; 0.4.10 via release PR #139). Open: cowlib advisory exception expires 2027-01-15; issue #131 closes on the next green scheduled Nightly; verifier warnings are recorded in todos/pending/2026-10-16-ledger-landing-record-and-collector-gaps.md. Next: /gsd-plan-phase 135.
 
@@ -169,7 +211,7 @@ Current Phase 133 continuity: `.planning/phases/133-evidence-charter-and-live-tr
 ## Session
 
 **Last session:** 2026-10-15T18:22:24.784Z
-**Stopped at:** Phase 135 complete, ready to plan Phase 136
+**Stopped at:** Phase 136 plans recovered onto completed Phase 135 history; entry preflight passed
 **Resume file:** None
 
 ### Blockers

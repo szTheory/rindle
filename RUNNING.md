@@ -312,3 +312,30 @@ variants: [
 
 That is the same public posture taught in [README](readme.html) and
 [Getting Started](getting_started.html).
+
+## Contributor verification commands
+
+[CONTRIBUTING.md](CONTRIBUTING.md#clean-supported-setup) owns the clean supported
+setup and the focused/full/nightly/measurement/release command map. Select the
+accepted Elixir 1.17.3 / OTP 27.3.4.15 cell and CI's Node 20 before using it; the
+older checked-in OTP hint is not a reason to change `.tool-versions` locally.
+
+`bash scripts/maintainer/verify_contributor_bootstrap.sh --validate` checks the
+ordered bootstrap contract without installing dependencies. `--run --full`
+executes it and `mix ci` in a clean detached copy with private Mix/Hex homes,
+300-second setup/focused command bounds, a 600-second full `mix ci` bound, and a
+1200-second overall bound, writing a new receipt. Started commands that time out
+remain terminal failed records with their argv, output digest and exit 124.
+It is local contributor evidence, not a new CI coverage lane. The one canonical
+coverage-floor measurement remains `mix coveralls.multiple --type local --type json`.
+
+Source-bound measurement collectors retain numbered command output as `.txt`
+artifacts so evidence can be committed without relaxing the tracked-junk policy.
+Historical receipts keep their original `.log` references: when that path is absent,
+the verifier accepts the same-basename `.txt` relocation after the existing size,
+symlink and digest checks. An existing original path is never bypassed. The retained
+output relocation manifest records the exact original paths, new paths and hashes.
+
+Proof runs its four isolated Nightly evidence harnesses concurrently within the
+existing job. It waits for every harness and fails if any harness fails; the
+15-minute job ceiling and merge-blocking `CI Summary` authority are unchanged.

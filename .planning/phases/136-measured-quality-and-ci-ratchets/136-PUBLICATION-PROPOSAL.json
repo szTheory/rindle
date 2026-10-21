@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "subject_sha": "4dc73fa91c60ae870c7289a151d9d53460140906",
+  "repo": "szTheory/rindle",
+  "remote_branch": "gsd/phase-136-quality-ratchets",
+  "base": "main",
+  "observed_main": "808d4b771bf55404529e2aad5f151baf6c70a218",
+  "proposed_branch_exists": false,
+  "title": "Ratchet quality checks and bind CI evidence to frozen source",
+  "body_file": "136-PR-DRAFT.md",
+  "body_sha256": "02d8acfaf1bde0877eab274fb4fb308be4362727f839443fcce3d0983c829776",
+  "publication_authorized": true,
+  "pending": [
+    "25seed local experiment",
+    "published exact-head CI timing"
+  ],
+  "rule": "Plan 08: Never publish the PR head implicitly in Phase 136; use an already published exact SHA or a separately authorized publication.",
+  "approval_status": "approved",
+  "approval_answer": "Publish Phase 136 PR",
+  "approved_at": "2026-10-20T23:21:49.562987+00:00",
+  "publication_status": "published",
+  "pr_number": 162,
+  "pr_url": "https://github.com/szTheory/rindle/pull/162",
+  "published_head": "4dc73fa91c60ae870c7289a151d9d53460140906",
+  "initial_ci_run_id": 39514749448,
+  "published_at": "2026-10-20T23:24:31.404579+00:00"
+}

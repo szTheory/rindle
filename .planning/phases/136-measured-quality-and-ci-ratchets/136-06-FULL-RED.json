@@ -1,0 +1,13 @@
+{
+  "command": "PATH=/Users/jon/.asdf/installs/nodejs/20.18.1/bin:$PATH ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test CI=true mix test test/install_smoke/contributor_bootstrap_test.exs --seed 0",
+  "exitCode": 2,
+  "output": "<?xml version=\"1.0\"?><testsuites><testsuite errors=\"0\" failures=\"1\" skipped=\"0\" name=\"Elixir.Rindle.ContributorBootstrapTest\" tests=\"2\" time=\"0.6660\"><properties><property name=\"date\" value=\"2026-10-20T21:28:45.381098Z\"/><property name=\"seed\" value=\"0\"/></properties><testcase file=\"test/install_smoke/contributor_bootstrap_test.exs\" classname=\"Elixir.Rindle.ContributorBootstrapTest\" name=\"test full bootstrap follows the focused proof with the documented full PR command\" time=\"0.1207\"><failure message=\"usage: - [-h] (--run | --validate) [--source-root SOURCE_ROOT]\n         [--subject-sha SUBJECT_SHA] [--receipt RECEIPT]\n-: error: unrecognized arguments: --full\n\">  1) test full bootstrap follows the focused proof with the documented full PR command (Rindle.ContributorBootstrapTest)\n     test/install_smoke/contributor_bootstrap_test.exs:31\n     usage: - [-h] (--run | --validate) [--source-root SOURCE_ROOT]\n              [--subject-sha SUBJECT_SHA] [--receipt RECEIPT]\n     -: error: unrecognized arguments: --full\n\n     code: assert status == 0, output\n     stacktrace:\n       test/install_smoke/contributor_bootstrap_test.exs:36: (test)\n</failure></testcase><testcase file=\"test/install_smoke/contributor_bootstrap_test.exs\" classname=\"Elixir.Rindle.ContributorBootstrapTest\" name=\"test clean copied source follows documented bootstrap through a focused test\" time=\"0.5452\"/></testsuite></testsuites>",
+  "reportPath": "/Users/jon/projects/rindle/.claude/worktrees/phase136-execution/_build/test/junit/rindle-junit.xml",
+  "runStartedAt": "2026-10-20T21:28:42.989752+00:00",
+  "reportModifiedAt": "2026-10-20T21:28:46.069431+00:00",
+  "targetTest": "test full bootstrap follows the focused proof with the documented full PR command",
+  "targetFile": "test/install_smoke/contributor_bootstrap_test.exs",
+  "expected": "optional full verification executes mix ci after documented focused bootstrap",
+  "actual": "probe does not yet accept --full",
+  "semanticAssessment": "The real probe rejects the planned --full interface; target expected-success assertion fails while focused bootstrap passes."
+}

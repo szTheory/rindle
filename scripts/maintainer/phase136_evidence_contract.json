@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "supported_toolchain": "elixir-1.17.3/otp-27.3.4.15",
+  "node_major": 20,
+  "subject_fields": [
+    "subject_sha",
+    "source_tree"
+  ],
+  "coverage": {
+    "required_fields": [
+      "subject_sha",
+      "source_tree",
+      "covered",
+      "relevant",
+      "canonical_argv",
+      "local_exit",
+      "artifact_sha256",
+      "outcome",
+      "artifact_base64",
+      "local_output_base64",
+      "local_output_sha256",
+      "toolchain",
+      "node_version"
+    ],
+    "canonical_argv": [
+      "mix",
+      "coveralls.multiple",
+      "--type",
+      "local",
+      "--type",
+      "json"
+    ],
+    "floor": {
+      "numerator": 821343,
+      "denominator": 1000000,
+      "percent": "82.1343"
+    },
+    "count_rule": "Each non-null integer coverage entry is relevant; each positive entry is covered. Negative and noninteger entries are invalid."
+  },
+  "outcomes": [
+    "complete",
+    "open",
+    "blocked"
+  ],
+  "planning_prefix": ".planning/",
+  "requirements": [
+    "MAINT-04",
+    "TYPE-03",
+    "COV-06",
+    "TEST-08",
+    "CI-15",
+    "CI-16",
+    "DX-05"
+  ]
+}

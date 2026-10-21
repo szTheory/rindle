@@ -21,10 +21,10 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "milestone-ref",
-      "text": "PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble",
+      "text": "PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd",
       "count": 2,
-      "reason_class": "contract",
-      "reason": "Pinned Playwright container tag; scripts/ci/e2e_local.sh defaults to the same tag and examples/adoption_demo/package.json pins the matching @playwright/test version."
+      "reason_class": "policy",
+      "reason": "Reviewed upstream Playwright version and OCI digest are immutable CI supply-chain inputs, not a project milestone claim."
     },
     {
       "path": ".github/workflows/ci.yml",
@@ -347,6 +347,142 @@
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
     },
     {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "phase-ref",
+      "text": "parser = argparse.ArgumentParser(prog=\"phase136_measure.sh\")",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "phase-ref",
+      "text": "parser = argparse.ArgumentParser(prog=\"verify_phase136_qualification.sh\")",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "phase-ref",
+      "text": "path = root / \"scripts/maintainer/phase136_evidence_contract.json\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "planning-path",
+      "text": "phase = root / \".planning/phases/136-measured-quality-and-ci-ratchets\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Evidence confinement and source-projection policy intentionally distinguishes the planning-only evidence tree from executable source."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "planning-path",
+      "text": "require(all(name.startswith(\".planning/\") for name in dirty + untracked), \"dirty_or_untracked_source\")",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Evidence confinement and source-projection policy intentionally distinguishes the planning-only evidence tree from executable source."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "planning-path",
+      "text": "require(all(name.startswith(\".planning/\") for name in names.splitlines()), \"source_history_drift\")",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Evidence confinement and source-projection policy intentionally distinguishes the planning-only evidence tree from executable source."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "planning-path",
+      "text": "target = Path(args.jsonl or root / \".planning/evidence/async-isolation/136-async-isolation.jsonl\").resolve()",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Evidence confinement and source-projection policy intentionally distinguishes the planning-only evidence tree from executable source."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "requirement-id",
+      "text": "\"COV-06\": {**authorities[\"coverage\"], \"authority\": \"coverage\"},",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "requirement-id",
+      "text": "\"DX-05\": {**authorities[\"bootstrap\"], \"authority\": \"bootstrap\"}}",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "requirement-id",
+      "text": "\"MAINT-04\": {\"status\": qstates[\"maint\"], \"authority\": \"quality.credo\"},",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence.py",
+      "class": "requirement-id",
+      "text": "\"TYPE-03\": {**authorities[\"dialyzer\"], \"authority\": \"dialyzer\"},",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence_contract.json",
+      "class": "planning-path",
+      "text": "\"planning_prefix\": \".planning/\",",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Evidence confinement and source-projection policy intentionally distinguishes the planning-only evidence tree from executable source."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence_contract.json",
+      "class": "requirement-id",
+      "text": "\"COV-06\",",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence_contract.json",
+      "class": "requirement-id",
+      "text": "\"DX-05\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence_contract.json",
+      "class": "requirement-id",
+      "text": "\"MAINT-04\",",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_evidence_contract.json",
+      "class": "requirement-id",
+      "text": "\"TYPE-03\",",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Requirement identifier is a key in the executable qualification receipt schema, not an unverified product claim."
+    },
+    {
+      "path": "scripts/maintainer/phase136_measure.sh",
+      "class": "phase-ref",
+      "text": "exec python3 \"$repo_root/scripts/maintainer/phase136_evidence.py\" measure \"$repo_root\" \"$@\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
+    },
+    {
       "path": "scripts/maintainer/repo_hygiene_check.sh",
       "class": "planning-path",
       "text": "grep -Fq './scripts/maintainer/repo_hygiene_check.sh' .planning/RELEASE-TRAIN.md",
@@ -521,6 +657,22 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "Historical-boundary prefix: the live-truth validator treats paths under the archived milestones directory as history, not live claims."
+    },
+    {
+      "path": "scripts/maintainer/verify_coverage_floor.exs",
+      "class": "phase-ref",
+      "text": "[Path.join(root, \"scripts/maintainer/phase136_evidence.py\"), \"coverage\", root | args],",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
+    },
+    {
+      "path": "scripts/maintainer/verify_phase136_qualification.sh",
+      "class": "phase-ref",
+      "text": "exec python3 \"$repo_root/scripts/maintainer/phase136_evidence.py\" qualify \"$repo_root\" \"$@\"",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
     }
   ]
 }

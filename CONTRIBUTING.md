@@ -12,6 +12,84 @@ local command — `mix ci` — that reproduces the PR verdict before you push.
 
 Rindle follows Semantic Versioning. While Rindle is 0.x, public APIs may change between minor versions; review CHANGELOG.md and guides/upgrading.md before upgrading. Rindle 1.0 will mean the public API is stable enough that breaking public API changes move to major versions.
 
+## Clean supported setup
+
+Use Elixir 1.17.3 with OTP 27.3.4.15, the accepted maintenance cell, and Node 20
+(the CI selection; 20.18.1 is the repository's existing Node pin). Install Postgres,
+libvips and FFmpeg using [RUNNING.md](RUNNING.md), then ensure Postgres is running.
+The checked-in OTP 27.2 hint predates the accepted cell; use explicit environment
+selection without editing `.tool-versions`. With an existing asdf installation:
+
+```sh
+asdf install erlang 27.3.4.15
+asdf install elixir 1.17.3-otp-27
+asdf install nodejs 20.18.1
+export ASDF_ERLANG_VERSION=27.3.4.15
+export ASDF_ELIXIR_VERSION=1.17.3-otp-27
+export ASDF_NODEJS_VERSION=20.18.1
+export PATH="$HOME/.asdf/shims:$PATH"
+```
+
+The following ordered commands bootstrap a fresh clone and run focused CI-policy
+checks. Hex/Rebar and dependencies are the existing project tools and locked deps.
+The machine-readable runtime annotation keeps the probe and this setup aligned.
+
+<!-- rindle-bootstrap-runtime -->
+{"elixir":"1.17.3","otp":"27.3.4.15","node_major":20}
+<!-- /rindle-bootstrap-runtime -->
+
+<!-- rindle-bootstrap-commands -->
+```sh
+mix local.hex --force
+mix local.rebar --force
+mix deps.get --check-locked
+mix compile --warnings-as-errors
+mix test test/install_smoke/quality_signal_policy_test.exs --seed 0
+```
+<!-- /rindle-bootstrap-commands -->
+
+To check the same path in a disposable detached copy of a **clean committed**
+checkout, with private Mix/Hex homes and a 20-minute total budget:
+
+```sh
+bash scripts/maintainer/verify_contributor_bootstrap.sh --validate
+bash scripts/maintainer/verify_contributor_bootstrap.sh --run \
+  --subject-sha "$(git rev-parse HEAD)" --receipt /tmp/rindle-bootstrap-new.json --full
+```
+
+Choose a new receipt path on every attempt. The probe refuses existing targets,
+wrong runtime versions, dirty source and failed documented commands; it removes
+the disposable source and private dependency/build directories afterwards.
+
+## Choose a verification lane
+
+Run focused checks while editing. Before a PR, run `mix ci`; it exercises the
+ordinary default suite once. Use the canonical local+JSON coverage command once
+for a floor measurement. The finite async experiment is separate local evidence,
+not another CI lane. Fresh/restored Dialyzer analyses belong to Nightly breadth;
+release hygiene belongs to release preparation.
+
+<!-- rindle-verification-map -->
+| Surface | Lane | Command |
+| --- | --- | --- |
+| Complexity policy | focused | `mix test test/install_smoke/credo_policy_test.exs --seed 0` |
+| Current complexity inventory | focused | `mix credo_quality` |
+| CI input and topology policy | focused | `mix test test/install_smoke/quality_signal_policy_test.exs test/install_smoke/ci_cache_hygiene_test.exs --seed 0` |
+| Supported type analysis from cold PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh fresh` |
+| Supported type analysis from restored PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh restored` |
+| Exact coverage floor measurement | measurement | `mix coveralls.multiple --type local --type json` |
+| Async matrix declaration | focused | `bash scripts/maintainer/async_isolation_evidence.sh --validate` |
+| Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |
+| Complete local PR verification | full | `mix ci` |
+| Release repository hygiene | release | `bash scripts/maintainer/repo_hygiene_check.sh --ci` |
+<!-- /rindle-verification-map -->
+
+Replace `NEW.jsonl` with a new filename; preserve every existing first-red report.
+Add `--full` to the bootstrap probe to run the documented focused path followed
+by `mix ci` in the same clean copy. It retains the default suite's documented tag
+exclusions, and needs no MinIO credentials or browser installation. The final
+supported bootstrap receipt uses this full option.
+
 ## Reproduce the PR gate locally: `mix ci`
 
 `mix ci` runs the same merge-blocking checks the PR gate runs, in a sensible local order:

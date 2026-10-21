@@ -1,0 +1,14 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "status": "stopped_on_failure",
+  "pid": 5702,
+  "initial_run_id": 39530200284,
+  "samples": 10,
+  "max_sequences": 2,
+  "checkout": "/private/tmp/phase136-timing-hygiene-4fdd3fba",
+  "log": "/private/tmp/phase136-hygiene-timing-retry.txt",
+  "reason": "Initial CI did not pass; no timing samples started.",
+  "exit_status": 1,
+  "updated_at": "2026-10-21T14:02:19.041749+00:00"
+}

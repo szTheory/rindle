@@ -717,9 +717,39 @@ Plans:
   2. One fresh canonical coverage run preserves or raises the exact accepted floor, and executable tests cover changed risk branches through behavior rather than source-literal or percentage-only assertions.
   3. Issue #42's finite isolation experiment either completes successfully or emits a reproducible failing receipt with explicit uncertainty and an evidence-triggered next action; reruns cannot erase the result.
   4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
-  5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and a fresh exact-ten receipt within the <=480-second median/<=600-second p95 envelope after topology changes.
+  5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and required CI green. The exact-ten <=480-second median/<=600-second p95 target is deferred unfinished to SEED-261021-918 by the 2026-10-21 user decision, with no speed acceptance credit.
 
-**Plans**: TBD
+**Plans**: 15 plans
+
+Plans:
+**Wave 1**
+- [x] 136-01-PLAN.md — Removal-only Credo complexity ledger and behavior proof
+- [x] 136-02-PLAN.md — Narrow Dialyzer suppressions and supported fresh/restored evidence
+- [x] 136-04-PLAN.md — Finite issue #42 async experiment and immutable first-red receipt
+- [x] 136-05-PLAN.md — CI input integrity, bounded jobs and topology semantics
+- [x] 136-08-PLAN.md — Current-subject timing collector mode with historical-mode regression proof
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 136-06-PLAN.md — Tested clean contributor bootstrap and command map
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 136-10-PLAN.md — Source-bound measurement and phase qualification validators
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 136-03-PLAN.md — Exact coverage validator, threshold and behavioral tests
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 136-11-PLAN.md — Commit pin and sole canonical coverage measurement
+- [x] 136-12-PLAN.md — Repair full-tree metagates and measure a separate candidate
+- [x] 136-13-PLAN.md — Retain timeout records and measure final bootstrap-budget candidate
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 136-09-PLAN.md — Final-subject Dialyzer, async and bootstrap measurement receipts
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 136-14-PLAN.md — Repair observed CI hygiene failure and measure a replacement subject
+- [ ] 136-15-PLAN.md — Parallelize isolated Nightly harnesses after measured Proof timeouts
+- [ ] 136-07-PLAN.md — Truthful qualification; numeric timing target deferred unfinished
 
 ### Phase 137: Built-Package Twin Foundation
 
@@ -775,7 +805,7 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 0/TBD | Not started | - |
+| 136. Measured Quality and CI Ratchets | 13/15 | In progress | - |
 | 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |

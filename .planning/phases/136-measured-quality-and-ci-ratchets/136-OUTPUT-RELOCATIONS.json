@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "reason": "Retain exact output bytes under .txt names without relaxing tracked junk rules or rewriting source-bound receipts. Historical .log references resolve through the command artifact owner, with unchanged digest checks. Top-level diagnostic original paths remain available in git history.",
+  "entries": [
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/000.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/000.txt",
+      "sha256": "bda9f3a8166aa70a4096bb5eb3e33789ff37a24f448bd86e7684422a1ff85a96",
+      "bytes": 28
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/001.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/001.txt",
+      "sha256": "beb64a2a7be496aa5d7a2231eb0e35d216ed90e7b299793f352964b48dfd4b0f",
+      "bytes": 9
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/002.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/002.txt",
+      "sha256": "b2b41e87693e1ea41d3dd8f9f7acb28679d1d4829f5372f57184301d227ccf94",
+      "bytes": 115
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/003.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/003.txt",
+      "sha256": "57933959dec027fbc63e8760cb05b6c7320871ebed65d1a540c69020e700a35c",
+      "bytes": 115
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/004.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/004.txt",
+      "sha256": "90000f3dc27ad3b1625f4d6d2be578ae91bbda1c56feb55d55c94bbe82f23213",
+      "bytes": 4299
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/005.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/005.txt",
+      "sha256": "8ca4bc41686307021558a6f7094a0fe21a068cf992a7bad5bb4decf1daefcfdf",
+      "bytes": 6476
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/006.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json.artifacts/006.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/000.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/000.txt",
+      "sha256": "bda9f3a8166aa70a4096bb5eb3e33789ff37a24f448bd86e7684422a1ff85a96",
+      "bytes": 28
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/001.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/001.txt",
+      "sha256": "beb64a2a7be496aa5d7a2231eb0e35d216ed90e7b299793f352964b48dfd4b0f",
+      "bytes": 9
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/002.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/002.txt",
+      "sha256": "07b444bc7b19e85e5bfac0190cb7ffc5aec177fcb9284374ca9a5fff6414d286",
+      "bytes": 1539
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/000.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/000.txt",
+      "sha256": "bda9f3a8166aa70a4096bb5eb3e33789ff37a24f448bd86e7684422a1ff85a96",
+      "bytes": 28
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/001.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/001.txt",
+      "sha256": "beb64a2a7be496aa5d7a2231eb0e35d216ed90e7b299793f352964b48dfd4b0f",
+      "bytes": 9
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/002.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/002.txt",
+      "sha256": "6bcfe6e946f46ef4fab6454f8b1eb14cbbc692800528c8d39c1150514bb1ab4d",
+      "bytes": 1496
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-FIRST-RED.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-FIRST-RED.txt",
+      "sha256": "b46366a1add3d6c225f0177d8fd707493e92783311285f655e0af927158211c3",
+      "bytes": 81979
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/000.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/000.txt",
+      "sha256": "bda9f3a8166aa70a4096bb5eb3e33789ff37a24f448bd86e7684422a1ff85a96",
+      "bytes": 28
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/001.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/001.txt",
+      "sha256": "beb64a2a7be496aa5d7a2231eb0e35d216ed90e7b299793f352964b48dfd4b0f",
+      "bytes": 9
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/002.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/002.txt",
+      "sha256": "8616488f786dd23129572b7795924a5bd3af08903169dc04bbd1c286e1ce2397",
+      "bytes": 115
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/003.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/003.txt",
+      "sha256": "843f0c2b7532f3335c578237113b744a0ee23a022d411b3518b65f7d42016cad",
+      "bytes": 115
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/004.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/004.txt",
+      "sha256": "72a9af5f5bf1372cc205b3f755978e416d8de1c1bedba5be26e39793c02e95b2",
+      "bytes": 4299
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/005.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/005.txt",
+      "sha256": "d84bbab79ea148d4bbed76c044c7cfae42e07604703bb355bfdf7c871a5e051e",
+      "bytes": 6476
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/006.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/006.txt",
+      "sha256": "0a9a592d6e35aa8264e2f5487336f6ce99793fc96807a2cdecd2f06d6254e475",
+      "bytes": 3760
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/007.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json.artifacts/007.txt",
+      "sha256": "a6132071ca49e0cc6c305dcc0092b5b479480aa1f07a7270f876e9164718ccc1",
+      "bytes": 1872
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/000.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/000.txt",
+      "sha256": "bda9f3a8166aa70a4096bb5eb3e33789ff37a24f448bd86e7684422a1ff85a96",
+      "bytes": 28
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/001.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/001.txt",
+      "sha256": "beb64a2a7be496aa5d7a2231eb0e35d216ed90e7b299793f352964b48dfd4b0f",
+      "bytes": 9
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/002.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/002.txt",
+      "sha256": "f88e58481da2bed5f00d2a42cff5d44cc36ae735328c879bde46bffe13d432ea",
+      "bytes": 115
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/003.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/003.txt",
+      "sha256": "cd0fa7c68f2d191a2a7429643b99ede578bdbb5a2256ea9a032b255469d7682a",
+      "bytes": 115
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/004.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/004.txt",
+      "sha256": "cf01b70df537ed45c56cb39cb98a37110bb6d58fd6e491b2df091cf134d25c1f",
+      "bytes": 4299
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/005.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/005.txt",
+      "sha256": "674761ecd76d5e91ff1f2211ba4626ed9fd632308922d87fc2e75a64cf200ee0",
+      "bytes": 6476
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/006.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/006.txt",
+      "sha256": "c83e806213d4a19e6619b87e938dd2a2f2aae8482b10017a3d41bc50e653f25e",
+      "bytes": 3758
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/007.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json.artifacts/007.txt",
+      "sha256": "810f407cc220a0b6cb82d252f71605b24a012b3091c5d723dc6d998b185ec733",
+      "bytes": 1872
+    },
+    {
+      "original": ".planning/phases/136-measured-quality-and-ci-ratchets/136-REGRESSION-FINAL.log",
+      "retained": ".planning/phases/136-measured-quality-and-ci-ratchets/136-REGRESSION-FINAL.txt",
+      "sha256": "a82cd4bc1a65df03f221dceb1ec223381e15b89d0fb4f7fbcb3c8f184ae409e6",
+      "bytes": 484
+    }
+  ],
+  "unchanged_receipt_sha256": {
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-01-RED.json": "3a047507c506f347785a8cdd4e8745ce39f267d8ad428e46d44e52863fd86d0c",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-01-SKIPPED-RED.json": "e26b39fb1723d9483f131549e3657265274d5578237835c90acc46bd4a3f5185",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-01-TRIGGERS-RED.json": "5d71c7748c1e3aec07147c1ceb9517d6378ed48ad724e0be29d7a3138e355ddc",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-03-CONFIG-RED.json": "ece730443d067474719915dd107f0d3aee5c0fb3b4c095dc248e22fcb67fb759",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-03-PRECISION-OBSERVATION.json": "111e4d7ce745b4a38939946a2370a57f8555022243abfa5dafb18fd9a4c7462b",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-03-RED.json": "92e61b14707d0a02b64d12dadb9432eafc0b2d6286e35a6e1a0aace32de0ccf9",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-04-NOCLOBBER-RED.json": "ce88cf43afb88a32ed975500324b95bfe9d0320053e5ee4e9a485c29a883b795",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-04-RED.json": "a320c92d05fa303e1f4ca56c2fc6d366b1469932a82ea8a09e2e634419d630b5",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-05-INPUTS-RED.json": "a7df0d6bd2e97ec4fc13247a31c22d66c9de6a767bed0fac1937baf19aef3de5",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-05-RED.json": "66c8052f0d179e5459b95add3f36c49649be6f7a91157e8eddd0e447396bc8e7",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-06-FULL-RED.json": "5662b4eaf1eff9a2b236ab5fbb8775e66feeec51aac2a6b2930100746a83916e",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-06-RED.json": "a44cab6a4720ca6dc5ff0e8e9f670fc77cc5d531d844e5711d661e4a9b751930",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-08-BOUNDARY-RED.json": "f1f08897de6470888002c160c59d29d0723c45749d216170e52fa16c7e0298bf",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-08-RED.json": "cd1ac3a1a8c2d58a029b65dab078c408d3b979462bdac7f74b4f656642419880",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-10-QUALIFICATION-RED.json": "b98c8a96344364b7d0ddca251851a1231b2b2cac6701cedfa849dde9f5c023d6",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-10-RED.json": "932fdad1b6129f45e213e53b8c9b047b6fe527927dea0c8c659dfdae955e7b0e",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-12-RED.json": "180bdb3002693bbf54234f69b68fc0f38ddbdf59a07ea19fb78e48e3a274626e",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-13-PORTABLE-RED.json": "94065418a1dd306e10ed329b7d7f8b4d5575044456d7aeb40fbfd9c029e2d679",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-13-RED.json": "ce2c7ad4e815567768ab9011436922635bba960d79bbd55745de6da003490190",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-14-RED.json": "557e3f0ec9ff45f28d0698d3b3fdcc5fafd8544c00063ce53020da193289864f",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT.json": "cc6a636575b283491e32b18df5cf855825019ee8be887b7c63d9b99d76772320",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json": "cd117d8559bf88f8aea6e8318c0d39cfa7e3aa162fb9ec4a05129b95cd6d02ce",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-FINAL.json.artifacts/bootstrap.json": "07b444bc7b19e85e5bfac0190cb7ffc5aec177fcb9284374ca9a5fff6414d286",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json": "f8e2e98d50235374c094f547e11934b8a2b5e301e065122ca9824961e1fcda5f",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE.json.artifacts/bootstrap.json": "6bcfe6e946f46ef4fab6454f8b1eb14cbbc692800528c8d39c1150514bb1ab4d",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-CANONICAL-FIRST-RED.json": "4c3f0fe040e31f2cd6e7d023119cc3da517d66fb4349a5c7b8deda41cbe4397f",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-FINAL.json": "ebb6f5a991c6919241fce89eb4cbbff5a466468c34a09026b307309fcf2c9a4b",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-REMEDIATED.json": "9c2d99171d7d45190228ab9e0f3f89b6f133992c058338f02abc6a4758dae411",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE.json": "5dbc8bf78e78585c25c01f96a7368a1b550405aad97a209088ed054180d0c801",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-FINAL.json": "c7b5b1a64ceeafce6db634beea953aa116eec02cd9be921674925c67f291edde",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE.json": "52dc733cabfef29f9c28187bd8022b10a36021254692f1ed6cb4f78dd311b09c",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-INITIAL-CI-FAILURE.json": "8488be4f60afe4987da7297e200c35b28fbff1098f34ca9424f538f142d69e67",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-LIVE-COLLECTION.json": "1cb3b48aacc52cc8678a6e3618ee0be8d9735de4966429ff2e0470164a0aa46d",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-PUBLICATION-PROPOSAL.json": "eaa57f855c33bf37f57d96f2d57990eaa2131637b2a470dee23e2a7ae584ac54",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-REGRESSION-FINAL.json": "723bbba492e995c7abd3b6fe8261ec77d3a13619427ca7ec8abd37cd28ddee77",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-FINAL.json": "db801be8dbefd46cb11b1488365e7637c63a4cc372f64872a41b9369872fb2c6",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-REMEDIATED.json": "2aad8722867513d8c6afd83f7fd210c4e5fb50309d8e81542a2115170a4d0398",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT.json": "364de7f8fc5f0997d9c8146c2b3fa570b3ebd6323ce93bcb701ba0a26f5c38e2"
+  }
+}

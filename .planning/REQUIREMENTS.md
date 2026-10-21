@@ -40,7 +40,7 @@ completion credit.
 - [ ] **COV-06**: A fresh canonical coverage run preserves or raises the exact accepted floor, while changed risk branches receive behavioral rather than percentage-driven tests.
 - [ ] **TEST-08**: Issue #42's finite async-isolation experiment completes or remains open with a reproducible failure, explicit uncertainty, and evidence-based next trigger.
 - [ ] **CI-15**: Workflow semantics, caches, downloads, images, and process-heavy jobs are structurally validated, immutable or checksum-verified where practical, and bounded by justified timeouts.
-- [ ] **CI-16**: CI changes preserve `ci.yml`, workflow `CI`, the sole `CI Summary` required context, exact-SHA release gating, fork safety, and the <=480-second median/<=600-second p95 PR envelope.
+- [ ] **CI-16**: CI changes preserve `ci.yml`, workflow `CI`, the sole `CI Summary` required context, exact-SHA release gating, fork safety, and exact-head proof. The original exact-ten <=480-second median/<=600-second p95 PR envelope is deferred unfinished to SEED-261021-918 by the 2026-10-21 user decision; no speed acceptance credit.
 - [ ] **DX-05**: A contributor can bootstrap a clean supported environment and select the correct focused or full verification command without reverse-engineering workflow YAML.
 
 ### Synthetic Adopter Twin
@@ -122,7 +122,7 @@ completion credit.
 | COV-06 | Phase 136 | Pending |
 | TEST-08 | Phase 136 | Pending |
 | CI-15 | Phase 136 | Pending |
-| CI-16 | Phase 136 | Pending |
+| CI-16 | Phase 136 / SEED-261021-918 | Pending; numeric speed target deferred unfinished |
 | DX-05 | Phase 136 | Pending |
 | TWIN-01 | Phase 137 | Pending |
 | TWIN-02 | Phase 137 | Pending |

@@ -1,0 +1,1832 @@
+﻿2026-10-21T02:06:39.1143650Z Current runner version: '2.337.0'
+2026-10-21T02:06:39.1180440Z ##[group]Runner Image Provisioner
+2026-10-21T02:06:39.1181988Z Hosted Compute Agent
+2026-10-21T02:06:39.1183145Z Version: 20261012.601
+2026-10-21T02:06:39.1184397Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-21T02:06:39.1186046Z Build Date: 2026-10-12T17:48:21Z
+2026-10-21T02:06:39.1187722Z Worker ID: {e07ba920-14fd-4fb1-b2d4-57c3861de6cd}
+2026-10-21T02:06:39.1189104Z Region: canadaeast
+2026-10-21T02:06:39.1190152Z Cloud: Azure
+2026-10-21T02:06:39.1191186Z ##[endgroup]
+2026-10-21T02:06:39.1193743Z ##[group]Operating System
+2026-10-21T02:06:39.1194909Z Ubuntu
+2026-10-21T02:06:39.1195816Z 22.04.5
+2026-10-21T02:06:39.1197188Z LTS
+2026-10-21T02:06:39.1198240Z ##[endgroup]
+2026-10-21T02:06:39.1199521Z ##[group]Runner Image
+2026-10-21T02:06:39.1200697Z Image: ubuntu-22.04
+2026-10-21T02:06:39.1201684Z Version: 20261012.322.1
+2026-10-21T02:06:39.1204116Z Included Software: https://github.com/actions/runner-images/blob/ubuntu22/20261012.322/images/ubuntu/Ubuntu2204-Readme.md
+2026-10-21T02:06:39.1207441Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu22%2F20261012.322
+2026-10-21T02:06:39.1209301Z ##[endgroup]
+2026-10-21T02:06:39.1211466Z ##[group]GITHUB_TOKEN Permissions
+2026-10-21T02:06:39.1214504Z Contents: read
+2026-10-21T02:06:39.1215465Z Metadata: read
+2026-10-21T02:06:39.1216364Z ##[endgroup]
+2026-10-21T02:06:39.1219003Z Secret source: Actions
+2026-10-21T02:06:39.1220137Z Cache mode: write
+2026-10-21T02:06:39.1221118Z Prepare workflow directory
+2026-10-21T02:06:39.1695302Z Prepare all required actions
+2026-10-21T02:06:39.1744257Z Getting action download info
+2026-10-21T02:06:39.4051269Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-21T02:06:39.6479759Z Complete job name: Proof
+2026-10-21T02:06:39.7070104Z ##[group]Checking docker version
+2026-10-21T02:06:39.7083765Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-10-21T02:06:40.5975388Z '1.48'
+2026-10-21T02:06:40.5993037Z Docker daemon API version: '1.48'
+2026-10-21T02:06:40.5993970Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-10-21T02:06:40.6268842Z '1.48'
+2026-10-21T02:06:40.6285602Z Docker client API version: '1.48'
+2026-10-21T02:06:40.6291006Z ##[endgroup]
+2026-10-21T02:06:40.6293933Z ##[group]Clean up resources from previous jobs
+2026-10-21T02:06:40.6299945Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=1435d6"
+2026-10-21T02:06:40.6474472Z ##[command]/usr/bin/docker network prune --force --filter "label=1435d6"
+2026-10-21T02:06:40.6632997Z ##[endgroup]
+2026-10-21T02:06:40.6633615Z ##[group]Create local container network
+2026-10-21T02:06:40.6644425Z ##[command]/usr/bin/docker network create --label 1435d6 github_network_6e17756ad35e4a62b1c085f7878f0f66
+2026-10-21T02:06:40.7217768Z dfcf23ff4e85ebc55dc903eb1e6056c9c6ca22ea4121a563a2f8b7eea402f5d6
+2026-10-21T02:06:40.7242764Z ##[endgroup]
+2026-10-21T02:06:40.7267942Z ##[group]Starting postgres service container
+2026-10-21T02:06:40.7290167Z ##[command]/usr/bin/docker pull postgres:16-alpine
+2026-10-21T02:06:41.2042778Z 16-alpine: Pulling from library/postgres
+2026-10-21T02:06:41.3340953Z e2de96513ba9: Pulling fs layer
+2026-10-21T02:06:41.3342702Z 1b7f9cd581ee: Pulling fs layer
+2026-10-21T02:06:41.3344352Z 210b280f9556: Pulling fs layer
+2026-10-21T02:06:41.3345908Z 81717818649a: Pulling fs layer
+2026-10-21T02:06:41.3347572Z 3ae6141cfd99: Pulling fs layer
+2026-10-21T02:06:41.3348535Z 25b77f59fd95: Pulling fs layer
+2026-10-21T02:06:41.3349508Z 6c25da34e03f: Pulling fs layer
+2026-10-21T02:06:41.3350427Z a88782f92806: Pulling fs layer
+2026-10-21T02:06:41.3351351Z d8d21be4bf02: Pulling fs layer
+2026-10-21T02:06:41.3352292Z 6117bd39f23f: Pulling fs layer
+2026-10-21T02:06:41.3353255Z 509688edf37b: Pulling fs layer
+2026-10-21T02:06:41.3354181Z 3ae6141cfd99: Waiting
+2026-10-21T02:06:41.3355059Z 25b77f59fd95: Waiting
+2026-10-21T02:06:41.3355945Z 6c25da34e03f: Waiting
+2026-10-21T02:06:41.3357949Z a88782f92806: Waiting
+2026-10-21T02:06:41.3359407Z d8d21be4bf02: Waiting
+2026-10-21T02:06:41.3360874Z 6117bd39f23f: Waiting
+2026-10-21T02:06:41.3362027Z 509688edf37b: Waiting
+2026-10-21T02:06:41.3363117Z 81717818649a: Waiting
+2026-10-21T02:06:41.4272892Z 1b7f9cd581ee: Download complete
+2026-10-21T02:06:41.4443656Z 210b280f9556: Verifying Checksum
+2026-10-21T02:06:41.4446283Z 210b280f9556: Download complete
+2026-10-21T02:06:41.4545919Z e2de96513ba9: Verifying Checksum
+2026-10-21T02:06:41.4548836Z e2de96513ba9: Download complete
+2026-10-21T02:06:41.5193553Z 81717818649a: Verifying Checksum
+2026-10-21T02:06:41.5196999Z 81717818649a: Download complete
+2026-10-21T02:06:41.5354431Z 3ae6141cfd99: Verifying Checksum
+2026-10-21T02:06:41.5359021Z 3ae6141cfd99: Download complete
+2026-10-21T02:06:41.5958819Z e2de96513ba9: Pull complete
+2026-10-21T02:06:41.6076774Z 6c25da34e03f: Verifying Checksum
+2026-10-21T02:06:41.6079885Z 6c25da34e03f: Download complete
+2026-10-21T02:06:41.6233528Z a88782f92806: Verifying Checksum
+2026-10-21T02:06:41.6236043Z a88782f92806: Download complete
+2026-10-21T02:06:41.6353456Z 1b7f9cd581ee: Pull complete
+2026-10-21T02:06:41.6767878Z 210b280f9556: Pull complete
+2026-10-21T02:06:41.6932819Z d8d21be4bf02: Download complete
+2026-10-21T02:06:41.6942986Z 81717818649a: Pull complete
+2026-10-21T02:06:41.7118368Z 6117bd39f23f: Download complete
+2026-10-21T02:06:41.7145423Z 3ae6141cfd99: Pull complete
+2026-10-21T02:06:41.7781349Z 509688edf37b: Verifying Checksum
+2026-10-21T02:06:41.7786740Z 509688edf37b: Download complete
+2026-10-21T02:06:41.9201852Z 25b77f59fd95: Verifying Checksum
+2026-10-21T02:06:41.9202350Z 25b77f59fd95: Download complete
+2026-10-21T02:06:44.3838784Z 25b77f59fd95: Pull complete
+2026-10-21T02:06:44.3984816Z 6c25da34e03f: Pull complete
+2026-10-21T02:06:44.4076334Z a88782f92806: Pull complete
+2026-10-21T02:06:44.4165168Z d8d21be4bf02: Pull complete
+2026-10-21T02:06:44.4255993Z 6117bd39f23f: Pull complete
+2026-10-21T02:06:44.4388768Z 509688edf37b: Pull complete
+2026-10-21T02:06:44.4429684Z Digest: sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
+2026-10-21T02:06:44.4448644Z Status: Downloaded newer image for postgres:16-alpine
+2026-10-21T02:06:44.4462279Z docker.io/library/postgres:16-alpine
+2026-10-21T02:06:44.4529737Z ##[command]/usr/bin/docker create --name 43489bedb8ac409bbaea11169f7c98fc_postgres16alpine_664641 --label 1435d6 --network github_network_6e17756ad35e4a62b1c085f7878f0f66 --network-alias postgres -p 5432:5432 --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5 -e "POSTGRES_USER=postgres" -e "POSTGRES_PASSWORD=postgres" -e "POSTGRES_DB=rindle_test" -e GITHUB_ACTIONS=true -e CI=true postgres:16-alpine
+2026-10-21T02:06:44.4803909Z 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:44.4831620Z ##[command]/usr/bin/docker start 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:45.1666629Z 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:45.1694857Z ##[command]/usr/bin/docker ps --all --filter id=7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-10-21T02:06:45.1859684Z 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f Up Less than a second (health: starting)
+2026-10-21T02:06:45.1883877Z ##[command]/usr/bin/docker port 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:45.2070337Z 5432/tcp -> 0.0.0.0:5432
+2026-10-21T02:06:45.2070923Z 5432/tcp -> [::]:5432
+2026-10-21T02:06:45.2122544Z ##[endgroup]
+2026-10-21T02:06:45.2134691Z ##[group]Waiting for all services to be ready
+2026-10-21T02:06:45.2152862Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:45.2315012Z starting
+2026-10-21T02:06:45.2342135Z postgres service is starting, waiting 2 seconds before checking again.
+2026-10-21T02:06:47.2344197Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:47.2497206Z starting
+2026-10-21T02:06:47.2512871Z postgres service is starting, waiting 4 seconds before checking again.
+2026-10-21T02:06:51.5710900Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:51.5866546Z starting
+2026-10-21T02:06:51.5898427Z postgres service is starting, waiting 7 seconds before checking again.
+2026-10-21T02:06:58.8798030Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:06:58.8954119Z healthy
+2026-10-21T02:06:58.8973351Z postgres service is healthy.
+2026-10-21T02:06:58.8974128Z ##[endgroup]
+2026-10-21T02:06:58.9350161Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-10-21T02:06:58.9350849Z with:
+2026-10-21T02:06:58.9351063Z   repository: szTheory/rindle
+2026-10-21T02:06:58.9353314Z   token: ***
+2026-10-21T02:06:58.9353514Z   ssh-strict: true
+2026-10-21T02:06:58.9353719Z   ssh-user: git
+2026-10-21T02:06:58.9353930Z   persist-credentials: true
+2026-10-21T02:06:58.9354154Z   clean: true
+2026-10-21T02:06:58.9354350Z   sparse-checkout-cone-mode: true
+2026-10-21T02:06:58.9354593Z   fetch-depth: 1
+2026-10-21T02:06:58.9354781Z   fetch-tags: false
+2026-10-21T02:06:58.9354980Z   show-progress: true
+2026-10-21T02:06:58.9355176Z   lfs: false
+2026-10-21T02:06:58.9355358Z   submodules: false
+2026-10-21T02:06:58.9355557Z   set-safe-directory: true
+2026-10-21T02:06:58.9355790Z   allow-unsafe-pr-checkout: false
+2026-10-21T02:06:58.9356215Z env:
+2026-10-21T02:06:58.9356395Z   MIX_ENV: test
+2026-10-21T02:06:58.9356899Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:06:58.9357179Z   PGUSER: postgres
+2026-10-21T02:06:58.9357383Z   PGPASSWORD: postgres
+2026-10-21T02:06:58.9357587Z   PGHOST: localhost
+2026-10-21T02:06:58.9357772Z   PGPORT: 5432
+2026-10-21T02:06:58.9357993Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:06:58.9358280Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:06:58.9358537Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:06:58.9358782Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:06:58.9359022Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:06:58.9359246Z ##[endgroup]
+2026-10-21T02:06:59.0373049Z Syncing repository: szTheory/rindle
+2026-10-21T02:06:59.0375031Z ##[group]Getting Git version info
+2026-10-21T02:06:59.0375669Z Working directory is '/home/runner/work/rindle/rindle'
+2026-10-21T02:06:59.0376975Z [command]/usr/bin/git version
+2026-10-21T02:06:59.0455355Z git version 2.55.0
+2026-10-21T02:06:59.0475933Z ##[endgroup]
+2026-10-21T02:06:59.0487639Z Temporarily overriding HOME='/home/runner/work/_temp/e11ec289-f788-492b-b9dc-514d2ecfc9e7' before making global git config changes
+2026-10-21T02:06:59.0488995Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T02:06:59.0493819Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/rindle/rindle
+2026-10-21T02:06:59.0529850Z Deleting the contents of '/home/runner/work/rindle/rindle'
+2026-10-21T02:06:59.0533569Z ##[group]Determining repository object format
+2026-10-21T02:06:59.0535064Z ##[endgroup]
+2026-10-21T02:06:59.0535824Z ##[group]Initializing the repository
+2026-10-21T02:06:59.0540425Z [command]/usr/bin/git init /home/runner/work/rindle/rindle
+2026-10-21T02:06:59.0670520Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-21T02:06:59.0671790Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-21T02:06:59.0672938Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-21T02:06:59.0673787Z hint: call:
+2026-10-21T02:06:59.0674341Z hint:
+2026-10-21T02:06:59.0674682Z hint: 	git config --global init.defaultBranch <name>
+2026-10-21T02:06:59.0675111Z hint:
+2026-10-21T02:06:59.0675463Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-21T02:06:59.0676092Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-21T02:06:59.0677052Z hint:
+2026-10-21T02:06:59.0677495Z hint: 	git branch -m <name>
+2026-10-21T02:06:59.0677933Z hint:
+2026-10-21T02:06:59.0678631Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-21T02:06:59.0679542Z Initialized empty Git repository in /home/runner/work/rindle/rindle/.git/
+2026-10-21T02:06:59.0683571Z [command]/usr/bin/git remote add origin https://github.com/szTheory/rindle
+2026-10-21T02:06:59.0724158Z ##[endgroup]
+2026-10-21T02:06:59.0724570Z ##[group]Disabling automatic garbage collection
+2026-10-21T02:06:59.0729697Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-21T02:06:59.0762818Z ##[endgroup]
+2026-10-21T02:06:59.0763561Z ##[group]Setting up auth
+2026-10-21T02:06:59.0763918Z Removing SSH command configuration
+2026-10-21T02:06:59.0770741Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T02:06:59.0805188Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T02:06:59.1211287Z Removing HTTP extra header
+2026-10-21T02:06:59.1216138Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T02:06:59.1250720Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T02:06:59.1503195Z Removing includeIf entries pointing to credentials config files
+2026-10-21T02:06:59.1508782Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T02:06:59.1541761Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T02:06:59.1794570Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-21T02:06:59.1832533Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/rindle/rindle/.git.path /home/runner/work/_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:06:59.1866268Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:06:59.1900030Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:06:59.1933853Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:06:59.1963840Z ##[endgroup]
+2026-10-21T02:06:59.1964426Z ##[group]Fetching the repository
+2026-10-21T02:06:59.1970920Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ccc97d7f38d34306cc9378caf96c2de4932f3bf7:refs/remotes/pull/162/merge
+2026-10-21T02:07:00.4922253Z From https://github.com/szTheory/rindle
+2026-10-21T02:07:00.4922806Z  * [new ref]         ccc97d7f38d34306cc9378caf96c2de4932f3bf7 -> pull/162/merge
+2026-10-21T02:07:00.4927898Z ##[endgroup]
+2026-10-21T02:07:00.4928389Z ##[group]Determining the checkout info
+2026-10-21T02:07:00.4929376Z ##[endgroup]
+2026-10-21T02:07:00.4934231Z [command]/usr/bin/git sparse-checkout disable
+2026-10-21T02:07:00.4984506Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-21T02:07:00.5017051Z ##[group]Checking out the ref
+2026-10-21T02:07:00.5021622Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/162/merge
+2026-10-21T02:07:00.8178604Z Note: switching to 'refs/remotes/pull/162/merge'.
+2026-10-21T02:07:00.8179095Z 
+2026-10-21T02:07:00.8179530Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:07:00.8180396Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:07:00.8181121Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:07:00.8181526Z 
+2026-10-21T02:07:00.8181818Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:07:00.8182506Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:07:00.8182885Z 
+2026-10-21T02:07:00.8183067Z   git switch -c <new-branch-name>
+2026-10-21T02:07:00.8183334Z 
+2026-10-21T02:07:00.8183506Z Or undo this operation with:
+2026-10-21T02:07:00.8183790Z 
+2026-10-21T02:07:00.8184273Z   git switch -
+2026-10-21T02:07:00.8184499Z 
+2026-10-21T02:07:00.8184808Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:07:00.8185285Z 
+2026-10-21T02:07:00.8185880Z HEAD is now at ccc97d7 Merge 4fdd3fba5ef5bc73be52473bc72de03fe56926d4 into 808d4b771bf55404529e2aad5f151baf6c70a218
+2026-10-21T02:07:00.8203044Z ##[endgroup]
+2026-10-21T02:07:00.8247663Z [command]/usr/bin/git log -1 --format=%H
+2026-10-21T02:07:00.8275497Z ccc97d7f38d34306cc9378caf96c2de4932f3bf7
+2026-10-21T02:07:00.8635725Z Prepare all required actions
+2026-10-21T02:07:00.8636272Z Getting action download info
+2026-10-21T02:07:00.9646151Z Download action repository 'erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93' (SHA:fc68ffb90438ef2936bbb3251622353b3dcb2f93)
+2026-10-21T02:07:01.3094832Z Download action repository 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' (SHA:55cc8345863c7cc4c66a329aec7e433d2d1c52a9)
+2026-10-21T02:07:01.4534130Z ##[group]Run ./.github/actions/setup-elixir
+2026-10-21T02:07:01.4534424Z with:
+2026-10-21T02:07:01.4534618Z   elixir-version: 1.17
+2026-10-21T02:07:01.4534829Z   otp-version: 27
+2026-10-21T02:07:01.4535030Z   mix-env: test
+2026-10-21T02:07:01.4535234Z   install-deps: false
+2026-10-21T02:07:01.4535453Z   cache-prefix: default
+2026-10-21T02:07:01.4535661Z env:
+2026-10-21T02:07:01.4535833Z   MIX_ENV: test
+2026-10-21T02:07:01.4536040Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:01.4536274Z   PGUSER: postgres
+2026-10-21T02:07:01.4536729Z   PGPASSWORD: postgres
+2026-10-21T02:07:01.4536945Z   PGHOST: localhost
+2026-10-21T02:07:01.4537137Z   PGPORT: 5432
+2026-10-21T02:07:01.4537366Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:01.4537659Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:01.4537919Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:01.4538175Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:01.4538428Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:01.4538673Z ##[endgroup]
+2026-10-21T02:07:01.4595969Z ##[start-action display=Set up Elixir/OTP;id=__self.beam]
+2026-10-21T02:07:01.4691229Z ##[group]Run erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93
+2026-10-21T02:07:01.4691606Z with:
+2026-10-21T02:07:01.4691804Z   elixir-version: 1.17
+2026-10-21T02:07:01.4692023Z   otp-version: 27
+2026-10-21T02:07:01.4694205Z   github-token: ***
+2026-10-21T02:07:01.4694419Z   otp-architecture: 64
+2026-10-21T02:07:01.4694634Z   install-hex: true
+2026-10-21T02:07:01.4694832Z   install-rebar: true
+2026-10-21T02:07:01.4695050Z   version-type: loose
+2026-10-21T02:07:01.4695268Z   disable_problem_matchers: false
+2026-10-21T02:07:01.4695551Z   hexpm-mirrors: https://builds.hex.pm
+
+2026-10-21T02:07:01.4695819Z env:
+2026-10-21T02:07:01.4695991Z   MIX_ENV: test
+2026-10-21T02:07:01.4696195Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:01.4696742Z   PGUSER: postgres
+2026-10-21T02:07:01.4696970Z   PGPASSWORD: postgres
+2026-10-21T02:07:01.4697188Z   PGHOST: localhost
+2026-10-21T02:07:01.4697598Z   PGPORT: 5432
+2026-10-21T02:07:01.4697822Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:01.4698114Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:01.4698377Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:01.4698642Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:01.4698897Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:01.4699130Z ##[endgroup]
+2026-10-21T02:07:01.7509539Z ##[group]Installing Erlang/OTP OTP-27.3.4.19 - built on amd64/ubuntu-22.04
+2026-10-21T02:07:03.6785835Z [command]/usr/bin/tar zx --strip-components=1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/9b102905-d67f-435d-9da5-2e9f36968850 -f /home/runner/work/_temp/33fd0eb3-ca19-4453-84fe-c49b8d3fc744
+2026-10-21T02:07:06.3367854Z [command]/home/runner/work/_temp/.setup-beam/otp/Install -minimal /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:06.3741962Z Installed Erlang/OTP version
+2026-10-21T02:07:06.3761724Z [command]/home/runner/work/_temp/.setup-beam/otp/bin/erl -version
+2026-10-21T02:07:06.3899950Z Erlang (SMP,ASYNC_THREADS) (BEAM) emulator version 15.2.7.14
+2026-10-21T02:07:06.3932327Z ##[endgroup]
+2026-10-21T02:07:06.3933343Z [command]/home/runner/work/_temp/.setup-beam/otp/bin/erl -noshell -eval io:format(erlang:system_info(otp_release)), halt().
+2026-10-21T02:07:06.7234794Z 27::debug::Was not able to coerce latest with semver
+2026-10-21T02:07:06.7257137Z Using Elixir 1.17.3 (built for Erlang/OTP 27)
+2026-10-21T02:07:06.7258500Z ##[group]Installing Elixir v1.17.3-otp-27
+2026-10-21T02:07:06.9243664Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/797f3e6c-a43a-4e54-849e-b95a94dac72c
+2026-10-21T02:07:07.3507522Z Installed Elixir version
+2026-10-21T02:07:07.3527674Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/elixir -v
+2026-10-21T02:07:07.5639992Z Erlang/OTP 27 [erts-15.2.7.14] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit:ns]
+2026-10-21T02:07:07.5640596Z 
+2026-10-21T02:07:07.5696079Z Elixir 1.17.3 (compiled with Erlang/OTP 27)
+2026-10-21T02:07:07.5770400Z ##[endgroup]
+2026-10-21T02:07:07.5770892Z ##[group]Running mix local.rebar,--force
+2026-10-21T02:07:07.5775972Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/mix local.rebar --force
+2026-10-21T02:07:09.1945729Z * creating /home/runner/.mix/elixir/1-17/rebar3
+2026-10-21T02:07:09.2041363Z ##[endgroup]
+2026-10-21T02:07:09.2042039Z ##[group]Running mix local.hex,--force
+2026-10-21T02:07:09.2056141Z [command]/home/runner/work/_temp/.setup-beam/elixir/bin/mix local.hex --force
+2026-10-21T02:07:11.1762762Z * creating /home/runner/.mix/archives/hex-2.5.4
+2026-10-21T02:07:11.1873123Z ##[endgroup]
+2026-10-21T02:07:11.2033798Z ##[end-action id=__self.beam;outcome=success;conclusion=success;duration_ms=9743]
+2026-10-21T02:07:11.2037099Z ##[start-action display=Compute cache namespaces;id=__self.ns]
+2026-10-21T02:07:11.2091165Z ##[group]Run if [ "default" = "default" ] || [ -z "default" ]; then
+2026-10-21T02:07:11.2091648Z if [ "default" = "default" ] || [ -z "default" ]; then
+2026-10-21T02:07:11.2092045Z   echo "deps_ns=deps" >> "$GITHUB_OUTPUT"
+2026-10-21T02:07:11.2092375Z   echo "build_ns=build" >> "$GITHUB_OUTPUT"
+2026-10-21T02:07:11.2092662Z else
+2026-10-21T02:07:11.2092912Z   echo "deps_ns=deps-default" >> "$GITHUB_OUTPUT"
+2026-10-21T02:07:11.2093289Z   echo "build_ns=build-default" >> "$GITHUB_OUTPUT"
+2026-10-21T02:07:11.2093589Z fi
+2026-10-21T02:07:11.2186115Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T02:07:11.2186802Z env:
+2026-10-21T02:07:11.2186994Z   MIX_ENV: test
+2026-10-21T02:07:11.2187209Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:11.2187452Z   PGUSER: postgres
+2026-10-21T02:07:11.2187663Z   PGPASSWORD: postgres
+2026-10-21T02:07:11.2187882Z   PGHOST: localhost
+2026-10-21T02:07:11.2188074Z   PGPORT: 5432
+2026-10-21T02:07:11.2188299Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:11.2188582Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:11.2189058Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:11.2189312Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:11.2189561Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:11.2189868Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:11.2190289Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:11.2190633Z ##[endgroup]
+2026-10-21T02:07:11.2316294Z ##[end-action id=__self.ns;outcome=success;conclusion=success;duration_ms=27]
+2026-10-21T02:07:11.2318764Z ##[start-action display=Restore deps cache;id=__self.deps_cache]
+2026-10-21T02:07:11.2953583Z ##[group]Run actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+2026-10-21T02:07:11.2953931Z with:
+2026-10-21T02:07:11.2954114Z   path: deps
+2026-10-21T02:07:11.2954669Z   key: deps-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-713180b40731d36da2fd8dc238ed2a32dbae94a754d7b7655493ea02fed224d9
+2026-10-21T02:07:11.2955430Z   restore-keys: deps-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-
+
+2026-10-21T02:07:11.2955884Z   enableCrossOsArchive: false
+2026-10-21T02:07:11.2956143Z   fail-on-cache-miss: false
+2026-10-21T02:07:11.2956371Z   lookup-only: false
+2026-10-21T02:07:11.2956924Z   save-always: false
+2026-10-21T02:07:11.2957125Z env:
+2026-10-21T02:07:11.2957299Z   MIX_ENV: test
+2026-10-21T02:07:11.2957503Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:11.2957738Z   PGUSER: postgres
+2026-10-21T02:07:11.2957941Z   PGPASSWORD: postgres
+2026-10-21T02:07:11.2958149Z   PGHOST: localhost
+2026-10-21T02:07:11.2958573Z   PGPORT: 5432
+2026-10-21T02:07:11.2958819Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:11.2959118Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:11.2959382Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:11.2959635Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:11.2959889Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:11.2960201Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:11.2960612Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:11.2960960Z ##[endgroup]
+2026-10-21T02:07:11.5680650Z Cache hit for: deps-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-713180b40731d36da2fd8dc238ed2a32dbae94a754d7b7655493ea02fed224d9
+2026-10-21T02:07:12.2685953Z Received 4819538 of 4819538 (100.0%), 8.4 MBs/sec
+2026-10-21T02:07:12.2686971Z Cache Size: ~5 MB (4819538 B)
+2026-10-21T02:07:12.2716008Z [command]/usr/bin/tar -xf /home/runner/work/_temp/2b9abdc4-ee1a-440f-8182-b2000d07d73d/cache.tzst -P -C /home/runner/work/rindle/rindle --use-compress-program unzstd
+2026-10-21T02:07:12.4090584Z Cache restored successfully
+2026-10-21T02:07:12.4183005Z Cache restored from key: deps-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-713180b40731d36da2fd8dc238ed2a32dbae94a754d7b7655493ea02fed224d9
+2026-10-21T02:07:12.4266987Z ##[end-action id=__self.deps_cache;outcome=success;conclusion=success;duration_ms=1194]
+2026-10-21T02:07:12.4270399Z ##[start-action display=Restore build cache;id=__self.build_cache]
+2026-10-21T02:07:12.4877076Z ##[group]Run actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+2026-10-21T02:07:12.4877469Z with:
+2026-10-21T02:07:12.4877679Z   path: _build
+2026-10-21T02:07:12.4878314Z   key: build-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-713180b40731d36da2fd8dc238ed2a32dbae94a754d7b7655493ea02fed224d9
+2026-10-21T02:07:12.4879167Z   restore-keys: build-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-
+
+2026-10-21T02:07:12.4879631Z   enableCrossOsArchive: false
+2026-10-21T02:07:12.4879930Z   fail-on-cache-miss: false
+2026-10-21T02:07:12.4880186Z   lookup-only: false
+2026-10-21T02:07:12.4880416Z   save-always: false
+2026-10-21T02:07:12.4880646Z env:
+2026-10-21T02:07:12.4880847Z   MIX_ENV: test
+2026-10-21T02:07:12.4881069Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:12.4881306Z   PGUSER: postgres
+2026-10-21T02:07:12.4881512Z   PGPASSWORD: postgres
+2026-10-21T02:07:12.4881726Z   PGHOST: localhost
+2026-10-21T02:07:12.4881932Z   PGPORT: 5432
+2026-10-21T02:07:12.4882416Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:12.4882718Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:12.4882983Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:12.4883248Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:12.4883505Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:12.4883826Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:12.4884245Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:12.4884598Z ##[endgroup]
+2026-10-21T02:07:12.7342972Z Cache hit for: build-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-713180b40731d36da2fd8dc238ed2a32dbae94a754d7b7655493ea02fed224d9
+2026-10-21T02:07:13.3490547Z Received 25717094 of 25717094 (100.0%), 50.9 MBs/sec
+2026-10-21T02:07:13.3491261Z Cache Size: ~25 MB (25717094 B)
+2026-10-21T02:07:13.3553520Z [command]/usr/bin/tar -xf /home/runner/work/_temp/5ca28a54-d3b7-4a8d-b416-e0a41f183f92/cache.tzst -P -C /home/runner/work/rindle/rindle --use-compress-program unzstd
+2026-10-21T02:07:13.5103362Z Cache restored successfully
+2026-10-21T02:07:13.5243024Z Cache restored from key: build-v1-Linux-X64-otpOTP-27.3.4.19-elixirv1.17.3-otp-27-test-713180b40731d36da2fd8dc238ed2a32dbae94a754d7b7655493ea02fed224d9
+2026-10-21T02:07:13.5336703Z ##[end-action id=__self.build_cache;outcome=success;conclusion=success;duration_ms=1106]
+2026-10-21T02:07:13.5340430Z ##[start-action display=Install dependencies;id=__self.__run]
+2026-10-21T02:07:13.5360706Z ##[end-action id=__self.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-21T02:07:13.5408527Z ##[group]Run mix deps.get
+2026-10-21T02:07:13.5408839Z mix deps.get
+2026-10-21T02:07:13.5481464Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:13.5481723Z env:
+2026-10-21T02:07:13.5481912Z   MIX_ENV: test
+2026-10-21T02:07:13.5482146Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:13.5482404Z   PGUSER: postgres
+2026-10-21T02:07:13.5482621Z   PGPASSWORD: postgres
+2026-10-21T02:07:13.5482869Z   PGHOST: localhost
+2026-10-21T02:07:13.5483079Z   PGPORT: 5432
+2026-10-21T02:07:13.5483320Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:13.5483637Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:13.5483909Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:13.5484180Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:13.5484446Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:13.5484772Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:13.5485211Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:13.5485613Z ##[endgroup]
+2026-10-21T02:07:14.8260509Z Resolving Hex dependencies...
+2026-10-21T02:07:15.2429702Z Resolution completed in 0.412s
+2026-10-21T02:07:15.3339651Z Unchanged:
+2026-10-21T02:07:15.3340341Z   bunt 1.0.0
+2026-10-21T02:07:15.3357561Z   bypass 2.1.0
+2026-10-21T02:07:15.3358658Z   cc_precompiler 0.1.11
+2026-10-21T02:07:15.3359514Z   color 0.13.0
+2026-10-21T02:07:15.3360284Z   cowboy 2.18.0
+2026-10-21T02:07:15.3360846Z   cowboy_telemetry 0.4.0
+2026-10-21T02:07:15.3361423Z   cowlib 2.19.0 VULNERABLE!
+2026-10-21T02:07:15.3361972Z     EEF-CVE-2026-43971 (MEDIUM)
+2026-10-21T02:07:15.3362514Z     aka: CVE-2026-43971
+2026-10-21T02:07:15.3363220Z     Link Header Directive Smuggling via Unescaped target/rel/Attribute Keys in cow_link:link/1
+2026-10-21T02:07:15.3364064Z     https://osv.dev/vulnerability/EEF-CVE-2026-43971
+2026-10-21T02:07:15.3364564Z 
+2026-10-21T02:07:15.3364908Z     EEF-CVE-2026-43966 (MEDIUM)
+2026-10-21T02:07:15.3365456Z     aka: CVE-2026-43966, GHSA-w4f7-4cxr-rv3c
+2026-10-21T02:07:15.3366194Z     HTTP Response Splitting via Non-VCHAR Bytes in cow_http_struct_hd:escape_string/2
+2026-10-21T02:07:15.3367285Z     https://osv.dev/vulnerability/EEF-CVE-2026-43966
+2026-10-21T02:07:15.3367769Z 
+2026-10-21T02:07:15.3368105Z     EEF-CVE-2026-43969 (LOW)
+2026-10-21T02:07:15.3368723Z     aka: CVE-2026-43969, GHSA-g2wm-735q-3f56
+2026-10-21T02:07:15.3369663Z     Cookie Request Header Injection via Unvalidated Encoder in cow_cookie:cookie/1
+2026-10-21T02:07:15.3371177Z     https://osv.dev/vulnerability/EEF-CVE-2026-43969
+2026-10-21T02:07:15.3371807Z   credo 1.7.19
+2026-10-21T02:07:15.3372286Z   db_connection 2.10.2
+2026-10-21T02:07:15.3372781Z   decimal 3.2.0
+2026-10-21T02:07:15.3373251Z   dialyxir 1.4.8
+2026-10-21T02:07:15.3373715Z   doctor 0.23.0
+2026-10-21T02:07:15.3374174Z   earmark_parser 1.4.46
+2026-10-21T02:07:15.3374643Z   ecto 3.14.2
+2026-10-21T02:07:15.3375084Z   ecto_sql 3.14.0
+2026-10-21T02:07:15.3375533Z   elixir_make 0.10.0
+2026-10-21T02:07:15.3375990Z   erlex 0.2.9
+2026-10-21T02:07:15.3376717Z   ex_aws 2.7.0
+2026-10-21T02:07:15.3377265Z   ex_aws_s3 2.5.9
+2026-10-21T02:07:15.3377723Z   ex_doc 0.40.4
+2026-10-21T02:07:15.3378184Z   ex_machina 2.8.2
+2026-10-21T02:07:15.3378639Z   ex_marcel 0.2.0
+2026-10-21T02:07:15.3379093Z   excoveralls 0.18.5
+2026-10-21T02:07:15.3379566Z   file_system 1.1.1
+2026-10-21T02:07:15.3380016Z   finch 0.24.0
+2026-10-21T02:07:15.3380460Z   fine 0.1.6
+2026-10-21T02:07:15.3380912Z   gcs_signed_url 0.6.0
+2026-10-21T02:07:15.3381415Z   goth 1.4.5
+2026-10-21T02:07:15.3381852Z   hpax 1.1.0
+2026-10-21T02:07:15.3382314Z   image 0.72.0
+2026-10-21T02:07:15.3382759Z   jason 1.4.5
+2026-10-21T02:07:15.3383201Z   jose 1.11.12
+2026-10-21T02:07:15.3383650Z   junit_formatter 3.4.0
+2026-10-21T02:07:15.3384128Z   lazy_html 0.1.13
+2026-10-21T02:07:15.3384582Z   makeup 1.2.3
+2026-10-21T02:07:15.3385037Z   makeup_elixir 1.0.1
+2026-10-21T02:07:15.3385502Z   makeup_erlang 1.1.0
+2026-10-21T02:07:15.3385967Z   mime 2.0.7
+2026-10-21T02:07:15.3386581Z   mint 1.11.0
+2026-10-21T02:07:15.3387599Z   mix_audit 2.1.5
+2026-10-21T02:07:15.3387999Z   mox 1.3.2
+2026-10-21T02:07:15.3388340Z   muontrap 1.7.0
+2026-10-21T02:07:15.3388686Z   mux 3.2.2
+2026-10-21T02:07:15.3389025Z   nimble_options 1.1.1
+2026-10-21T02:07:15.3389431Z   nimble_ownership 1.0.2
+2026-10-21T02:07:15.3389833Z   nimble_parsec 1.4.2
+2026-10-21T02:07:15.3390213Z   nimble_pool 1.1.0
+2026-10-21T02:07:15.3390770Z   oban 2.21.1
+2026-10-21T02:07:15.3391514Z   phoenix 1.8.12
+2026-10-21T02:07:15.3392158Z   phoenix_html 4.3.0
+2026-10-21T02:07:15.3392771Z   phoenix_live_view 1.2.10
+2026-10-21T02:07:15.3393647Z   phoenix_pubsub 2.2.0
+2026-10-21T02:07:15.3394180Z   phoenix_template 1.0.4
+2026-10-21T02:07:15.3394927Z   plug 1.20.3
+2026-10-21T02:07:15.3395432Z   plug_cowboy 2.9.0
+2026-10-21T02:07:15.3412223Z   plug_crypto 2.2.0
+2026-10-21T02:07:15.3412639Z   postgrex 0.22.4
+2026-10-21T02:07:15.3413003Z   ranch 1.8.1
+2026-10-21T02:07:15.3413355Z   req 0.7.5
+2026-10-21T02:07:15.3413668Z   sweet_xml 0.7.5
+2026-10-21T02:07:15.3414014Z   telemetry 1.4.2
+2026-10-21T02:07:15.3414374Z   tesla 1.21.2
+2026-10-21T02:07:15.3414709Z   vix 0.42.0
+2026-10-21T02:07:15.3414929Z   websock 0.5.3
+2026-10-21T02:07:15.3415153Z   websock_adapter 0.6.0
+2026-10-21T02:07:15.3415399Z   yamerl 0.10.0
+2026-10-21T02:07:15.3415616Z   yaml_elixir 2.12.2
+2026-10-21T02:07:15.3992175Z Found packages with security advisories, see above for details
+2026-10-21T02:07:15.4824363Z All dependencies are up to date
+2026-10-21T02:07:15.5005114Z ##[group]Run mix compile
+2026-10-21T02:07:15.5005453Z mix compile
+2026-10-21T02:07:15.5075478Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:15.5075746Z env:
+2026-10-21T02:07:15.5075938Z   MIX_ENV: test
+2026-10-21T02:07:15.5076168Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:15.5076564Z   PGUSER: postgres
+2026-10-21T02:07:15.5076799Z   PGPASSWORD: postgres
+2026-10-21T02:07:15.5077032Z   PGHOST: localhost
+2026-10-21T02:07:15.5077243Z   PGPORT: 5432
+2026-10-21T02:07:15.5077488Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:15.5077808Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:15.5078084Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:15.5078356Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:15.5078623Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:15.5078950Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:15.5079393Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:15.5080015Z ##[endgroup]
+2026-10-21T02:07:16.1597823Z Compiling 35 files (.ex)
+2026-10-21T02:07:17.6900063Z Generated rindle app
+2026-10-21T02:07:17.9503129Z ##[group]Run mix test test/install_smoke/docs_parity/install_and_migrations_test.exs test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs test/install_smoke/docs_parity/operations_test.exs test/install_smoke/docs_parity/product_and_admin_test.exs
+2026-10-21T02:07:17.9504956Z mix test test/install_smoke/docs_parity/install_and_migrations_test.exs test/install_smoke/docs_parity/onboarding_and_capabilities_test.exs test/install_smoke/docs_parity/operations_test.exs test/install_smoke/docs_parity/product_and_admin_test.exs
+2026-10-21T02:07:17.9578207Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:17.9578478Z env:
+2026-10-21T02:07:17.9578683Z   MIX_ENV: test
+2026-10-21T02:07:17.9578909Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:17.9579162Z   PGUSER: postgres
+2026-10-21T02:07:17.9579394Z   PGPASSWORD: postgres
+2026-10-21T02:07:17.9579642Z   PGHOST: localhost
+2026-10-21T02:07:17.9579855Z   PGPORT: 5432
+2026-10-21T02:07:17.9580156Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:17.9580467Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:17.9580739Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:17.9581009Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:17.9581274Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:17.9581609Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:17.9582041Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:17.9582390Z ##[endgroup]
+2026-10-21T02:07:24.0914680Z Running ExUnit with seed: 90760, max_cases: 8
+2026-10-21T02:07:24.0931302Z Excluding tags: [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]
+2026-10-21T02:07:24.0952619Z 
+2026-10-21T02:07:24.8915708Z ...................................
+2026-10-21T02:07:24.8918563Z Finished in 0.7 seconds (0.7s async, 0.00s sync)
+2026-10-21T02:07:24.8919614Z 35 tests, 0 failures
+2026-10-21T02:07:24.8952141Z Wrote JUnit report to: _build/test/junit/rindle-junit.xml
+2026-10-21T02:07:24.9409545Z ##[group]Run bash scripts/maintainer/check_docs_links.sh
+2026-10-21T02:07:24.9410031Z bash scripts/maintainer/check_docs_links.sh
+2026-10-21T02:07:24.9483649Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:24.9483936Z env:
+2026-10-21T02:07:24.9484152Z   MIX_ENV: test
+2026-10-21T02:07:24.9484399Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:24.9484672Z   PGUSER: postgres
+2026-10-21T02:07:24.9484909Z   PGPASSWORD: postgres
+2026-10-21T02:07:24.9485151Z   PGHOST: localhost
+2026-10-21T02:07:24.9485383Z   PGPORT: 5432
+2026-10-21T02:07:24.9485648Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:24.9485983Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:24.9486286Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:24.9486863Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:24.9487166Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:24.9487536Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:24.9488028Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:24.9488420Z ##[endgroup]
+2026-10-21T02:07:24.9615568Z Checking adopter docs for GitHub-only .md link patterns in guides/...
+2026-10-21T02:07:24.9704619Z Checking for planning artifacts in adopter-facing docs...
+2026-10-21T02:07:24.9916354Z check_docs_links: OK
+2026-10-21T02:07:24.9967553Z ##[group]Run bash scripts/ci/install_apt_packages.sh libvips-dev
+2026-10-21T02:07:24.9968401Z bash scripts/ci/install_apt_packages.sh libvips-dev
+2026-10-21T02:07:25.0047156Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:25.0047417Z env:
+2026-10-21T02:07:25.0047606Z   MIX_ENV: test
+2026-10-21T02:07:25.0047830Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:25.0048093Z   PGUSER: postgres
+2026-10-21T02:07:25.0048315Z   PGPASSWORD: postgres
+2026-10-21T02:07:25.0048547Z   PGHOST: localhost
+2026-10-21T02:07:25.0048959Z   PGPORT: 5432
+2026-10-21T02:07:25.0049196Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:25.0049516Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:25.0049788Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:25.0050050Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:25.0050320Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:25.0050648Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:25.0051111Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:25.0051467Z ##[endgroup]
+2026-10-21T02:07:25.0253666Z [install_apt_packages] attempt 1/2: libvips-dev
+2026-10-21T02:07:28.1407669Z Reading package lists...
+2026-10-21T02:07:28.3922255Z Building dependency tree...
+2026-10-21T02:07:28.3938187Z Reading state information...
+2026-10-21T02:07:28.5615285Z The following additional packages will be installed:
+2026-10-21T02:07:28.5616223Z   gettext gir1.2-gsf-1 gir1.2-harfbuzz-0.0 gir1.2-pango-1.0
+2026-10-21T02:07:28.5617471Z   gir1.2-poppler-0.18 gir1.2-vips-8.0 hdf5-helpers libaec-dev libaec0
+2026-10-21T02:07:28.5618132Z   libaom-dev libcfitsio-dev libcfitsio9 libcgif-dev libcgif0
+2026-10-21T02:07:28.5618789Z   libcurl4-openssl-dev libdatrie-dev libdav1d-dev libde265-dev libfftw3-bin
+2026-10-21T02:07:28.5619876Z   libfftw3-dev libfftw3-long3 libfftw3-quad3 libfftw3-single3 libfribidi-dev
+2026-10-21T02:07:28.5620898Z   libgif-dev libgraphite2-dev libgsf-1-114 libgsf-1-common libgsf-1-dev
+2026-10-21T02:07:28.5621946Z   libharfbuzz-dev libharfbuzz-gobject0 libharfbuzz-icu0 libhdf5-103-1
+2026-10-21T02:07:28.5622756Z   libhdf5-cpp-103-1 libhdf5-dev libhdf5-fortran-102 libhdf5-hl-100
+2026-10-21T02:07:28.5623679Z   libhdf5-hl-cpp-100 libhdf5-hl-fortran-100 libheif-dev libimagequant-dev
+2026-10-21T02:07:28.5624650Z   libimagequant0 libmatio-dev libmatio11 libopenslide-dev libopenslide0
+2026-10-21T02:07:28.5625514Z   liborc-0.4-0 liborc-0.4-dev liborc-0.4-dev-bin libpango1.0-dev
+2026-10-21T02:07:28.5626356Z   libpangoxft-1.0-0 libpoppler-dev libpoppler-glib-dev libpoppler-glib8
+2026-10-21T02:07:28.5627654Z   libpoppler118 libsz2 libthai-dev libvips42 libwebp-dev libx265-dev
+2026-10-21T02:07:28.5628382Z   libxft-dev pango1.0-tools
+2026-10-21T02:07:28.5629596Z Suggested packages:
+2026-10-21T02:07:28.5630241Z   gettext-doc autopoint libasprintf-dev libgettextpo-dev libcurl4-doc
+2026-10-21T02:07:28.5631112Z   libidn11-dev libkrb5-dev libldap2-dev librtmp-dev libssh2-1-dev
+2026-10-21T02:07:28.5632002Z   libdatrie-doc libfftw3-doc libgraphite2-utils libhdf5-doc libmatio-doc
+2026-10-21T02:07:28.5632815Z   liborc-0.4-doc libpango1.0-doc libpoppler-glib-doc libthai-doc nip2
+2026-10-21T02:07:28.5633511Z   libx265-doc graphicsmagick
+2026-10-21T02:07:28.5634063Z Recommended packages:
+2026-10-21T02:07:28.5634657Z   libcfitsio-doc poppler-data libvips-doc libvips-tools nip2
+2026-10-21T02:07:28.6141777Z The following NEW packages will be installed:
+2026-10-21T02:07:28.6142717Z   gettext gir1.2-gsf-1 gir1.2-harfbuzz-0.0 gir1.2-pango-1.0
+2026-10-21T02:07:28.6143736Z   gir1.2-poppler-0.18 gir1.2-vips-8.0 hdf5-helpers libaec-dev libaec0
+2026-10-21T02:07:28.6144722Z   libaom-dev libcfitsio-dev libcfitsio9 libcgif-dev libcgif0
+2026-10-21T02:07:28.6145764Z   libcurl4-openssl-dev libdatrie-dev libdav1d-dev libde265-dev libfftw3-bin
+2026-10-21T02:07:28.6147187Z   libfftw3-dev libfftw3-long3 libfftw3-quad3 libfftw3-single3 libfribidi-dev
+2026-10-21T02:07:28.6148769Z   libgif-dev libgraphite2-dev libgsf-1-114 libgsf-1-common libgsf-1-dev
+2026-10-21T02:07:28.6149877Z   libharfbuzz-dev libharfbuzz-gobject0 libharfbuzz-icu0 libhdf5-103-1
+2026-10-21T02:07:28.6150909Z   libhdf5-cpp-103-1 libhdf5-dev libhdf5-fortran-102 libhdf5-hl-100
+2026-10-21T02:07:28.6151956Z   libhdf5-hl-cpp-100 libhdf5-hl-fortran-100 libheif-dev libimagequant-dev
+2026-10-21T02:07:28.6153055Z   libimagequant0 libmatio-dev libmatio11 libopenslide-dev libopenslide0
+2026-10-21T02:07:28.6153622Z   liborc-0.4-0 liborc-0.4-dev liborc-0.4-dev-bin libpango1.0-dev
+2026-10-21T02:07:28.6154376Z   libpangoxft-1.0-0 libpoppler-dev libpoppler-glib-dev libpoppler-glib8
+2026-10-21T02:07:28.6154914Z   libpoppler118 libsz2 libthai-dev libvips-dev libvips42 libwebp-dev
+2026-10-21T02:07:28.6155349Z   libx265-dev libxft-dev pango1.0-tools
+2026-10-21T02:07:28.6418601Z 0 upgraded, 63 newly installed, 0 to remove and 8 not upgraded.
+2026-10-21T02:07:28.6419092Z Need to get 21.1 MB of archives.
+2026-10-21T02:07:28.6419741Z After this operation, 112 MB of additional disk space will be used.
+2026-10-21T02:07:28.6420554Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+2026-10-21T02:07:28.6967859Z Get:2 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 gettext amd64 0.21-4ubuntu4 [868 kB]
+2026-10-21T02:07:28.7300675Z Get:3 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgsf-1-common all 1.14.47-1ubuntu0.1 [13.0 kB]
+2026-10-21T02:07:28.7581145Z Get:4 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgsf-1-114 amd64 1.14.47-1ubuntu0.1 [111 kB]
+2026-10-21T02:07:28.7873755Z Get:5 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 gir1.2-gsf-1 amd64 1.14.47-1ubuntu0.1 [14.7 kB]
+2026-10-21T02:07:28.8157367Z Get:6 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 gir1.2-harfbuzz-0.0 amd64 2.7.4-1ubuntu3.2 [31.6 kB]
+2026-10-21T02:07:28.8465357Z Get:7 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpangoxft-1.0-0 amd64 1.50.6+ds-2ubuntu1 [31.0 kB]
+2026-10-21T02:07:28.8749571Z Get:8 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 gir1.2-pango-1.0 amd64 1.50.6+ds-2ubuntu1 [44.0 kB]
+2026-10-21T02:07:28.9038594Z Get:9 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpoppler118 amd64 22.02.0-2ubuntu0.14 [1079 kB]
+2026-10-21T02:07:28.9417238Z Get:10 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpoppler-glib8 amd64 22.02.0-2ubuntu0.14 [134 kB]
+2026-10-21T02:07:28.9728582Z Get:11 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 gir1.2-poppler-0.18 amd64 22.02.0-2ubuntu0.14 [24.7 kB]
+2026-10-21T02:07:29.0011971Z Get:12 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libcfitsio9 amd64 4.0.0-1 [519 kB]
+2026-10-21T02:07:29.0342233Z Get:13 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libcgif0 amd64 0.2.0-1 [9636 B]
+2026-10-21T02:07:29.0622341Z Get:14 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libimagequant0 amd64 2.17.0-1 [34.6 kB]
+2026-10-21T02:07:29.0904617Z Get:15 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libaec0 amd64 1.0.6-1 [20.1 kB]
+2026-10-21T02:07:29.1184130Z Get:16 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libsz2 amd64 1.0.6-1 [5354 B]
+2026-10-21T02:07:29.1464162Z Get:17 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-103-1 amd64 1.10.7+repack-4ubuntu2 [1295 kB]
+2026-10-21T02:07:29.1912699Z Get:18 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libmatio11 amd64 1.5.21-1 [112 kB]
+2026-10-21T02:07:29.2254046Z Get:19 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libopenslide0 amd64 3.4.1+dfsg-5build1 [89.8 kB]
+2026-10-21T02:07:29.2946796Z Get:20 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 liborc-0.4-0 amd64 1:0.4.32-2ubuntu0.1 [228 kB]
+2026-10-21T02:07:29.3254721Z Get:21 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libvips42 amd64 8.12.1-1build1 [1242 kB]
+2026-10-21T02:07:29.3683730Z Get:22 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 gir1.2-vips-8.0 amd64 8.12.1-1build1 [22.4 kB]
+2026-10-21T02:07:29.3964179Z Get:23 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 hdf5-helpers amd64 1.10.7+repack-4ubuntu2 [14.2 kB]
+2026-10-21T02:07:29.4243349Z Get:24 http://azure.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libaom-dev amd64 3.3.0-1ubuntu0.1 [2093 kB]
+2026-10-21T02:07:29.4786828Z Get:25 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libcfitsio-dev amd64 4.0.0-1 [591 kB]
+2026-10-21T02:07:29.5139051Z Get:26 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libcgif-dev amd64 0.2.0-1 [4036 B]
+2026-10-21T02:07:29.5432134Z Get:27 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libcurl4-openssl-dev amd64 7.81.0-1ubuntu1.29 [387 kB]
+2026-10-21T02:07:29.5751822Z Get:28 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libdatrie-dev amd64 0.2.13-2 [19.7 kB]
+2026-10-21T02:07:29.6032568Z Get:29 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libdav1d-dev amd64 0.9.2-1 [24.1 kB]
+2026-10-21T02:07:29.6313196Z Get:30 http://azure.archive.ubuntu.com/ubuntu jammy-updates/universe amd64 libde265-dev amd64 1.0.8-1ubuntu0.3 [12.3 kB]
+2026-10-21T02:07:29.6592268Z Get:31 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libfftw3-long3 amd64 3.3.8-2ubuntu8 [335 kB]
+2026-10-21T02:07:29.6905010Z Get:32 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libfftw3-quad3 amd64 3.3.8-2ubuntu8 [614 kB]
+2026-10-21T02:07:29.7306335Z Get:33 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libfftw3-single3 amd64 3.3.8-2ubuntu8 [800 kB]
+2026-10-21T02:07:29.7674696Z Get:34 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libfftw3-bin amd64 3.3.8-2ubuntu8 [35.5 kB]
+2026-10-21T02:07:29.7957181Z Get:35 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libfftw3-dev amd64 3.3.8-2ubuntu8 [2101 kB]
+2026-10-21T02:07:29.8452186Z Get:36 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libfribidi-dev amd64 1.0.8-2ubuntu3.1 [64.8 kB]
+2026-10-21T02:07:29.8737527Z Get:37 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgif-dev amd64 5.1.9-2ubuntu0.3 [22.5 kB]
+2026-10-21T02:07:29.9017862Z Get:38 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgraphite2-dev amd64 1.3.14-1ubuntu0.1 [14.7 kB]
+2026-10-21T02:07:30.0007172Z Get:39 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libgsf-1-dev amd64 1.14.47-1ubuntu0.1 [228 kB]
+2026-10-21T02:07:30.1543381Z Get:40 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libharfbuzz-icu0 amd64 2.7.4-1ubuntu3.2 [5890 B]
+2026-10-21T02:07:30.1840247Z Get:41 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libharfbuzz-gobject0 amd64 2.7.4-1ubuntu3.2 [26.0 kB]
+2026-10-21T02:07:30.2409063Z Get:42 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libharfbuzz-dev amd64 2.7.4-1ubuntu3.2 [554 kB]
+2026-10-21T02:07:30.3906104Z Get:43 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-cpp-103-1 amd64 1.10.7+repack-4ubuntu2 [129 kB]
+2026-10-21T02:07:30.4241423Z Get:44 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-fortran-102 amd64 1.10.7+repack-4ubuntu2 [90.9 kB]
+2026-10-21T02:07:30.4567033Z Get:45 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-hl-100 amd64 1.10.7+repack-4ubuntu2 [59.1 kB]
+2026-10-21T02:07:30.4881518Z Get:46 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-hl-fortran-100 amd64 1.10.7+repack-4ubuntu2 [33.8 kB]
+2026-10-21T02:07:30.5181194Z Get:47 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-hl-cpp-100 amd64 1.10.7+repack-4ubuntu2 [10.6 kB]
+2026-10-21T02:07:30.5474588Z Get:48 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libaec-dev amd64 1.0.6-1 [17.9 kB]
+2026-10-21T02:07:30.5774308Z Get:49 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libhdf5-dev amd64 1.10.7+repack-4ubuntu2 [2684 kB]
+2026-10-21T02:07:30.6855708Z Get:50 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libx265-dev amd64 3.5-2 [1374 kB]
+2026-10-21T02:07:30.7320379Z Get:51 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libheif-dev amd64 1.12.0-2build1 [26.4 kB]
+2026-10-21T02:07:30.7653809Z Get:52 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libimagequant-dev amd64 2.17.0-1 [34.3 kB]
+2026-10-21T02:07:30.7968505Z Get:53 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libmatio-dev amd64 1.5.21-1 [117 kB]
+2026-10-21T02:07:30.8280436Z Get:54 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libopenslide-dev amd64 3.4.1+dfsg-5build1 [22.0 kB]
+2026-10-21T02:07:30.8575155Z Get:55 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 liborc-0.4-dev-bin amd64 1:0.4.32-2ubuntu0.1 [232 kB]
+2026-10-21T02:07:30.8894915Z Get:56 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 liborc-0.4-dev amd64 1:0.4.32-2ubuntu0.1 [212 kB]
+2026-10-21T02:07:30.9640967Z Get:57 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libthai-dev amd64 0.1.29-1build1 [26.4 kB]
+2026-10-21T02:07:30.9940026Z Get:58 http://azure.archive.ubuntu.com/ubuntu jammy/main amd64 libxft-dev amd64 2.3.4-1 [52.4 kB]
+2026-10-21T02:07:31.0242192Z Get:59 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 pango1.0-tools amd64 1.50.6+ds-2ubuntu1 [45.8 kB]
+2026-10-21T02:07:31.0562783Z Get:60 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpango1.0-dev amd64 1.50.6+ds-2ubuntu1 [154 kB]
+2026-10-21T02:07:31.0874281Z Get:61 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpoppler-dev amd64 22.02.0-2ubuntu0.14 [5188 B]
+2026-10-21T02:07:31.1169668Z Get:62 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libpoppler-glib-dev amd64 22.02.0-2ubuntu0.14 [68.9 kB]
+2026-10-21T02:07:31.1473489Z Get:63 http://azure.archive.ubuntu.com/ubuntu jammy-updates/main amd64 libwebp-dev amd64 1.2.2-2ubuntu0.22.04.2 [298 kB]
+2026-10-21T02:07:31.1873470Z Get:64 http://azure.archive.ubuntu.com/ubuntu jammy/universe amd64 libvips-dev amd64 8.12.1-1build1 [1558 kB]
+2026-10-21T02:07:31.6768228Z Fetched 21.1 MB in 3s (8133 kB/s)
+2026-10-21T02:07:31.7087205Z Selecting previously unselected package gettext.
+2026-10-21T02:07:31.7487807Z (Reading database ... 
+2026-10-21T02:07:31.7488408Z (Reading database ... 5%
+2026-10-21T02:07:31.7488963Z (Reading database ... 10%
+2026-10-21T02:07:31.7489515Z (Reading database ... 15%
+2026-10-21T02:07:31.7490034Z (Reading database ... 20%
+2026-10-21T02:07:31.7490555Z (Reading database ... 25%
+2026-10-21T02:07:31.7491096Z (Reading database ... 30%
+2026-10-21T02:07:31.7491578Z (Reading database ... 35%
+2026-10-21T02:07:31.7492010Z (Reading database ... 40%
+2026-10-21T02:07:31.7492458Z (Reading database ... 45%
+2026-10-21T02:07:31.7492819Z (Reading database ... 50%
+2026-10-21T02:07:31.8414768Z (Reading database ... 55%
+2026-10-21T02:07:32.0392821Z (Reading database ... 60%
+2026-10-21T02:07:32.2891864Z (Reading database ... 65%
+2026-10-21T02:07:32.5433860Z (Reading database ... 70%
+2026-10-21T02:07:32.6908193Z (Reading database ... 75%
+2026-10-21T02:07:32.9756832Z (Reading database ... 80%
+2026-10-21T02:07:33.2496247Z (Reading database ... 85%
+2026-10-21T02:07:33.4450785Z (Reading database ... 90%
+2026-10-21T02:07:33.6982080Z (Reading database ... 95%
+2026-10-21T02:07:33.6982508Z (Reading database ... 100%
+2026-10-21T02:07:33.6982993Z (Reading database ... 261642 files and directories currently installed.)
+2026-10-21T02:07:33.7037213Z Preparing to unpack .../00-gettext_0.21-4ubuntu4_amd64.deb ...
+2026-10-21T02:07:33.7073847Z Unpacking gettext (0.21-4ubuntu4) ...
+2026-10-21T02:07:33.8122921Z Selecting previously unselected package libgsf-1-common.
+2026-10-21T02:07:33.8327661Z Preparing to unpack .../01-libgsf-1-common_1.14.47-1ubuntu0.1_all.deb ...
+2026-10-21T02:07:33.8334410Z Unpacking libgsf-1-common (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:33.8565293Z Selecting previously unselected package libgsf-1-114:amd64.
+2026-10-21T02:07:33.8770885Z Preparing to unpack .../02-libgsf-1-114_1.14.47-1ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:33.8778938Z Unpacking libgsf-1-114:amd64 (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:33.9050227Z Selecting previously unselected package gir1.2-gsf-1:amd64.
+2026-10-21T02:07:33.9254025Z Preparing to unpack .../03-gir1.2-gsf-1_1.14.47-1ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:33.9261331Z Unpacking gir1.2-gsf-1:amd64 (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:33.9468147Z Selecting previously unselected package gir1.2-harfbuzz-0.0:amd64.
+2026-10-21T02:07:33.9666855Z Preparing to unpack .../04-gir1.2-harfbuzz-0.0_2.7.4-1ubuntu3.2_amd64.deb ...
+2026-10-21T02:07:33.9673354Z Unpacking gir1.2-harfbuzz-0.0:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:33.9895884Z Selecting previously unselected package libpangoxft-1.0-0:amd64.
+2026-10-21T02:07:34.0094252Z Preparing to unpack .../05-libpangoxft-1.0-0_1.50.6+ds-2ubuntu1_amd64.deb ...
+2026-10-21T02:07:34.0101923Z Unpacking libpangoxft-1.0-0:amd64 (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:34.0357522Z Selecting previously unselected package gir1.2-pango-1.0:amd64.
+2026-10-21T02:07:34.0555939Z Preparing to unpack .../06-gir1.2-pango-1.0_1.50.6+ds-2ubuntu1_amd64.deb ...
+2026-10-21T02:07:34.0562454Z Unpacking gir1.2-pango-1.0:amd64 (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:34.0795978Z Selecting previously unselected package libpoppler118:amd64.
+2026-10-21T02:07:34.0995032Z Preparing to unpack .../07-libpoppler118_22.02.0-2ubuntu0.14_amd64.deb ...
+2026-10-21T02:07:34.1003132Z Unpacking libpoppler118:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:34.1425864Z Selecting previously unselected package libpoppler-glib8:amd64.
+2026-10-21T02:07:34.1629709Z Preparing to unpack .../08-libpoppler-glib8_22.02.0-2ubuntu0.14_amd64.deb ...
+2026-10-21T02:07:34.1634282Z Unpacking libpoppler-glib8:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:34.1861359Z Selecting previously unselected package gir1.2-poppler-0.18:amd64.
+2026-10-21T02:07:34.2059457Z Preparing to unpack .../09-gir1.2-poppler-0.18_22.02.0-2ubuntu0.14_amd64.deb ...
+2026-10-21T02:07:34.2066199Z Unpacking gir1.2-poppler-0.18:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:34.2287390Z Selecting previously unselected package libcfitsio9:amd64.
+2026-10-21T02:07:34.2485671Z Preparing to unpack .../10-libcfitsio9_4.0.0-1_amd64.deb ...
+2026-10-21T02:07:34.2493790Z Unpacking libcfitsio9:amd64 (4.0.0-1) ...
+2026-10-21T02:07:34.2773530Z Selecting previously unselected package libcgif0.
+2026-10-21T02:07:34.2970847Z Preparing to unpack .../11-libcgif0_0.2.0-1_amd64.deb ...
+2026-10-21T02:07:34.2977094Z Unpacking libcgif0 (0.2.0-1) ...
+2026-10-21T02:07:34.3196896Z Selecting previously unselected package libimagequant0:amd64.
+2026-10-21T02:07:34.3396937Z Preparing to unpack .../12-libimagequant0_2.17.0-1_amd64.deb ...
+2026-10-21T02:07:34.3404058Z Unpacking libimagequant0:amd64 (2.17.0-1) ...
+2026-10-21T02:07:34.3626288Z Selecting previously unselected package libaec0:amd64.
+2026-10-21T02:07:34.3827355Z Preparing to unpack .../13-libaec0_1.0.6-1_amd64.deb ...
+2026-10-21T02:07:34.3835141Z Unpacking libaec0:amd64 (1.0.6-1) ...
+2026-10-21T02:07:34.4060169Z Selecting previously unselected package libsz2:amd64.
+2026-10-21T02:07:34.4262005Z Preparing to unpack .../14-libsz2_1.0.6-1_amd64.deb ...
+2026-10-21T02:07:34.4270603Z Unpacking libsz2:amd64 (1.0.6-1) ...
+2026-10-21T02:07:34.4490656Z Selecting previously unselected package libhdf5-103-1:amd64.
+2026-10-21T02:07:34.4690499Z Preparing to unpack .../15-libhdf5-103-1_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:34.4698281Z Unpacking libhdf5-103-1:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:34.5140440Z Selecting previously unselected package libmatio11:amd64.
+2026-10-21T02:07:34.5342446Z Preparing to unpack .../16-libmatio11_1.5.21-1_amd64.deb ...
+2026-10-21T02:07:34.5351393Z Unpacking libmatio11:amd64 (1.5.21-1) ...
+2026-10-21T02:07:34.5583342Z Selecting previously unselected package libopenslide0.
+2026-10-21T02:07:34.5783663Z Preparing to unpack .../17-libopenslide0_3.4.1+dfsg-5build1_amd64.deb ...
+2026-10-21T02:07:34.5790986Z Unpacking libopenslide0 (3.4.1+dfsg-5build1) ...
+2026-10-21T02:07:34.6019317Z Selecting previously unselected package liborc-0.4-0:amd64.
+2026-10-21T02:07:34.6223665Z Preparing to unpack .../18-liborc-0.4-0_1%3a0.4.32-2ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:34.6231279Z Unpacking liborc-0.4-0:amd64 (1:0.4.32-2ubuntu0.1) ...
+2026-10-21T02:07:34.6491856Z Selecting previously unselected package libvips42:amd64.
+2026-10-21T02:07:34.6694313Z Preparing to unpack .../19-libvips42_8.12.1-1build1_amd64.deb ...
+2026-10-21T02:07:34.6702026Z Unpacking libvips42:amd64 (8.12.1-1build1) ...
+2026-10-21T02:07:34.7120970Z Selecting previously unselected package gir1.2-vips-8.0.
+2026-10-21T02:07:34.7325055Z Preparing to unpack .../20-gir1.2-vips-8.0_8.12.1-1build1_amd64.deb ...
+2026-10-21T02:07:34.7333254Z Unpacking gir1.2-vips-8.0 (8.12.1-1build1) ...
+2026-10-21T02:07:34.7543122Z Selecting previously unselected package hdf5-helpers.
+2026-10-21T02:07:34.7744166Z Preparing to unpack .../21-hdf5-helpers_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:34.7755815Z Unpacking hdf5-helpers (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:34.7977337Z Selecting previously unselected package libaom-dev:amd64.
+2026-10-21T02:07:34.8178004Z Preparing to unpack .../22-libaom-dev_3.3.0-1ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:34.8185843Z Unpacking libaom-dev:amd64 (3.3.0-1ubuntu0.1) ...
+2026-10-21T02:07:34.8838632Z Selecting previously unselected package libcfitsio-dev:amd64.
+2026-10-21T02:07:34.9044234Z Preparing to unpack .../23-libcfitsio-dev_4.0.0-1_amd64.deb ...
+2026-10-21T02:07:34.9050747Z Unpacking libcfitsio-dev:amd64 (4.0.0-1) ...
+2026-10-21T02:07:34.9385677Z Selecting previously unselected package libcgif-dev.
+2026-10-21T02:07:34.9588838Z Preparing to unpack .../24-libcgif-dev_0.2.0-1_amd64.deb ...
+2026-10-21T02:07:34.9595162Z Unpacking libcgif-dev (0.2.0-1) ...
+2026-10-21T02:07:34.9839923Z Selecting previously unselected package libcurl4-openssl-dev:amd64.
+2026-10-21T02:07:35.0042185Z Preparing to unpack .../25-libcurl4-openssl-dev_7.81.0-1ubuntu1.29_amd64.deb ...
+2026-10-21T02:07:35.0050053Z Unpacking libcurl4-openssl-dev:amd64 (7.81.0-1ubuntu1.29) ...
+2026-10-21T02:07:35.0385822Z Selecting previously unselected package libdatrie-dev:amd64.
+2026-10-21T02:07:35.0590135Z Preparing to unpack .../26-libdatrie-dev_0.2.13-2_amd64.deb ...
+2026-10-21T02:07:35.0599552Z Unpacking libdatrie-dev:amd64 (0.2.13-2) ...
+2026-10-21T02:07:35.0821228Z Selecting previously unselected package libdav1d-dev:amd64.
+2026-10-21T02:07:35.1023772Z Preparing to unpack .../27-libdav1d-dev_0.9.2-1_amd64.deb ...
+2026-10-21T02:07:35.1031193Z Unpacking libdav1d-dev:amd64 (0.9.2-1) ...
+2026-10-21T02:07:35.1267623Z Selecting previously unselected package libde265-dev:amd64.
+2026-10-21T02:07:35.1470453Z Preparing to unpack .../28-libde265-dev_1.0.8-1ubuntu0.3_amd64.deb ...
+2026-10-21T02:07:35.1476964Z Unpacking libde265-dev:amd64 (1.0.8-1ubuntu0.3) ...
+2026-10-21T02:07:35.1704125Z Selecting previously unselected package libfftw3-long3:amd64.
+2026-10-21T02:07:35.1906269Z Preparing to unpack .../29-libfftw3-long3_3.3.8-2ubuntu8_amd64.deb ...
+2026-10-21T02:07:35.1913651Z Unpacking libfftw3-long3:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:35.2372311Z Selecting previously unselected package libfftw3-quad3:amd64.
+2026-10-21T02:07:35.2572030Z Preparing to unpack .../30-libfftw3-quad3_3.3.8-2ubuntu8_amd64.deb ...
+2026-10-21T02:07:35.2579342Z Unpacking libfftw3-quad3:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:35.3265980Z Selecting previously unselected package libfftw3-single3:amd64.
+2026-10-21T02:07:35.3484878Z Preparing to unpack .../31-libfftw3-single3_3.3.8-2ubuntu8_amd64.deb ...
+2026-10-21T02:07:35.3493126Z Unpacking libfftw3-single3:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:35.4302054Z Selecting previously unselected package libfftw3-bin.
+2026-10-21T02:07:35.4505285Z Preparing to unpack .../32-libfftw3-bin_3.3.8-2ubuntu8_amd64.deb ...
+2026-10-21T02:07:35.4512132Z Unpacking libfftw3-bin (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:35.4802456Z Selecting previously unselected package libfftw3-dev:amd64.
+2026-10-21T02:07:35.5005231Z Preparing to unpack .../33-libfftw3-dev_3.3.8-2ubuntu8_amd64.deb ...
+2026-10-21T02:07:35.5017681Z Unpacking libfftw3-dev:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:35.7133843Z Selecting previously unselected package libfribidi-dev:amd64.
+2026-10-21T02:07:35.7359743Z Preparing to unpack .../34-libfribidi-dev_1.0.8-2ubuntu3.1_amd64.deb ...
+2026-10-21T02:07:35.7439893Z Unpacking libfribidi-dev:amd64 (1.0.8-2ubuntu3.1) ...
+2026-10-21T02:07:35.8345756Z Selecting previously unselected package libgif-dev.
+2026-10-21T02:07:35.8583750Z Preparing to unpack .../35-libgif-dev_5.1.9-2ubuntu0.3_amd64.deb ...
+2026-10-21T02:07:35.8837549Z Unpacking libgif-dev (5.1.9-2ubuntu0.3) ...
+2026-10-21T02:07:36.1590083Z Selecting previously unselected package libgraphite2-dev:amd64.
+2026-10-21T02:07:36.1795934Z Preparing to unpack .../36-libgraphite2-dev_1.3.14-1ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:36.1803819Z Unpacking libgraphite2-dev:amd64 (1.3.14-1ubuntu0.1) ...
+2026-10-21T02:07:36.2029051Z Selecting previously unselected package libgsf-1-dev:amd64.
+2026-10-21T02:07:36.2233663Z Preparing to unpack .../37-libgsf-1-dev_1.14.47-1ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:36.2240813Z Unpacking libgsf-1-dev:amd64 (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:36.2788831Z Selecting previously unselected package libharfbuzz-icu0:amd64.
+2026-10-21T02:07:36.2993811Z Preparing to unpack .../38-libharfbuzz-icu0_2.7.4-1ubuntu3.2_amd64.deb ...
+2026-10-21T02:07:36.3001706Z Unpacking libharfbuzz-icu0:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:36.3238733Z Selecting previously unselected package libharfbuzz-gobject0:amd64.
+2026-10-21T02:07:36.3442971Z Preparing to unpack .../39-libharfbuzz-gobject0_2.7.4-1ubuntu3.2_amd64.deb ...
+2026-10-21T02:07:36.3451115Z Unpacking libharfbuzz-gobject0:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:36.3674383Z Selecting previously unselected package libharfbuzz-dev:amd64.
+2026-10-21T02:07:36.3881661Z Preparing to unpack .../40-libharfbuzz-dev_2.7.4-1ubuntu3.2_amd64.deb ...
+2026-10-21T02:07:36.3890254Z Unpacking libharfbuzz-dev:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:36.4361393Z Selecting previously unselected package libhdf5-cpp-103-1:amd64.
+2026-10-21T02:07:36.4566862Z Preparing to unpack .../41-libhdf5-cpp-103-1_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:36.4573600Z Unpacking libhdf5-cpp-103-1:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:36.4824566Z Selecting previously unselected package libhdf5-fortran-102:amd64.
+2026-10-21T02:07:36.5029186Z Preparing to unpack .../42-libhdf5-fortran-102_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:36.5037297Z Unpacking libhdf5-fortran-102:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:36.5278644Z Selecting previously unselected package libhdf5-hl-100:amd64.
+2026-10-21T02:07:36.5483842Z Preparing to unpack .../43-libhdf5-hl-100_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:36.5490725Z Unpacking libhdf5-hl-100:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:36.5720709Z Selecting previously unselected package libhdf5-hl-fortran-100:amd64.
+2026-10-21T02:07:36.5922499Z Preparing to unpack .../44-libhdf5-hl-fortran-100_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:36.5928918Z Unpacking libhdf5-hl-fortran-100:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:36.6160410Z Selecting previously unselected package libhdf5-hl-cpp-100:amd64.
+2026-10-21T02:07:36.6363508Z Preparing to unpack .../45-libhdf5-hl-cpp-100_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:36.6370985Z Unpacking libhdf5-hl-cpp-100:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:36.6587173Z Selecting previously unselected package libaec-dev:amd64.
+2026-10-21T02:07:36.6789342Z Preparing to unpack .../46-libaec-dev_1.0.6-1_amd64.deb ...
+2026-10-21T02:07:36.6795378Z Unpacking libaec-dev:amd64 (1.0.6-1) ...
+2026-10-21T02:07:36.7028427Z Selecting previously unselected package libhdf5-dev.
+2026-10-21T02:07:36.7230023Z Preparing to unpack .../47-libhdf5-dev_1.10.7+repack-4ubuntu2_amd64.deb ...
+2026-10-21T02:07:36.7236947Z Unpacking libhdf5-dev (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:36.8088774Z Selecting previously unselected package libx265-dev:amd64.
+2026-10-21T02:07:36.8294182Z Preparing to unpack .../48-libx265-dev_3.5-2_amd64.deb ...
+2026-10-21T02:07:36.8300466Z Unpacking libx265-dev:amd64 (3.5-2) ...
+2026-10-21T02:07:36.9192961Z Selecting previously unselected package libheif-dev:amd64.
+2026-10-21T02:07:36.9403970Z Preparing to unpack .../49-libheif-dev_1.12.0-2build1_amd64.deb ...
+2026-10-21T02:07:36.9411315Z Unpacking libheif-dev:amd64 (1.12.0-2build1) ...
+2026-10-21T02:07:36.9647483Z Selecting previously unselected package libimagequant-dev:amd64.
+2026-10-21T02:07:36.9857147Z Preparing to unpack .../50-libimagequant-dev_2.17.0-1_amd64.deb ...
+2026-10-21T02:07:36.9865591Z Unpacking libimagequant-dev:amd64 (2.17.0-1) ...
+2026-10-21T02:07:37.0097753Z Selecting previously unselected package libmatio-dev:amd64.
+2026-10-21T02:07:37.0303639Z Preparing to unpack .../51-libmatio-dev_1.5.21-1_amd64.deb ...
+2026-10-21T02:07:37.0311773Z Unpacking libmatio-dev:amd64 (1.5.21-1) ...
+2026-10-21T02:07:37.0561288Z Selecting previously unselected package libopenslide-dev.
+2026-10-21T02:07:37.0766165Z Preparing to unpack .../52-libopenslide-dev_3.4.1+dfsg-5build1_amd64.deb ...
+2026-10-21T02:07:37.0773182Z Unpacking libopenslide-dev (3.4.1+dfsg-5build1) ...
+2026-10-21T02:07:37.0999125Z Selecting previously unselected package liborc-0.4-dev-bin.
+2026-10-21T02:07:37.1200302Z Preparing to unpack .../53-liborc-0.4-dev-bin_1%3a0.4.32-2ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:37.1207432Z Unpacking liborc-0.4-dev-bin (1:0.4.32-2ubuntu0.1) ...
+2026-10-21T02:07:37.1460300Z Selecting previously unselected package liborc-0.4-dev:amd64.
+2026-10-21T02:07:37.1665144Z Preparing to unpack .../54-liborc-0.4-dev_1%3a0.4.32-2ubuntu0.1_amd64.deb ...
+2026-10-21T02:07:37.1672357Z Unpacking liborc-0.4-dev:amd64 (1:0.4.32-2ubuntu0.1) ...
+2026-10-21T02:07:37.2081227Z Selecting previously unselected package libthai-dev:amd64.
+2026-10-21T02:07:37.2283957Z Preparing to unpack .../55-libthai-dev_0.1.29-1build1_amd64.deb ...
+2026-10-21T02:07:37.2292302Z Unpacking libthai-dev:amd64 (0.1.29-1build1) ...
+2026-10-21T02:07:37.2535154Z Selecting previously unselected package libxft-dev:amd64.
+2026-10-21T02:07:37.2738984Z Preparing to unpack .../56-libxft-dev_2.3.4-1_amd64.deb ...
+2026-10-21T02:07:37.2746217Z Unpacking libxft-dev:amd64 (2.3.4-1) ...
+2026-10-21T02:07:37.3018629Z Selecting previously unselected package pango1.0-tools.
+2026-10-21T02:07:37.3221339Z Preparing to unpack .../57-pango1.0-tools_1.50.6+ds-2ubuntu1_amd64.deb ...
+2026-10-21T02:07:37.3227027Z Unpacking pango1.0-tools (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:37.3539082Z Selecting previously unselected package libpango1.0-dev:amd64.
+2026-10-21T02:07:37.3742070Z Preparing to unpack .../58-libpango1.0-dev_1.50.6+ds-2ubuntu1_amd64.deb ...
+2026-10-21T02:07:37.3748425Z Unpacking libpango1.0-dev:amd64 (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:37.4090515Z Selecting previously unselected package libpoppler-dev:amd64.
+2026-10-21T02:07:37.4294635Z Preparing to unpack .../59-libpoppler-dev_22.02.0-2ubuntu0.14_amd64.deb ...
+2026-10-21T02:07:37.4301854Z Unpacking libpoppler-dev:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.4519042Z Selecting previously unselected package libpoppler-glib-dev.
+2026-10-21T02:07:37.4722448Z Preparing to unpack .../60-libpoppler-glib-dev_22.02.0-2ubuntu0.14_amd64.deb ...
+2026-10-21T02:07:37.4730608Z Unpacking libpoppler-glib-dev (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.4995659Z Selecting previously unselected package libwebp-dev:amd64.
+2026-10-21T02:07:37.5199155Z Preparing to unpack .../61-libwebp-dev_1.2.2-2ubuntu0.22.04.2_amd64.deb ...
+2026-10-21T02:07:37.5205638Z Unpacking libwebp-dev:amd64 (1.2.2-2ubuntu0.22.04.2) ...
+2026-10-21T02:07:37.5482096Z Selecting previously unselected package libvips-dev.
+2026-10-21T02:07:37.5685747Z Preparing to unpack .../62-libvips-dev_8.12.1-1build1_amd64.deb ...
+2026-10-21T02:07:37.5692716Z Unpacking libvips-dev (8.12.1-1build1) ...
+2026-10-21T02:07:37.6712900Z Setting up libgsf-1-common (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:37.6736149Z Setting up gettext (0.21-4ubuntu4) ...
+2026-10-21T02:07:37.6755573Z Setting up libharfbuzz-icu0:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:37.6786295Z Setting up libcgif0 (0.2.0-1) ...
+2026-10-21T02:07:37.6804731Z Setting up libfftw3-single3:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:37.6822996Z Setting up libpangoxft-1.0-0:amd64 (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:37.6840541Z Setting up hdf5-helpers (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.6857746Z Setting up libfribidi-dev:amd64 (1.0.8-2ubuntu3.1) ...
+2026-10-21T02:07:37.6875508Z Setting up pango1.0-tools (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:37.6893969Z Setting up libfftw3-long3:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:37.6914297Z Setting up liborc-0.4-dev-bin (1:0.4.32-2ubuntu0.1) ...
+2026-10-21T02:07:37.6938356Z Setting up libharfbuzz-gobject0:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:37.6956723Z Setting up gir1.2-harfbuzz-0.0:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:37.6974136Z Setting up libaec0:amd64 (1.0.6-1) ...
+2026-10-21T02:07:37.6990951Z Setting up libgsf-1-114:amd64 (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:37.7009581Z Setting up libcfitsio9:amd64 (4.0.0-1) ...
+2026-10-21T02:07:37.7026985Z Setting up libaom-dev:amd64 (3.3.0-1ubuntu0.1) ...
+2026-10-21T02:07:37.7044812Z Setting up libpoppler118:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.7061252Z Setting up libcgif-dev (0.2.0-1) ...
+2026-10-21T02:07:37.7120321Z Setting up libgraphite2-dev:amd64 (1.3.14-1ubuntu0.1) ...
+2026-10-21T02:07:37.7146312Z Setting up gir1.2-pango-1.0:amd64 (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:37.7164816Z Setting up libwebp-dev:amd64 (1.2.2-2ubuntu0.22.04.2) ...
+2026-10-21T02:07:37.7181661Z Setting up libde265-dev:amd64 (1.0.8-1ubuntu0.3) ...
+2026-10-21T02:07:37.7198625Z Setting up libcurl4-openssl-dev:amd64 (7.81.0-1ubuntu1.29) ...
+2026-10-21T02:07:37.7215469Z Setting up libdav1d-dev:amd64 (0.9.2-1) ...
+2026-10-21T02:07:37.7233474Z Setting up libfftw3-quad3:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:37.7253193Z Setting up libx265-dev:amd64 (3.5-2) ...
+2026-10-21T02:07:37.7269154Z Setting up libimagequant0:amd64 (2.17.0-1) ...
+2026-10-21T02:07:37.7286914Z Setting up liborc-0.4-0:amd64 (1:0.4.32-2ubuntu0.1) ...
+2026-10-21T02:07:37.7304430Z Setting up libdatrie-dev:amd64 (0.2.13-2) ...
+2026-10-21T02:07:37.7321748Z Setting up libgif-dev (5.1.9-2ubuntu0.3) ...
+2026-10-21T02:07:37.7339983Z Setting up libopenslide0 (3.4.1+dfsg-5build1) ...
+2026-10-21T02:07:37.7358902Z Setting up liborc-0.4-dev:amd64 (1:0.4.32-2ubuntu0.1) ...
+2026-10-21T02:07:37.7375666Z Setting up libsz2:amd64 (1.0.6-1) ...
+2026-10-21T02:07:37.7394848Z Setting up libxft-dev:amd64 (2.3.4-1) ...
+2026-10-21T02:07:37.7413922Z Setting up libpoppler-dev:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.7431766Z Setting up libharfbuzz-dev:amd64 (2.7.4-1ubuntu3.2) ...
+2026-10-21T02:07:37.7448865Z Setting up libcfitsio-dev:amd64 (4.0.0-1) ...
+2026-10-21T02:07:37.7465629Z Setting up libpoppler-glib8:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.7482614Z Setting up libimagequant-dev:amd64 (2.17.0-1) ...
+2026-10-21T02:07:37.7502247Z Setting up libfftw3-bin (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:37.7520430Z Setting up gir1.2-gsf-1:amd64 (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:37.7536921Z Setting up libaec-dev:amd64 (1.0.6-1) ...
+2026-10-21T02:07:37.7555563Z Setting up libheif-dev:amd64 (1.12.0-2build1) ...
+2026-10-21T02:07:37.7572990Z Setting up libopenslide-dev (3.4.1+dfsg-5build1) ...
+2026-10-21T02:07:37.7590574Z Setting up libgsf-1-dev:amd64 (1.14.47-1ubuntu0.1) ...
+2026-10-21T02:07:37.7608370Z Setting up libthai-dev:amd64 (0.1.29-1build1) ...
+2026-10-21T02:07:37.7627014Z Setting up libhdf5-103-1:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7644854Z Setting up libhdf5-cpp-103-1:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7662666Z Setting up gir1.2-poppler-0.18:amd64 (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.7682183Z Setting up libfftw3-dev:amd64 (3.3.8-2ubuntu8) ...
+2026-10-21T02:07:37.7702569Z Setting up libhdf5-hl-100:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7721535Z Setting up libpoppler-glib-dev (22.02.0-2ubuntu0.14) ...
+2026-10-21T02:07:37.7739372Z Setting up libhdf5-hl-cpp-100:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7757514Z Setting up libpango1.0-dev:amd64 (1.50.6+ds-2ubuntu1) ...
+2026-10-21T02:07:37.7775643Z Setting up libhdf5-fortran-102:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7793843Z Setting up libmatio11:amd64 (1.5.21-1) ...
+2026-10-21T02:07:37.7812400Z Setting up libhdf5-hl-fortran-100:amd64 (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7873016Z Setting up libvips42:amd64 (8.12.1-1build1) ...
+2026-10-21T02:07:37.7890536Z Setting up gir1.2-vips-8.0 (8.12.1-1build1) ...
+2026-10-21T02:07:37.7909278Z Setting up libhdf5-dev (1.10.7+repack-4ubuntu2) ...
+2026-10-21T02:07:37.7993783Z update-alternatives: using /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5-serial.pc to provide /usr/lib/x86_64-linux-gnu/pkgconfig/hdf5.pc (hdf5.pc) in auto mode
+2026-10-21T02:07:37.8014332Z Setting up libmatio-dev:amd64 (1.5.21-1) ...
+2026-10-21T02:07:37.8032200Z Setting up libvips-dev (8.12.1-1build1) ...
+2026-10-21T02:07:37.8056793Z Processing triggers for libc-bin (2.35-0ubuntu3.15) ...
+2026-10-21T02:07:37.8575866Z Processing triggers for man-db (2.10.2-1) ...
+2026-10-21T02:07:37.8597995Z Not building database; man-db/auto-update is not 'true'.
+2026-10-21T02:07:37.8611031Z Processing triggers for install-info (6.8-4build1) ...
+2026-10-21T02:07:38.9759027Z 
+2026-10-21T02:07:38.9759804Z Running kernel seems to be up-to-date.
+2026-10-21T02:07:38.9760326Z 
+2026-10-21T02:07:38.9760619Z No services need to be restarted.
+2026-10-21T02:07:38.9760947Z 
+2026-10-21T02:07:38.9761130Z No containers need to be restarted.
+2026-10-21T02:07:38.9761364Z 
+2026-10-21T02:07:38.9761538Z No user sessions are running outdated binaries.
+2026-10-21T02:07:38.9761811Z 
+2026-10-21T02:07:38.9762103Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-21T02:07:40.2765182Z Prepare all required actions
+2026-10-21T02:07:40.2815752Z ##[group]Run ./.github/actions/setup-minio
+2026-10-21T02:07:40.2816047Z with:
+2026-10-21T02:07:40.2816238Z env:
+2026-10-21T02:07:40.2816739Z   MIX_ENV: test
+2026-10-21T02:07:40.2816990Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:40.2817242Z   PGUSER: postgres
+2026-10-21T02:07:40.2817457Z   PGPASSWORD: postgres
+2026-10-21T02:07:40.2817682Z   PGHOST: localhost
+2026-10-21T02:07:40.2817893Z   PGPORT: 5432
+2026-10-21T02:07:40.2818136Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:40.2818434Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:40.2818718Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:40.2819002Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:40.2819261Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:40.2819580Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:40.2820016Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:40.2820400Z ##[endgroup]
+2026-10-21T02:07:40.2824522Z ##[start-action display=Start MinIO;id=__self_2.__run]
+2026-10-21T02:07:40.2865070Z ##[group]Run docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin  cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8 server /data --console-address ":9001"
+2026-10-21T02:07:40.2867066Z docker run -d --name rindle-minio -p 9000:9000 -e MINIO_ROOT_USER=minioadmin -e MINIO_ROOT_PASSWORD=minioadmin  cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8 server /data --console-address ":9001"
+2026-10-21T02:07:40.2868083Z for _ in $(seq 1 30); do
+2026-10-21T02:07:40.2868486Z   if curl -fsS http://localhost:9000/minio/health/ready >/dev/null; then
+2026-10-21T02:07:40.2868893Z     exit 0
+2026-10-21T02:07:40.2869104Z   fi
+2026-10-21T02:07:40.2869304Z   sleep 2
+2026-10-21T02:07:40.2869526Z done
+2026-10-21T02:07:40.2869724Z exit 1
+2026-10-21T02:07:40.2940645Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T02:07:40.2940999Z env:
+2026-10-21T02:07:40.2941189Z   MIX_ENV: test
+2026-10-21T02:07:40.2941415Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:40.2941671Z   PGUSER: postgres
+2026-10-21T02:07:40.2941882Z   PGPASSWORD: postgres
+2026-10-21T02:07:40.2942111Z   PGHOST: localhost
+2026-10-21T02:07:40.2942325Z   PGPORT: 5432
+2026-10-21T02:07:40.2942555Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:40.2942870Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:40.2943143Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:40.2943615Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:40.2943890Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:40.2944214Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:40.2944649Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:40.2945000Z ##[endgroup]
+2026-10-21T02:07:40.3174661Z Unable to find image 'cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8' locally
+2026-10-21T02:07:40.9687768Z cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8: Pulling from chainguard/minio
+2026-10-21T02:07:41.1491495Z 806abba60f9b: Pulling fs layer
+2026-10-21T02:07:41.1492260Z 7b091f3190c1: Pulling fs layer
+2026-10-21T02:07:41.1492804Z abc8e79286e4: Pulling fs layer
+2026-10-21T02:07:41.1493351Z 6d06773db9a6: Pulling fs layer
+2026-10-21T02:07:41.1493763Z 69082a0418af: Pulling fs layer
+2026-10-21T02:07:41.1494151Z 0fb7687a4a75: Pulling fs layer
+2026-10-21T02:07:41.1494485Z 5243dc7e3601: Pulling fs layer
+2026-10-21T02:07:41.1494785Z 80bd503ad813: Pulling fs layer
+2026-10-21T02:07:41.1495084Z 621b1503e421: Pulling fs layer
+2026-10-21T02:07:41.1495380Z a32c77839bef: Pulling fs layer
+2026-10-21T02:07:41.1495677Z 2230cac242f1: Pulling fs layer
+2026-10-21T02:07:41.1496285Z 6d06773db9a6: Waiting
+2026-10-21T02:07:41.1496997Z 69082a0418af: Waiting
+2026-10-21T02:07:41.1497416Z 0fb7687a4a75: Waiting
+2026-10-21T02:07:41.1497727Z 5243dc7e3601: Waiting
+2026-10-21T02:07:41.1497991Z 80bd503ad813: Waiting
+2026-10-21T02:07:41.1498254Z 2230cac242f1: Waiting
+2026-10-21T02:07:41.1498519Z 621b1503e421: Waiting
+2026-10-21T02:07:41.4151184Z abc8e79286e4: Verifying Checksum
+2026-10-21T02:07:41.4152542Z abc8e79286e4: Download complete
+2026-10-21T02:07:41.5372783Z 7b091f3190c1: Download complete
+2026-10-21T02:07:41.7140291Z 6d06773db9a6: Verifying Checksum
+2026-10-21T02:07:41.7140698Z 6d06773db9a6: Download complete
+2026-10-21T02:07:41.7793998Z 69082a0418af: Verifying Checksum
+2026-10-21T02:07:41.7794672Z 69082a0418af: Download complete
+2026-10-21T02:07:41.9367946Z 0fb7687a4a75: Verifying Checksum
+2026-10-21T02:07:41.9370402Z 0fb7687a4a75: Download complete
+2026-10-21T02:07:42.0226333Z 5243dc7e3601: Verifying Checksum
+2026-10-21T02:07:42.0227208Z 5243dc7e3601: Download complete
+2026-10-21T02:07:42.1937270Z 80bd503ad813: Verifying Checksum
+2026-10-21T02:07:42.1937950Z 80bd503ad813: Download complete
+2026-10-21T02:07:42.2790413Z 621b1503e421: Verifying Checksum
+2026-10-21T02:07:42.2792295Z 621b1503e421: Download complete
+2026-10-21T02:07:42.4445006Z 806abba60f9b: Verifying Checksum
+2026-10-21T02:07:42.4445650Z 806abba60f9b: Download complete
+2026-10-21T02:07:42.4596697Z a32c77839bef: Verifying Checksum
+2026-10-21T02:07:42.4597584Z a32c77839bef: Download complete
+2026-10-21T02:07:42.5561056Z 2230cac242f1: Verifying Checksum
+2026-10-21T02:07:42.5561681Z 2230cac242f1: Download complete
+2026-10-21T02:07:42.9052975Z 806abba60f9b: Pull complete
+2026-10-21T02:07:43.6841829Z 7b091f3190c1: Pull complete
+2026-10-21T02:07:43.7427386Z abc8e79286e4: Pull complete
+2026-10-21T02:07:43.7833418Z 6d06773db9a6: Pull complete
+2026-10-21T02:07:43.8883154Z 69082a0418af: Pull complete
+2026-10-21T02:07:43.9214784Z 0fb7687a4a75: Pull complete
+2026-10-21T02:07:43.9449947Z 5243dc7e3601: Pull complete
+2026-10-21T02:07:43.9628422Z 80bd503ad813: Pull complete
+2026-10-21T02:07:43.9819329Z 621b1503e421: Pull complete
+2026-10-21T02:07:44.0264804Z a32c77839bef: Pull complete
+2026-10-21T02:07:44.0520428Z 2230cac242f1: Pull complete
+2026-10-21T02:07:44.0612246Z Digest: sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
+2026-10-21T02:07:44.0618710Z Status: Downloaded newer image for cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
+2026-10-21T02:07:44.0722565Z 9c89d3dd5b5cc57721cef76f03e11e8e0ec0012556e982e8c3f5ec50f950b5eb
+2026-10-21T02:07:44.2324758Z curl: (56) Recv failure: Connection reset by peer
+2026-10-21T02:07:46.2442130Z ##[end-action id=__self_2.__run;outcome=success;conclusion=success;duration_ms=5961]
+2026-10-21T02:07:46.2444958Z ##[start-action display=Install MinIO client;id=__self_2.__run_2]
+2026-10-21T02:07:46.2465944Z ##[group]Run set -euo pipefail
+2026-10-21T02:07:46.2466253Z set -euo pipefail
+2026-10-21T02:07:46.2466970Z # Measured from each child of the reviewed multi-architecture image
+2026-10-21T02:07:46.2467481Z # digest above on 2026-10-20; update image and these checksums together.
+2026-10-21T02:07:46.2467882Z case "$RUNNER_ARCH" in
+2026-10-21T02:07:46.2468308Z   X64) expected=f06aa7f9d4a333b9481dcb9859bb2f6da5b4345b67f2cc7ac1c982f0c7cdd06c ;;
+2026-10-21T02:07:46.2468930Z   ARM64) expected=160b34eaae2e32c4cce8784162a20b4449ed7e31210bf940e4698c030194f897 ;;
+2026-10-21T02:07:46.2469466Z   *) echo "unsupported MinIO client architecture" >&2; exit 64 ;;
+2026-10-21T02:07:46.2469828Z esac
+2026-10-21T02:07:46.2470104Z mc_dir="$(mktemp -d "$RUNNER_TEMP/rindle-mc.XXXXXX")"
+2026-10-21T02:07:46.2470450Z trap 'rm -rf "$mc_dir"' EXIT
+2026-10-21T02:07:46.2470781Z docker cp -L rindle-minio:/usr/bin/mc "$mc_dir/mc"
+2026-10-21T02:07:46.2471203Z printf '%s  %s\n' "$expected" "$mc_dir/mc" > "$mc_dir/checksums.sha256"
+2026-10-21T02:07:46.2471844Z sha256sum -c "$mc_dir/checksums.sha256"
+2026-10-21T02:07:46.2472222Z sudo install -m 0755 "$mc_dir/mc" /usr/local/bin/mc
+2026-10-21T02:07:46.2543544Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T02:07:46.2543886Z env:
+2026-10-21T02:07:46.2544083Z   MIX_ENV: test
+2026-10-21T02:07:46.2544299Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:46.2544544Z   PGUSER: postgres
+2026-10-21T02:07:46.2544762Z   PGPASSWORD: postgres
+2026-10-21T02:07:46.2544983Z   PGHOST: localhost
+2026-10-21T02:07:46.2545188Z   PGPORT: 5432
+2026-10-21T02:07:46.2545429Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:46.2545725Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:46.2546010Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:46.2546274Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:46.2546741Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:46.2547075Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:46.2547508Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:46.2547859Z ##[endgroup]
+2026-10-21T02:07:46.4989256Z /home/runner/work/_temp/rindle-mc.KVfgMc/mc: OK
+2026-10-21T02:07:46.5569424Z ##[end-action id=__self_2.__run_2;outcome=success;conclusion=success;duration_ms=312]
+2026-10-21T02:07:46.5571833Z ##[start-action display=Create MinIO bucket;id=__self_2.__run_3]
+2026-10-21T02:07:46.5592035Z ##[group]Run mc alias set local http://localhost:9000 minioadmin minioadmin
+2026-10-21T02:07:46.5592573Z mc alias set local http://localhost:9000 minioadmin minioadmin
+2026-10-21T02:07:46.5593006Z mc mb --ignore-existing local/rindle-test
+2026-10-21T02:07:46.5664940Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-21T02:07:46.5665293Z env:
+2026-10-21T02:07:46.5665485Z   MIX_ENV: test
+2026-10-21T02:07:46.5665709Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:46.5665961Z   PGUSER: postgres
+2026-10-21T02:07:46.5666190Z   PGPASSWORD: postgres
+2026-10-21T02:07:46.5666690Z   PGHOST: localhost
+2026-10-21T02:07:46.5666923Z   PGPORT: 5432
+2026-10-21T02:07:46.5667158Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:46.5667470Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:46.5667743Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:46.5668017Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:46.5668283Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:46.5668605Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:46.5669038Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:46.5669400Z ##[endgroup]
+2026-10-21T02:07:46.6040933Z Added `local` successfully.
+2026-10-21T02:07:46.6326805Z Bucket created successfully `local/rindle-test`.
+2026-10-21T02:07:46.6349880Z ##[end-action id=__self_2.__run_3;outcome=success;conclusion=success;duration_ms=77]
+2026-10-21T02:07:46.6379876Z ##[group]Run bash scripts/ci/ensure_phx_new.sh
+2026-10-21T02:07:46.6380263Z bash scripts/ci/ensure_phx_new.sh
+2026-10-21T02:07:46.6450806Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:46.6451054Z env:
+2026-10-21T02:07:46.6451239Z   MIX_ENV: test
+2026-10-21T02:07:46.6451461Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:46.6451706Z   PGUSER: postgres
+2026-10-21T02:07:46.6451924Z   PGPASSWORD: postgres
+2026-10-21T02:07:46.6452153Z   PGHOST: localhost
+2026-10-21T02:07:46.6452357Z   PGPORT: 5432
+2026-10-21T02:07:46.6452595Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:46.6452901Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:46.6453175Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:46.6453443Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:46.6453721Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:46.6454042Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:46.6454508Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:46.6454861Z ##[endgroup]
+2026-10-21T02:07:47.4371247Z Installing Phoenix installer v1.8.9 for generated-app proof...
+2026-10-21T02:07:48.3289132Z Resolving Hex dependencies...
+2026-10-21T02:07:48.3458501Z Resolution completed in 0.014s
+2026-10-21T02:07:48.3459454Z New:
+2026-10-21T02:07:48.3460607Z   phx_new 1.8.9
+2026-10-21T02:07:48.3473737Z * Getting phx_new (Hex package)
+2026-10-21T02:07:48.8214191Z All dependencies are up to date
+2026-10-21T02:07:48.9124136Z Compiling 12 files (.ex)
+2026-10-21T02:07:49.8140989Z Generated phx_new app
+2026-10-21T02:07:49.8328282Z Generated archive "phx_new-1.8.9.ez" with MIX_ENV=prod
+2026-10-21T02:07:49.8394880Z * creating /home/runner/.mix/archives/phx_new-1.8.9
+2026-10-21T02:07:50.3447344Z ##[group]Run bash scripts/maintainer/check_adoption_proof_matrix.sh
+2026-10-21T02:07:50.3447933Z bash scripts/maintainer/check_adoption_proof_matrix.sh
+2026-10-21T02:07:50.3519257Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:07:50.3519533Z env:
+2026-10-21T02:07:50.3519745Z   MIX_ENV: test
+2026-10-21T02:07:50.3520002Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:07:50.3520279Z   PGUSER: postgres
+2026-10-21T02:07:50.3520521Z   PGPASSWORD: postgres
+2026-10-21T02:07:50.3520772Z   PGHOST: localhost
+2026-10-21T02:07:50.3520997Z   PGPORT: 5432
+2026-10-21T02:07:50.3521265Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:07:50.3521592Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:07:50.3521887Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:07:50.3522182Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:07:50.3522470Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:07:50.3522825Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:07:50.3523314Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:07:50.3523696Z ##[endgroup]
+2026-10-21T02:07:55.8190335Z Running ExUnit with seed: 818540, max_cases: 8
+2026-10-21T02:07:55.8191626Z Excluding tags: [:test, :integration, :minio, :contract, :adopter, :migration_e2e, :canary]
+2026-10-21T02:07:55.8192712Z Including tags: [:derived_authority]
+2026-10-21T02:07:55.8193297Z 
+2026-10-21T02:07:59.0864054Z ...............
+2026-10-21T02:07:59.0865315Z Finished in 3.2 seconds (0.00s async, 3.2s sync)
+2026-10-21T02:07:59.0865950Z 40 tests, 0 failures, 25 excluded
+2026-10-21T02:07:59.0885985Z Wrote JUnit report to: _build/test/junit/rindle-junit.xml
+2026-10-21T02:08:04.4114790Z Running ExUnit with seed: 409781, max_cases: 8
+2026-10-21T02:08:04.4133735Z Excluding tags: [:test, :integration, :minio, :contract, :adopter, :migration_e2e, :canary]
+2026-10-21T02:08:04.4143226Z Including tags: [:package_authority]
+2026-10-21T02:08:04.4143629Z 
+2026-10-21T02:08:06.2135597Z Note: switching to 'ccc97d7f38d34306cc9378caf96c2de4932f3bf7'.
+2026-10-21T02:08:06.2136192Z 
+2026-10-21T02:08:06.2136741Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:08:06.2137377Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:08:06.2137872Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:08:06.2138156Z 
+2026-10-21T02:08:06.2138365Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:08:06.2138829Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:08:06.2139093Z 
+2026-10-21T02:08:06.2139218Z   git switch -c <new-branch-name>
+2026-10-21T02:08:06.2139395Z 
+2026-10-21T02:08:06.2139515Z Or undo this operation with:
+2026-10-21T02:08:06.2139681Z 
+2026-10-21T02:08:06.2139781Z   git switch -
+2026-10-21T02:08:06.2139909Z 
+2026-10-21T02:08:06.2140145Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:08:06.2140470Z 
+2026-10-21T02:08:20.2466047Z Note: switching to 'ccc97d7f38d34306cc9378caf96c2de4932f3bf7'.
+2026-10-21T02:08:20.2466661Z 
+2026-10-21T02:08:20.2466922Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:08:20.2467469Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:08:20.2467998Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:08:20.2468295Z 
+2026-10-21T02:08:20.2468502Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:08:20.2468988Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:08:20.2469279Z 
+2026-10-21T02:08:20.2469401Z   git switch -c <new-branch-name>
+2026-10-21T02:08:20.2469589Z 
+2026-10-21T02:08:20.2469712Z Or undo this operation with:
+2026-10-21T02:08:20.2469880Z 
+2026-10-21T02:08:20.2469982Z   git switch -
+2026-10-21T02:08:20.2470113Z 
+2026-10-21T02:08:20.2470651Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:08:20.2470999Z 
+2026-10-21T02:08:21.3304636Z Note: switching to 'ccc97d7f38d34306cc9378caf96c2de4932f3bf7'.
+2026-10-21T02:08:21.3305196Z 
+2026-10-21T02:08:21.3305596Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:08:21.3306676Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:08:21.3307537Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:08:21.3308017Z 
+2026-10-21T02:08:21.3308352Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:08:21.3309119Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:08:21.3309551Z 
+2026-10-21T02:08:21.3309753Z   git switch -c <new-branch-name>
+2026-10-21T02:08:21.3310055Z 
+2026-10-21T02:08:21.3310248Z Or undo this operation with:
+2026-10-21T02:08:21.3310523Z 
+2026-10-21T02:08:21.3310685Z   git switch -
+2026-10-21T02:08:21.3310896Z 
+2026-10-21T02:08:21.3311344Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:08:21.3311887Z 
+2026-10-21T02:08:22.9811208Z Note: switching to 'ccc97d7f38d34306cc9378caf96c2de4932f3bf7'.
+2026-10-21T02:08:22.9811944Z 
+2026-10-21T02:08:22.9812629Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:08:22.9833600Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:08:22.9834502Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:08:22.9834890Z 
+2026-10-21T02:08:22.9835250Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:08:22.9836035Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:08:22.9836814Z 
+2026-10-21T02:08:22.9837035Z   git switch -c <new-branch-name>
+2026-10-21T02:08:22.9837324Z 
+2026-10-21T02:08:22.9837516Z Or undo this operation with:
+2026-10-21T02:08:22.9837775Z 
+2026-10-21T02:08:22.9837939Z   git switch -
+2026-10-21T02:08:22.9838182Z 
+2026-10-21T02:08:22.9838523Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:08:22.9839143Z 
+2026-10-21T02:08:27.4865186Z Note: switching to 'ccc97d7f38d34306cc9378caf96c2de4932f3bf7'.
+2026-10-21T02:08:27.4865961Z 
+2026-10-21T02:08:27.4866672Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:08:27.4868021Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:08:27.4869217Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:08:27.4869912Z 
+2026-10-21T02:08:27.4870470Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:08:27.4871556Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:08:27.4872129Z 
+2026-10-21T02:08:27.4872450Z   git switch -c <new-branch-name>
+2026-10-21T02:08:27.4872960Z 
+2026-10-21T02:08:27.4873280Z Or undo this operation with:
+2026-10-21T02:08:27.4873685Z 
+2026-10-21T02:08:27.4873987Z   git switch -
+2026-10-21T02:08:27.4874205Z 
+2026-10-21T02:08:27.4874839Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:08:27.4875585Z 
+2026-10-21T02:09:46.0031362Z Note: switching to 'ccc97d7f38d34306cc9378caf96c2de4932f3bf7'.
+2026-10-21T02:09:46.0052632Z 
+2026-10-21T02:09:46.0053444Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-21T02:09:46.0054337Z changes and commit them, and you can discard any commits you make in this
+2026-10-21T02:09:46.0055186Z state without impacting any branches by switching back to a branch.
+2026-10-21T02:09:46.0055677Z 
+2026-10-21T02:09:46.0056031Z If you want to create a new branch to retain commits you create, you may
+2026-10-21T02:09:46.0057030Z do so (now or later) by using -c with the switch command. Example:
+2026-10-21T02:09:46.0057490Z 
+2026-10-21T02:09:46.0057702Z   git switch -c <new-branch-name>
+2026-10-21T02:09:46.0058013Z 
+2026-10-21T02:09:46.0058650Z Or undo this operation with:
+2026-10-21T02:09:46.0058982Z 
+2026-10-21T02:09:46.0059170Z   git switch -
+2026-10-21T02:09:46.0059393Z 
+2026-10-21T02:09:46.0059781Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-21T02:09:46.0060320Z 
+2026-10-21T02:18:00.4837252Z ........................
+2026-10-21T02:18:00.4837884Z Finished in 596.0 seconds (0.00s async, 596.0s sync)
+2026-10-21T02:18:00.4838523Z 40 tests, 0 failures, 16 excluded
+2026-10-21T02:18:00.4857082Z Wrote JUnit report to: _build/test/junit/rindle-junit.xml
+2026-10-21T02:18:00.5698921Z check_adoption_proof_matrix: OK
+2026-10-21T02:18:00.5737889Z ##[group]Run set -euo pipefail
+2026-10-21T02:18:00.5738231Z set -euo pipefail
+2026-10-21T02:18:00.5738784Z for harness in test_nightly_dialyzer.sh test_nightly_summary_gate.sh test_nightly_incident.sh test_verify_nightly_run.sh; do
+2026-10-21T02:18:00.5739381Z   bash "scripts/ci/${harness}"
+2026-10-21T02:18:00.5739647Z done
+2026-10-21T02:18:00.5811085Z shell: /usr/bin/bash -e {0}
+2026-10-21T02:18:00.5811342Z env:
+2026-10-21T02:18:00.5811545Z   MIX_ENV: test
+2026-10-21T02:18:00.5811775Z   RINDLE_AV_USE_CGROUPS: false
+2026-10-21T02:18:00.5812030Z   PGUSER: postgres
+2026-10-21T02:18:00.5812251Z   PGPASSWORD: postgres
+2026-10-21T02:18:00.5812467Z   PGHOST: localhost
+2026-10-21T02:18:00.5812673Z   PGPORT: 5432
+2026-10-21T02:18:00.5812915Z   RINDLE_MINIO_URL: http://localhost:9000
+2026-10-21T02:18:00.5813216Z   RINDLE_MINIO_ACCESS_KEY: minioadmin
+2026-10-21T02:18:00.5813488Z   RINDLE_MINIO_SECRET_KEY: minioadmin
+2026-10-21T02:18:00.5813791Z   RINDLE_MINIO_BUCKET: rindle-test
+2026-10-21T02:18:00.5814056Z   RINDLE_MINIO_REGION: us-east-1
+2026-10-21T02:18:00.5814380Z   INSTALL_DIR_FOR_OTP: /home/runner/work/_temp/.setup-beam/otp
+2026-10-21T02:18:00.5814819Z   INSTALL_DIR_FOR_ELIXIR: /home/runner/work/_temp/.setup-beam/elixir
+2026-10-21T02:18:00.5815167Z ##[endgroup]
+2026-10-21T02:18:00.6284501Z ok   — approved repository PLT child resets from an external caller directory
+2026-10-21T02:18:00.6415506Z ok   — empty PLT override rejects before work
+2026-10-21T02:18:00.6544644Z ok   — dot PLT override rejects before work
+2026-10-21T02:18:00.6681542Z ok   — filesystem-root PLT override rejects before work
+2026-10-21T02:18:00.6826222Z ok   — parent traversal rejects before work
+2026-10-21T02:18:00.6972336Z ok   — multi-parent traversal rejects before work
+2026-10-21T02:18:00.7118017Z ok   — repository-root override rejects before work
+2026-10-21T02:18:00.7268044Z ok   — external absolute override rejects before work
+2026-10-21T02:18:00.7572547Z ok   — fresh symlink escape rejects without deletion
+2026-10-21T02:18:00.7802075Z ok   — restored Old PLT symlink escape rejects before analysis
+2026-10-21T02:18:00.8168801Z ok   — fresh builds then analyzes once
+2026-10-21T02:18:00.8199392Z ok   — fresh builds then analyzes once: persisted first-red/analysis bytes exact
+2026-10-21T02:18:00.8438348Z ok   — valid restored PLT analyzes once
+2026-10-21T02:18:00.8458807Z ok   — valid restored PLT analyzes once: persisted first-red/analysis bytes exact
+2026-10-21T02:18:00.8904417Z ok   — old restored PLT rebuilds and re-analyzes once
+2026-10-21T02:18:00.8925195Z ok   — old restored PLT rebuilds and re-analyzes once: persisted first-red/analysis bytes exact
+2026-10-21T02:18:00.9180123Z ok   — missing restored PLT stays red without rebuild
+2026-10-21T02:18:00.9200070Z ok   — missing restored PLT stays red without rebuild: persisted first-red/analysis bytes exact
+2026-10-21T02:18:00.9456187Z ok   — corrupt restored PLT stays red without rebuild
+2026-10-21T02:18:00.9476084Z ok   — corrupt restored PLT stays red without rebuild: persisted first-red/analysis bytes exact
+2026-10-21T02:18:00.9773310Z ok   — fresh PLT build failure stays red
+2026-10-21T02:18:01.0133097Z ok   — fresh genuine warning stays red without rebuild
+2026-10-21T02:18:01.0153164Z ok   — fresh genuine warning stays red without rebuild: persisted first-red/analysis bytes exact
+2026-10-21T02:18:01.0401637Z ok   — genuine warning stays red without rebuild
+2026-10-21T02:18:01.0421625Z ok   — genuine warning stays red without rebuild: persisted first-red/analysis bytes exact
+2026-10-21T02:18:01.0673011Z ok   — unknown analysis failure stays red without rebuild
+2026-10-21T02:18:01.0693143Z ok   — unknown analysis failure stays red without rebuild: persisted first-red/analysis bytes exact
+2026-10-21T02:18:01.1054569Z ok   — failed stale rebuild stays red without re-analysis
+2026-10-21T02:18:01.1074264Z ok   — failed stale rebuild stays red without re-analysis: persisted first-red/analysis bytes exact
+2026-10-21T02:18:01.1500254Z ok   — failed post-rebuild analysis stays red without another retry
+2026-10-21T02:18:01.1519658Z ok   — failed post-rebuild analysis stays red without another retry: persisted first-red/analysis bytes exact
+2026-10-21T02:18:01.1745168Z ok   — bounded #93/#101 failure fingerprint is complete
+2026-10-21T02:18:01.1760216Z ok   — composite exposes resolved Elixir output
+2026-10-21T02:18:01.1775135Z ok   — composite forwards exact installed Elixir
+2026-10-21T02:18:01.1790253Z ok   — composite exposes resolved OTP output
+2026-10-21T02:18:01.1805161Z ok   — composite forwards exact installed OTP
+2026-10-21T02:18:01.1826217Z ok   — Nightly invokes fresh mode exactly once
+2026-10-21T02:18:01.1846883Z ok   — Nightly invokes restored mode exactly once
+2026-10-21T02:18:01.1861932Z ok   — PLT key uses resolved Elixir patch
+2026-10-21T02:18:01.1877482Z ok   — PLT key uses resolved OTP patch
+2026-10-21T02:18:01.1892619Z ok   — PLT key retains input hashes
+2026-10-21T02:18:01.1908044Z ok   — PLT key rejects requested-only identity
+2026-10-21T02:18:01.1922969Z ok   — PLT restore has no cross-toolchain fallback
+2026-10-21T02:18:01.1977592Z ok   — fresh evidence precedes cache save
+2026-10-21T02:18:01.2030637Z ok   — exact restore precedes restored evidence
+2026-10-21T02:18:01.2031196Z —
+2026-10-21T02:18:01.2031573Z passed: 45  failed: 0
+2026-10-21T02:18:01.3772765Z ok   — exact declared jobs with executed applicable successes and visible exemption (exit 0, verdict green)
+2026-10-21T02:18:01.5860677Z ok   — all applicable jobs executed successfully (exit 0, verdict green)
+2026-10-21T02:18:01.7951328Z ok   — repository-gated skip is explicit not-run (exit 0, verdict green)
+2026-10-21T02:18:02.0052886Z ok   — inapplicable successful no-op remains visibly not-run (exit 0, verdict green)
+2026-10-21T02:18:02.1940263Z ok   — GitHub needs outputs coexist with the result envelope (exit 0, verdict green)
+2026-10-21T02:18:02.3842289Z ok   — applicable failure is red (exit 1, verdict red)
+2026-10-21T02:18:02.5732668Z ok   — applicable cancelled is red (exit 1, verdict red)
+2026-10-21T02:18:02.7621530Z ok   — applicable skipped is red (exit 1, verdict red)
+2026-10-21T02:18:02.9513457Z ok   — applicable unknown is red (exit 1, verdict red)
+2026-10-21T02:18:03.1405032Z ok   — applicable timed_out is red (exit 1, verdict red)
+2026-10-21T02:18:03.3302835Z ok   — applicable action_required is red (exit 1, verdict red)
+2026-10-21T02:18:03.5202456Z ok   — applicable neutral is red (exit 1, verdict red)
+2026-10-21T02:18:03.7087554Z ok   — applicable stale is red (exit 1, verdict red)
+2026-10-21T02:18:03.8975540Z ok   — failed inapplicable job stays red (exit 1, verdict red)
+2026-10-21T02:18:04.0869393Z ok   — cancelled inapplicable job stays red (exit 1, verdict red)
+2026-10-21T02:18:04.2772658Z ok   — missing declared job is red (exit 1, verdict red)
+2026-10-21T02:18:04.4659561Z ok   — unexpected observed job is red (exit 1, verdict red)
+2026-10-21T02:18:04.6558140Z ok   — missing observed result is red (exit 1, verdict red)
+2026-10-21T02:18:04.8435583Z ok   — non-string observed result is red (exit 1, verdict red)
+2026-10-21T02:18:05.0332322Z ok   — missing applicable is red (exit 1, verdict red)
+2026-10-21T02:18:05.2230944Z ok   — missing applicability_rule is red (exit 1, verdict red)
+2026-10-21T02:18:05.4124894Z ok   — missing execution is red (exit 1, verdict red)
+2026-10-21T02:18:05.6010836Z ok   — missing reason is red (exit 1, verdict red)
+2026-10-21T02:18:05.7892008Z ok   — always job requires applicable boolean true (false) (exit 1, verdict red)
+2026-10-21T02:18:05.9774622Z ok   — always job requires applicable boolean true (null) (exit 1, verdict red)
+2026-10-21T02:18:06.1661210Z ok   — always job requires applicable boolean true ("true") (exit 1, verdict red)
+2026-10-21T02:18:06.3567203Z ok   — always job requires applicable boolean true (1) (exit 1, verdict red)
+2026-10-21T02:18:06.5462764Z ok   — applicable success requires passed execution (not-run) (exit 1, verdict red)
+2026-10-21T02:18:06.7372941Z ok   — applicable success requires passed execution (skipped) (exit 1, verdict red)
+2026-10-21T02:18:06.9269215Z ok   — applicable success requires passed execution (missing) (exit 1, verdict red)
+2026-10-21T02:18:07.1171537Z ok   — applicable success requires passed execution (unknown) (exit 1, verdict red)
+2026-10-21T02:18:07.3068286Z ok   — applicable success requires passed execution (empty) (exit 1, verdict red)
+2026-10-21T02:18:07.4962137Z ok   — applicable success rejects an exemption reason (exit 1, verdict red)
+2026-10-21T02:18:07.6853106Z ok   — always rule cannot claim inapplicability (exit 1, verdict red)
+2026-10-21T02:18:07.8747654Z ok   — unknown applicability rule is red (exit 1, verdict red)
+2026-10-21T02:18:08.0651665Z ok   — gated applicable job requires passed execution (exit 1, verdict red)
+2026-10-21T02:18:08.2543870Z ok   — inapplicable job requires not-run execution (exit 1, verdict red)
+2026-10-21T02:18:08.4437781Z ok   — inapplicable job requires an allowlisted reason (exit 1, verdict red)
+2026-10-21T02:18:08.6402082Z ok   — inapplicable job rejects empty reason (exit 1, verdict red)
+2026-10-21T02:18:08.8488450Z ok   — applicable skipped job cannot borrow an exemption reason (exit 1, verdict red)
+2026-10-21T02:18:09.0170099Z ok   — empty needs is red (exit 1, verdict red)
+2026-10-21T02:18:09.1865744Z ok   — empty policy is red (exit 1, verdict red)
+2026-10-21T02:18:09.3549043Z ok   — needs array is red (exit 1, verdict red)
+2026-10-21T02:18:09.5234479Z ok   — policy array is red (exit 1, verdict red)
+2026-10-21T02:18:09.6928602Z ok   — malformed needs is red (exit 1, verdict red)
+2026-10-21T02:18:09.8610077Z ok   — malformed policy is red (exit 1, verdict red)
+2026-10-21T02:18:10.0107798Z ok   — absent NEEDS_JSON is red (exit 1, verdict red)
+2026-10-21T02:18:10.1597075Z ok   — absent NIGHTLY_POLICY_JSON is red (exit 1, verdict red)
+2026-10-21T02:18:10.3309223Z ok   — all red job diagnostics render before exit
+2026-10-21T02:18:10.3321988Z —
+2026-10-21T02:18:10.3322415Z passed: 49  failed: 0
+2026-10-21T02:18:14.7078390Z ok   — red-A/green-B history opens, updates, and closes exactly once
+2026-10-21T02:18:16.8031025Z ok   — same complete log replay is mutation-idempotent
+2026-10-21T02:18:19.7300044Z ok   — repeated green with no incident is an unmarked no-op
+2026-10-21T02:18:24.5075397Z ok   — delayed middle artifact is retried before mutation
+2026-10-21T02:18:26.2899850Z ok   — missing middle artifact fails before issue mutation
+2026-10-21T02:18:27.2683268Z ok   — duplicate event artifact fails before issue mutation
+2026-10-21T02:18:28.6094160Z ok   — malformed event fails before issue mutation
+2026-10-21T02:18:29.9652593Z ok   — foreign repository event fails before issue mutation
+2026-10-21T02:18:31.3175807Z ok   — run/artifact identity mismatch fails before issue mutation
+2026-10-21T02:18:32.6692576Z ok   — historical event SHA mismatch fails before issue mutation
+2026-10-21T02:18:33.2723949Z ok   — foreign high-watermark SHA fails before issue mutation
+2026-10-21T02:18:34.8852243Z ok   — duplicate marker ownership fails closed
+2026-10-21T02:18:36.4783563Z ok   — simultaneous open incidents fail closed
+2026-10-21T02:18:36.6378581Z ok   — workflow-run API failure performs no issue mutation
+2026-10-21T02:18:41.0102826Z ok   — stale mutation preimage restarts full replay
+2026-10-21T02:18:45.3828965Z ok   — uncertain mutation outcome restarts and converges
+2026-10-21T02:18:51.9456399Z ok   — bounded uncertain mutation exhaustion fails without skipping
+2026-10-21T02:18:56.9259677Z ok   — lagging issue list after a mutation does not duplicate the create
+2026-10-21T02:18:59.4206248Z ok   — mutation never visible fails closed without a second create
+2026-10-21T02:19:05.1362385Z ok   — both scheduled attempts replay as distinct ordered events
+2026-10-21T02:19:07.1147443Z ok   — a missing earlier attempt fails before incident mutation
+2026-10-21T02:19:10.0742726Z ok   — expired evidence before authenticated checkpoint permits replay
+2026-10-21T02:19:11.6864203Z ok   — expired evidence after checkpoint fails before mutation
+2026-10-21T02:19:13.0104173Z ok   — tampered checkpoint fails before mutation
+2026-10-21T02:19:14.5664666Z ok   — concurrent issue-history advancement invalidates checkpoint
+2026-10-21T02:19:15.3515709Z ok   — repository retention cap below 14 days fails before mutation
+2026-10-21T02:19:16.9048450Z ok   — edit to pre-checkpoint issue body still invalidates checkpoint
+2026-10-21T02:19:18.4559239Z ok   — backdated marker at or before the checkpoint cursor still invalidates checkpoint
+2026-10-21T02:19:20.0123105Z ok   — unmarked issue created after the checkpoint still invalidates checkpoint
+2026-10-21T02:19:22.3781422Z ok   — forged post-checkpoint marker with the wrong action fails before mutation
+2026-10-21T02:19:24.6588314Z ok   — post-checkpoint marker for a run with no verdict event fails before mutation
+2026-10-21T02:19:26.9378560Z ok   — post-checkpoint marker for an attempt with no verdict event fails before mutation
+2026-10-21T02:19:30.2715844Z ok   — issue opened after the checkpoint by a run that died before checkpointing converges
+2026-10-21T02:19:32.5229525Z ok   — issue opened after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+2026-10-21T02:19:36.0332847Z ok   — update after the checkpoint by a run that died before checkpointing converges
+2026-10-21T02:19:38.2756240Z ok   — update after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+2026-10-21T02:19:41.0074001Z ok   — close after the checkpoint by a run that died before checkpointing converges
+2026-10-21T02:19:43.2580001Z ok   — close after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+2026-10-21T02:19:44.3256834Z ok   — checkpoint inside expiry safety margin fails before mutation
+2026-10-21T02:19:47.3194013Z ok   — near-expiry checkpoint advances through active high-watermark
+2026-10-21T02:19:49.8626860Z ok   — genesis adopts the legacy open incident and closes it citing the green run
+2026-10-21T02:19:51.4912104Z ok   — genesis adopts the legacy open incident and closes it citing the green run: re-run on the same run is mutation-idempotent
+2026-10-21T02:19:54.0294502Z ok   — genesis adopts the legacy open incident and updates it citing the red run
+2026-10-21T02:19:55.6548271Z ok   — genesis adopts the legacy open incident and updates it citing the red run: re-run on the same run is mutation-idempotent
+2026-10-21T02:19:57.0257716Z ok   — genesis with duplicate legacy open incidents fails closed
+2026-10-21T02:19:58.3771678Z ok   — genesis with an unlabelled open incident fails closed
+2026-10-21T02:19:59.7947846Z ok   — genesis with a mutation marker before the genesis run fails closed
+2026-10-21T02:20:01.9445065Z ok   — a missing verdict artifact after genesis still fails closed
+2026-10-21T02:20:01.9465023Z —
+2026-10-21T02:20:01.9465462Z passed: 48  failed: 0
+2026-10-21T02:20:02.8253824Z ok   — uncompiled exact subject reaches all three detached authorities without application startup
+2026-10-21T02:20:03.7132186Z ok   — detached authority log locks exact ordered context
+2026-10-21T02:20:04.3492052Z ok   — missing no-start guard is detected for census generator
+2026-10-21T02:20:04.9925580Z ok   — missing no-start guard is detected for census validator
+2026-10-21T02:20:05.6430092Z ok   — missing no-start guard is detected for live-truth validator
+2026-10-21T02:20:08.0734731Z ok   — exact first-attempt run writes canonical receipt
+2026-10-21T02:20:08.2523434Z ok   — success argv is one dispatch plus read-only inspection
+2026-10-21T02:20:08.2581509Z ok   — initial run inventory snapshot precedes the sole dispatch
+2026-10-21T02:20:09.1789579Z ok   — older runs appear before the exact run
+2026-10-21T02:20:09.2072283Z ok   — old history waits for and selects only the exact run
+2026-10-21T02:20:10.1573675Z ok   — same-second old run is excluded when one new run appears
+2026-10-21T02:20:10.1833317Z ok   — same-second pre-existing run cannot impersonate the new dispatch
+2026-10-21T02:20:12.0741823Z ok   — same-second old-only history has zero new matches
+2026-10-21T02:20:12.0780760Z ok   — same-second old-only history polls without selecting the old run
+2026-10-21T02:20:12.4288585Z ok   — multiple new exact matches are ambiguous
+2026-10-21T02:20:12.4343536Z ok   — multiple new exact matches fail immediately before downstream calls
+2026-10-21T02:20:12.6247917Z ok   — pre-dispatch run-list API failure
+2026-10-21T02:20:12.6279082Z ok   — pre_list_failure rejects before dispatch
+2026-10-21T02:20:12.8395594Z ok   — malformed pre-dispatch run inventory
+2026-10-21T02:20:12.8435886Z ok   — malformed_pre_list rejects before dispatch
+2026-10-21T02:20:13.0731717Z ok   — duplicate pre-dispatch run IDs
+2026-10-21T02:20:13.0762443Z ok   — duplicate_pre_ids rejects before dispatch
+2026-10-21T02:20:13.3066825Z ok   — non-integer pre-dispatch run ID
+2026-10-21T02:20:13.3098268Z ok   — non_integer_pre_id rejects before dispatch
+2026-10-21T02:20:14.3839542Z ok   — unrelated new run precedes the exact new run
+2026-10-21T02:20:14.4101267Z ok   — unrelated new run is ignored until one exact new ID appears
+2026-10-21T02:20:15.4980191Z ok   — old exact run precedes a delayed exact new run
+2026-10-21T02:20:15.5040584Z ok   — old exact run remains excluded while the new exact run is delayed
+2026-10-21T02:20:15.7770399Z ok   — post-dispatch malformed inventory
+2026-10-21T02:20:16.0671521Z ok   — post-dispatch duplicate IDs
+2026-10-21T02:20:16.5237938Z ok   — selected run detail ID mismatch
+2026-10-21T02:20:16.5301571Z ok   — selected ID must equal the detailed run databaseId
+2026-10-21T02:20:17.4299779Z ok   — transient watch rate limit
+2026-10-21T02:20:17.4565341Z ok   — transient watch rate limit preserves one dispatch-owned run
+2026-10-21T02:20:18.8493366Z ok   — persistent watch rate limit
+2026-10-21T02:20:18.8540889Z ok   — persistent watch rate limit exhausts the original deadline
+2026-10-21T02:20:19.7620132Z ok   — transient post-dispatch run-list rate limit
+2026-10-21T02:20:19.7884616Z ok   — post_list_rate_limit_once preserves identity and mutation count
+2026-10-21T02:20:21.0552745Z ok   — persistent post-dispatch run-list rate limit
+2026-10-21T02:20:21.0577161Z ok   — post_list_rate_limit_persistent exhausts without a receipt
+2026-10-21T02:20:21.9603691Z ok   — transient run-detail rate limit
+2026-10-21T02:20:21.9869988Z ok   — detail_rate_limit_once preserves identity and mutation count
+2026-10-21T02:20:23.3937766Z ok   — persistent run-detail rate limit
+2026-10-21T02:20:23.3962784Z ok   — detail_rate_limit_persistent exhausts without a receipt
+2026-10-21T02:20:24.3054483Z ok   — transient job-log rate limit
+2026-10-21T02:20:24.3314786Z ok   — job_log_rate_limit_once preserves identity and mutation count
+2026-10-21T02:20:25.8357492Z ok   — persistent job-log rate limit
+2026-10-21T02:20:25.8382791Z ok   — job_log_rate_limit_persistent exhausts without a receipt
+2026-10-21T02:20:26.7379586Z ok   — transient post-dispatch incident-snapshot rate limit
+2026-10-21T02:20:26.7643060Z ok   — incident_after_rate_limit_once preserves identity and mutation count
+2026-10-21T02:20:27.0024250Z ok   — persistent post-dispatch incident-snapshot rate limit
+2026-10-21T02:20:27.0048610Z ok   — incident_after_rate_limit_persistent exhausts without a receipt
+2026-10-21T02:20:27.4309500Z ok   — malformed run detail after rate-limit recovery
+2026-10-21T02:20:27.4310234Z ok   — malformed detail after recovery fails closed
+2026-10-21T02:20:27.8248615Z ok   — unrelated run-detail 403
+2026-10-21T02:20:27.8272947Z ok   — unrelated detail 403 is not retried
+2026-10-21T02:20:27.8967383Z ok   — foreign_repository fails closed
+2026-10-21T02:20:27.9716926Z ok   — foreign_workflow fails closed
+2026-10-21T02:20:28.0507361Z ok   — missing_ref fails closed
+2026-10-21T02:20:28.1694219Z ok   — foreign_sha fails closed
+2026-10-21T02:20:30.0075307Z ok   — foreign_run_sha fails closed
+2026-10-21T02:20:32.0694775Z ok   — foreign_run_ref fails closed
+2026-10-21T02:20:34.0263573Z ok   — foreign_run_workflow fails closed
+2026-10-21T02:20:34.4603696Z ok   — rerun fails closed
+2026-10-21T02:20:34.9112910Z ok   — missing_job fails closed
+2026-10-21T02:20:35.3650443Z ok   — extra_job fails closed
+2026-10-21T02:20:35.8196160Z ok   — red_job fails closed
+2026-10-21T02:20:36.2728725Z ok   — skipped_job fails closed
+2026-10-21T02:20:36.7266142Z ok   — cancelled_job fails closed
+2026-10-21T02:20:37.1624249Z ok   — nonterminal fails closed
+2026-10-21T02:20:37.5978925Z ok   — red_run fails closed
+2026-10-21T02:20:38.1265867Z ok   — missing_fresh fails closed
+2026-10-21T02:20:38.6546912Z ok   — missing_restored fails closed
+2026-10-21T02:20:39.1978299Z ok   — unsupported_elixir_11_17 fails closed
+2026-10-21T02:20:39.7394983Z ok   — unsupported_elixir_1_170 fails closed
+2026-10-21T02:20:40.2867861Z ok   — unsupported_otp_127 fails closed
+2026-10-21T02:20:40.9067704Z ok   — bad_local_authority fails closed
+2026-10-21T02:20:41.4531046Z ok   — missing_cache fails closed
+2026-10-21T02:20:41.9832213Z ok   — stale_rebuild fails closed
+2026-10-21T02:20:42.5323836Z ok   — red_verdict fails closed
+2026-10-21T02:20:43.2881558Z ok   — incident_changed fails closed
+2026-10-21T02:20:45.0444608Z ok   — timeout fails closed
+2026-10-21T02:20:45.0483311Z ok   — zero exact matches poll until timeout without a receipt
+2026-10-21T02:20:45.0779599Z ok   — api_failure fails closed
+2026-10-21T02:20:45.4572102Z ok   — watch_failure fails closed
+2026-10-21T02:20:46.1604243Z ok   — dirty ledger fails closed before collection
+2026-10-21T02:20:46.8662945Z ok   — untracked ledger fails closed before collection
+2026-10-21T02:20:48.2120515Z ok   — created_at mutation fails closed
+2026-10-21T02:20:49.2538221Z ok   — schema version mutation fails closed
+2026-10-21T02:20:50.2847913Z ok   — repository mutation fails closed
+2026-10-21T02:20:51.3197225Z ok   — workflow mutation fails closed
+2026-10-21T02:20:52.3587189Z ok   — event mutation fails closed
+2026-10-21T02:20:53.3924070Z ok   — subject SHA mutation fails closed
+2026-10-21T02:20:54.4312443Z ok   — remote ref mutation fails closed
+2026-10-21T02:20:55.6311646Z ok   — run id mutation fails closed
+2026-10-21T02:20:56.6667559Z ok   — run attempt mutation fails closed
+2026-10-21T02:20:57.7099233Z ok   — conclusion mutation fails closed
+2026-10-21T02:20:59.0610035Z ok   — job id mutation fails closed
+2026-10-21T02:21:00.1113790Z ok   — job name mutation fails closed
+2026-10-21T02:21:01.1503791Z ok   — job status mutation fails closed
+2026-10-21T02:21:02.1874696Z ok   — job conclusion mutation fails closed
+2026-10-21T02:21:03.2286663Z ok   — job order mutation fails closed
+2026-10-21T02:21:04.2667048Z ok   — duplicate job mutation fails closed
+2026-10-21T02:21:05.3027585Z ok   — strict verdict mutation fails closed
+2026-10-21T02:21:06.3432952Z ok   — strict source job mutation fails closed
+2026-10-21T02:21:07.3796274Z ok   — requested Elixir mutation fails closed
+2026-10-21T02:21:08.4169956Z ok   — requested OTP mutation fails closed
+2026-10-21T02:21:09.5199374Z ok   — resolved Elixir mutation fails closed
+2026-10-21T02:21:10.6180441Z ok   — resolved OTP mutation fails closed
+2026-10-21T02:21:11.6717134Z ok   — resolved Elixir 11.17 near-match fails closed
+2026-10-21T02:21:12.7284076Z ok   — resolved Elixir 1.170 near-match fails closed
+2026-10-21T02:21:13.8094453Z ok   — resolved OTP 127 near-match fails closed
+2026-10-21T02:21:15.1604389Z ok   — cache key mutation fails closed
+2026-10-21T02:21:16.1953192Z ok   — fresh status mutation fails closed
+2026-10-21T02:21:17.2252828Z ok   — fresh builds mutation fails closed
+2026-10-21T02:21:18.2561948Z ok   — fresh analyses mutation fails closed
+2026-10-21T02:21:19.3035710Z ok   — restored status mutation fails closed
+2026-10-21T02:21:20.3333094Z ok   — restored analyses mutation fails closed
+2026-10-21T02:21:21.3657794Z ok   — stale rebuild mutation fails closed
+2026-10-21T02:21:22.7121384Z ok   — preflight repository mutation fails closed
+2026-10-21T02:21:24.0630971Z ok   — preflight workflow mutation fails closed
+2026-10-21T02:21:25.4059687Z ok   — preflight ref mutation fails closed
+2026-10-21T02:21:26.7502064Z ok   — preflight SHA mutation fails closed
+2026-10-21T02:21:28.0947739Z ok   — preflight status mutation fails closed
+2026-10-21T02:21:29.1327972Z ok   — missing top-level key fails closed
+2026-10-21T02:21:30.1857449Z ok   — extra top-level key fails closed
+2026-10-21T02:21:31.2231536Z ok   — extra job key fails closed
+2026-10-21T02:21:32.2588095Z ok   — extra Dialyzer key fails closed
+2026-10-21T02:21:33.2930944Z ok   — extra fresh key fails closed
+2026-10-21T02:21:34.3307892Z ok   — extra restored key fails closed
+2026-10-21T02:21:35.3634032Z ok   — extra strict-verdict key fails closed
+2026-10-21T02:21:36.3984172Z ok   — extra preflight key fails closed
+2026-10-21T02:21:38.0428890Z ok   — both incident snapshots forged together fail closed
+2026-10-21T02:21:39.0796613Z ok   — local census authority removed fails closed
+2026-10-21T02:21:40.1337636Z ok   — local live-truth authority removed fails closed
+2026-10-21T02:21:41.1705119Z ok   — extra local-authority key fails closed
+2026-10-21T02:21:42.2066041Z ok   — census status mutation fails closed
+2026-10-21T02:21:43.2435749Z ok   — census ledger path mutation fails closed
+2026-10-21T02:21:44.7781872Z ok   — census ledger SHA-256 mutation fails closed
+2026-10-21T02:21:46.3014601Z ok   — census ledger blob mutation fails closed
+2026-10-21T02:21:47.8229620Z ok   — census ledger commit mutation fails closed
+2026-10-21T02:21:48.8604454Z ok   — census subject mutation fails closed
+2026-10-21T02:21:50.5326274Z ok   — census detailed receipt mutation fails closed
+2026-10-21T02:21:51.5022078Z ##[error]The operation was canceled.
+2026-10-21T02:21:51.5167539Z Post job cleanup.
+2026-10-21T02:21:51.5171295Z ##[start-action display=Restore build cache;id=__028c0507-7044-4466-adbc-c031f8ec6509.build_cache]
+2026-10-21T02:21:51.5173453Z ##[end-action id=__028c0507-7044-4466-adbc-c031f8ec6509.build_cache;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-21T02:21:51.5175355Z ##[start-action display=Restore deps cache;id=__028c0507-7044-4466-adbc-c031f8ec6509.deps_cache]
+2026-10-21T02:21:51.5177738Z ##[end-action id=__028c0507-7044-4466-adbc-c031f8ec6509.deps_cache;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-21T02:21:51.5244913Z Post job cleanup.
+2026-10-21T02:21:51.6228590Z [command]/usr/bin/git version
+2026-10-21T02:21:51.6275090Z git version 2.55.0
+2026-10-21T02:21:51.6314068Z Temporarily overriding HOME='/home/runner/work/_temp/db1b5a66-0a5f-4d48-99d8-5b9f720574a8' before making global git config changes
+2026-10-21T02:21:51.6318032Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-21T02:21:51.6320906Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/rindle/rindle
+2026-10-21T02:21:51.6359684Z Removing SSH command configuration
+2026-10-21T02:21:51.6364471Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-21T02:21:51.6404462Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-21T02:21:51.6694648Z Removing HTTP extra header
+2026-10-21T02:21:51.6700916Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-21T02:21:51.6742268Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-21T02:21:51.7049112Z Removing includeIf entries pointing to credentials config files
+2026-10-21T02:21:51.7057216Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-21T02:21:51.7087544Z includeif.gitdir:/home/runner/work/rindle/rindle/.git.path
+2026-10-21T02:21:51.7088579Z includeif.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path
+2026-10-21T02:21:51.7089468Z includeif.gitdir:/github/workspace/.git.path
+2026-10-21T02:21:51.7090192Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T02:21:51.7107491Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/rindle/rindle/.git.path
+2026-10-21T02:21:51.7127683Z /home/runner/work/_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:21:51.7139732Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/rindle/rindle/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-96e4fa73\-9a15\-46eb\-bb26\-78438d3c19c6\.config
+2026-10-21T02:21:51.7186038Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path
+2026-10-21T02:21:51.7234304Z /home/runner/work/_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:21:51.7244966Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/rindle/rindle/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-96e4fa73\-9a15\-46eb\-bb26\-78438d3c19c6\.config
+2026-10-21T02:21:51.7292266Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-21T02:21:51.7312910Z /github/runner_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:21:51.7328263Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-96e4fa73\-9a15\-46eb\-bb26\-78438d3c19c6\.config
+2026-10-21T02:21:51.7363037Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-21T02:21:51.7395762Z /github/runner_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config
+2026-10-21T02:21:51.7408290Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-96e4fa73\-9a15\-46eb\-bb26\-78438d3c19c6\.config
+2026-10-21T02:21:51.7498363Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-21T02:21:51.7737226Z Removing credentials config '/home/runner/work/_temp/git-credentials-96e4fa73-9a15-46eb-bb26-78438d3c19c6.config'
+2026-10-21T02:21:51.7860960Z Print service container logs: 43489bedb8ac409bbaea11169f7c98fc_postgres16alpine_664641
+2026-10-21T02:21:51.7865513Z ##[command]/usr/bin/docker logs --details 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:21:51.8039103Z  The files belonging to this database system will be owned by user "postgres".
+2026-10-21T02:21:51.8046888Z  sh: locale: not found
+2026-10-21T02:21:51.8047197Z  This user must also own the server process.
+2026-10-21T02:21:51.8047795Z  2026-10-21 02:06:45.657 UTC [35] WARNING:  no usable system locales were found
+2026-10-21T02:21:51.8048187Z  
+2026-10-21T02:21:51.8048498Z  initdb: warning: enabling "trust" authentication for local connections
+2026-10-21T02:21:51.8048971Z  The database cluster will be initialized with locale "en_US.utf8".
+2026-10-21T02:21:51.8049760Z  initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-10-21T02:21:51.8050489Z  The default database encoding has accordingly been set to "UTF8".
+2026-10-21T02:21:51.8051204Z  2026-10-21 02:06:46.500 UTC [1] LOG:  starting PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+2026-10-21T02:21:51.8051829Z  The default text search configuration will be set to "english".
+2026-10-21T02:21:51.8052406Z  2026-10-21 02:06:46.500 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-10-21T02:21:51.8052780Z  
+2026-10-21T02:21:51.8053073Z  2026-10-21 02:06:46.500 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-10-21T02:21:51.8053459Z  Data page checksums are disabled.
+2026-10-21T02:21:51.8053887Z  2026-10-21 02:06:46.501 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-21T02:21:51.8054309Z  
+2026-10-21T02:21:51.8054635Z  2026-10-21 02:06:46.504 UTC [57] LOG:  database system was shut down at 2026-10-21 02:06:46 UTC
+2026-10-21T02:21:51.8055164Z  fixing permissions on existing directory /var/lib/postgresql/data ... ok
+2026-10-21T02:21:51.8055741Z  2026-10-21 02:06:46.508 UTC [1] LOG:  database system is ready to accept connections
+2026-10-21T02:21:51.8056197Z  2026-10-21 02:06:55.203 UTC [67] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8056932Z  2026-10-21 02:07:05.248 UTC [74] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8057509Z  2026-10-21 02:07:15.296 UTC [81] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8057905Z  2026-10-21 02:07:25.337 UTC [108] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8058258Z  creating subdirectories ... ok
+2026-10-21T02:21:51.8077657Z  2026-10-21 02:07:35.380 UTC [115] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8078413Z  selecting dynamic shared memory implementation ... posix
+2026-10-21T02:21:51.8079215Z  2026-10-21 02:07:45.421 UTC [122] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8079827Z  selecting default max_connections ... 100
+2026-10-21T02:21:51.8080517Z  2026-10-21 02:07:55.470 UTC [136] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8081256Z  2026-10-21 02:08:05.511 UTC [173] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8081912Z  2026-10-21 02:08:15.564 UTC [180] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8082578Z  2026-10-21 02:08:25.609 UTC [187] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8083589Z  2026-10-21 02:08:35.661 UTC [193] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8084331Z  2026-10-21 02:08:45.721 UTC [201] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8085708Z  2026-10-21 02:08:55.781 UTC [208] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8086593Z  2026-10-21 02:09:05.844 UTC [216] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8087285Z  2026-10-21 02:09:15.887 UTC [223] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8087957Z  2026-10-21 02:09:25.939 UTC [237] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8088641Z  2026-10-21 02:09:35.985 UTC [268] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8089618Z  2026-10-21 02:09:46.027 UTC [308] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8090315Z  2026-10-21 02:09:56.067 UTC [316] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8090972Z  2026-10-21 02:10:06.134 UTC [322] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8091653Z  2026-10-21 02:10:16.177 UTC [330] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8092336Z  2026-10-21 02:10:26.234 UTC [338] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8092802Z  2026-10-21 02:10:36.278 UTC [345] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8093207Z  2026-10-21 02:10:46.322 UTC [353] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8093608Z  2026-10-21 02:10:56.374 UTC [390] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8093992Z  2026-10-21 02:11:06.426 UTC [422] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8094384Z  2026-10-21 02:11:16.474 UTC [439] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8094780Z  2026-10-21 02:11:26.524 UTC [446] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8095158Z  2026-10-21 02:11:36.580 UTC [454] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8095549Z  2026-10-21 02:11:46.604 UTC [55] LOG:  checkpoint starting: time
+2026-10-21T02:21:51.8095947Z  2026-10-21 02:11:46.636 UTC [462] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8096353Z  2026-10-21 02:11:56.699 UTC [470] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8097577Z  2026-10-21 02:12:06.757 UTC [477] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8098265Z  2026-10-21 02:12:16.812 UTC [500] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8098944Z  2026-10-21 02:12:26.855 UTC [531] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8099606Z  2026-10-21 02:12:36.898 UTC [562] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8100274Z  2026-10-21 02:12:46.950 UTC [570] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8100940Z  2026-10-21 02:12:57.015 UTC [578] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8101622Z  2026-10-21 02:13:07.064 UTC [586] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8102287Z  2026-10-21 02:13:17.120 UTC [594] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8102951Z  2026-10-21 02:13:27.185 UTC [602] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8103625Z  2026-10-21 02:13:37.235 UTC [625] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8104016Z  2026-10-21 02:13:47.279 UTC [657] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8104393Z  2026-10-21 02:13:57.324 UTC [689] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8104774Z  2026-10-21 02:14:07.386 UTC [697] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8105152Z  2026-10-21 02:14:17.427 UTC [705] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8105535Z  2026-10-21 02:14:27.468 UTC [713] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8105914Z  2026-10-21 02:14:37.532 UTC [722] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8106293Z  2026-10-21 02:14:47.583 UTC [730] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8106981Z  2026-10-21 02:14:57.633 UTC [744] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8107358Z  2026-10-21 02:15:07.680 UTC [785] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8107767Z  2026-10-21 02:15:17.725 UTC [817] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8108364Z  2026-10-21 02:15:27.770 UTC [826] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8109450Z  2026-10-21 02:15:30.140 UTC [55] LOG:  checkpoint complete: wrote 2238 buffers (13.7%); 0 WAL file(s) added, 0 removed, 1 recycled; write=223.517 s, sync=0.015 s, total=223.537 s; sync files=2024, longest=0.002 s, average=0.001 s; distance=10435 kB, estimate=10435 kB; lsn=0/311DFD8, redo lsn=0/2356A18
+2026-10-21T02:21:51.8110522Z  2026-10-21 02:15:37.818 UTC [834] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8110920Z  2026-10-21 02:15:47.864 UTC [843] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8111447Z  2026-10-21 02:15:57.911 UTC [851] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8111838Z  2026-10-21 02:16:07.951 UTC [858] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8112212Z  2026-10-21 02:16:18.006 UTC [873] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8112590Z  2026-10-21 02:16:28.058 UTC [914] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8112966Z  2026-10-21 02:16:38.111 UTC [946] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8113351Z  2026-10-21 02:16:46.148 UTC [55] LOG:  checkpoint starting: time
+2026-10-21T02:21:51.8113734Z  2026-10-21 02:16:48.153 UTC [955] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8114117Z  2026-10-21 02:16:58.192 UTC [963] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8114492Z  2026-10-21 02:17:08.234 UTC [972] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8114867Z  2026-10-21 02:17:18.290 UTC [980] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8115252Z  2026-10-21 02:17:28.337 UTC [989] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8115627Z  2026-10-21 02:17:38.380 UTC [997] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8116016Z  2026-10-21 02:17:48.428 UTC [1034] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8116640Z  2026-10-21 02:17:58.475 UTC [1076] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8117208Z  2026-10-21 02:18:08.517 UTC [1086] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8117603Z  2026-10-21 02:18:18.558 UTC [1095] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8118021Z  2026-10-21 02:18:28.599 UTC [1104] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8118401Z  2026-10-21 02:18:38.641 UTC [1112] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8118792Z  2026-10-21 02:18:48.681 UTC [1121] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8119171Z  2026-10-21 02:18:58.720 UTC [1130] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8119565Z  2026-10-21 02:19:08.759 UTC [1138] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8119948Z  2026-10-21 02:19:18.801 UTC [1147] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8120337Z  2026-10-21 02:19:28.848 UTC [1155] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8120722Z  2026-10-21 02:19:38.889 UTC [1163] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8121106Z  2026-10-21 02:19:48.928 UTC [1172] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8121495Z  2026-10-21 02:19:58.968 UTC [1181] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8121874Z  2026-10-21 02:20:09.007 UTC [1189] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8122278Z  2026-10-21 02:20:19.047 UTC [1198] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8122669Z  2026-10-21 02:20:29.088 UTC [1207] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8123047Z  2026-10-21 02:20:39.127 UTC [1215] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8123431Z  2026-10-21 02:20:49.167 UTC [1224] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8123817Z  2026-10-21 02:20:59.206 UTC [1233] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8124203Z  2026-10-21 02:21:09.244 UTC [1240] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8125239Z  2026-10-21 02:21:16.039 UTC [55] LOG:  checkpoint complete: wrote 4065 buffers (24.8%); 0 WAL file(s) added, 0 removed, 1 recycled; write=269.877 s, sync=0.011 s, total=269.891 s; sync files=1593, longest=0.001 s, average=0.001 s; distance=18812 kB, estimate=18812 kB; lsn=0/3A4E180, redo lsn=0/35B5AA0
+2026-10-21T02:21:51.8126720Z  2026-10-21 02:21:19.290 UTC [1249] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8127130Z  2026-10-21 02:21:29.336 UTC [1258] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8127541Z  2026-10-21 02:21:39.387 UTC [1267] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8127934Z  2026-10-21 02:21:49.431 UTC [1274] FATAL:  role "root" does not exist
+2026-10-21T02:21:51.8128293Z  selecting default shared_buffers ... 128MB
+2026-10-21T02:21:51.8128763Z  selecting default time zone ... UTC
+2026-10-21T02:21:51.8129053Z  creating configuration files ... ok
+2026-10-21T02:21:51.8129325Z  running bootstrap script ... ok
+2026-10-21T02:21:51.8129633Z  performing post-bootstrap initialization ... ok
+2026-10-21T02:21:51.8129942Z  syncing data to disk ... ok
+2026-10-21T02:21:51.8130187Z  
+2026-10-21T02:21:51.8130372Z  
+2026-10-21T02:21:51.8130604Z  Success. You can now start the database server using:
+2026-10-21T02:21:51.8130910Z  
+2026-10-21T02:21:51.8131153Z      pg_ctl -D /var/lib/postgresql/data -l logfile start
+2026-10-21T02:21:51.8131464Z  
+2026-10-21T02:21:51.8132014Z  waiting for server to start....2026-10-21 02:06:46.225 UTC [41] LOG:  starting PostgreSQL 16.15 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit
+2026-10-21T02:21:51.8132815Z  2026-10-21 02:06:46.225 UTC [41] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-10-21T02:21:51.8133383Z  2026-10-21 02:06:46.228 UTC [44] LOG:  database system was shut down at 2026-10-21 02:06:46 UTC
+2026-10-21T02:21:51.8133901Z  2026-10-21 02:06:46.233 UTC [41] LOG:  database system is ready to accept connections
+2026-10-21T02:21:51.8134271Z   done
+2026-10-21T02:21:51.8134462Z  server started
+2026-10-21T02:21:51.8134676Z  CREATE DATABASE
+2026-10-21T02:21:51.8134874Z  
+2026-10-21T02:21:51.8135054Z  
+2026-10-21T02:21:51.8135371Z  /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+2026-10-21T02:21:51.8135772Z  
+2026-10-21T02:21:51.8136128Z  waiting for server to shut down...2026-10-21 02:06:46.377 UTC [41] LOG:  received fast shutdown request
+2026-10-21T02:21:51.8136968Z  .2026-10-21 02:06:46.378 UTC [41] LOG:  aborting any active transactions
+2026-10-21T02:21:51.8137583Z  2026-10-21 02:06:46.380 UTC [41] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+2026-10-21T02:21:51.8138118Z  2026-10-21 02:06:46.382 UTC [42] LOG:  shutting down
+2026-10-21T02:21:51.8138522Z  2026-10-21 02:06:46.382 UTC [42] LOG:  checkpoint starting: shutdown immediate
+2026-10-21T02:21:51.8139592Z  2026-10-21 02:06:46.402 UTC [42] LOG:  checkpoint complete: wrote 926 buffers (5.7%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.017 s, sync=0.002 s, total=0.021 s; sync files=301, longest=0.001 s, average=0.001 s; distance=4283 kB, estimate=4283 kB; lsn=0/1925D68, redo lsn=0/1925D68
+2026-10-21T02:21:51.8140641Z  2026-10-21 02:06:46.413 UTC [41] LOG:  database system is shut down
+2026-10-21T02:21:51.8140991Z   done
+2026-10-21T02:21:51.8141189Z  server stopped
+2026-10-21T02:21:51.8141396Z  
+2026-10-21T02:21:51.8141634Z  PostgreSQL init process complete; ready for start up.
+2026-10-21T02:21:51.8141951Z  
+2026-10-21T02:21:51.8147699Z Stop and remove container: 43489bedb8ac409bbaea11169f7c98fc_postgres16alpine_664641
+2026-10-21T02:21:51.8152893Z ##[command]/usr/bin/docker rm --force 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:21:51.9832333Z 7ce9cfcc7bccf2328f7b69eb047217530c6c39c1585dbe8c87750555d0d6372f
+2026-10-21T02:21:51.9866182Z Remove container network: github_network_6e17756ad35e4a62b1c085f7878f0f66
+2026-10-21T02:21:51.9871309Z ##[command]/usr/bin/docker network rm github_network_6e17756ad35e4a62b1c085f7878f0f66
+2026-10-21T02:21:52.1046330Z github_network_6e17756ad35e4a62b1c085f7878f0f66
+2026-10-21T02:21:52.1126168Z Cleaning up orphan processes
+2026-10-21T02:21:52.1455310Z Terminate orphan process: pid (28643) (bash)
+2026-10-21T02:21:52.1487048Z Terminate orphan process: pid (50259) (bash)

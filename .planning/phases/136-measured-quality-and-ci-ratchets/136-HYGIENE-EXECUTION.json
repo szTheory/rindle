@@ -1,0 +1,34 @@
+{
+  "subject_sha": "4fdd3fba5ef5bc73be52473bc72de03fe56926d4",
+  "source_tree": "02903fa7e28f22041a0562f29c34f86b6bb76ecc",
+  "status": "collecting",
+  "local_pipeline_session": 98749,
+  "local_pipeline_script": "/private/tmp/phase136-hygiene-local-pipeline.py",
+  "local_pipeline_log": "/private/tmp/phase136-hygiene-local-pipeline.txt",
+  "local_pipeline_state": "136-HYGIENE-LOCAL-COLLECTION.json",
+  "timing_pipeline_session": 4637,
+  "timing_pipeline_script": "/private/tmp/phase136-hygiene-timing-pipeline.py",
+  "timing_pipeline_log": "/private/tmp/phase136-hygiene-timing-pipeline.txt",
+  "timing_pipeline_state": "136-HYGIENE-TIMING-CONTROLLER.json",
+  "timing_checkout": "/private/tmp/phase136-timing-hygiene-4fdd3fba",
+  "timing_state_dir": ".planning/evidence/ci-timing-hygiene",
+  "initial_ci_run_id": 39530200284,
+  "pr_url": "https://github.com/szTheory/rindle/pull/162",
+  "queue": [
+    "one canonical coverage",
+    "coverage write + verify",
+    "fresh/restored Dialyzer + verify",
+    "clean bootstrap + verify",
+    "16-file prior-phase regression",
+    "fixed25seed async + verify",
+    "wait for remote timing terminal marker",
+    "qualification generate + verify"
+  ],
+  "rule": "Do not duplicate any owner or overlap local database tests. Never change source during this attempt. Queue reserves new-only immutable receipt paths; progress JSON is process metadata only. Inspect source-bound qualification outcome before any completion claim. No merge/release authorized.",
+  "pending_after_collectors": [
+    "Inspect and commit every immutable result, sidecar and JSONL.",
+    "Write substantive Plan14 and Plan07 summaries from actual receipts.",
+    "Refresh final audits and goal-backward verification/fingerprint.",
+    "Close requirements/phase only from actual supported passing authorities."
+  ]
+}

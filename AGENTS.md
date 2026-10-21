@@ -1,47 +1,19 @@
 # Agent notes (rindle)
 
-## GSD model routing in Cursor
+## GSD model routing
 
-This repo uses a **Cursor-only** GSD overlay (see `.planning/config.json`):
+This project currently runs GSD through **Codex**: `.planning/config.json` sets
+`runtime` to `codex`. Tier routing lives in `model_profile_overrides`, per runtime:
 
-- **Planning / research subagents** → `auto` (Auto+Composer usage pool)
-- **Execution / verify subagents** → `composer-2.5`
+- `claude`: `claude-opus-5-5` (opus tier), `claude-sonnet-5-5` (sonnet tier), `claude-haiku-5-5` (haiku tier)
+- `codex`: `gpt-6.1-sol` for the opus tier (including the planner and debugger), `gpt-6-luna`
+  for both the sonnet and haiku tiers
 
-Global defaults in `~/.gsd/defaults.json` stay **`balanced`** for Codex, Gemini, and Claude Code.
+Keep these project-level overrides in sync with any intentional model-routing changes.
 
-### Manual backup (if overrides do not apply)
-
-| Stage | Cursor model picker | Command |
-|-------|---------------------|---------|
-| Discuss / plan | **Auto** | `/gsd-discuss-phase`, `/gsd-plan-phase` |
-| Execute / verify | **Composer** | `/gsd-execute-phase` |
-
-Check [cursor.com/dashboard](https://cursor.com/dashboard) — usage should hit **Auto + Composer**, not API tier models.
-
-### Verify resolution
-
-```bash
-gsd-sdk query resolve-model gsd-planner
-gsd-sdk query resolve-model gsd-executor
-```
-
-Expected in this repo: `auto` and `composer-2.5` (not `opus` / `sonnet`).
-
-### Pilot checklist (2026-05-27)
-
-Config verification (automated):
-
-- [x] `gsd-sdk query resolve-model gsd-planner` → `auto`
-- [x] `gsd-sdk query resolve-model gsd-executor` → `composer-2.5`
-- [x] `init.execute-phase` → `executor_model: composer-2.5`, `verifier_model: composer-2.5`
-
-Usage pool (manual — on your next GSD run):
-
-- [ ] Set picker to **Auto**, run `/gsd-discuss-phase` or `/gsd-plan-phase`
-- [ ] Set picker to **Composer**, run `/gsd-execute-phase`
-- [ ] Confirm [cursor.com/dashboard](https://cursor.com/dashboard) **Auto + Composer** bar moves, not API tier
-
-If subagents still bill API models, fall back to manual picker only (remove `model_overrides` from `.planning/config.json`, keep `inherit` + `omit`).
+GSD parallelization and worktree isolation are enabled for this project. The GSD
+Codex adapter uses worktrees when the active Codex session supports them and fails
+closed when it does not.
 
 ## Repository workflow
 

@@ -1,0 +1,419 @@
+Running ExUnit with seed: 46662, max_cases: 36
+Excluding tags: [:integration, :minio, :contract, :adopter, :migration_e2e, :canary]
+
+..................................................................................
+18:18:17.440 [warning] Rindle.LiveView sign upload failed: :timeout
+.......
+18:18:17.446 [warning] Rindle.LiveView tus_upload upload failed: :invalid_length
+...................................
+18:18:17.545 [warning] rindle.asset.transition_failed
+.................................................................................
+18:18:17.867 [warning] rindle.variant_maintenance.mark_missing_invalid_transition
+........................................
+18:18:17.922 [warning] rindle.variant_maintenance.mark_missing_invalid_transition
+...................................................................
+18:18:18.174 [warning] rindle.provider_asset.transition_failed
+.
+18:18:18.174 [warning] rindle.provider_asset.transition_failed
+.....
+18:18:18.175 [warning] rindle.provider_asset.transition_failed
+..
+18:18:18.175 [warning] rindle.provider_asset.transition_failed
+...
+18:18:18.176 [warning] rindle.provider_asset.transition_failed
+..
+18:18:18.177 [warning] rindle.provider_asset.transition_failed
+.
+18:18:18.177 [warning] rindle.provider_asset.transition_failed
+
+18:18:18.177 [warning] rindle.provider_asset.transition_failed
+
+18:18:18.177 [warning] rindle.provider_asset.transition_failed
+
+18:18:18.178 [warning] rindle.provider_asset.transition_failed
+
+18:18:18.178 [warning] rindle.provider_asset.transition_failed
+.
+18:18:18.178 [warning] rindle.provider_asset.transition_failed
+.
+18:18:18.179 [warning] rindle.provider_asset.transition_failed
+.
+18:18:18.179 [warning] rindle.provider_asset.transition_failed
+.....................................................................................................................................................................................................................
+18:18:19.377 [warning] rindle.asset.transition_failed
+...
+18:18:19.377 [warning] rindle.asset.transition_failed
+.........
+18:18:19.378 [warning] rindle.asset.quarantined
+.........
+18:18:19.379 [warning] rindle.asset.transition_failed
+.............
+18:18:19.382 [warning] rindle.upload_session.transition_failed
+
+18:18:19.382 [warning] rindle.upload_session.transition_failed
+
+18:18:19.382 [warning] rindle.upload_session.transition_failed
+
+18:18:19.383 [warning] rindle.upload_session.transition_failed
+....
+18:18:19.383 [warning] rindle.asset.transition_failed
+
+18:18:19.384 [warning] rindle.asset.transition_failed
+
+18:18:19.385 [warning] rindle.asset.transition_failed
+
+18:18:19.385 [warning] rindle.asset.transition_failed
+...................................................................................................................................................................
+
+  1) test every async:true test module uses no concurrency-unsafe shared-state primitive (Rindle.AsyncSafetyGuardTest)
+     test/async_safety_guard_test.exs:92
+     Found 55 async-safety offender(s): module(s) declaring `async: true` while using a concurrency-unsafe shared-state primitive.
+
+       - test/install_smoke/contributor_bootstrap_test.exs:54 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:61 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:73 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:96 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:172 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:173 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:177 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:188 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:194 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/contributor_bootstrap_test.exs:199 (Rindle.ContributorBootstrapTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:51 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:55 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:59 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:69 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:75 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:79 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:84 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:103 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:111 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:119 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:137 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:143 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:147 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:148 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:154 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:155 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:159 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:161 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:170 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:172 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:177 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:187 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_measure_test.exs:189 (Rindle.PhaseEvidenceMeasureTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:30 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:42 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:46 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:59 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:77 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:136 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:166 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:170 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:171 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:175 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:177 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:185 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:191 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:200 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:205 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:215 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:217 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:271 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/phase136_qualification_test.exs:283 (Rindle.PhaseEvidenceQualificationTest) uses file_mutation
+       - test/install_smoke/quality_signal_policy_test.exs:252 (Rindle.InstallSmoke.QualitySignalPolicyTest) uses file_mutation
+       - test/install_smoke/quality_signal_policy_test.exs:255 (Rindle.InstallSmoke.QualitySignalPolicyTest) uses file_mutation
+       - test/install_smoke/quality_signal_policy_test.exs:261 (Rindle.InstallSmoke.QualitySignalPolicyTest) uses file_mutation
+
+     Either (a) make the module `async: false`, (b) remove the primitive, or (c) if the usage is genuinely process-local and async-safe, opt out with a justified `@async_safety_allow [:file_mutation]` module attribute. Recognised primitive atoms: [:application_put_env, :system_put_env, :set_mox_global, :named_process, :file_mutation, :public_ets, :persistent_term, :shared_sandbox, :global_repo_swap].
+
+     code: assert offenders == [], failure_message(offenders)
+     stacktrace:
+       test/async_safety_guard_test.exs:107: (test)
+
+....................................................
+18:18:20.137 [warning] rindle.provider_asset.transition_failed
+...................................................
+
+  2) test live tree is fully accounted for by the allowlist shards with zero pending-removal (Rindle.InstallSmoke.LiveResidueScanTest)
+     test/install_smoke/live_residue_scan_test.exs:24
+     .github/workflows/ci.yml:974: milestone-ref: PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
+     .github/workflows/ci.yml:1083: milestone-ref: PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
+     AGENTS.md:5: planning-path: This project currently runs GSD through **Codex**: `.planning/config.json` sets
+     CONTRIBUTING.md:82: planning-path: | Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |
+     scripts/maintainer/phase136_evidence.py:1: phase-ref: """Source-bound Phase 136 evidence; all subprocess owners come from the frozen tree."""
+     scripts/maintainer/phase136_evidence.py:82: planning-path: require(all(name.startswith(".planning/") for name in names.splitlines()), "source_history_drift")
+     scripts/maintainer/phase136_evidence.py:85: planning-path: require(all(name.startswith(".planning/") for name in dirty + untracked), "dirty_or_untracked_source")
+     scripts/maintainer/phase136_evidence.py:258: planning-path: target = Path(args.jsonl or root / ".planning/evidence/async-isolation/136-async-isolation.jsonl").resolve()
+     scripts/maintainer/phase136_evidence.py:460: phase-ref: path = root / "scripts/maintainer/phase136_evidence_contract.json"
+     scripts/maintainer/phase136_evidence.py:623: requirement-id: "MAINT-04": {"status": qstates["maint"], "authority": "quality.credo"},
+     scripts/maintainer/phase136_evidence.py:624: requirement-id: "TYPE-03": {**authorities["dialyzer"], "authority": "dialyzer"},
+     scripts/maintainer/phase136_evidence.py:625: requirement-id: "COV-06": {**authorities["coverage"], "authority": "coverage"},
+     scripts/maintainer/phase136_evidence.py:630: requirement-id: "DX-05": {**authorities["bootstrap"], "authority": "bootstrap"}}
+     scripts/maintainer/phase136_evidence.py:646: phase-ref: parser = argparse.ArgumentParser(prog="verify_phase136_qualification.sh")
+     scripts/maintainer/phase136_evidence.py:662: planning-path: phase = root / ".planning/phases/136-measured-quality-and-ci-ratchets"
+     scripts/maintainer/phase136_evidence.py:763: phase-ref: parser = argparse.ArgumentParser(prog="phase136_measure.sh")
+     scripts/maintainer/phase136_evidence_contract.json:45: planning-path: "planning_prefix": ".planning/",
+     scripts/maintainer/phase136_evidence_contract.json:47: requirement-id: "MAINT-04",
+     scripts/maintainer/phase136_evidence_contract.json:48: requirement-id: "TYPE-03",
+     scripts/maintainer/phase136_evidence_contract.json:49: requirement-id: "COV-06",
+     scripts/maintainer/phase136_evidence_contract.json:53: requirement-id: "DX-05"
+     scripts/maintainer/phase136_measure.sh:4: phase-ref: exec python3 "$repo_root/scripts/maintainer/phase136_evidence.py" measure "$repo_root" "$@"
+     scripts/maintainer/verify_coverage_floor.exs:13: phase-ref: [Path.join(root, "scripts/maintainer/phase136_evidence.py"), "coverage", root | args],
+     scripts/maintainer/verify_phase136_qualification.sh:4: phase-ref: exec python3 "$repo_root/scripts/maintainer/phase136_evidence.py" qualify "$repo_root" "$@"
+     test/install_smoke/ci_timing_automation_test.exs:708: planning-path: write_fixture_file!(context.repo_dir, ".planning/new-evidence.md", "new evidence\n")
+     test/install_smoke/coverage_floor_policy_test.exs:5: phase-ref: @files ~w(scripts/maintainer/phase136_evidence.py scripts/maintainer/phase136_evidence_contract.json scripts/maintainer/verify_coverage_floor.exs)
+     test/install_smoke/coverage_floor_policy_test.exs:134: planning-path: evidence = Path.join(source, ".planning/evidence")
+     test/install_smoke/phase136_measure_test.exs:25: planning-path: fixture = %{fixture | receipt: Path.join(fixture.source, ".planning/evidence/#{kind}.json")}
+     test/install_smoke/phase136_measure_test.exs:69: planning-path: File.write!(Path.join(fixture.source, ".planning/new.md"), "new evidence")
+     test/install_smoke/phase136_measure_test.exs:70: planning-path: git!(fixture.source, ["add", ".planning/new.md"])
+     test/install_smoke/phase136_measure_test.exs:91: planning-path: fixture = %{fixture | receipt: ".planning/evidence/relative-bootstrap.json"}
+     test/install_smoke/phase136_measure_test.exs:145: phase-ref: for path <- ~w(scripts/maintainer/phase136_measure.sh scripts/maintainer/phase136_evidence.py) do
+     test/install_smoke/phase136_measure_test.exs:186: planning-path: evidence = Path.join(source, ".planning/evidence")
+     test/install_smoke/phase136_measure_test.exs:202: phase-ref: script = Path.join(fixture.source, "scripts/maintainer/phase136_measure.sh")
+     test/install_smoke/phase136_qualification_test.exs:5: phase-ref: @files ~w(scripts/maintainer/phase136_measure.sh scripts/maintainer/phase136_evidence.py scripts/maintainer/phase136_evidence_contract.json scripts/maintainer/verify_phase136_qualification.sh scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/verify_async_isolation_receipt.sh scripts/maintainer/verify_contributor_bootstrap.sh CONTRIBUTING.md)
+     test/install_smoke/phase136_qualification_test.exs:64: requirement-id: assert manifest["requirements"]["COV-06"]["status"] == "blocked"
+     test/install_smoke/phase136_qualification_test.exs:95: phase-ref: script = Path.join(fixture.source, "scripts/maintainer/phase136_measure.sh")
+     test/install_smoke/phase136_qualification_test.exs:119: requirement-id: assert manifest["requirements"]["TYPE-03"]["status"] == "complete"
+     test/install_smoke/phase136_qualification_test.exs:120: requirement-id: assert manifest["requirements"]["DX-05"]["status"] == "complete"
+     test/install_smoke/phase136_qualification_test.exs:147: phase-ref: spec = importlib.util.spec_from_file_location('phase_evidence', root/'scripts/maintainer/phase136_evidence.py')
+     test/install_smoke/phase136_qualification_test.exs:214: planning-path: evidence = Path.join(source, ".planning/evidence")
+     test/install_smoke/phase136_qualification_test.exs:231: phase-ref: script = Path.join(source, "scripts/maintainer/phase136_measure.sh")
+     test/install_smoke/phase136_qualification_test.exs:293: phase-ref: script = Path.join(fixture.source, "scripts/maintainer/verify_phase136_qualification.sh")
+     test/install_smoke/quality_signal_policy_test.exs:163: milestone-ref: @playwright_image "mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd"
+     test/install_smoke/quality_signal_policy_test.exs:189: milestone-ref: "mcr.microsoft.com/playwright:v1.57.0-noble"
+     .github/workflows/ci.yml: milestone-ref: stale allowlist entry matches nothing (entry count 2, live 0): PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
+     AGENTS.md: planning-path: stale allowlist entry matches nothing (entry count 1, live 0): If subagents still bill API models, fall back to manual picker only (remove `model_overrides` from `.planning/config.json`, keep `inherit` + `omit`).
+     AGENTS.md: planning-path: stale allowlist entry matches nothing (entry count 1, live 0): This repo uses a **Cursor-only** GSD overlay (see `.planning/config.json`):
+     live residue scan: FAILED (48 violations, 638 files)
+
+     code: assert status == 0, output
+     stacktrace:
+       test/install_smoke/live_residue_scan_test.exs:27: (test)
+
+...................................
+
+  3) test --regen-baseline is byte-idempotent and reproduces the committed shards (Rindle.InstallSmoke.LiveResidueScanTest)
+     test/install_smoke/live_residue_scan_test.exs:402
+     Assertion with == failed
+     code:  assert first == read_dir(live_dir)
+     left:  %{
+              "automation_generators.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"automation_generators\",\n  \"entries\": [\n    {\n      \"path\": \"scripts/ci/collect_pr_timing_receipt.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"actual_paths=\\\"$(git diff --name-only \\\"$preserved_subject_sha..$head_sha\\\" | grep -Ev '^\\\\.planning/' || true)\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior\"\n    },\n    {\n      \"path\": \"scripts/ci/collect_pr_timing_receipt.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"all(.stages[]; all(.non_planning[]; (.path | startswith(\\\".planning/\\\") | not) and (.blob_oid | type == \\\"string\\\" and test(\\\"^[0-9a-f]{40}$\\\"))))\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior\"\n    },\n    {\n      \"path\": \"scripts/ci/collect_pr_timing_receipt.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"all(.stages[]; all(.planning[]; .path | startswith(\\\".planning/\\\"))) and\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior\"\n    },\n    {\n      \"path\": \"scripts/ci/e2e_local.sh\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"# `mcr.microsoft.com/playwright:v1.57.0-noble`. The container tag IS the font +\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image\"\n    },\n    {\n      \"path\": \"scripts/ci/e2e_local.sh\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"PLAYWRIGHT_IMAGE=\\\"${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.57.0-noble}\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image\"\n    },\n    {\n      \"path\": \"scripts/ci/fixtures/nightly_failure_fingerprint.json\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"\\\"elixir\\\": \\\"v1.17.3-otp-27\\\",\",\n      \"count\": 2,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"byte-for-byte copy of the retained Nightly failure fingerprint receipt (sha256 119b2f9a...); the match is the Elixir toolchain version, not a milestone\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"phase-ref\",\n      \"text\": \"TWIN='not-applicable: twin not built (Phase 137)'\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"if grep -n '\\\\.planning/phases' \\\"${script}\\\" >/dev/null; then\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"record \\\"script reads no .planning/phases path\\\" false \\\"found\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"record \\\"script reads no .planning/phases path\\\" true\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evid" <> ...,
+              "automation_workflows.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"automation_workflows\",\n  \"entries\": [\n    {\n      \"path\": \".github/actions/setup-elixir/action.yml\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"decision-id\",\n      \"text\": \"echo \\\"## CI per-step timing (D-04 long-pole jobs)\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Run-summary heading printed by the CI Observability step; executable workflow text stays unchanged in this comment-only tranche (D-135-01).\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd\",\n      \"count\": 2,\n      \"reason_class\": \"pending-removal\",\n      \"reason\": \"\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"! grep -A3 \\\"parent-death subprocess\\\" .planning/PROJECT.md | grep -q \\\"Rambo on macOS\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"! grep -q \\\"FFmpex + MuonTrap\\\" .planning/PROJECT.md\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"grep -q \\\"MuonTrap is the sole subprocess runner on every platform\\\" .planning/PROJECT.md\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"- name: Run SAFE-01 preservation contract\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This check-run or step name is consumed by scripts and asserted by tests; renaming needs all consumers in one change.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"- name: TRUTH-01 docs-truth guard (PROJECT.md invariant 13)\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Step name, not a comment: TRUTH-01 is the present-tense name of the docs-truth guard this step enforces; workflow edits in this tranche are comment-only.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"echo \\\"TRUTH-01-OK\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Success sentinel printed by the TRUTH-01 docs-truth guard step; executable workflow text stays unchanged in this comment-only tranche.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"name: ADMIN-06 Optional Dependencies\",\n      \"" <> ...,
+              "examples_docs.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"examples_docs\",\n  \"entries\": [\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"**Automated coding agents:** honor the constraints in this file; keep edits focused, run the checks **RUNNING.md** names for your change, and update **`.planning/PROJECT.md`** when you intentionally change product scope or shipped claims.\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"**Contributors:** follow [`guides/release_publish.md`](guides/release_publish.md) and [`RUNNING.md`](RUNNING.md) for CI lanes and release gates. When **`.planning/`** is present, it holds milestone context for maintainers.\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"- prefer **PR-first** execution for serious milestone or feature-depth work (see [`.planning/DEVELOPMENT-TRAIN.md`](.planning/DEVELOPMENT-TRAIN.md))\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"- when the release train is idle and there is no approved work item, say so plainly instead of inventing work (**silence on the wire** — see [`.planning/RELEASE-TRAIN.md`](.planning/RELEASE-TRAIN.md))\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"This project currently runs GSD through **Codex**: `.planning/config.json` sets\",\n      \"count\": 1,\n      \"reason_class\": \"pending-removal\",\n      \"reason\": \"\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"requirement-id\",\n      \"text\": \"- avoid speculative milestone reopening during `demand-gated-pause` unless LIFE-06 or STREAM-10 signal exists\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"The agent instructions name the demand signals that gate reopening a milestone.\"\n    },\n    {\n      \"path\": \"CONTRIBUTING.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"| Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |\",\n      \"count\": 1,\n      \"reason_class\": \"pending-removal\",\n      \"reason\": \"\"\n    },\n    {\n      \"path\": \"examples/adoption_demo/AGENTS.md\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"### Phoenix v1.8 guidelines\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Phoenix framework version in the phx.new-generated agent guidelines, not a planning milestone.\"\n    },\n    {\n      \"path\": \"examples/adoption_demo/AGENTS.md\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"- Phoenix v1.8 moved the `<.flash_group>` component to the `Layouts` module. You are **forbidden** from calling `<.flash_group>` outside of the `layouts.ex` module\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Phoenix framework version in the phx.new-generated agent guidelines, not a planning milestone.\"\n    }\n  ]\n}\n",
+              "install_smoke.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"install_smoke\",\n  \"entries\": [\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"planning-path\",\n      \"text\": \"state = Path.join(repo_dir, \\\".planning/STATE.md\\\")\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"requirement-id\",\n      \"text\": \"<verification>Human approval closes SAFE-02.</verification>\",\n      \"count\": 3,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-01-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 3,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-02-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-03-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 2,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-04-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-05-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-VALIDATION.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 2,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/ci_timing_automation_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"jq -cn --arg sha \\\"${GH_REMOTE_SHA:-$GH_EXPECTED_SHA}\\\" '{state:\\\"OPEN\\\",isDraft:true,headRefName:\\\"codex/v1.25-maintainer-craft\\\",headRefOid:$sha}'\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"Canned gh stub output for a disposable fixture repository; the branch name is sample data, not a live reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/ci_timing_automation_test.exs\",\n      \"class\": \"planning-path\",\n      \"text\": \"\\\"planning\\\" => [%{\\\"status\\\" => \\\"A\\\", \\\"path\\\" => \\\".planning/formatter.md\\\"}],\",\n      \"count\": 1,\n      \"reason_cl" <> ...,
+              "lib.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"lib\",\n  \"entries\": [\n    {\n      \"path\": \"lib/rindle.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"The recommended `v1.10` owner/account erasure facade is\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/admin/queries.ex\",\n      \"class\": \"decision-id\",\n      \"text\": \"Maintenance directory (UI-SPEC §E, D-98-10): the \\\"Actions\\\" verb-bucket is a\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/admin/queries.ex\",\n      \"class\": \"decision-id\",\n      \"text\": \"`variants-jobs/:id` `:show` route (D-98-09).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/admin/queries.ex\",\n      \"class\": \"spec-ref\",\n      \"text\": \"Maintenance directory (UI-SPEC §E, D-98-10): the \\\"Actions\\\" verb-bucket is a\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"phase-ref\",\n      \"text\": \"Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/html.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"not rendered in v1.4.\",\n      \"count\": 2,\n      \"reason_class\": \"contract\",\n      \"re" <> ...,
+              "unit_tests_a.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"unit_tests_a\",\n  \"entries\": [\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"phase-ref\",\n      \"text\": \"Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    }\n  ]\n}\n",
+              "unit_tests_b.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"unit_tests_b\",\n  \"entries\": []\n}\n"
+            }
+     right: %{
+              "automation_generators.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"automation_generators\",\n  \"entries\": [\n    {\n      \"path\": \"scripts/ci/collect_pr_timing_receipt.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"actual_paths=\\\"$(git diff --name-only \\\"$preserved_subject_sha..$head_sha\\\" | grep -Ev '^\\\\.planning/' || true)\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior\"\n    },\n    {\n      \"path\": \"scripts/ci/collect_pr_timing_receipt.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"all(.stages[]; all(.non_planning[]; (.path | startswith(\\\".planning/\\\") | not) and (.blob_oid | type == \\\"string\\\" and test(\\\"^[0-9a-f]{40}$\\\"))))\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior\"\n    },\n    {\n      \"path\": \"scripts/ci/collect_pr_timing_receipt.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"all(.stages[]; all(.planning[]; .path | startswith(\\\".planning/\\\"))) and\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"receipt logic that partitions changed paths into .planning and product stages; the .planning/ prefix is the partition rule, so changing it changes receipt behavior\"\n    },\n    {\n      \"path\": \"scripts/ci/e2e_local.sh\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"# `mcr.microsoft.com/playwright:v1.57.0-noble`. The container tag IS the font +\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image\"\n    },\n    {\n      \"path\": \"scripts/ci/e2e_local.sh\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"PLAYWRIGHT_IMAGE=\\\"${PLAYWRIGHT_IMAGE:-mcr.microsoft.com/playwright:v1.57.0-noble}\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"pinned Playwright container image tag (a Playwright version, not a milestone); must match the adoption-demo-e2e lane image\"\n    },\n    {\n      \"path\": \"scripts/ci/fixtures/nightly_failure_fingerprint.json\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"\\\"elixir\\\": \\\"v1.17.3-otp-27\\\",\",\n      \"count\": 2,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"byte-for-byte copy of the retained Nightly failure fingerprint receipt (sha256 119b2f9a...); the match is the Elixir toolchain version, not a milestone\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"phase-ref\",\n      \"text\": \"TWIN='not-applicable: twin not built (Phase 137)'\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"if grep -n '\\\\.planning/phases' \\\"${script}\\\" >/dev/null; then\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"record \\\"script reads no .planning/phases path\\\" false \\\"found\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evidence.sh\",\n      \"class\": \"planning-path\",\n      \"text\": \"record \\\"script reads no .planning/phases path\\\" true\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"guard asserting dep_landing_evidence.sh reads no phase-directory path (archiving a phase must not red CI)\"\n    },\n    {\n      \"path\": \"scripts/ci/test_dep_landing_evid" <> ...,
+              "automation_workflows.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"automation_workflows\",\n  \"entries\": [\n    {\n      \"path\": \".github/actions/setup-elixir/action.yml\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"decision-id\",\n      \"text\": \"echo \\\"## CI per-step timing (D-04 long-pole jobs)\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Run-summary heading printed by the CI Observability step; executable workflow text stays unchanged in this comment-only tranche (D-135-01).\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble\",\n      \"count\": 2,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Pinned Playwright container tag; scripts/ci/e2e_local.sh defaults to the same tag and examples/adoption_demo/package.json pins the matching @playwright/test version.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"! grep -A3 \\\"parent-death subprocess\\\" .planning/PROJECT.md | grep -q \\\"Rambo on macOS\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"! grep -q \\\"FFmpex + MuonTrap\\\" .planning/PROJECT.md\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"grep -q \\\"MuonTrap is the sole subprocess runner on every platform\\\" .planning/PROJECT.md\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"planning-path\",\n      \"text\": \"run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"This CI step reads a maintained planning document or ledger as its input.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"- name: Run SAFE-01 preservation contract\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This check-run or step name is consumed by scripts and asserted by tests; renaming needs all consumers in one change.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"- name: TRUTH-01 docs-truth guard (PROJECT.md invariant 13)\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Step name, not a comment: TRUTH-01 is the present-tense name of the docs-truth guard this step enforces; workflow edits in this tranche are comment-only.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"class\": \"requirement-id\",\n      \"text\": \"echo \\\"TRUTH-01-OK\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Success sentinel printed by the TRUTH-01 docs-truth guard step; executable workflow text stays unchanged in this comment-only tranche.\"\n    },\n    {\n      \"path\": \".github/workflows/ci.yml\",\n      \"c" <> ...,
+              "examples_docs.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"examples_docs\",\n  \"entries\": [\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"**Automated coding agents:** honor the constraints in this file; keep edits focused, run the checks **RUNNING.md** names for your change, and update **`.planning/PROJECT.md`** when you intentionally change product scope or shipped claims.\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"**Contributors:** follow [`guides/release_publish.md`](guides/release_publish.md) and [`RUNNING.md`](RUNNING.md) for CI lanes and release gates. When **`.planning/`** is present, it holds milestone context for maintainers.\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"- prefer **PR-first** execution for serious milestone or feature-depth work (see [`.planning/DEVELOPMENT-TRAIN.md`](.planning/DEVELOPMENT-TRAIN.md))\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"- when the release train is idle and there is no approved work item, say so plainly instead of inventing work (**silence on the wire** — see [`.planning/RELEASE-TRAIN.md`](.planning/RELEASE-TRAIN.md))\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"If subagents still bill API models, fall back to manual picker only (remove `model_overrides` from `.planning/config.json`, keep `inherit` + `omit`).\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"planning-path\",\n      \"text\": \"This repo uses a **Cursor-only** GSD overlay (see `.planning/config.json`):\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Agent instructions point at the maintained planning documents.\"\n    },\n    {\n      \"path\": \"AGENTS.md\",\n      \"class\": \"requirement-id\",\n      \"text\": \"- avoid speculative milestone reopening during `demand-gated-pause` unless LIFE-06 or STREAM-10 signal exists\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"The agent instructions name the demand signals that gate reopening a milestone.\"\n    },\n    {\n      \"path\": \"examples/adoption_demo/AGENTS.md\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"### Phoenix v1.8 guidelines\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Phoenix framework version in the phx.new-generated agent guidelines, not a planning milestone.\"\n    },\n    {\n      \"path\": \"examples/adoption_demo/AGENTS.md\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"- Phoenix v1.8 moved the `<.flash_group>` component to the `Layouts` module. You are **forbidden** from calling `<.flash_group>` outside of the `layouts.ex` module\",\n      \"count\": 1,\n      \"reason_class\": \"policy\",\n      \"reason\": \"Phoenix framework version in the phx.new-generated agent guidelines, not a planning milestone.\"\n    }\n  ]\n}\n",
+              "install_smoke.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"install_smoke\",\n  \"entries\": [\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"planning-path\",\n      \"text\": \"state = Path.join(repo_dir, \\\".planning/STATE.md\\\")\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"requirement-id\",\n      \"text\": \"<verification>Human approval closes SAFE-02.</verification>\",\n      \"count\": 3,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-01-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 3,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-02-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-03-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 2,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-04-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-05-PLAN.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/automation_first_contract_test.exs\",\n      \"class\": \"spec-ref\",\n      \"text\": \"File.write!(Path.join(phase_dir, \\\"132-VALIDATION.md\\\"), \\\"\\\"\\\"\",\n      \"count\": 2,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/ci_timing_automation_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"jq -cn --arg sha \\\"${GH_REMOTE_SHA:-$GH_EXPECTED_SHA}\\\" '{state:\\\"OPEN\\\",isDraft:true,headRefName:\\\"codex/v1.25-maintainer-craft\\\",headRefOid:$sha}'\",\n      \"count\": 1,\n      \"reason_class\": \"fixture\",\n      \"reason\": \"Canned gh stub output for a disposable fixture repository; the branch name is sample data, not a live reference.\"\n    },\n    {\n      \"path\": \"test/install_smoke/ci_timing_automation_test.exs\",\n      \"class\": \"planning-path\",\n      \"text\": \"\\\"planning\\\" => [%{\\\"status\\\" => \\\"A\\\", \\\"path\\\" => \\\".planning/formatter.md\\\"}],\",\n      \"count\": 1,\n      \"reason_cl" <> ...,
+              "lib.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"lib\",\n  \"entries\": [\n    {\n      \"path\": \"lib/rindle.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"The recommended `v1.10` owner/account erasure facade is\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/admin/queries.ex\",\n      \"class\": \"decision-id\",\n      \"text\": \"Maintenance directory (UI-SPEC §E, D-98-10): the \\\"Actions\\\" verb-bucket is a\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/admin/queries.ex\",\n      \"class\": \"decision-id\",\n      \"text\": \"`variants-jobs/:id` `:show` route (D-98-09).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/admin/queries.ex\",\n      \"class\": \"spec-ref\",\n      \"text\": \"Maintenance directory (UI-SPEC §E, D-98-10): the \\\"Actions\\\" verb-bucket is a\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Public module documentation is published on hexdocs; rewording is a separate reviewed change.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/error.ex\",\n      \"class\": \"phase-ref\",\n      \"text\": \"Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"Rindle.Error message text is asserted by error tests and shown to adopters; wording stays unchanged.\"\n    },\n    {\n      \"path\": \"lib/rindle/html.ex\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"not rendered in v1.4.\",\n      \"count\": 2,\n      \"reason_class\": \"contract\",\n      \"re" <> ...,
+              "unit_tests_a.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"unit_tests_a\",\n  \"entries\": [\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"For profiles that have NOT opted into streaming, the binary-key form continues to work and falls through to v1.4 progressive playback.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This atom is the bare-atom v1.6 surface. Provider/retry-after detail can be inspected from telemetry metadata.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"This direct upload row has no persisted provider upload handle (pre-v1.13 rows are not backfilled).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_streaming_freeze_test.exs\",\n      \"class\": \"phase-ref\",\n      \"text\": \"Check `mix rindle.runtime_status --provider-stuck` to see whether ingest is in flight or stuck. If the row is in :uploading or :processing, wait for the provider webhook to confirm readiness. If the row stays in :processing past the configured threshold, inspect Oban for the `MuxIngestVariant` job (Phase 34) and consider re-ingest via `Rindle.regenerate_variants/2`.\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"1. Wait for the Rindle.Streaming.Mux or Rindle.Streaming.Cloudflare adapter (post-v1.4).\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    },\n    {\n      \"path\": \"test/rindle/error_test.exs\",\n      \"class\": \"milestone-ref\",\n      \"text\": \"In Rindle v1.4, only :progressive (signed-redirect MP4/WebM) is supported out of the box. To use HLS:\",\n      \"count\": 1,\n      \"reason_class\": \"contract\",\n      \"reason\": \"This asserted literal mirrors Rindle.Error message text shown to adopters; it changes only with the lib message.\"\n    }\n  ]\n}\n",
+              "unit_tests_b.json" => "{\n  \"schema\": \"rindle-live-residue-allowlist-v1\",\n  \"area\": \"unit_tests_b\",\n  \"entries\": []\n}\n"
+            }
+     stacktrace:
+       test/install_smoke/live_residue_scan_test.exs:419: (test)
+
+......................................................................................
+18:19:45.035 [warning] rindle.metadata_backfill.asset_failed
+.....
+18:19:45.044 [warning] rindle.metadata_backfill.asset_failed
+.
+18:19:45.046 [warning] rindle.metadata_backfill.asset_failed
+
+18:19:45.047 [warning] rindle.metadata_backfill.asset_failed
+.........................................................................................................................................
+18:21:07.886 [warning] rindle.provider_asset.transition_failed
+
+18:21:07.887 [warning] rindle.provider_asset.transition_failed
+.....
+18:21:07.903 [warning] rindle.provider_asset.transition_failed
+......................................
+18:22:57.152 [warning] rindle.workers.mux_ingest_variant.compensating_delete_failed
+..................***.......................
+18:22:57.340 [warning] rindle.upload_session.transition_failed
+......
+18:22:57.359 [warning] rindle.upload_maintenance.resumable_cancel_failed
+...............
+18:22:57.396 [error] rindle.workers.cleanup_orphans.storage_not_found
+
+18:22:57.396 [error] rindle.workers.cleanup_orphans.failed
+............
+18:22:57.418 [error] rindle.workers.cleanup_orphans.storage_not_found
+
+18:22:57.419 [error] rindle.workers.cleanup_orphans.failed
+.*...............................................................
+18:24:30.728 [warning] rindle.lifecycle_repair.requeue_variant_failed
+.......
+18:24:30.764 [info] rindle.workers.mux_sync_coordinator.completed
+
+18:24:30.765 [info] rindle.workers.mux_sync_coordinator.completed
+....GSD_DOCTOR_PROVENANCE {"app_dir":"_build/test/lib/rindle","beam":{"byte_size":5508,"presence":"present","sha256":"4292e3d7a60542beb7043d2c0dd75ac33071f9c6da6db3fcdcfd66d52c097e2f","type":"file"},"beam_path":"_build/test/lib/rindle/ebin/Elixir.Mix.Tasks.Rindle.AbortIncompleteUploads.beam","code_lib_dir":"_build/test/lib/rindle","code_which":"unavailable","docs_result_category":"other_error","kind":"rindle_doctor_provenance","marker_sha256":"c8bce1dea08c417cc049fb4f87cad310faaf32b4ae036f0bdff65b86d6e49567","module":"Mix.Tasks.Rindle.AbortIncompleteUploads","schema_version":1}
+.............................................................
+18:24:32.210 [warning] rindle.tus.delete_backing_abort_failed
+..........................................
+18:24:32.353 [warning] rindle.upload_maintenance.multipart_abort_failed
+.........
+18:24:32.364 [warning] rindle.upload_maintenance.object_delete_failed
+...
+18:24:32.367 [warning] rindle.upload_maintenance.storage_adapter_missing
+.........................................
+18:24:32.967 [warning] rindle.upload_session.transition_failed
+.......
+18:24:33.058 [warning] rindle.upload_maintenance.resumable_cancel_failed
+
+18:24:33.063 [warning] rindle.upload_maintenance.resumable_cancel_failed
+
+18:24:33.070 [warning] rindle.upload_maintenance.resumable_cancel_failed
+.
+18:24:33.076 [warning] rindle.upload_maintenance.resumable_cancel_failed
+.............................................................
+18:24:35.118 [warning] rindle.upload_maintenance.tus_abort_failed
+.
+18:24:35.121 [warning] rindle.upload_session.transition_failed
+
+18:24:35.122 [warning] rindle.upload_maintenance.session_expiry_invalid_transition
+..............................................
+18:24:36.019 [warning] Rindle.AV.Subprocess: MuonTrap closed its port at the command timeout; retrying the AV call once
+..
+18:24:36.020 [warning] Rindle.AV.Subprocess: MuonTrap closed its port at the command timeout; retrying the AV call once
+.
+18:24:36.282 [warning] Rindle.AV.Subprocess: MuonTrap worker exceeded its command timeout; retrying the AV call once
+.......................
+Finished in 380.1 seconds (87.4s async, 292.6s sync)
+3 doctests, 1691 tests, 3 failures, 87 excluded, 4 skipped
+Wrote JUnit report to: _build/test/junit/rindle-junit.xml
+----------------
+COV    FILE                                        LINES RELEVANT   MISSED
+100.0% deps/mox/lib/mox.ex                          1087        1        0
+ 77.2% lib/rindle.ex                                1107      158       36
+ 77.6% lib/rindle/admin/components.ex                531      130       29
+ 79.7% lib/rindle/admin/live/actions_live.ex         610      143       29
+ 93.2% lib/rindle/admin/live/assets_live.ex          218       59        4
+ 94.4% lib/rindle/admin/live/home_live.ex            220       54        3
+ 96.4% lib/rindle/admin/live/runtime_doctor_liv      204       56        2
+ 66.6% lib/rindle/admin/live/support.ex               42        9        3
+ 90.0% lib/rindle/admin/live/upload_sessions_li      184       50        5
+ 64.7% lib/rindle/admin/live/variants_jobs_live      381      122       43
+ 87.8% lib/rindle/admin/queries.ex                   613      214       26
+ 90.3% lib/rindle/admin/router.ex                    178       31        3
+100.0% lib/rindle/analyzer.ex                         19        0        0
+100.0% lib/rindle/authorizer.ex                       19        0        0
+100.0% lib/rindle/av/capability.ex                    23        3        0
+100.0% lib/rindle/av/ffprobe.ex                       63       11        0
+100.0% lib/rindle/av/metadata_sanitizer.ex            85       15        0
+100.0% lib/rindle/av/probe.ex                         32        7        0
+ 88.2% lib/rindle/av/subprocess.ex                   349      111       13
+ 77.7% lib/rindle/av/temp_run_dir.ex                  30        9        2
+ 75.6% lib/rindle/capability.ex                      187       41       10
+ 82.5% lib/rindle/config.ex                          149       40        7
+ 87.5% lib/rindle/delivery.ex                        564      120       15
+ 73.3% lib/rindle/delivery/content_disposition.       65       15        4
+ 90.7% lib/rindle/delivery/local_plug.ex             248       65        6
+ 75.0% lib/rindle/delivery/webhook_body_reader.      100       16        4
+ 60.7% lib/rindle/delivery/webhook_plug.ex           344       84       33
+ 66.6% lib/rindle/domain/asset_aggregate.ex           58       15        5
+100.0% lib/rindle/domain/asset_fsm.ex                 76        6        0
+ 90.0% lib/rindle/domain/media_asset.ex              139       10        1
+100.0% lib/rindle/domain/media_attachment.ex          53        2        0
+100.0% lib/rindle/domain/media_processing_run.e       63        2        0
+100.0% lib/rindle/domain/media_provider_asset.e      143       11        0
+ 87.5% lib/rindle/domain/media_upload_session.e      118        8        1
+100.0% lib/rindle/domain/media_variant.ex             88        2        0
+100.0% lib/rindle/domain/provider_asset_fsm.ex        63        6        0
+100.0% lib/rindle/domain/stale_policy.ex              28        5        0
+100.0% lib/rindle/domain/upload_session_fsm.ex        53        4        0
+100.0% lib/rindle/domain/variant_fsm.ex               39        3        0
+ 97.8% lib/rindle/error.ex                           472       46        1
+ 75.9% lib/rindle/html.ex                            296       79       19
+100.0% lib/rindle/internal/owner_erasure.ex          166       49        0
+  0.0% lib/rindle/internal/variant_failure_logg       14        1        1
+ 86.7% lib/rindle/live_view.ex                       366       83       11
+100.0% lib/rindle/migration.ex                       134       11        0
+ 87.5% lib/rindle/migration/options.ex                53        8        1
+ 92.1% lib/rindle/migration/v1.ex                    527      216       17
+ 94.1% lib/rindle/migration/v1/preflight.ex           86       34        2
+100.0% lib/rindle/migration/v1/snapshot.ex           138       38        0
+ 83.4% lib/rindle/ops/lifecycle_repair.ex            377      109       18
+ 72.9% lib/rindle/ops/metadata_backfill.ex           195       37       10
+ 80.0% lib/rindle/ops/orphan_reaper.ex               111       30        6
+ 86.5% lib/rindle/ops/ownership_snapshot.ex          344      119       16
+ 82.1% lib/rindle/ops/runtime_checks.ex              394      129       23
+ 83.6% lib/rindle/ops/runtime_checks/core_check      217       61       10
+ 84.2% lib/rindle/ops/runtime_checks/integratio       55       19        3
+ 82.0% lib/rindle/ops/runtime_checks/integratio      548      162       29
+ 64.0% lib/rindle/ops/runtime_checks/integratio      325       75       27
+ 87.6% lib/rindle/ops/runtime_checks/ownership_      384      121       15
+ 80.1% lib/rindle/ops/runtime_status.ex              351      111       22
+ 94.0% lib/rindle/ops/runtime_status/collector.      527      185       11
+ 80.7% lib/rindle/ops/sweep_orphaned_temp_files      197       52       10
+ 79.6% lib/rindle/ops/upload_maintenance.ex          881      216       44
+ 85.7% lib/rindle/ops/variant_maintenance.ex         351       70       10
+100.0% lib/rindle/probe.ex                            33        0        0
+ 88.8% lib/rindle/probe/av_probe.ex                   78       18        2
+100.0% lib/rindle/probe/image.ex                      32        3        0
+100.0% lib/rindle/processor.ex                        21        0        0
+ 78.7% lib/rindle/processor/av.ex                    152       33        7
+ 88.4% lib/rindle/processor/av/audio.ex              151       52        6
+ 50.0% lib/rindle/processor/av/output_probe.ex        83       28       14
+ 78.2% lib/rindle/processor/av/recipe.ex             138       23        5
+ 83.3% lib/rindle/processor/av/runtime_guard.ex      143       42        7
+ 81.3% lib/rindle/processor/av/video.ex              215       59       11
+ 82.3% lib/rindle/processor/ffmpeg.ex                 58       17        3
+ 64.2% lib/rindle/processor/image.ex                 107       28       10
+ 82.6% lib/rindle/processor/waveform.ex              152       52        9
+100.0% lib/rindle/profile.ex                         120        7        0
+ 59.2% lib/rindle/profile/digest.ex                   79       27       11
+100.0% lib/rindle/profile/presets/mux_direct_up       41        7        0
+100.0% lib/rindle/profile/presets/mux_web.ex          81        7        0
+100.0% lib/rindle/profile/presets/web.ex              47        8        0
+ 83.5% lib/rindle/profile/validator.ex               506       97       16
+100.0% lib/rindle/scanner.ex                          19        0        0
+ 53.3% lib/rindle/schema.ex                           90       15        7
+100.0% lib/rindle/security/argv.ex                    41        8        0
+100.0% lib/rindle/security/filename.ex                20        3        0
+ 71.4% lib/rindle/security/mime.ex                    91       28        8
+ 93.3% lib/rindle/security/storage_key.ex             41       15        1
+ 77.1% lib/rindle/security/upload_validation.ex      209       57       13
+100.0% lib/rindle/storage.ex                         390        0        0
+100.0% lib/rindle/storage/capabilities.ex             72        9        0
+ 62.6% lib/rindle/storage/gcs.ex                     254       67       25
+ 73.9% lib/rindle/storage/gcs/client.ex              567      169       44
+ 87.5% lib/rindle/storage/gcs/signer.ex               92       16        2
+ 86.4% lib/rindle/storage/local.ex                   237       59        8
+ 63.5% lib/rindle/storage/s3.ex                      672      162       59
+ 85.5% lib/rindle/streaming.ex                       271       76       11
+100.0% lib/rindle/streaming/capabilities.ex           43        7        0
+100.0% lib/rindle/streaming/provider.ex              137        0        0
+ 66.6% lib/rindle/streaming/provider/mux.ex          537      126       42
+100.0% lib/rindle/streaming/provider/mux/client       37        0        0
+ 60.7% lib/rindle/streaming/provider/mux/event.      120       28       11
+ 41.4% lib/rindle/streaming/provider/mux/http.e      119       41       24
+100.0% lib/rindle/tus_resume_authorizer.ex            27        0        0
+ 91.4% lib/rindle/upload/broker.ex                   608      198       17
+ 85.7% lib/rindle/upload/broker/completion.ex         46        7        1
+ 77.7% lib/rindle/upload/broker/persistence.ex       198       45       10
+100.0% lib/rindle/upload/broker/session_seed.ex       31        6        0
+ 68.0% lib/rindle/upload/broker/session_validat       89       25        8
+ 85.7% lib/rindle/upload/resumable_telemetry.ex      138       21        3
+ 95.1% lib/rindle/upload/tus_creation.ex             126       41        2
+ 92.6% lib/rindle/upload/tus_plug.ex                 537      136       10
+ 78.5% lib/rindle/upload/tus_protocol.ex             186       70       15
+ 81.6% lib/rindle/upload/tus_stream.ex               193       60       11
+ 88.8% lib/rindle/upload/tus_termination.ex           40        9        1
+ 50.0% lib/rindle/workers/abort_incomplete_uplo      112       14        7
+ 69.2% lib/rindle/workers/cleanup_orphans.ex         168       26        8
+ 74.1% lib/rindle/workers/ingest_provider_webho      465      116       30
+ 93.9% lib/rindle/workers/mux_ingest_variant.ex      490       82        5
+ 87.5% lib/rindle/workers/mux_sync_coordinator.      136       16        2
+ 93.8% lib/rindle/workers/mux_sync_provider_ass      254       49        3
+ 82.5% lib/rindle/workers/process_variant.ex         552      206       36
+ 84.7% lib/rindle/workers/promote_asset.ex           266       92       14
+ 94.1% lib/rindle/workers/purge_storage.ex            59       17        1
+[TOTAL]  82.1%
+----------------
+FAILED: Expected minimum coverage of 82.2%, got 82.1%.

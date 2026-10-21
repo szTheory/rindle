@@ -638,6 +638,176 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
     end
   end
 
+  test "current subject collects and verifies without historical transition authority", context do
+    context = current_context!(context)
+    File.rm!(context.transition_manifest)
+    {output, status} = run_current_controller(context)
+    assert status == 0, output
+    assert manifest!(context.receipt)["sha"] == context.head
+    assert File.read!(Path.join(context.fixture_dir, "count")) == "10\n"
+
+    assert {_, 0} =
+             System.cmd("bash", verify_args(context) ++ ["--subject-sha", context.head],
+               cd: context.repo_dir,
+               env: controller_env(context),
+               stderr_to_stdout: true
+             )
+  end
+
+  test "current collection records the pre-existing published run boundary before sampling",
+       context do
+    context = current_context!(context)
+    File.write!(Path.join(context.fixture_dir, "count"), "1\n")
+    {output, status} = run_current_controller(context)
+    assert status == 0, output
+    manifest = manifest!(context.receipt)
+    assert manifest["population_boundary_ids"] == [1001]
+    assert Enum.map(manifest["runs"], & &1["id"]) == Enum.to_list(1002..1011)
+  end
+
+  test "current preflight rejects subject authority and implicit publication changes before labels",
+       context do
+    context = current_context!(context)
+
+    for {env, options} <- [
+          {[], [subject_sha: String.duplicate("0", 40)]},
+          {[{"GH_REMOTE_SHA", context.formatter}], []},
+          {[{"GH_WORKFLOW_NAME", "Foreign CI"}], []},
+          {[], [extra_args: ["--publish-head"]]},
+          {[], [extra_args: ["--summary-job", "Other Summary"]]},
+          {[], [extra_args: ["--samples", "9"]]}
+        ] do
+      assert {_, status} =
+               run_current_controller(
+                 context,
+                 env,
+                 Keyword.put(options, :mode, "current-preflight")
+               )
+
+      assert status != 0
+      assert File.read!(Path.join(context.fixture_dir, "count")) == "0\n"
+      assert File.read!(context.receipt) == context.baseline
+    end
+
+    authority = Path.join(context.repo_dir, "config/ci_required_checks.json")
+    File.write!(authority, Jason.encode!(%{"contexts" => ["CI Summary", "Other"]}))
+    assert {_, 1} = run_current_controller(context, [], mode: "current-preflight")
+    assert File.read!(Path.join(context.fixture_dir, "count")) == "0\n"
+  end
+
+  test "current verifier retains the pin across evidence-only HEAD advances and rejects forged receipts",
+       context do
+    context = current_context!(context)
+
+    assert {_, 0} =
+             run_current_controller(context, [
+               {"GH_BOUNDARY_DURATIONS", "400,420,440,460,480,480,500,520,540,600"}
+             ])
+
+    before = File.read!(context.receipt)
+    write_fixture_file!(context.repo_dir, ".planning/new-evidence.md", "new evidence\n")
+    commit_fixture!(context.repo_dir, "evidence-only advance")
+
+    env =
+      controller_env(context) ++
+        [
+          {"GH_BOUNDARY_DURATIONS", "400,420,440,460,480,480,500,520,540,600"}
+        ]
+
+    args = verify_args(context) ++ ["--subject-sha", context.head]
+
+    assert {_, 0} =
+             System.cmd("bash", args, cd: context.repo_dir, env: env, stderr_to_stdout: true)
+
+    assert {_, 1} =
+             System.cmd("bash", args ++ ["--subject-sha", context.formatter],
+               cd: context.repo_dir,
+               env: env,
+               stderr_to_stdout: true
+             )
+
+    assert {_, 1} =
+             System.cmd("bash", args,
+               cd: context.repo_dir,
+               env: env ++ [{"GH_BAD_SUMMARY", "1"}],
+               stderr_to_stdout: true
+             )
+
+    manifest = manifest!(context.receipt)
+
+    for runs <- [
+          tl(manifest["runs"]),
+          manifest["runs"] ++ [hd(manifest["runs"])],
+          [hd(manifest["runs"]) | Enum.drop(manifest["runs"], -1)]
+        ] do
+      forged = Map.put(manifest, "runs", runs)
+
+      File.write!(
+        context.receipt,
+        Regex.replace(
+          ~r/(CI_TIMING_CURRENT_SOURCE_BEGIN\n).*?(\nCI_TIMING_CURRENT_SOURCE_END)/s,
+          before,
+          fn _, first, last -> first <> Jason.encode!(forged) <> last end
+        )
+      )
+
+      assert {_, 1} =
+               System.cmd("bash", args, cd: context.repo_dir, env: env, stderr_to_stdout: true)
+    end
+
+    File.write!(context.receipt, before)
+
+    assert {_, 0} =
+             System.cmd("bash", args, cd: context.repo_dir, env: env, stderr_to_stdout: true)
+
+    assert File.read!(context.receipt) == before
+  end
+
+  defp current_context!(context) do
+    source_root = Path.expand("../..", __DIR__)
+
+    for path <- ["config/ci_required_checks.json", ".github/workflows/ci.yml"] do
+      write_fixture_file!(context.repo_dir, path, File.read!(Path.join(source_root, path)))
+    end
+
+    head = commit_fixture!(context.repo_dir, "current workflow authority")
+    git!(context.repo_dir, ["checkout", "--quiet", "--detach", head])
+    %{context | head: head}
+  end
+
+  defp run_current_controller(context, extra_env \\ [], options \\ []) do
+    args =
+      [
+        @script,
+        Keyword.get(options, :mode, "current-run"),
+        "--repo",
+        "szTheory/rindle",
+        "--pr",
+        "96",
+        "--workflow",
+        "ci.yml",
+        "--summary-job",
+        "CI Summary",
+        "--label",
+        "ci-timing-sample",
+        "--subject-sha",
+        Keyword.get(options, :subject_sha, context.head),
+        "--receipt",
+        context.receipt,
+        "--state-dir",
+        context.state_dir,
+        "--poll-seconds",
+        "0",
+        "--no-publish"
+      ] ++ Keyword.get(options, :extra_args, [])
+
+    System.cmd("bash", args,
+      cd: context.repo_dir,
+      env: controller_env(context) ++ extra_env,
+      stderr_to_stdout: true
+    )
+  end
+
   defp run_controller(context, extra_env \\ [], options \\ []) do
     args = [
       "run",
@@ -977,6 +1147,10 @@ defmodule Rindle.InstallSmoke.CiTimingAutomationTest do
         exit 1
       fi
       case "$endpoint" in
+        *actions/workflows/ci.yml)
+          jq -cn --arg name "${GH_WORKFLOW_NAME:-CI}" '{name:$name,path:".github/workflows/ci.yml",state:"active"}'
+          exit 0
+          ;;
         *actions/workflows/*/runs*)
           poll_file="$GH_FIXTURE_DIR/discovery-polls"
           polls=$(cat "$poll_file" 2>/dev/null || echo 0)

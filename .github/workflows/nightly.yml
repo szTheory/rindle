@@ -27,6 +27,10 @@ env:
 permissions:
   contents: read
 
+# Nightly budgets include cold setup: 45m compatibility, 90m for independent
+# fresh/restored PLTs, 60m for real-bucket soak, 30m consumer breadth, 5m metadata.
+# Postgres service tags are an explicit exception: disposable test databases
+# track patch updates within the supported 16-alpine family.
 jobs:
   # Broad OTP×Elixir compatibility on a CURATED ~6-cell diagonal (NOT a
   # cartesian product — a cartesian/dynamic matrix is an explicit
@@ -38,6 +42,7 @@ jobs:
   # newest/newest drift early-warning. 1.17/27 is the PR ceiling/home cell.
   compat-matrix:
     name: Compat Matrix
+    timeout-minutes: 45
     runs-on: ubuntu-22.04
     outputs:
       applicable: ${{ steps.nightly-evidence.outputs.applicable }}
@@ -155,6 +160,7 @@ jobs:
   # commands so neither path can substitute for the other.
   dialyzer:
     name: Dialyzer
+    timeout-minutes: 90
     runs-on: ubuntu-22.04
     outputs:
       applicable: ${{ steps.nightly-evidence.outputs.applicable }}
@@ -257,6 +263,7 @@ jobs:
   # nightly-failure-issue.
   gcs-soak:
     name: GCS Soak (real bucket)
+    timeout-minutes: 60
     runs-on: ubuntu-22.04
     outputs:
       applicable: ${{ steps.nightly-evidence.outputs.applicable }}
@@ -360,6 +367,7 @@ jobs:
   # repository/secret inapplicability, but no live-provider step runs there.
   package-consumer-gcs-live:
     name: Package Consumer GCS Live Proof
+    timeout-minutes: 30
     runs-on: ubuntu-22.04
     outputs:
       applicable: ${{ steps.nightly-evidence.outputs.applicable }}
@@ -495,6 +503,7 @@ jobs:
   # controls this job's conclusion; Markdown is only a rendering of that verdict.
   nightly-summary:
     name: Nightly Summary
+    timeout-minutes: 5
     runs-on: ubuntu-22.04
     needs:
       - compat-matrix
@@ -537,6 +546,7 @@ jobs:
   # a separate authenticated checkpoint artifact bounds retention replay.
   nightly-incident-verdict:
     name: Persist Nightly Incident Verdict
+    timeout-minutes: 5
     runs-on: ubuntu-22.04
     needs: nightly-summary
     if: ${{ always() && github.event_name == 'schedule' }}
@@ -602,6 +612,7 @@ jobs:
   # the pre-gate artifact preserves any replaced pending run's verdict.
   nightly-failure-issue:
     name: Nightly Incident Lifecycle
+    timeout-minutes: 5
     runs-on: ubuntu-22.04
     needs: nightly-incident-verdict
     if: ${{ always() && github.event_name == 'schedule' }}

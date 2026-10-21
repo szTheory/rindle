@@ -34,6 +34,11 @@ env:
 permissions:
   contents: read
 
+# Job budgets include dependency/native setup and cleanup: 10-15m for focused
+# gates, 20-30m for image/profile/browser/soak breadth, 5m for summaries/scripts.
+# They bound runaway processes; the separate PR envelope remains 480s median / 600s p95.
+# Postgres service tags are an explicit exception: disposable test databases
+# track patch updates within the supported 16-alpine family.
 jobs:
   quality:
     name: Quality
@@ -273,6 +278,7 @@ jobs:
 
   optional-dependencies:
     name: ADMIN-06 Optional Dependencies
+    timeout-minutes: 10
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -315,6 +321,7 @@ jobs:
 
   integration:
     name: Integration
+    timeout-minutes: 15
     runs-on: ubuntu-22.04
     env:
       MIX_ENV: test
@@ -440,6 +447,7 @@ jobs:
 
   contract:
     name: Contract
+    timeout-minutes: 15
     runs-on: ubuntu-22.04
     # Starts independently from the quality matrix. `CI Summary` joins this
     # result with every other required root, so contract failures still block
@@ -507,6 +515,7 @@ jobs:
 
   proof:
     name: Proof
+    timeout-minutes: 15
     runs-on: ubuntu-22.04
     # Merge-blocking docs parity + operator proof tests.
     # See RUNNING.md `## CI lane severity` for the full matrix.
@@ -583,17 +592,30 @@ jobs:
       - name: Run Nightly evidence harnesses
         # The Nightly Dialyzer, strict summary, incident
         # lifecycle and scheduled-run verifier harnesses run at every merge SHA.
+        # Each owns isolated fixtures; overlap them and retain every exit status.
         run: |
           set -euo pipefail
+          pids=()
           for harness in test_nightly_dialyzer.sh test_nightly_summary_gate.sh test_nightly_incident.sh test_verify_nightly_run.sh; do
-            bash "scripts/ci/${harness}"
+            bash "scripts/ci/${harness}" &
+            pids+=("$!")
           done
+          status=0
+          for pid in "${pids[@]}"; do
+            if wait "$pid"; then
+              :
+            else
+              status=1
+            fi
+          done
+          exit "$status"
 
       - name: Run batch owner erasure task proof
         run: mix test test/rindle/batch_owner_erasure_task_test.exs
 
   package-consumer:
     name: Package Consumer Proof Matrix + Release Preflight
+    timeout-minutes: 15
     runs-on: ubuntu-22.04
     # Required image-only packed-consumer proof. It shares no artifacts with
     # Quality or Optional Dependencies, so it starts immediately and remains a
@@ -719,6 +741,7 @@ jobs:
 
   package-consumer-full:
     name: Package Consumer Full Matrix + Release Preflight
+    timeout-minutes: 30
     runs-on: ubuntu-22.04
     # The OFF-PR breadth half of the package-consumer
     # split. Runs the full 5-profile install-smoke matrix (fail-fast: false →
@@ -833,6 +856,7 @@ jobs:
 
   adoption-demo-unit:
     name: Adoption Demo Unit
+    timeout-minutes: 10
     runs-on: ubuntu-22.04
     # Fast, merge-blocking ExUnit lane for examples/adoption_demo: brand mark +
     # wordmark, admin-console mount, lifecycle-state display, and README
@@ -897,6 +921,7 @@ jobs:
 
   cohort-demo-smoke:
     name: Cohort Demo Smoke
+    timeout-minutes: 20
     runs-on: ubuntu-22.04
     # Merge-blocking cold-start gate for the Docker-compose demo path
     # (scripts/demo/up.sh -> docker/compose.cohort-demo.yml). This is the boot
@@ -924,6 +949,7 @@ jobs:
 
   adoption-demo-e2e:
     name: Adoption Demo E2E
+    timeout-minutes: 30
     runs-on: ubuntu-22.04
     # Browser proof for examples/adoption_demo, including admin console behavior,
     # theme, actions, and screenshot specs. The gcs-resumable spec remains
@@ -957,7 +983,7 @@ jobs:
       # repro run the SAME container — the image tag IS the browser + font pin.
       # Must match the exact @playwright/test 1.57.0 npm pin in
       # examples/adoption_demo/package.json.
-      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
 
     services:
       postgres:
@@ -1031,6 +1057,7 @@ jobs:
 
   adoption-demo-e2e-smoke:
     name: Adoption Demo E2E Smoke
+    timeout-minutes: 15
     runs-on: ubuntu-22.04
     # The lean PR-side browser-render proxy. Closes the PR↔main gap that let
     # the 2026-06-26 render-regression cluster reach `main` — without giving
@@ -1065,7 +1092,7 @@ jobs:
       # repro run the SAME container — the image tag IS the browser + font pin.
       # Must match the exact @playwright/test 1.57.0 npm pin in
       # examples/adoption_demo/package.json.
-      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble
+      PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.57.0-noble@sha256:3bed4b1a12f2338642f3d8cba28e291deef3c66bd4a964bbeb3e57bbff511dbd
       # Scope the lean lane to the deterministic browser-render subset.
       # e2e_local.sh appends these as positional spec files; unset would run the
       # full suite (which the push:main `adoption-demo-e2e` lane above does).
@@ -1140,6 +1167,7 @@ jobs:
 
   adopter:
     name: Adopter
+    timeout-minutes: 15
     runs-on: ubuntu-22.04
     # Merge-blocking release-readiness lane: canonical adopter lifecycle
     # (lifecycle proof only; doc parity is merge-blocking in `proof` job).
@@ -1222,6 +1250,7 @@ jobs:
   # See RUNNING.md `## CI lane severity` for the full matrix.
   mux-soak:
     name: Mux Soak (real API)
+    timeout-minutes: 30
     runs-on: ubuntu-22.04
     needs: quality
     if: contains(github.event.pull_request.labels.*.name, 'streaming')
@@ -1298,6 +1327,7 @@ jobs:
 
   brandbook-tokens:
     name: brandbook-tokens
+    timeout-minutes: 10
     runs-on: ubuntu-22.04
     # Merge-blocking token->CSS pipeline gate. Regenerates every
     # committed generated artifact from brandbook/tokens/tokens.json via the .mjs
@@ -1378,6 +1408,7 @@ jobs:
   # package-consumer-gcs-live) keeps this green on forks/unlabeled PRs.
   ci-observability:
     name: CI Observability
+    timeout-minutes: 5
     runs-on: ubuntu-22.04
     needs:
       - quality
@@ -1451,6 +1482,7 @@ jobs:
 
   ci-script-tests:
     name: CI Script Tests
+    timeout-minutes: 5
     runs-on: ubuntu-22.04
     # Unit tests for the CI gate scripts themselves (pure bash + jq, no project
     # toolchain). Pins the CI Summary skip-as-pass logic (the fork "pending forever"
@@ -1489,6 +1521,7 @@ jobs:
 
   ci-summary:
     name: CI Summary
+    timeout-minutes: 5
     runs-on: ubuntu-22.04
     # Omit-from-needs: this gate lists the LEAN `package-consumer`
     # (the always-running PR representative) but INTENTIONALLY OMITS
