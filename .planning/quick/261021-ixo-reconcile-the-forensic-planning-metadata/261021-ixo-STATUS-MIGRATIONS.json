@@ -1,0 +1,79 @@
+[
+  {
+    "path": ".planning/milestones/v1.0-phases/05-ci-1-0-readiness/05-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.0-phases--05-ci-1-0-readiness.txt",
+    "original_sha256": "a23c0053900ce9024d66f5642ce5a2cb800383dac877e18f56f33e555257fa9c",
+    "legacy_status": "verified",
+    "status": "gaps_found"
+  },
+  {
+    "path": ".planning/milestones/v1.0-phases/01-foundation/01-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.0-phases--01-foundation.txt",
+    "original_sha256": "5e63d680b668cd88c3186d4e8f550c5bc60c5b2cd07e8c6c6d3c089ff26223af",
+    "legacy_status": "verified",
+    "status": "passed"
+  },
+  {
+    "path": ".planning/milestones/v1.2-phases/10-publish-readiness/10-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.2-phases--10-publish-readiness.txt",
+    "original_sha256": "310df203927b37b92888d08e482f6566fcb21a6f3cfc4b559638c98836c6d6dd",
+    "legacy_status": "verified",
+    "status": "passed"
+  },
+  {
+    "path": ".planning/milestones/v1.22-phases/114-oss-trust-governance/114-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.22-phases--114-oss-trust-governance.txt",
+    "original_sha256": "0d3ac95c93c2b3f482e5f2fca33a6a43c0f99ba49d94422fc90bfc8b1b8025ab",
+    "legacy_status": "complete",
+    "status": "passed"
+  },
+  {
+    "path": ".planning/milestones/v1.18-phases/92-e2e-screenshot-driven-polish-loop/92-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.18-phases--92-e2e-screenshot-driven-polish-loop.txt",
+    "original_sha256": "ac6b89b36a31f807d870d97004ca9747f23983539b4144b83031ffa530776120",
+    "legacy_status": "verified",
+    "status": "passed"
+  },
+  {
+    "path": ".planning/milestones/v1.18-phases/91-cohort-demo-evolution/91-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.18-phases--91-cohort-demo-evolution.txt",
+    "original_sha256": "c28108021c333931743a92837f071a29cf8b78a515853a6d073c94f02596a49a",
+    "legacy_status": "verified",
+    "status": "passed"
+  },
+  {
+    "path": ".planning/milestones/v1.18-phases/90-console-ops-actions/90-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.18-phases--90-console-ops-actions.txt",
+    "original_sha256": "b0f81760e31daa107d4954f825543d09352dab9428f4e6dd22560b6b14825f1f",
+    "legacy_status": "verified",
+    "status": "passed"
+  },
+  {
+    "path": ".planning/milestones/v1.7-phases/39-resumable-adapter-behaviour-broker-wiring/39-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.7-phases--39-resumable-adapter-behaviour-broker-wiring.txt",
+    "original_sha256": "1c7733e0387e36af843ab50414c3aa1774333a272cf11a642d65482d23c46627",
+    "legacy_status": "ci_verified",
+    "status": "gaps_found"
+  },
+  {
+    "path": ".planning/milestones/v1.7-phases/40-maintenance-cancel-contract/40-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.7-phases--40-maintenance-cancel-contract.txt",
+    "original_sha256": "827853c998fcac65481687c8d95c10d1a24e9868f6196cf10fbaeb646ed69fc9",
+    "legacy_status": "ci_verified",
+    "status": "gaps_found"
+  },
+  {
+    "path": ".planning/milestones/v1.7-phases/41-onboarding-docs-doctor-package-consumer-proof/41-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.7-phases--41-onboarding-docs-doctor-package-consumer-proof.txt",
+    "original_sha256": "2a7f5ccb5ffe743fd59f31ca2d0a8a36db5993408a191beebcd7c3e68473d754",
+    "legacy_status": "ci_verified",
+    "status": "gaps_found"
+  },
+  {
+    "path": ".planning/milestones/v1.7-phases/37-gcs-adapter-foundation/37-VERIFICATION.md",
+    "original": ".planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.7-phases--37-gcs-adapter-foundation.txt",
+    "original_sha256": "9fc6ab2d42e9703b4d50cdec129fe88558529195628015aeb58963a22edc6876",
+    "legacy_status": "ci_verified",
+    "status": "gaps_found"
+  }
+]

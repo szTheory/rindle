@@ -1,0 +1,824 @@
+{
+  "results": [
+    {
+      "phase": "133",
+      "phase_dir": "133-evidence-charter-and-live-truth",
+      "file": "deferred-items.md",
+      "file_path": ".planning/phases/133-evidence-charter-and-live-truth/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "items": [
+        {
+          "name": "Plan47 formatting fixed; full gates remain unrun  - Plan 47's formatter discrepancy at `nightly_policy_test.exs:206` was corrected by Plan 57 commit `997a1aa0`; Plan 57's changed-file formatting checks passed. Its separate later `mix ci` failure and unrun gates remain represented by WINDOWS entry 36 for fresh qualification in Plan 120. status: pending next_action: Retain WINDOWS entry36 as open; the formatter repair alone does not satisfy the unrun full-gate evidence.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "135",
+      "phase_dir": "135-repository-and-code-craft-consolidation",
+      "file": "deferred-items.md",
+      "file_path": ".planning/phases/135-repository-and-code-craft-consolidation/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "items": [
+        {
+          "name": "135-13 docs-truth guard  - **`ci.yml` docs-truth guard: negated greps do not fail the step.** In the Quality job step `TRUTH-01 docs-truth guard (PROJECT.md invariant 13)`, the two `! grep -q ...` lines run under `set -euo pipefail`. Bash does not apply errexit to a `!`-negated pipeline, so a regression that reintroduces `FFmpex + MuonTrap` or `Rambo on macOS` would print nothing and the step would still pass. Only the positive `grep -q` line actually gates. actionlint/shellcheck flags both lines as SC2251. The same finding is present on origin/main 30a59ef5. A follow-up fix would be `if grep -q ...; then exit 1; fi`, which is a non-comment workflow change. That is outside the comment-only 135-13 tranche, and a fix there would need a `fix:`-free subject plus a check that `quality_signal_policy_test` or `live_truth_parity_test` is not pinned to the exact `!` lines. status: pending next_action: Reproduce and resolve in a separately scoped follow-up; preserve the frozen Phase136 source.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "135-13 timing heading  - **`ci.yml` run-summary heading keeps a decision id.** `echo \"## CI per-step timing (D-04 long-pole jobs)\"` in the CI Observability job is printed text. No consumer reads it, but it is executable workflow text, so the comment-only tranche kept it and classed it `contract`. Rewording it, for example to `(long-pole jobs)`, is a one-line follow-up that also removes its allowlist entry. status: pending next_action: Reproduce and resolve in a separately scoped follow-up; preserve the frozen Phase136 source.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "135-14 DoctorThresholds build-path ordering  - **`Rindle.DoctorThresholdsTest` setup_all is order-dependent on this host.** With `MIX_BUILD_PATH` outside the worktree, running it in the same `mix test` invocation as `test/install_smoke` sometimes invalidates its two tests with `FunctionClauseError` in `Doctor.ModuleInformation.build/2` (`{:error, :module_not_found}` for `Mix.Tasks.Rindle.AbortIncompleteUploads`). The file passes alone, and the same invalidation shows up in the pre-edit baseline on e8f6895a. Whether CI's in-tree build path shows it was not checked. status: pending next_action: Reproduce and resolve in a separately scoped follow-up; preserve the frozen Phase136 source.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "135-14 generated-app compatibility  - **Generated-app `:public_compatibility_scenario` fails locally with `smoke_exit_code` 2** on this branch and identically on origin/main 65395f2c (`--only phase_120_public_compat`), MinIO running via `scripts/ensure_minio.sh`. Exporting `MIX_DEPS_PATH`/`MIX_BUILD_PATH` for that scenario also leaks them into the generated app, which then fetches its own newer deps into the shared deps dir. status: pending next_action: Reproduce and resolve in a separately scoped follow-up; preserve the frozen Phase136 source.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "135-11 Docker compatibility harness  - **`scripts/ci/test_compat_115_26.sh` is a Docker toolchain repro, not a fixture harness.** It runs `mix coveralls` in the `hexpm/elixir:1.15.8` image against a throwaway Postgres container and is not wired into any CI job. On this host it exits 2 with the same 4 failures (`Rindle.DoctorTest` profile-aware success output and three `Rindle.Workers.ProcessVariantTest` AV cases, because the plain image has no FFmpeg) in an unarchived clone and in archive simulation A, so archiving is not the cause. The archive simulation's \"every `scripts/ci/test_*.sh`\" loop should either skip this script or the script should move out of the `test_*` harness namespace. status: pending next_action: Reproduce and resolve in a separately scoped follow-up; preserve the frozen Phase136 source.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "135-11 scheduled Nightly follow-up  - **Scheduled Nightly has concluded `failure` on its last three runs** (39218639562 on e76adde8, 39108080256 and 39014057417 on 4b7b8e33). No scheduled run has yet landed on a Phase 135 descendant, so the collector records `nightly_followup.status: pending`. status: pending next_action: Reproduce and resolve in a separately scoped follow-up; preserve the frozen Phase136 source.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "116",
+      "phase_dir": "116-versioned-rindle-migration-module",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.22-phases/116-versioned-rindle-migration-module/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.22",
+      "items": [
+        {
+          "name": "116-05  - `mix test test/install_smoke/docs_parity_test.exs test/rindle/migration_test.exs test/rindle/ops/runtime_checks_test.exs test/rindle/ops/runtime_status_test.exs test/rindle/doctor_test.exs test/rindle/runtime_status_task_test.exs --seed 0` currently fails only in `test/install_smoke/docs_parity_test.exs` because README and guide migration copy still teach the pre-Phase-116 package-directory install flow. This is out of scope for 116-05 and is explicitly owned by 116-06.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "112",
+      "phase_dir": "112-pr-main-gate-shift-left",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.21-phases/112-pr-main-gate-shift-left/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.21",
+      "items": [
+        {
+          "name": "`ci.yml:88` (\u00d72) \u2014 SC2251 (info) \u2014 `! ...` skips errexit in the cohort-demo-smoke-adjacent script step",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`ci.yml:165` \u2014 SC2209 (warning) \u2014 `MIX_ENV=test mix doctor ...` parsed as assignment by shellcheck",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`ci.yml:293` \u2014 SC2209 (warning) \u2014 `MIX_ENV=test mix deps.get --no-optional-deps`",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`ci.yml:296` \u2014 SC2209 (warning) \u2014 `MIX_ENV=test mix compile --no-optional-deps ...`",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`ci.yml:411` \u2014 expression \u2014 `matrix.elixir` referenced in a job without a matrix",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`ci.yml:679` \u2014 expression \u2014 `matrix.elixir` referenced in a job without a matrix",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "107",
+      "phase_dir": "107-reliability-security-dx-hardening",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.20-phases/107-reliability-security-dx-hardening/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.20",
+      "items": [
+        {
+          "name": "`test/rindle/profile/profile_test.exs` \u2014 GENUINE race (`Application.put_env :signed_url_ttl_seconds`, read by `lib/rindle/config.ex`, shared with delivery_test) \u2014 Flipped module to `async: false` + explanatory comment",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`test/rindle/streaming/provider/mux/http_cancel_upload_test.exs` \u2014 GENUINE race (`Application.put_env :rindle, Rindle.Streaming.Provider.Mux`, read globally) \u2014 Flipped module to `async: false` + explanatory comment",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`test/rindle/storage/local_test.exs` \u2014 SAFE (every `File.write!` targets a per-test-unique tmp root; guard can't bridge `setup`-return `opts` var) \u2014 Kept `async: true`; added justified `@async_safety_allow [:file_mutation]` + comment",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`test/install_smoke/package_metadata_test.exs` \u2014 SAFE (`File.rm_rf` on unique per-build tmp root from `build_package!()`) \u2014 Kept `async: true`; added justified `@async_safety_allow [:file_mutation]` + comment",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "95",
+      "phase_dir": "95-admin-level-1-component-audit-track-a",
+      "file": "95-UAT.md",
+      "file_path": ".planning/milestones/v1.19-phases/95-admin-level-1-component-audit-track-a/95-UAT.md",
+      "type": "uat",
+      "status": "complete",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "Open the admin component gallery. The Level-1 inventory is visible with singular component markers for shell, nav, table, status chip, button, theme picker, form controls, confirm dialog, drawer, toast, empty/error state, and skeleton, without plural marker values leaking into data attributes.",
+          "result": "failed",
+          "category": "unknown",
+          "test": 1,
+          "reason": "User reported: I am on file:///Users/jon/projects/rindle/brandbook/admin-gallery/index.html but I don't see a Level-1 inventory. The page shows Generated component gallery, Rindle Admin, lifecycle table, status chips, buttons, form controls, drawer, toasts, empty/error/loading states, loading skeletons, and Level-2 meta-components."
+        },
+        {
+          "name": "When the operating system is in dark mode, the drawer background in Auto mode visually matches the drawer background in explicit Dark mode.",
+          "result": "failed",
+          "category": "unknown",
+          "test": 7,
+          "reason": "User reported: The background color of the drawer changes between dark and auto modes. I am in dark mode on my OS, so Auto should stay the same as Dark."
+        }
+      ]
+    },
+    {
+      "phase": "95",
+      "phase_dir": "95-admin-level-1-component-audit-track-a",
+      "file": "95-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.19-phases/95-admin-level-1-component-audit-track-a/95-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "Every rindle-admin component renders correctly across the Level-1 interaction-state matrix in light, dark, and auto.",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "The mobile stacked-table rules still apply to sticky tables because the CSS excludes only a table with .rindle-admin-table--sticky, while the gallery marks the sticky scroll region on the wrapper. At a 390px viewport the sticky gallery table computes table/tbody/tr/td display as block, contradicting the sticky-scroll exception. Gallery table cells also emit no data-label attributes, so stacked mobile cells render blank labels."
+        },
+        {
+          "name": "The admin design-system guide documents the full current gallery screenshot review set.",
+          "result": "partial",
+          "category": "unknown",
+          "reason": "The browser checker and ExUnit wrapper currently require 18 screenshots, but the guide lists only the original 10 and omits all eight meta-component screenshot artifacts."
+        }
+      ]
+    },
+    {
+      "phase": "96",
+      "phase_dir": "96-cohort-component-layer-dark-reduced-motion-contract-track-b",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.19-phases/96-cohort-component-layer-dark-reduced-motion-contract-track-b/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "96-01: default-env `mix compile --warnings-as-errors` fails on pre-existing Mox warnings - **Found during:** Plan 96-01 verification (Task 1/2) - **Issue:** `cd examples/adoption_demo && mix compile --warnings-as-errors` exits non-zero in default `:dev` env because `mox` is `only: :test` in `mix.exs`; `AdoptionDemo.MuxCassette` references `Mox.*` and warns. Unrelated to the static `cohort.css` change and pre-dates Phase 96. - **Why deferred:** Pre-existing failure in an unrelated file (SCOPE BOUNDARY). The CSS edit is static; no-template-breakage was verified via `MIX_ENV=test mix compile --warnings-as-errors` (exit 0). - **Suggested owner:** whichever phase touches `adoption_demo` Elixir compile hygiene (e.g. guard `MuxCassette` Mox refs behind `Code.ensure_loaded?/1` or move to a test-only module).",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "96-05: polish-gate focus-visible check hard-codes `--rindle-focus-*` token names - **Found during:** Plan 96-05 (cohort-styleguide.spec.js running `assertAdminPolish` over `[data-ck-root]`). - **Issue:** `assertFocusVisibleTokens` reads the expected focus ring from `--rindle-focus-width`/`--rindle-focus-ring`/`--rindle-focus-offset` on the document root. Cohort defines `--ck-focus` (a single token, `outline: 2px solid var(--ck-focus)`), so over the cohort root every focused `.ck-*` control reports an `outlineWidth/Offset/Color \u2026 != \"\"` offender. The cohort focus ring is real and correct \u2014 the gate just looks up admin-namespaced token names. - **Also:** a daisyUI `@layer utilities { .menu { \u2026 } }` rule with `outline:none` appears in the page styleSheets scan (shared host chrome), producing one `outline-none-rule` offender unrelated to the `.ck` layer. - **Why deferred:** This phase runs the polish gate in WARN/report mode (D-96-06); these are reported, not enforced. The warn\u2192fail flip is **Phase 102**. - **Suggested owner (Phase 102):** generalize the focus-token lookup (accept a per-surface focus-token name set, or read the resolved `:focus-visible` outline against the surface's own tokens) and scope the `outline:none` styleSheets scan to the gate root, before flipping cohort polish to merge-blocking.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "97",
+      "phase_dir": "97-admin-level-2-meta-components-track-a",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.19-phases/97-admin-level-2-meta-components-track-a/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "drift-gate \u2014 `priv/static/rindle_admin/rindle-admin.css` byte-equality with the regenerated `brandbook/tokens/rindle-admin.css` \u2014 `admin_design_system_validation_test.exs:246` (ADMIN-02) fails until the shipped copy is synced. **Deferred to Plan 97-04 by design** (97-01 PLAN success criteria + `files_modified` excludes `priv/`). Resolve via `node brandbook/src/sync-admin-css.mjs` in 97-04, which flows through the existing build \u2192 contrast \u2192 gallery-check \u2192 sync \u2192 empty-diff gate (D-97-05). \u2014 97-01 (Task 2) \u2014 **RESOLVED in 97-04** \u2014 `node brandbook/src/sync-admin-css.mjs` ran; `priv` copy is now byte-identical to `brandbook/tokens/rindle-admin.css` (`cmp -s` exits 0).",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "review-coverage (WR-02) \u2014 **The two new cohesion checks are vacuous no-ops in the merge-blocking `adoption-demo-e2e` lane.** Live admin surfaces emit `data-rindle-admin-metadata-list`, not `[data-rindle-admin-meta]`, so `assertConsistentRhythm` + `assertNoHorizontalScroll` always return `[]` inside `assertAdminPolish` (admin-polish.js ~599-600) with **no count-guard** on the live-lane side. Real enforcement authority lives only in the count-guarded gallery check (`assertMetaCohesion`), which is non-vacuous. Phase goal still met (gallery gate bites where the units exist), but the 97-03 SUMMARY overstated live-lane coverage. **Suggested follow-up:** add a live-lane count-guard (assert \u22651 `[data-rindle-admin-meta]` present before claiming a pass) OR have the live admin emit `data-rindle-admin-meta` so the checks exercise real surfaces. \u2014 97 code review (WR-02) \u2014 open \u2014 WARNING, tracked follow-up",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "review-fragility (WR-01) \u2014 **Dead opt-out in `assertNoHorizontalScroll`.** The `unit.closest(\"[data-rindle-admin-scroll-region]\")` skip can never fire \u2014 the scroll-region marker is a *descendant* of the data-table meta root, not an ancestor \u2014 so the data-table passes incidentally (inner `overflow:auto` clips its own width), not via the documented opt-out. Latent fragility, not a current failure. **Suggested follow-up:** move the scroll-region marker to the meta root (or switch to a descendant query) so the opt-out is real. \u2014 97 code review (WR-01) \u2014 open \u2014 WARNING, tracked follow-up",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "review-coverage (WR-03) \u2014 **Ungated contrast pair on new meta surfaces.** `.rindle-admin-bulk-bar` and `[data-rindle-admin-selected]` paint primary `--rindle-text` on `--rindle-surface-sunken`, but `CONSOLE_CONTRAST_PAIRS` only covers `text-secondary` on sunken. Passes AA today but is unverified by any gate. **Suggested follow-up:** add the `text`-on-`surface-sunken` pair to `CONSOLE_CONTRAST_PAIRS`. \u2014 97 code review (WR-03) \u2014 open \u2014 WARNING, tracked follow-up",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "a11y-host-cascade \u2014 **focus-visible token loses to the adoption_demo HOST app's daisyUI cascade.** The warn-only `adoption-demo-e2e` lane exits non-zero on `assertFocusVisibleTokens` (admin-polish.js Check 4, added at 95-02) when run against the **live** admin console: the host app's daisyUI `.menu { outline: none }` plus its 3px outline override out-cascade the shipped rindle focus-visible token (the intended 2px `#123A35`). **Root cause:** host-app CSS layering, not the shipped `rindle-admin` CSS \u2014 the failure persists byte-for-byte after the 97-04 priv\u2194brandbook sync (verified independent of the sync). **Out of scope for 97-04:** none of this plan's three scoped files (`admin-polish.js`, `priv/static/rindle_admin/rindle-admin.css`, the ExUnit pinned literal) can fix a cascade that lives in the host `adoption_demo` stylesheet load order. Per maintainer decision (Option A, 2026-06-17) the defect is deferred rather than masked \u2014 **no `POLISH_EXEMPTIONS` entry was added** (explicitly rejected). **Consequence:** the `adoption-demo-e2e` lane stays RED until this fix lands. **Suggested follow-up:** a dedicated plan/phase touching the `adoption_demo` host CSS layering (ensure the shipped `rindle-admin` focus-visible token wins the cascade \u2014 e.g. raise specificity/layer order, scope the daisyUI `.menu { outline: none }` away from `[data-rindle-admin-root]`), OR harden the shipped `rindle-admin` focus-visible cascade so it survives a hostile host stylesheet. \u2014 97-04 (Task 1 checkpoint) \u2014 deferred \u2192 dedicated follow-up plan/phase",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "98",
+      "phase_dir": "98-admin-level-3-page-composition-motion-mobile-a11y-ia-microco",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.19-phases/98-admin-level-3-page-composition-motion-mobile-a11y-ia-microco/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "P1 CSS defect (filed by 98-02b, Pitfall 2 \u2014 do NOT add CSS in P2b) \u2014 RESOLVED in 98-04 (commit b637710)  **Missing `.rindle-admin-visually-hidden` utility class.** \u2014 RESOLVED: authored through the full brandbook pipeline in 98-04 (`admin-css-build.mjs` \u2192 regen \u2192 contrast 58/58 \u2192 gallery-check \u2192 `sync-admin-css.mjs`, byte-identical priv copy), added to `requiredSelectors`. The four migrated table captions are now announced but unpainted at \u2265760px. Original report retained below for audit. - **Discovered during:** 98-02b surface migrations (Task 1, Assets). - **Context:** D-98-08 / UI-SPEC \u00a7D require each migrated data `<table>` to carry a `<caption>` naming the surface, and the plan states \"visually-hidden ok\". P2b adds `<caption class=\"rindle-admin-visually-hidden\">\u2026</caption>` on all six surfaces, but `brandbook/src/admin-css-build.mjs` (P1) never authored a `.rindle-admin-visually-hidden` selector (grep over `brandbook/tokens/rindle-admin.css` returns 0). The `<thead>` is visually-hidden at <760 via its own dedicated rule, but there is no general utility for the caption, so the caption currently renders visibly at \u2265760. - **Why not fixed here:** All CSS is authored in P1's generator (D-98-12/Pitfall 2). Adding the utility in P2b would hand-edit generated CSS and violate the generated-CSS boundary. - **Suggested P1/P4 fix:** add `.rindle-admin-visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; }` to `admin-css-build.mjs` (same recipe already used inline for the stacked `<thead>` at L1264-1273) and add it to `requiredSelectors`.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "Local Playwright e2e lane could not be run during 98-04 execution (environment, not a defect)  - **Discovered during:** 98-04 Task 2 (after authoring the five computed-style backstops). - **Context:** the `adoption-demo-e2e` lane's `global-setup.js` runs `mix ecto.create`, which failed locally with `FATAL 53300 too_many_connections` \u2014 the local Postgres was at 99/100 connections (91 idle, leaked by prior `mix test` runs in this shared dev DB). This is the same pre-existing local Postgres noise recorded in the 98-01/98-03 summaries. - **Why not resolved here:** terminating idle backends on the shared DB is out of plan scope. The backstop CODE is committed and statically validated (`node --check` passes both files; lockstep 24==24 verified; no warn\u2192fail flip / no Cohort generalization in `git diff`). The live run is the explicit job of the 98-04 Task 3 BLOCKING human-verify checkpoint, and the lane runs on a clean DB in CI's merge-blocking `adoption-demo-e2e` job. - **Action for the checkpoint approver:** run `cd examples/adoption_demo && npx playwright test` on a clean DB (or let CI run it) to exercise the five backstops live before sealing the phase.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "101",
+      "phase_dir": "101-daisyui-retirement-track-b",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.19-phases/101-daisyui-retirement-track-b/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "Out-of-Scope Backstop Failure: Admin E2E Root Selector Strictness  - **Found during:** 101-04 Task 2 (`bash scripts/ci/adoption_demo_e2e.sh`) - **Command result:** Full wrapper reached Playwright and ended with 30 passed, 1 skipped, 15 failed. - **Scope classification:** Out of scope for Phase 101 Plan 04. The failures are admin-console specs, not Cohort page or upload behavior specs. - **Observed failure shape:** `locator('[data-rindle-admin-root]')` resolves to both `.rindle-admin-shell` and `.rindle-admin-page`, causing Playwright strict-mode failures in admin helper calls such as `expectAdminShell/2` and `selectAdminTheme/2`. - **Phase 101 status:** Cohort backstops passed independently after `default.css` deletion: `cohort-pages.spec.js` passed 15/15 and the six upload behavior specs passed 6/6. - **Recommended follow-up:** Fix the admin Playwright helper or admin root marker ownership in the admin-console track. Do not address it in Phase 101's Cohort daisyUI retirement plan.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "102",
+      "phase_dir": "102-re-converge-visual-matrix-idempotency-gate-milestone-audit",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.19-phases/102-re-converge-visual-matrix-idempotency-gate-milestone-audit/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.19",
+      "items": [
+        {
+          "name": "Out-of-Scope Browser Failures Observed During 102-01  - `npx playwright test e2e/admin-screenshots.spec.js --grep \"captures admin-screenshots light and dark matrix\"` now gets past the duplicate `[data-rindle-admin-root]` shell lookup and fails on the already-recorded admin focus-token host-cascade issue: `[data-rindle-admin-theme=\"light\"]` computes a 3px/0px/`rgb(16, 20, 23)` outline instead of the expected 2px/2px/`#123A35`. - `npx playwright test e2e/admin-console.spec.js --grep \"admin console top-level surfaces render the shell and seeded rows\"` now gets past `expectAdminShell` and fails on a separate strict text locator: `getByText(\"Doctor checks\")` matches both the heading and the visually hidden `Runtime/Doctor checks` caption.  Both failures are outside the 102-01 strict admin root helper scope. Do not resolve them by loosening root selection, reducing the admin matrix, deleting backstops, or adding a second visual lane.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "88",
+      "phase_dir": "88-admin-design-system-ui-kit",
+      "file": "88-HUMAN-UAT.md",
+      "file_path": ".planning/milestones/v1.18-phases/88-admin-design-system-ui-kit/88-HUMAN-UAT.md",
+      "type": "uat",
+      "status": "complete",
+      "archived_milestone": "v1.18",
+      "items": [
+        {
+          "test": 1,
+          "name": "Post-Fix Maintainer Gallery Approval",
+          "result": "approved",
+          "category": "unknown",
+          "expected": "Open `brandbook/admin-gallery/index.html` and the seven generated screenshots; confirm light, dark, auto, mobile, status-chip, theme-picker, and confirm-dialog states are readable, unclipped, and acceptable after the `#assets` navigation fix."
+        }
+      ]
+    },
+    {
+      "phase": "93",
+      "phase_dir": "93-truth-docs-milestone-audit",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.18-phases/93-truth-docs-milestone-audit/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.18",
+      "items": [
+        {
+          "name": "Out-of-scope pre-existing warnings (discovered during 93-01 execution)  - `lib/rindle/admin/queries.ex:224` \u2014 unused private function `action/4` (clause with `opts \\\\ []` default arg) triggers a `--warnings-as-errors` compile failure. Pre-existing on clean HEAD (verified by stashing the 93-01 edit and recompiling). Not introduced by this plan; outside the four files 93-01 edits (lib/rindle.ex + three guides). Plain `mix compile` succeeds. Recommend resolving in a follow-up plan (likely Phase 90 Actions ownership) by either using or removing the unused `action/4` clause.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "37",
+      "phase_dir": "37-gcs-adapter-foundation",
+      "file": "37-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.7-phases/37-gcs-adapter-foundation/37-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.7",
+      "items": [
+        {
+          "name": "Secret-backed provider proof has an authenticated CI receipt",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "The legacy report delegates acceptance to a CI-only lane without a run-bound receipt in this phase directory; retain unresolved automated evidence rather than infer a pass from lane ownership."
+        }
+      ]
+    },
+    {
+      "phase": "37",
+      "phase_dir": "37-gcs-adapter-foundation",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.7-phases/37-gcs-adapter-foundation/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.7",
+      "items": [
+        {
+          "name": "Pre-existing test failure: `Rindle.ApplicationTest.run_startup_checks` AV profile assertion  - **File:** `test/rindle/application_test.exs:41-55` - **Symptom:** `assert metadata.affected_profiles == [\"Elixir.Rindle.ApplicationTest.AVProfile\"]` fails because the test environment also registers `Elixir.Rindle.Adopter.CanonicalApp.VideoProfile`. Other related assertions in the same file (`startup_checks` warnings) likely fail for the same reason. - **Status:** Verified pre-existing \u2014 present on `git stash`'d working tree (no Phase 37 changes). Reproduces against Plan 37-01's base commit. - **Out of scope reason:** Application-bootup AV profile detection. Phase 37 only touches GCS storage adapter HTTP plumbing \u2014 no Application or Profile registration changes. - **Disposition:** Deferred. A follow-up task should investigate whether the canonical adopter app's `VideoProfile` registration is leaking into the application_test setup.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "39",
+      "phase_dir": "39-resumable-adapter-behaviour-broker-wiring",
+      "file": "39-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.7-phases/39-resumable-adapter-behaviour-broker-wiring/39-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.7",
+      "items": [
+        {
+          "name": "Secret-backed provider proof has an authenticated CI receipt",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "The legacy report delegates acceptance to a CI-only lane without a run-bound receipt in this phase directory; retain unresolved automated evidence rather than infer a pass from lane ownership."
+        }
+      ]
+    },
+    {
+      "phase": "40",
+      "phase_dir": "40-maintenance-cancel-contract",
+      "file": "40-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.7-phases/40-maintenance-cancel-contract/40-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.7",
+      "items": [
+        {
+          "name": "Secret-backed provider proof has an authenticated CI receipt",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "The legacy report delegates acceptance to a CI-only lane without a run-bound receipt in this phase directory; retain unresolved automated evidence rather than infer a pass from lane ownership."
+        }
+      ]
+    },
+    {
+      "phase": "41",
+      "phase_dir": "41-onboarding-docs-doctor-package-consumer-proof",
+      "file": "41-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.7-phases/41-onboarding-docs-doctor-package-consumer-proof/41-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.7",
+      "items": [
+        {
+          "name": "Secret-backed provider proof has an authenticated CI receipt",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "The legacy report delegates acceptance to a CI-only lane without a run-bound receipt in this phase directory; retain unresolved automated evidence rather than infer a pass from lane ownership."
+        }
+      ]
+    },
+    {
+      "phase": "33",
+      "phase_dir": "33-provider-boundary-state-schema",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.6-phases/33-provider-boundary-state-schema/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.6",
+      "items": [
+        {
+          "name": "2. AV / ffmpeg / ffprobe `:epipe` failures (parallelism flake)   **Cause:** `mix test` runs with `max_cases: 16` (default = `System.schedulers_online() * 2`). Each AV test spawns one or more ffmpeg/ffprobe Ports; under high parallelism the OS-level pipe occasionally breaks (epipe) before the test can read the subprocess output. Each affected test passes in isolation:  - `mix test test/rindle/processor/av_test.exs --color` \u2192 13/13 green - `mix test test/rindle/processor/waveform_test.exs --color` \u2192 3/3 green - `mix test test/rindle/probe/av_probe_test.exs --color` \u2192 5/5 green  **Disposition:** Pre-existing parallelism flake, not caused by any Phase 33 plan. Recommended fix (out of scope here): tag AV-process tests with `async: false` or reduce `max_cases` for those modules. Triage in a maintenance plan.  ---",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "4. Pre-existing `mix dialyzer` non-zero exit (11 errors)  `mix dialyzer` reports \"Total errors: 11\" on base. All 11 warnings are in pre-existing files NOT touched by Phase 33:  - `lib/rindle/html.ex` - `lib/rindle/ops/runtime_status.ex` - `lib/rindle/workers/process_variant.ex` - `lib/rindle/workers/promote_asset.ex`  Phase 33 plans add zero new dialyzer warnings (verified \u2014 `grep streaming`, `grep provider_asset`, `grep capability` against the dialyzer log return nothing relevant to plan files).  **Disposition:** Out of scope. Triage in a maintenance plan.  ---",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "Notes  - Phase 33 plan-modified files (verified zero-impact on the four issues above): - `lib/rindle/streaming/capabilities.ex` (Plan 01, new) - `lib/rindle/streaming/provider.ex` (Plan 01, rewrite) - `lib/rindle/domain/media_provider_asset.ex` (Plan 02, new) - `lib/rindle/domain/provider_asset_fsm.ex` (Plan 02, new) - `priv/repo/migrations/20260506120000_create_media_provider_assets.exs` (Plan 02, new) - `lib/rindle/error.ex` (Plan 04, additive only \u2014 5 new bare-atom clauses) - `lib/rindle/capability.ex` (Plan 04, new) - `test/rindle/streaming/`, `test/rindle/domain/`, `test/rindle/error_streaming_freeze_test.exs`, `test/rindle/capability_test.exs` (test files) - `test/rindle/delivery_test.exs` (Plan 01 Rule 1 auto-fix \u2014 see 33-01-SUMMARY for the one assertion flip required by D-05 + D-08) - None of these files touch FFmpeg/Port/Application-startup/credo/dialyzer paths. - Plan-explicit tripwires all stay green: `delivery_test.exs:352-380`, `delivery_test.exs:382-391`, `error_test.exs`, `profile/validator_test.exs`.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`run_startup_checks warns when configured AV profiles boot on unsupported ephemeral runtimes` \u2014 `test/rindle/application_test.exs:41` \u2014 `affected_profiles` list contains `Rindle.Adopter.CanonicalApp.VideoProfile` in addition to the test-defined profile (assertion expects only the test profile).",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "`run_startup_checks stays quiet when configured profiles are image-only` \u2014 `test/rindle/application_test.exs:58` \u2014 Receives an unexpected `rindle.av.runtime_guard.unsupported_runtime` warning sourced from the canonical-app video profile bleeding into Application config.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "Various `process/3` and `probe/1` cases \u2014 `test/rindle/processor/av_test.exs`, `test/rindle/processor/waveform_test.exs`, `test/rindle/probe/av_probe_test.exs`, `test/rindle/av/ffprobe_test.exs` \u2014 `** (EXIT from #PID<...>) :epipe` \u2014 broken pipe to spawned ffmpeg/ffprobe Port.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "34",
+      "phase_dir": "34-mux-rest-adapter-server-push-sync",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.6-phases/34-mux-rest-adapter-server-push-sync/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.6",
+      "items": [
+        {
+          "name": "Pre-existing AV runtime-guard test flakiness (out of scope)  When running the full test suite (`mix test`), 5 tests fail with seemingly unrelated AV/runtime errors:  - `test/rindle/probe/av_probe_test.exs:58` \u2014 ffprobe stderr capture flake - `test/rindle/av/ffprobe_test.exs:13` \u2014 ffprobe failure-handling flake - `test/rindle/processor/waveform_test.exs:14` \u2014 waveform JSON contract flake - `test/rindle/processor/ffmpeg_test.exs` \u2014 ffmpeg `process/3` video_transcode capability flake (same family as the waveform/ffprobe flakes) - `test/rindle/application_test.exs:41,58` \u2014 AV runtime guard test pollution from `Rindle.Adopter.CanonicalApp.VideoProfile` leaking between modules. Confirmed pre-Phase-34: `git checkout db21116 -- . && mix test test/rindle/application_test.exs:41` reproduces the same failure on the pre-Plan-04 base commit \u2014 this is not a Plan 04 regression.  These are NOT caused by Phase 34 changes:  - Each of the four tests passes in isolation (`mix test path:line`). - The mux test suite (`mix test test/rindle/streaming/provider/mux/`) is fully green (21/21). - The streaming + domain test suites (`mix test test/rindle/streaming/ test/rindle/domain/`) are fully green (148/148). - The application_test failures show `affected_profiles: [\"Elixir.Rindle.Adopter.CanonicalApp.VideoProfile\", ...]` \u2014 a profile outside the test module that bleeds in via shared application configuration set during the integration/adopter test scaffolding.  This is a pre-existing test-isolation issue in the AV runtime guard layer (Phase 23/Phase 28 territory). It manifests only when `mix test` runs with the full module set in a non-deterministic order. Out of scope for Phase 34.  **Suggested follow-up:** open a separate stabilization plan that audits `Rindle.Application.run_startup_checks/0` test setup to ensure `Application.put_env`-style profile registration is reset between modules.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "Pre-existing Dialyzer pattern-match warnings (Plan 04 Task 2b)  After regenerating the Dialyzer PLT with `:mux` and `:jose` (Plan 01 addition to `dialyzer.plt_add_apps`), 6 pre-existing warnings became visible across non-Phase-34 surface:  - `lib/rindle/html.ex:266:10:pattern_match` (Phase 27 AV HTML helpers) - `lib/rindle/ops/runtime_status.ex:584,585:pattern_match_cov` (Phase 31 ops surface) - `lib/rindle/workers/process_variant.ex:108:pattern_match` (v1.4 AV worker `cancel`-vs-`error` shape) - `lib/rindle/workers/process_variant.ex:398:pattern_match_cov` (v1.4 AV worker variant-spec exhaustive cover) - `lib/rindle/workers/promote_asset.ex:255:pattern_match_cov` (v1.4 promote worker spec exhaustive cover)  These are NOT Phase 34 surface \u2014 they pre-date Plans 01-03 and are not reachable from the Mux subsystem. The new app types in the PLT did not *introduce* these warnings; they merely surfaced them when `:mux`/`:jose` were added to `plt_add_apps` (likely because the broader-PLT analysis walked transitive call graphs that include these files).  **Action taken:** Added per-file ignore entries to `.dialyzer_ignore.exs` so `mix dialyzer` exits 0 (Plan 04 phase-gate criterion). The Phase 34 surface (`lib/rindle/streaming/provider/mux*.ex`, `lib/rindle/workers/mux_*.ex`) is dialyzer-clean with NO ignores.  **Suggested follow-up:** open a v1.7 cleanup plan that fixes the dead patterns in `process_variant.ex`, `promote_asset.ex`, `runtime_status.ex`, and `html.ex` and removes the corresponding ignore entries.  Phase 34 surface fixes applied as part of Plan 04 Task 2b:  - `lib/rindle/streaming/provider/mux/http.ex` \u2014 removed three dead `other -> {:error, other}` defensive clauses (Mux SDK contract is exhaustively two-tuple/three-tuple per Dialyzer analysis with `:mux` in PLT). - `lib/rindle/workers/mux_sync_provider_asset.ex` \u2014 removed dead `playback_ids || []` guard; the adapter contract guarantees a list.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "35",
+      "phase_dir": "35-signed-webhook-plug-idempotent-ingest",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.6-phases/35-signed-webhook-plug-idempotent-ingest/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.6",
+      "items": [
+        {
+          "name": "Pre-existing `mix format --check-formatted` violations  `mix format --check-formatted` reports unrelated formatting drift in production source files that were NOT touched by Plan 35-03:  - `lib/rindle/ops/lifecycle_repair.ex` - `lib/rindle/processor/av/video.ex` - (and likely more \u2014 exit 1 across the run)  These are pre-existing on `main` (commit 1768567 base) and were not introduced by Plan 35-03. Per execute-plan scope boundary, leaving these to a future cleanup pass (`mix format` repo-wide) or v1.7 polish.  Plan 35-03's own added/modified files (`test/support/mux_webhook_fixtures.ex`, `test/rindle/test/mux_webhook_fixtures_test.exs`, `test/rindle/streaming/provider/mux/mux_test.exs`, and the 5 fixture JSONs) all pass `mix format --check-formatted` cleanly.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "Pre-existing `Rindle.ApplicationTest` failures  Two tests in `test/rindle/application_test.exs` fail on the base branch (commit 72a515a) BEFORE any Plan 35-02 changes are applied:  - `test run_startup_checks warns when configured AV profiles boot on unsupported ephemeral runtimes` - `test run_startup_checks stays quiet when configured profiles are image-only`  Root cause: `Rindle.Config.profile_modules/0` discovers `Rindle.Adopter.CanonicalApp.VideoProfile` (an adopter test profile) in addition to the test-local AV profile, so `affected_profiles` is `[adopter, test_local]` instead of the expected `[test_local]`. This is a pre-existing test isolation issue unrelated to Phase 35 / webhook ingest. Confirmed reproducible by stashing Plan 35-02 changes and running the test in isolation.  Out of Plan 35-02 scope per execute-plan scope boundary \u2014 log only. Track for v1.6/v1.7 polish: scope `Rindle.Application.run_startup_checks/1` to test-supplied profile lists, or filter discovery to a configured allowlist in test envs.",
+          "result": "unresolved",
+          "category": "deferred"
+        },
+        {
+          "name": "Pre-existing test failures (not introduced by 35-04)  `mix test` (full suite) reports 3 failures on the worktree base. Verified pre-existing by `git stash` + re-run on the bare base:  1. `test/rindle/application_test.exs:41` \u2014 `run_startup_checks warns when configured AV profiles boot on unsupported ephemeral runtimes`. The adopter `Rindle.Adopter.CanonicalApp.VideoProfile` is configured in `:rindle, :profiles` and pollutes the assertion that expects only the test-defined profile. 2. `test/rindle/application_test.exs:58` \u2014 `run_startup_checks stays quiet when configured profiles are image-only`. Same cause: an AV profile leaks into the image-only test scenario. 3. `test/rindle/probe/av_probe_test.exs:58` \u2014 `propagates ffprobe failures for invalid input`. Passes in isolation; order-sensitive.  All three reproduce on the base branch before any 35-04 changes. Out of scope for Plan 35-04; track for a v1.7 polish pass or address via `/gsd-code-review`.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "36",
+      "phase_dir": "36-public-dx-onboarding-ci-proof",
+      "file": "36-HUMAN-UAT.md",
+      "file_path": ".planning/milestones/v1.6-phases/36-public-dx-onboarding-ci-proof/36-HUMAN-UAT.md",
+      "type": "uat",
+      "status": "partial",
+      "archived_milestone": "v1.6",
+      "items": [
+        {
+          "test": 1,
+          "name": "Run cassette package-consumer lane end-to-end on a real PR build",
+          "result": "pending",
+          "category": "pending",
+          "expected": "`bash scripts/install_smoke.sh mux` exits 0 inside CI's `package-consumer` job: fresh `mix phx.new` + Rindle install + `mix rindle.doctor` + sample upload + `<video>` rendered with Mux-signed HLS URL. The cassette path never reaches `api.mux.com` (Mox-on-:http_client). This is SC #3 + SC #4 (cassette lane) and the Plan 03 SUMMARY explicitly defers item 1 of its verification matrix to CI."
+        },
+        {
+          "test": 2,
+          "name": "Run `mux-soak` lane against real Mux on a `streaming`-labelled PR",
+          "result": "pending",
+          "category": "pending",
+          "expected": "Real-Mux API hit succeeds end-to-end; ingested asset appears + ready; signed HLS URL plays; cleanup deletes the asset; soak-asset count on the Mux account stays at 0 across consecutive labelled PRs."
+        },
+        {
+          "test": 3,
+          "name": "Verify HexDocs publish wire \u2014 `mix docs` rendering of `streaming_providers.md` + `MuxWeb` module",
+          "result": "pending",
+          "category": "pending",
+          "expected": "On hexdocs.pm (or local `mix docs` preview), `Rindle.Profile.Presets.MuxWeb` module page renders, `guides/streaming_providers.md` is in the sidebar, intra-doc links resolve."
+        },
+        {
+          "test": 4,
+          "name": "Confirm no fork-secret leak when a fork PR is labelled `streaming`",
+          "result": "pending",
+          "category": "pending",
+          "expected": "Fork PR labelled `streaming` fires `mux-soak` job; `${{ secrets.RINDLE_MUX_* }}` resolve to empty strings; the lane fails closed (no real-Mux call); cleanup step's no-credential branch (`exit 0`) hits."
+        },
+        {
+          "test": 5,
+          "name": "Confirm the cassette lane's WebM upload + variant fan-out yields the byte-identical `[poster, web_720p]` ready-variant assertion in the generated app",
+          "result": "pending",
+          "category": "pending",
+          "expected": "Generated-app smoke test (`Rindle.InstallSmoke.GeneratedAppSmokeMuxTest`) passes \u2014 same as the `:video` lane plus the two new streaming-URL assertions (regex match + `JOSE.JWT.verify_strict/3` returning `{true, _, _}`)."
+        }
+      ]
+    },
+    {
+      "phase": "36",
+      "phase_dir": "36-public-dx-onboarding-ci-proof",
+      "file": "36-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.6-phases/36-public-dx-onboarding-ci-proof/36-VERIFICATION.md",
+      "type": "verification",
+      "status": "human_needed",
+      "archived_milestone": "v1.6",
+      "items": [
+        {
+          "test": 1,
+          "name": "test: Verify HexDocs publish wire \u2014 `mix docs` rendering of `streaming_providers.md` + `MuxWeb` module, expected: On hexdocs.pm (or local `mix docs` preview), `Rindle.Profile.Presets.MuxWeb` module page renders, `guides/streaming_providers.md` is in sidebar, intra-doc links resolve., why_human: Visual rendering and link resolution are observable only in a HexDocs build, not via grep.",
+          "result": "human_needed",
+          "category": "human_uat"
+        }
+      ]
+    },
+    {
+      "phase": "36",
+      "phase_dir": "36-public-dx-onboarding-ci-proof",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.6-phases/36-public-dx-onboarding-ci-proof/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.6",
+      "items": [
+        {
+          "name": "Pre-existing `Rindle.ApplicationTest` failures  Two tests in `test/rindle/application_test.exs` fail on the base branch (commit `22ec9a1` and below) BEFORE any Plan 36-01 changes are applied:  - `test run_startup_checks warns when configured AV profiles boot on unsupported ephemeral runtimes` - `test run_startup_checks stays quiet when configured profiles are image-only`  Confirmed pre-existing by `git stash` of Plan 36-01 modifications and re-running on the clean base \u2014 both failures persist. Already documented in Phase 35's `deferred-items.md` (Plan 35-02 entry). Root cause: `Rindle.Config.profile_modules/0` test isolation issue \u2014 `Rindle.Adopter.CanonicalApp.VideoProfile` is discovered alongside the test-local AV profile, so `affected_profiles` is `[adopter, test_local]` instead of the expected `[test_local]`.  Tracked for v1.7 polish; out of scope for Phase 36.",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    },
+    {
+      "phase": "12",
+      "phase_dir": "12-public-verification-and-release-operations",
+      "file": "12-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.3-phases/12-public-verification-and-release-operations/12-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.3",
+      "items": [
+        {
+          "name": "Maintainers have clear first-publish, future-release, and rollback/revert instructions tied to the actual shipped workflow",
+          "result": "partial",
+          "category": "unknown",
+          "reason": "The runbook documents first-publish steps and rollback/revert details, but it does not yet describe a repeatable routine release flow for subsequent versions."
+        }
+      ]
+    },
+    {
+      "phase": "20",
+      "phase_dir": "20-v1.3-verification-and-metadata-closure",
+      "file": "20-HUMAN-UAT.md",
+      "file_path": ".planning/milestones/v1.3-phases/20-v1.3-verification-and-metadata-closure/20-HUMAN-UAT.md",
+      "type": "uat",
+      "status": "partial",
+      "archived_milestone": "v1.3",
+      "items": [
+        {
+          "test": 1,
+          "name": "Phase 20 status: pass-with-followup vs reopen-20-02",
+          "result": "pending",
+          "category": "pending"
+        },
+        {
+          "test": 2,
+          "name": "WR-04 onboarding example defect",
+          "result": "pending",
+          "category": "pending"
+        }
+      ]
+    },
+    {
+      "phase": "20",
+      "phase_dir": "20-v1.3-verification-and-metadata-closure",
+      "file": "20-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.3-phases/20-v1.3-verification-and-metadata-closure/20-VERIFICATION.md",
+      "type": "verification",
+      "status": "human_needed",
+      "archived_milestone": "v1.3",
+      "items": [
+        {
+          "test": 1,
+          "name": "test: Code review found 2 BLOCKER defects in lib/rindle/live_view.ex introduced by Plan 20-02 (CR-01, CR-02). Plan 20-02 D-12 explicitly directed 'commit AS-IS' so the defects were encoded in the input patch, not introduced by the executor. The phase's documented goal \u2014 committing the residual Phase 17 LiveView corrective patch \u2014 was met. The review-flagged defects warrant a follow-up corrective phase, but they do NOT change whether Phase 20's specified deliverables shipped., expected: Decide whether to (a) accept Phase 20 as PASSED with a tracked follow-up phase to fix CR-01/CR-02 and the WR-01..WR-05 issues, or (b) reopen Plan 20-02 to fix the LiveView defects in this phase., why_human: Per the verifier instructions: 'reflect this honestly in the verification: the phase's specified deliverables shipped, but the LiveView patch ships with bugs flagged by code review that warrant a follow-up corrective phase.' This is a scope-vs-quality judgment that requires human ownership.",
+          "result": "human_needed",
+          "category": "human_uat"
+        },
+        {
+          "test": 2,
+          "name": "test: Code review found WR-04 \u2014 README.md:138 and guides/getting_started.md:231 dereference avatar.asset without a nil-guard, even though the immediately-preceding comment annotates the return as `nil`-able. An adopter copy-pasting the example into a controller will hit BadMapError on every user without an avatar., expected: Decide whether to patch the example to use a case/pattern-match (or guard clause) before the next milestone audit re-run, or accept the example as-is with a tracked follow-up. The defect does not affect Phase 20's stated goal but does affect the onboarding-prose quality the phase intended to deliver., why_human: WR-04 is a documentation correctness issue, not a metadata-closure issue. Phase 20's specified deliverables (teach the eight symbols + parity test gate) shipped; the example correctness is a quality concern that did not block any of the phase's success criteria.",
+          "result": "human_needed",
+          "category": "human_uat"
+        }
+      ]
+    },
+    {
+      "phase": "11",
+      "phase_dir": "11-protected-publish-automation",
+      "file": "11-HUMAN-UAT.md",
+      "file_path": ".planning/milestones/v1.2-phases/11-protected-publish-automation/11-HUMAN-UAT.md",
+      "type": "uat",
+      "status": "partial",
+      "archived_milestone": "v1.2",
+      "items": [
+        {
+          "test": 1,
+          "name": "Verify GitHub Actions release environment configuration",
+          "result": "pending",
+          "category": "pending",
+          "expected": "The 'release' environment exists, restricts branches/tags appropriately, and has the HEX_API_KEY secret set correctly."
+        },
+        {
+          "test": 2,
+          "name": "End-to-end publish flow",
+          "result": "pending",
+          "category": "pending",
+          "expected": "A real release push triggers the workflow, passes the preflight, verifies the version match, and successfully publishes to Hex.pm."
+        }
+      ]
+    },
+    {
+      "phase": "05",
+      "phase_dir": "05-ci-1-0-readiness",
+      "file": "05-VERIFICATION.md",
+      "file_path": ".planning/milestones/v1.0-phases/05-ci-1-0-readiness/05-VERIFICATION.md",
+      "type": "verification",
+      "status": "gaps_found",
+      "archived_milestone": "v1.0",
+      "items": [
+        {
+          "test": 1,
+          "name": "test: Open a PR against main and confirm CI runs all five lanes (Quality, Integration, Contract, Adopter, Release dry-run), expected: All five lanes succeed end-to-end on a real PR \u2014 Quality on the matrix (1.15/26 + 1.17/27), Integration with libvips fix, Contract on 1.17/27, Adopter against MinIO + Postgres + drift gate, Release dry-run on tag-push, why_human: Lane wiring is verifiable statically; lane SUCCESS requires real GitHub Actions runtime \u2014 cannot be verified locally without service containers and runner orchestration",
+          "result": "human_needed",
+          "category": "human_uat"
+        },
+        {
+          "test": 2,
+          "name": "test: Configure the `release` GitHub Actions environment in repo settings (Blocker 6 follow-up from Plan 05 SUMMARY), expected: Settings \u2192 Environments \u2192 release with required reviewers + branch restriction to `main` and `v*` tags. No HEX_API_KEY secret bound until 1.0 cutover., why_human: Repo admin action \u2014 cannot be performed by a code change; required before any real Hex API key is added",
+          "result": "human_needed",
+          "category": "human_uat"
+        },
+        {
+          "test": 3,
+          "name": "test: Render mix docs HTML and visually confirm the seven guides + Mermaid stateDiagram-v2 blocks render correctly, expected: doc/index.html shows all seven guides under the Guides group, and the three FSM diagrams in core_concepts.md render as interactive SVG, why_human: Mermaid renders client-side via the CDN script \u2014 visual confirmation requires a browser; the `mix docs` build success only proves the markdown was emitted to HTML",
+          "result": "human_needed",
+          "category": "human_uat"
+        },
+        {
+          "test": 4,
+          "name": "test: Run mix test --only contract on a clean checkout and confirm a name-rename mutation breaks the lane, expected: Renaming any of the six locked telemetry events in lib/rindle/domain/*_fsm.ex or lib/rindle/upload/broker.ex causes mix test --only contract to fail with a clear assertion message; reverting restores the green state, why_human: Plan 02 SUMMARY claims this was verified locally and reverted before commit; re-running on the latest tree is the human ratchet that the contract test still detects drift",
+          "result": "human_needed",
+          "category": "human_uat"
+        },
+        {
+          "name": "CI quality lane passes mix format --check-formatted on every PR (CI-01)",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "`mix format --check-formatted` exits 1 against the current tree \u2014 pre-existing whitespace and long-line violations in test/rindle/upload/broker_test.exs (lines 28, 54, 56-58, 73, 86, 98, 106, 109), test/rindle/delivery_test.exs, and test/rindle/upload/proxied_test.exs (acknowledged in deferred-items.md from Plan 01) were never cleaned up. With the format step wired in CI by Plan 03, the Quality lane will fail on every PR \u2014 directly contradicting phase 5 success criterion 1 (CI passes all five lanes on every PR)."
+        },
+        {
+          "name": "CI quality lane test coverage threshold passes on every PR (CI-03)",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "`mix coveralls` reports 69.9% line coverage against the configured 80% minimum and exits 1 (FAILED: Expected minimum coverage of 80%, got 69.9%). Plan 03 SUMMARY noted local coverage at 71.5% and held the threshold at 80% expecting Plans 01 and 04 to close the gap; the gap actually widened. The gate is wired correctly but the lane fails on every PR until coverage rises (or the threshold is recalibrated and documented). Lowest-coverage modules: lib/rindle/storage/s3.ex 13.8%, lib/rindle/live_view.ex 15.0%, lib/rindle/workers/purge_storage.ex 0.0%, lib/rindle/workers/abort_incomplete_uploads.ex 50.0%, lib/rindle/storage/local.ex 52.3%, lib/rindle/profile/digest.ex 52.3%."
+        },
+        {
+          "name": "CI integration lane runs upload \u2192 processing \u2192 delivery \u2192 cleanup against real MinIO + PostgreSQL and exits zero (CI-07)",
+          "result": "partial",
+          "category": "unknown",
+          "reason": "The integration job exists with MinIO + Postgres services and runs the lifecycle and storage-adapter tests, but it does NOT install libvips-dev \u2014 the lifecycle integration test exercises the variant pipeline which loads the Image/Vix NIF. Without libvips the test either crashes loading or skips silently. CR-05 / WR-08 in 05-REVIEW.md flag this as a CI hygiene defect that the Quality and Adopter lanes both avoid by installing libvips. The integration lane therefore does not actually exercise the full upload \u2192 processing \u2192 delivery path it advertises."
+        },
+        {
+          "name": "Broker.verify_completion FSM gate is honored (UploadSession transitions are valid + persisted; Asset state machine respected)",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "CR-03 in 05-REVIEW.md is a real bug in code that phase 5 explicitly modified (lib/rindle/upload/broker.ex emits :upload :stop telemetry from this same `verify_completion/2` function, so the file is in phase 5's modification scope per 05-01-PLAN must_haves). The `with` chain runs `UploadSessionFSM.transition(session.state, \"verifying\", ...)` and `AssetFSM.transition(asset.state, \"validating\", ...)`, but the Multi then updates the session DIRECTLY from current state to `\"completed\"` without persisting `\"verifying\"` and without gating the actual `signed \u2192 completed` (or `uploading \u2192 completed`) transition. The locked telemetry contract emits `[:rindle, :asset, :state_change]` for a state the DB never sees; the contract test passes because it manually populates context but real Broker calls produce a corrupt state-history surface. This affects the credibility of TEL-02/03 emission semantics and breaks the FSM invariant phase 5's contract lane was supposed to lock down."
+        },
+        {
+          "name": "Broker.profile_name_to_module/1 fails cleanly on unknown profile rather than crashing the caller",
+          "result": "failed",
+          "category": "unknown",
+          "reason": "CR-04 in 05-REVIEW.md is a real bug in code phase 5 modified (lib/rindle/upload/broker.ex telemetry emission lives in this same file). `defp profile_name_to_module(name) do String.to_existing_atom(name) rescue _ -> nil end` (lines 195-199) returns `nil` on bad input. The `with` chain at line 142 then calls `nil.storage_adapter()` raising `UndefinedFunctionError` \u2014 bypassing the chain's `else` arm. This is the same code path the adopter integration test exercises; a flaky atom-table state (e.g., dropped profile module after redeploy) surfaces as a crash, not a clean `{:error, :unknown_profile}`. Phase 5's adopter lane was supposed to prove the public API is exercised end-to-end in CI; the error path is broken."
+        },
+        {
+          "name": "Adopter lifecycle test exercises the full end-to-end flow (CI-08; success criterion 5.4)",
+          "result": "partial",
+          "category": "unknown",
+          "reason": "test/adopter/canonical_app/lifecycle_test.exs exists with @moduletag :adopter, contains all required public API calls (Broker.initiate_session, Broker.verify_completion, Rindle.Delivery.url, Rindle.attach, Rindle.detach, :httpc.request to presigned URL), declares the D-09 TODO comment, and is wired into the CI adopter job. However: (a) the lifecycle test was not run end-to-end during this verification (requires MinIO + Postgres; CI-only), so the proof of `mix test --only adopter` exiting 0 against real services is not observable here, and (b) the upstream FSM bug (CR-03) and unknown-profile crash (CR-04) flagged above will likely affect this test path. The adopter lane wiring is real; the runtime proof is human-verification-deferred."
+        }
+      ]
+    },
+    {
+      "phase": "05",
+      "phase_dir": "05-ci-1-0-readiness",
+      "file": "deferred-items.md",
+      "file_path": ".planning/milestones/v1.0-phases/05-ci-1-0-readiness/deferred-items.md",
+      "type": "deferred",
+      "status": "unresolved",
+      "archived_milestone": "v1.0",
+      "items": [
+        {
+          "name": "Pre-existing format issues (out of scope)  The following files have pre-existing `mix format --check-formatted` violations that were not introduced by Plan 05-01. They should be addressed in a separate chore commit (likely as part of Plan 05-02 \u2014 the CI quality lane will catch these once the format job is wired):  - `test/rindle/upload/broker_test.exs` \u2014 trailing whitespace + long `expect` lines in EXISTING tests (lines 26, 28, 54, 56-58, 81, 85, 93, 105, 109). My added telemetry describe block (lines 115+) IS formatted.  - `test/rindle/delivery_test.exs` \u2014 long `expect` lines in EXISTING tests (lines 36, 56, 72, 83, 99, 107, 122). My added telemetry describe block (lines 140+) IS formatted.  - `test/rindle/upload/proxied_test.exs` \u2014 trailing whitespace (lines 23, 27). Not touched by Plan 05-01.  These are documented per the executor scope-boundary rule (do not auto-fix issues outside the current task's changes).",
+          "result": "unresolved",
+          "category": "deferred"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_files": 31,
+    "total_items": 76,
+    "parse_gap_files": 0,
+    "by_category": {
+      "deferred": 44,
+      "unknown": 16,
+      "pending": 9,
+      "human_uat": 7
+    },
+    "by_phase": {
+      "11": 2,
+      "12": 1,
+      "20": 4,
+      "33": 6,
+      "34": 2,
+      "35": 3,
+      "36": 7,
+      "37": 2,
+      "39": 1,
+      "40": 1,
+      "41": 1,
+      "88": 1,
+      "93": 1,
+      "95": 4,
+      "96": 2,
+      "97": 5,
+      "98": 2,
+      "101": 1,
+      "102": 1,
+      "107": 4,
+      "112": 6,
+      "116": 1,
+      "133": 1,
+      "135": 6,
+      "05": 11
+    },
+    "current_milestone": {
+      "files": 2,
+      "items": 7
+    },
+    "archived": {
+      "files": 29,
+      "items": 69,
+      "by_milestone": {
+        "v1.22": 1,
+        "v1.21": 6,
+        "v1.20": 4,
+        "v1.19": 15,
+        "v1.18": 2,
+        "v1.7": 5,
+        "v1.6": 18,
+        "v1.3": 5,
+        "v1.2": 2,
+        "v1.0": 11
+      }
+    }
+  },
+  "acknowledged_files": 0
+}

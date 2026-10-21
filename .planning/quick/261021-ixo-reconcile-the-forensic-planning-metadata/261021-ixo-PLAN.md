@@ -40,3 +40,12 @@ Assert no file outside.planning changed, no archived evidence bytes or WINDOWS
 entry changed, and the same external job still owns Plan136-07. Write summary and
 append the quick-task row through quick-tasks-append; preserve current_phase136 and
 current_plan07. Finish with progress/execute136 commands appropriate to job status.
+
+## Discovered metadata migration
+
+The audit reader halted on11 archived reports using legacy verified/complete/ci_verified
+statuses. Normalize each recorded verdict conservatively after inspecting its existing
+evidence; preserve original bytes in quick-task snapshots and keep every existing
+verified date, score and fingerprint. Historical CI-only ownership without an attributed
+run receipt remains gaps_found. A discovered unreadable archived UAT format may be
+normalized while preserving its original result and unresolved automation needs.

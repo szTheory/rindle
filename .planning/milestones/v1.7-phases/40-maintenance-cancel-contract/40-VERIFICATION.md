@@ -1,7 +1,9 @@
 ---
 phase: 40-maintenance-cancel-contract
 verified: 2026-05-08T13:59:07Z
-status: ci_verified
+status: gaps_found
+legacy_status: ci_verified
+status_migration: schema-only-no-reverification
 score: 2/3 must-haves verified
 overrides_applied: 0
 human_verification: []
@@ -9,6 +11,10 @@ ci_verification:
   - job: "gcs-soak"
     expected: "The secret-backed live maintenance proof passes in GitHub Actions, covering initiate -> cancel/idempotent cancel -> runtime_status -> cleanup and stale-session cleanup without leaking `session_uri`."
     why_ci: "The remaining proof is fully automated but depends on secret-backed provider credentials and GitHub Actions runner context."
+gaps:
+  - truth: "Secret-backed provider proof has an authenticated CI receipt"
+    status: failed
+    reason: "The legacy report delegates acceptance to a CI-only lane without a run-bound receipt in this phase directory; retain unresolved automated evidence rather than infer a pass from lane ownership."
 ---
 
 # Phase 40: Maintenance + Cancel Contract — Verification Report
@@ -47,3 +53,12 @@ No local code-level gaps remain. The only external proof is the accepted CI-only
 
 _Verified: 2026-05-08T13:59:07Z_  
 _Verifier: Codex_
+
+## Schema migration (2026-10-21)
+
+The current GSD status vocabulary is applied to the recorded historical outcome.
+Original status: `ci_verified`; normalized status: `gaps_found`. Dates, scores, original
+body, acceptance evidence and fingerprints remain unchanged. This is not fresh
+verification or new requirement credit. The byte-identical original is retained
+in `.planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.7-phases--40-maintenance-cancel-contract.txt`.
+The remaining secret-backed automated proof stays explicit verification debt; no human response can discharge it.

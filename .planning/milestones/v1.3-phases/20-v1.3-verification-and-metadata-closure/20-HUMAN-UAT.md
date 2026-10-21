@@ -18,7 +18,7 @@ updated: 2026-05-01T00:00:00Z
 
 **why_human:** Per Plan 20-02 D-12, the working-tree diff was committed AS-IS — the defects (CR-01: 2-tuple return crashes Phoenix.LiveView's external callback contract; CR-02: silent bypass of `Rindle.verify_completion/2` when `session_id` is missing from meta) were encoded in the input patch, not introduced by the executor. The phase's documented job ended at committing the patch, not authoring a flawless one. This is a scope-vs-quality judgment that requires human ownership.
 
-**result:** [pending]
+result: pending
 
 ### 2. WR-04 onboarding example defect
 
@@ -26,7 +26,7 @@ updated: 2026-05-01T00:00:00Z
 
 **why_human:** WR-04 is a documentation correctness issue, not a metadata-closure issue. Phase 20's specified deliverables (teach the eight symbols + parity test gate) shipped; the example correctness is a quality concern that did not block any of the phase's success criteria.
 
-**result:** [pending]
+result: pending
 
 ## Summary
 

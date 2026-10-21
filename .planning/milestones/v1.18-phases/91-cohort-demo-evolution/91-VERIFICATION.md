@@ -1,7 +1,9 @@
 ---
 phase: 91-cohort-demo-evolution
 verified: 2026-06-12T21:50:18Z
-status: verified
+status: passed
+legacy_status: verified
+status_migration: schema-only-no-reverification
 human_uat_discharged: 2026-06-14T18:43:06Z
 score: 6/6 must-haves verified
 overrides_applied: 0
@@ -124,3 +126,10 @@ verification debt remains for this phase.
 
 _Verified: 2026-06-12T21:50:18Z_
 _Verifier: the agent (gsd-verifier)_
+## Schema migration (2026-10-21)
+
+The current GSD status vocabulary is applied to the recorded historical outcome.
+Original status: `verified`; normalized status: `passed`. Dates, scores, original
+body, acceptance evidence and fingerprints remain unchanged. This is not fresh
+verification or new requirement credit. The byte-identical original is retained
+in `.planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.18-phases--91-cohort-demo-evolution.txt`.

@@ -1,7 +1,9 @@
 ---
 phase: 90-console-ops-actions
 verified: 2026-06-14T00:00:00Z
-status: verified
+status: passed
+legacy_status: verified
+status_migration: schema-only-no-reverification
 score: 8/8 must-haves verified
 overrides_applied: 0
 automated_verification:
@@ -118,3 +120,10 @@ verification required**.
 
 _Verified: 2025-06-13T10:00:00Z_
 _Verifier: the agent (gsd-verifier)_
+## Schema migration (2026-10-21)
+
+The current GSD status vocabulary is applied to the recorded historical outcome.
+Original status: `verified`; normalized status: `passed`. Dates, scores, original
+body, acceptance evidence and fingerprints remain unchanged. This is not fresh
+verification or new requirement credit. The byte-identical original is retained
+in `.planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.18-phases--90-console-ops-actions.txt`.
