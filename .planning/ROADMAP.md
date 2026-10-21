@@ -764,7 +764,7 @@ Plans:
   4. Retry evidence comes from persisted database-backed Oban execution, while restart evidence terminates and resumes a separately supervised runtime without duplicate stimulus.
   5. Every registered scenario emits a schema-validated, redacted receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue, stamped as maintainer-operated synthetic evidence that cannot satisfy the independent-pilot gate.
 
-**Plans**: 4/6 plans executed
+**Plans**: 5/6 plans executed
 
 **Wave 1**
 - [x] 137-01-PLAN.md — Run one real packaged image lifecycle through committed retry, quiescent pause, whole-host restart, automatic completion and cleanup.
@@ -777,7 +777,7 @@ Plans:
 - [x] 137-04-PLAN.md — Validate typed receipts and redaction on every exported surface.
 
 **Wave 4** *(blocked on Wave 3 receipt)*
-- [ ] 137-05-PLAN.md — Prove complete pre-disposal inventories and idempotent owned-resource cleanup.
+- [x] 137-05-PLAN.md — Prove complete pre-disposal inventories and idempotent owned-resource cleanup.
 
 **Wave 5** *(blocked on Waves 2–4)*
 - [ ] 137-06-PLAN.md — Finalize one maintainer CLI, documentation and phase-wide automated regression.
@@ -822,7 +822,7 @@ Plans:
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
-| 137. Built-Package Twin Foundation | 4/6 | In Progress | - |
+| 137. Built-Package Twin Foundation | 5/6 | In Progress | - |
 | 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
