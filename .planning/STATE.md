@@ -3,20 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: ready_to_plan
-last_updated: "2026-10-21T19:40:30.174319+00:00"
-state_head: 1a2aafa76f1a64cfca685f4fb3707923973bd703
+stopped_at: Phase 137 context gathered through primary-source research and adversarial review; ready for standard plan-phase
+last_updated: "2026-10-21T20:14:27.697Z"
+state_head: 12587ed7fe1375a977859897ead267d26e795f1c
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 213
   completed_plans: 213
-  percent: 57
 last_activity: 2026-10-21
+last_activity_desc: Phase 137 research and adversarial review complete; 15 decisions captured; ready for standard plan-phase, no acceptance credit.
 current_phase: 137
 current_phase_name: Built-Package Twin Foundation
 current_plan: Not started
-stopped_at: Phase 136 complete; ready to discuss Phase 137
-last_activity_desc: Phase 136 passed 41/41 active must-haves; numeric CI speed acceptance remains deferred unfinished.
 ---
 
 ## Project Reference
@@ -30,8 +29,9 @@ The primary checkout retains separate historical Phase 133 work; preserve it.
 ## Current Position
 
 Phase 136 is complete: 15/15 plans, 41/41 active must-haves verified.
-The passing covered-file fingerprint is in 136-VERIFICATION.md. No phase 137
-implementation has started. Progress: 4/7 phases complete (57%).
+The passing covered-file fingerprint is in 136-VERIFICATION.md. Phase 137 context
+is gathered and ready for planning; no implementation has started. Progress:
+4/7 phases complete (57%).
 
 Final subject: e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9; source projection:
 9e66e48b2fc64a29f5b973ce28c922eed053cfc3. The existing external job was
@@ -43,9 +43,11 @@ Review: zero findings. Security: 22 threats, zero open. UI review: no UI scope.
 
 ## Next GSD Command
 
-Run `$gsd-progress` now in the worktree above to route the next action. Phase 137
-is ready for `$gsd-discuss-phase 137`; auto-advance is disabled. Run
-`python3 .planning/tools/check_gsd_handoff.py` before giving a handoff.
+Run `$gsd-plan-phase 137` in `/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`.
+Phase 137 research-first discussion is complete; CONTEXT.md records the selected
+host/package/runtime/evidence boundary and canonical references. No plan or TWIN
+acceptance has been executed. Auto-advance remains disabled. Use standard OpenGSD
+planning, execution and verification; do not add custom qualification workflows.
 
 ## Decisions and Verification Debt
 
@@ -62,6 +64,6 @@ is ready for `$gsd-discuss-phase 137`; auto-advance is disabled. Run
 
 ## Session
 
-Last session: 2026-10-21T19:40:30.174319+00:00
-Stopped at: Phase 136 complete, ready to discuss Phase 137.
-Resume file: None.
+Last session: 2026-10-21T20:14:06.233Z
+Stopped at: Phase 137 context gathered through primary-source research and adversarial review; ready for standard plan-phase
+Resume file: .planning/phases/137-built-package-twin-foundation/137-CONTEXT.md
