@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase136 PR162 squash merged; PR and main CI green; numeric speed qualification deferred unfinished
+stopped_at: Phase136 threat-ID blocker repaired; Plan07 final-subject qualification records four missing measurement receipts
 last_updated: "2026-10-21T14:54:53.887398+00:00"
 state_head: 4dc73fa91c60ae870c7289a151d9d53460140906
 progress:
@@ -26,6 +26,8 @@ See: .planning/PROJECT.md (updated 2026-09-09 for v1.26)
 **Current focus:** Phase 136 — Measured Quality and CI Ratchets
 
 ## Current Position
+
+Execution update (2026-10-21T16:55:36.054875+00:00, authoritative): User authorized unblocking the duplicate threat register. Commit bea89f08 renumbers Plan15 threats to T-136-20/T-136-21 and updates security/validation references; init reports zero duplicates and Plan07 runnable. Preflight and frozen e2d3b5c source projection pass; GitHub confirms PR162 merged and main CI39624064249 success. Fresh source-bound quality collection at136-QUALIFICATION-SPEED.json passes Credo11/0, inventory and CI structure61/0; owner verify exits0 with truthful blocked outcome. Final-subject coverage, Dialyzer, bootstrap and async SPEED receipts are missing; the earlier4fdd measurements remain historical and cannot be relabeled. Numeric exact-ten timing stays deferred unfinished; no sampler or replacement25-seed run was started. Collector session39728 is terminal. Plan07 and Phase136 remain open; this repair does not satisfy pending measurement requirements. Earlier updates below are historical.
 
 Execution update (2026-10-21, authoritative): PR #162 is squash MERGED at15:15:57Z, merge SHA a046e5be585618d4dfc8f559870e4585b1abb06a. PR CI39620867248 passed, Proof11m45s, Nightly harnesses2m06s; main CI39624064249 also passed, Proof14m08s and CI Summary success. Result136-MERGE-RESULT.json. Plan15 complete,14/15 plans; Plan07/Phase136 qualification remains open and numeric exact-ten speed acceptance deferred unfinished toSEED-261021-918. No timing credit, release action or Phase137 execution. All prior controllers terminal; no active local collector. Earlier updates below are historical.
 
