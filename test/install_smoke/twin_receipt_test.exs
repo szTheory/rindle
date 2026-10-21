@@ -73,4 +73,33 @@ defmodule Rindle.TwinReceiptTest do
     assert {_, 0} = python(code)
   end
 
+  @tag :tmp_dir
+  test "signed URL body credential access-log and telemetry canaries stay private", %{
+    tmp_dir: dir
+  } do
+    code = """
+    from twin_receipt import safe_diagnostic, verify_receipt, Refused
+    from twin_fixture import fixture
+    from built_package_twin import Runner
+    import contextlib,io,json,tempfile
+    canaries=['https://storage.invalid/x?X-Amz-Signature=SIGNED_CANARY','SECRET_CANARY','BODY_CANARY','JOB_ERROR_CANARY']
+    for channel in ['receipt','console','stderr','access_log','telemetry']:
+        raw=dict(stage='services',reason='complete',dependency='none',channel=channel,body=canaries,access_log=canaries,telemetry=canaries)
+        exported=json.dumps(safe_diagnostic(raw))
+        assert all(c not in exported for c in canaries)
+    capture=io.StringIO()
+    with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(capture), contextlib.redirect_stderr(capture):
+        runner=Runner(d)
+        runner.command([sys.executable,'-c','print('+repr('|'.join(canaries))+')'])
+        runner.progress('services')
+    assert all(c not in capture.getvalue() for c in canaries)
+    inputs,r=fixture();r['raw_job_error']=canaries
+    try:verify_receipt(inputs,r)
+    except Refused as e: assert all(c not in str(e) for c in canaries)
+    else:raise AssertionError('secret-bearing record accepted')
+    """
+
+    assert {_, 0} = python(code)
+    assert File.dir?(dir)
+  end
 end
