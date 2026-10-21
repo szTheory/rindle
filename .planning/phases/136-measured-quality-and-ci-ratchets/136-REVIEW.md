@@ -1,11 +1,49 @@
 ---
 phase: 136-measured-quality-and-ci-ratchets
-reviewed: 2026-10-21T01:58:31.549083+00:00
+reviewed: 2026-10-21T19:30:42Z
 depth: standard
-method: inline-self-review
-reviewed_subject: 4fdd3fba5ef5bc73be52473bc72de03fe56926d4
+method: inline-source-review
+reviewed_subject: e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9
+source_projection: 9e66e48b2fc64a29f5b973ce28c922eed053cfc3
 files_reviewed: 37
-files_reviewed_list: [".github/actions/setup-minio/action.yml", ".github/workflows/ci.yml", ".github/workflows/nightly.yml", "AGENTS.md", "CONTRIBUTING.md", "RUNNING.md", "coveralls.json", "scripts/ci/collect_pr_timing_receipt.sh", "scripts/ci/install_ffmpeg.sh", "scripts/ci/test_nightly_dialyzer.sh", "scripts/maintainer/artifact_ledger.json", "scripts/maintainer/async_isolation_evidence.sh", "scripts/maintainer/credo_complexity_baseline.json", "scripts/maintainer/credo_quality.sh", "scripts/maintainer/credo_quality_normalize.exs", "scripts/maintainer/credo_removal_evidence.json", "scripts/maintainer/live_residue_allowlist/automation_workflows.json", "scripts/maintainer/live_residue_allowlist/examples_docs.json", "scripts/maintainer/live_residue_allowlist/install_smoke.json", "scripts/maintainer/phase136_evidence.py", "scripts/maintainer/phase136_evidence_contract.json", "scripts/maintainer/phase136_measure.sh", "scripts/maintainer/verify_async_isolation_receipt.sh", "scripts/maintainer/verify_contributor_bootstrap.sh", "scripts/maintainer/verify_coverage_floor.exs", "scripts/maintainer/verify_phase136_qualification.sh", "test/install_smoke/async_isolation_evidence_runner_test.exs", "test/install_smoke/ci_cache_hygiene_test.exs", "test/install_smoke/ci_timing_automation_test.exs", "test/install_smoke/contributor_bootstrap_test.exs", "test/install_smoke/coverage_floor_policy_test.exs", "test/install_smoke/credo_policy_test.exs", "test/install_smoke/dialyzer_ignore_policy_test.exs", "test/install_smoke/phase136_measure_test.exs", "test/install_smoke/phase136_qualification_test.exs", "test/install_smoke/quality_signal_policy_test.exs", "test/rindle/processor/av/output_probe_test.exs"]
+files_reviewed_list:
+  - .github/actions/setup-minio/action.yml
+  - .github/workflows/ci.yml
+  - .github/workflows/nightly.yml
+  - AGENTS.md
+  - CONTRIBUTING.md
+  - RUNNING.md
+  - coveralls.json
+  - scripts/ci/collect_pr_timing_receipt.sh
+  - scripts/ci/install_ffmpeg.sh
+  - scripts/ci/test_nightly_dialyzer.sh
+  - scripts/maintainer/artifact_ledger.json
+  - scripts/maintainer/async_isolation_evidence.sh
+  - scripts/maintainer/credo_complexity_baseline.json
+  - scripts/maintainer/credo_quality.sh
+  - scripts/maintainer/credo_quality_normalize.exs
+  - scripts/maintainer/credo_removal_evidence.json
+  - scripts/maintainer/live_residue_allowlist/automation_workflows.json
+  - scripts/maintainer/live_residue_allowlist/examples_docs.json
+  - scripts/maintainer/live_residue_allowlist/install_smoke.json
+  - scripts/maintainer/phase136_evidence.py
+  - scripts/maintainer/phase136_evidence_contract.json
+  - scripts/maintainer/phase136_measure.sh
+  - scripts/maintainer/verify_async_isolation_receipt.sh
+  - scripts/maintainer/verify_contributor_bootstrap.sh
+  - scripts/maintainer/verify_coverage_floor.exs
+  - scripts/maintainer/verify_phase136_qualification.sh
+  - test/install_smoke/async_isolation_evidence_runner_test.exs
+  - test/install_smoke/ci_cache_hygiene_test.exs
+  - test/install_smoke/ci_timing_automation_test.exs
+  - test/install_smoke/contributor_bootstrap_test.exs
+  - test/install_smoke/coverage_floor_policy_test.exs
+  - test/install_smoke/credo_policy_test.exs
+  - test/install_smoke/dialyzer_ignore_policy_test.exs
+  - test/install_smoke/phase136_measure_test.exs
+  - test/install_smoke/phase136_qualification_test.exs
+  - test/install_smoke/quality_signal_policy_test.exs
+  - test/rindle/processor/av/output_probe_test.exs
 findings:
   critical: 0
   warning: 0
@@ -14,18 +52,25 @@ findings:
 status: clean
 ---
 
-# Phase 136 Code Review
+# Phase 136 Code Review Report
 
-Standard inline self-review under the negotiated Codex fallback; no independent reviewer is claimed. The original source review covers the unchanged workflow inputs/topology, exact integer coverage, supported-runtime guards, private detached clones, fixed command maps, bounded subprocess groups, exclusive receipt creation, monotone source projection, removal-only complexity proof and complete-population timing authentication.
+**Reviewed:** 2026-10-21T19:30:42Z
+**Depth:** standard
+**Files Reviewed:** 37
+**Status:** clean
 
-The hygiene repair adds Python source to the existing maintainer artifact class and emits numbered `.txt` command outputs. Its legacy reader accepts only three-digit `.log` or `.txt` names; fallback occurs only when the original is absent, including a check that a dangling symlink cannot trigger fallback. Original or relocated symlinks, absent data, excessive output, malformed duration/size and digest mismatch remain rejected. No runtime, package, product behavior, coverage exclusion, workflow permission or required context changed.
+## Summary
 
-All 31 retained outputs match their pre-relocation hashes and byte counts; all 38 pre-existing JSON receipts are unchanged. The current owner directly verified original Dialyzer, bootstrap and async receipt artifact integrity after relocation; this is historical integrity proof, not new-subject acceptance. The complete artifact-ledger harness passed 58 cases, including live partition and archive simulation. The owner/meta suite passed 65 tests, including tampered, missing and symlinked relocated output. Repository Credo passed. No additional actionable source finding remains in this scoped self-review.
+Reviewed the phase evaluation-scope source set against frozen source `e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9` and projection `9e66e48b2fc64a29f5b973ce28c922eed053cfc3`. The evaluation-scope resolver reported `degraded` with reason `no-task-commit-rows` and supplied 37 existing source files; the phase summaries/plans were cross-checked for the 15-plan scope and for the final CI change’s intent.
 
-The broader guard suite initially found the exact Python path introduced a planning identifier in the ledger. Using the existing namespace category with a `*.py` pattern removed that residue; the same whole-tree scan and regeneration-idempotence tests then passed without an allowlist change.
+The frozen-source delta from the earlier reviewed source `4fdd3fba5ef5bc73be52473bc72de03fe56926d4` is the Proof job’s four-harness overlap and its parsed-workflow regression tests. The fixed set of four child processes is awaited in full, failures remain nonzero, and the job’s existing timeout and required CI wiring remain in place. No actionable correctness, security, or maintainability finding was confirmed in the scoped source. The user-deferred exact-ten timing target is unfinished by explicit scope amendment and is not treated as a source defect or acceptance credit.
 
-Replacement canonical coverage and actual measurements are running on the reviewed subject. Authenticated exact-ten CI timing and qualification remain pending; this advisory review supplies no measurement credit. The two pre-existing actionlint matrix diagnostics are not represented as a globally clean result. Historical initial PR hygiene failure and original 25/25 seed evidence remain retained.
+## Narrative Findings (AI reviewer)
 
-## Parallel harness delta (2026-10-21)
+No findings.
 
-Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; T-136-09 and T-136-10 retain executable mitigation. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.
+---
+
+_Reviewed: 2026-10-21T19:30:42Z_
+_Reviewer: gsd-code-reviewer agent_
+_Depth: standard_

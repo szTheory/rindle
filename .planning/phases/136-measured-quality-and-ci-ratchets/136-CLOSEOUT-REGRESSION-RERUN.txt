@@ -1,0 +1,10 @@
+No version is set for command erl
+Consider adding one of the following versions in your config file at /Users/jon/projects/rindle/.claude/worktrees/phase136-execution/.tool-versions
+erlang 29.1.1
+erlang 29.0.5
+erlang 28.5
+erlang 28.4.1
+erlang 28.1
+erlang 27.3.4.15
+erlang 27.3.4.13
+erlang 27.3

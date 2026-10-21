@@ -2,8 +2,8 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: executing
-last_updated: "2026-10-21T17:45:05.800Z"
+status: verifying
+last_updated: "2026-10-21T19:35:55.863350+00:00"
 state_head: 02c030cfedbca1da7feccd873e94b33e613e3a73
 progress:
   total_phases: 7
@@ -15,8 +15,8 @@ last_activity: 2026-10-21
 current_phase: 136
 current_phase_name: Measured Quality and CI Ratchets
 current_plan: 07
-stopped_at: "external_job_waiting: 136-07-final-measurements; do not resubmit"
-last_activity_desc: Plan07 external job running; coverage, Dialyzer, bootstrap and regression verified; 25-seed async active.
+stopped_at: All 15 Phase136 plan summaries committed; final goal verification pending
+last_activity_desc: Existing Plan07 job reconciled; final-source evidence verified; closeout audits and 228-test regression passed.
 ---
 
 ## Project Reference
@@ -27,69 +27,36 @@ The primary checkout has separate Phase133 work; preserve it.
 
 ## Current Position
 
-Phase136 has14/15 summaries. Plan07 owns the remaining final-subject measurements
-and goal verification. Source is frozen at e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9,
-tree9e66e48b2fc64a29f5b973ce28c922eed053cfc3 (136-SUBJECT-SPEED.json).
-PR162 is squash merged; PR and main CI passed. Publication/merge is complete;
-no agent release action is authorized by this closeout.
+Phase136 has15/15 committed plan summaries. Plan07's existing external job is terminal
+and its outputs verified; no collector may be resubmitted. The final subject remains
+`e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9`, projection
+`9e66e48b2fc64a29f5b973ce28c922eed053cfc3`.
 
-## Active External Job
+Final coverage is5206/6329; canonical1700tests+3doctests passed,25seed isolation
+completed, supported fresh/restored Dialyzer and clean bootstrap verified.
+Qualification verify exited0, authenticating six complete requirement authorities
+and blocked CI-16 timing. The numeric speed target remains deferred unfinished to
+SEED-261021-918 with zero acceptance credit. Historical receipts remain unchanged.
 
-- Manifest: `.planning/async-jobs/136-07-final-measurements.json`.
-- Controller: session6863, pid90682; do not start another collector.
-- Log: `/private/tmp/phase136-speed-local-pipeline.txt`.
-- Progress: phase136/136-SPEED-LOCAL-COLLECTION.json; read its live state.
-- Order: coverage → Dialyzer → bootstrap → regression →25 seeds →qualification.
-- Coverage, Dialyzer, bootstrap and regression completed successfully on the final pin.
-- At this snapshot async isolation is running; actual seed rows are in
-  `.planning/evidence/async-isolation/136-async-isolation-speed.jsonl`.
-- No overlapping database tests or source edits while the collector owns them.
-- New final qualification:136-QUALIFICATION-CLOSEOUT.json. The earlier blocked
-  136-QUALIFICATION-SPEED.json and HYGIENE receipts remain historical and immutable.
+Current closeout review reports zero findings; security has22threats and zero open.
+Validation is automated; UI review skipped because this phase has no frontend scope.
+Fresh supported-runtime prior-phase regression passed228tests,0failures,17excluded.
+Final independent phase verification is pending; no phase/requirement closure yet.
 
 ## Next GSD Command
 
-While the job runs, use `$gsd-progress` to inspect it. After it becomes terminal,
-use `$gsd-execute-phase 136` to reconcile and verify the existing job, finish
-Plan07's summary and final verification/fingerprint, and advance only on a passed
-verdict. Neither command authorizes duplicate collection or replay of old guards.
-After Phase136 is actually complete, use `$gsd-discuss-phase 137`.
+Use `$gsd-execute-phase 136` in this worktree to resume final verification only.
+After a passed phase verdict and completion, use `$gsd-discuss-phase 137`.
 Run `python3 .planning/tools/check_gsd_handoff.py` before giving a handoff.
 
 ## Decisions and Verification Debt
 
-- User explicitly deferred exact-ten numeric CI speed acceptance unfinished to
-  SEED-261021-918. No timing collector or timing-controller wait is allowed here.
-- The target earns zero acceptance credit; preserve136-SPEED-DEFERRAL.json.
-- Unique Plan15 threat IDs are T-136-20/T-136-21; init reports zero duplicates.
-- Phase136 final verification does not yet exist; do not claim phase completion.
-- GSD roadmap analysis currently reports older133–135 reports stale because
-  Phase136 changed shared covered files. This is verification debt, not proof
-  those phases' code regressed. Current final-pin prior-phase regression passed.
-  Reconcile this debt through real re-verification at closeout/audit; never merely
-  rewrite old fingerprints to green or restart old qualification authorizations.
-- Model overrides and the pinned toolchain remain unchanged.
-
-## Workflow Repair
-
-Quick261021-ixo reconciled audit metadata in65c9776c: audit-uat and WINDOWS readers
-now succeed, parse gaps0;7current/69archived items and8open windows remain tracked.
-The same Phase136 Plan07 external job continues; no phase/requirement was closed.
-
-Diagnosis: `.planning/forensics/report-20261021-gsd-command-continuity.md`.
-Planning-scoped instructions require a current GSD command in each handoff;
-10 behavioral guard tests pass. Old HANDOFF is archived. The read-only guard
-gives the current external job priority and rejects mismatched phase/plan state.
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 261021-ixo | Reconcile forensic planning metadata while preserving the running Phase 136 job and frozen source | 2026-10-21 | 02c030cf | [261021-ixo-reconcile-the-forensic-planning-metadata](./quick/261021-ixo-reconcile-the-forensic-planning-metadata/) |
-
-## History
-
-Earlier STATE and the obsolete Phase133 HANDOFF are preserved under
-`.planning/forensics/2026-10-21-pre-repair-STATE.md` and
-`.planning/forensics/2026-10-11-phase133-HANDOFF.json`.
-They are historical evidence, not resume instructions.
+- Never collect or wait for the deferred exact-ten numeric CI speed target here.
+- PR162 is already squash merged; required PR and main CI passed. No release action.
+- Older133–135 fingerprints may be stale from shared-file changes; preserve this
+  audit debt. Current-source prior-phase regression passed; do not rewrite old
+  fingerprints or restart consumed historical authorizations.
+- Keep model overrides and the pinned toolchain unchanged. Use accepted runtime
+  environment overrides for local commands; preserve user-owned .tool-versions.
+- Prior narrative is retained in git history and forensic artifacts. Quick261021-ixo
+  repaired planning audit metadata in65c9776c and is registered atcc8d9b07.
