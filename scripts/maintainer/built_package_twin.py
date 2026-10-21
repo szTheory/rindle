@@ -89,6 +89,48 @@ def extract_tar(data, destination, compressed=False):
                     out.write(archive.extractfile(member).read())
 
 
+def validate_package_files(root):
+    for path in Path(root).rglob("*"):
+        parts = path.relative_to(root).parts
+        require(not path.is_symlink() and not any(p in {"_build", "deps", ".git", "ebin"} for p in parts)
+                and path.suffix != ".beam", "package_build_material")
+    require((Path(root) / "mix.exs").is_file(), "package_project_missing")
+
+
+def validate_host_dependency(source):
+    require(len(re.findall(r"\{:rindle\s*,", source)) == 1 and
+            re.search(r'\{:rindle,\s*path:\s*"\.\./package"\}', source), "host_dependency")
+
+
+def validate_mounts(mounts):
+    require(mounts == [{"type": "volume", "source": "retained", "target": "/retained"}], "unexpected_mount")
+
+
+def validate_runtime(health, inputs):
+    require({k: health[k] for k in inputs["toolchain"]} == inputs["toolchain"], "runtime_version")
+    require(health["lock_sha256"] == inputs["lock_sha256"], "runtime_lock")
+    require(health["origin"] == "/twin/_build/prod/lib/rindle/ebin/Elixir.Rindle.beam", "runtime_origin")
+
+
+def archive_identity(archive):
+    with tempfile.TemporaryDirectory(prefix="rindle-twin-archive-") as d:
+        outer = Path(d) / "hex"; outer.mkdir()
+        extract_tar(Path(archive).read_bytes(), outer)
+        require({p.name for p in outer.iterdir()} == {"VERSION", "CHECKSUM", "metadata.config", "contents.tar.gz"}, "hex_members")
+        require((outer / "VERSION").read_bytes() == b"3", "hex_version")
+        package = Path(d) / "package"; package.mkdir()
+        extract_tar((outer / "contents.tar.gz").read_bytes(), package, compressed=True)
+        validate_package_files(package)
+        return {"package_tar_sha256": digest(Path(archive).read_bytes()),
+                "package_metadata_sha256": digest((outer / "metadata.config").read_bytes()),
+                "package_tree_sha256": tree_hash(package)}
+
+
+def validate_archive(archive, inputs):
+    actual = archive_identity(archive)
+    require(all(inputs[k] == v for k, v in actual.items()), "archive_identity")
+
+
 class Runner:
     def __init__(self, evidence, descriptor=None):
         self.evidence = Path(evidence).resolve()
@@ -178,7 +220,9 @@ class Runner:
         package = self.context / "package"
         package.mkdir()
         extract_tar((outer / "contents.tar.gz").read_bytes(), package, compressed=True)
-        require((package / "mix.exs").is_file(), "hex_project_missing")
+        validate_package_files(package)
+        validate_host_dependency((self.context / "host/mix.exs").read_text())
+        archive_fields = archive_identity(archive)
         shutil.rmtree(outer)
         shutil.copyfile(ROOT / "docker/Dockerfile.twin", self.context / "Dockerfile")
         shutil.copyfile(ROOT / "docker/compose.twin.yml", self.context / "compose.yml")
@@ -186,12 +230,13 @@ class Runner:
         source_tree = self.command(["git", "diff", "HEAD", "--", "lib", "priv", "mix.exs"]).strip()
         require(not source_tree, "dirty_package_source")
         self.inputs = {"schema_version": 1, "scenario": SCENARIO, "run_id": run_id,
-                       "source_sha": source, "package_tar_sha256": digest(archive.read_bytes()),
+                       "source_sha": source, **archive_fields,
                        "package_tree_sha256": tree_hash(package), "host_sha256": tree_hash(self.context / "host"),
                        "lock_sha256": digest((self.context / "host/mix.lock").read_bytes()),
                        "config_sha256": tree_hash(self.context / "host/config"),
                        "contract_sha256": digest(Path(__file__).read_bytes()),
-                       "fixture_sha256": digest(b"twin-image-fixture-v1"),
+                       "fixture_sha256": digest(__import__("base64").b64decode(re.search(r'Base.decode64!\(\s*"([A-Za-z0-9+/=]+)"', (self.context / "host/lib/twin/tracer.ex").read_text()).group(1))),
+                       "build_sha256": digest((self.context / "Dockerfile").read_bytes() + (self.context / "compose.yml").read_bytes()),
                        "toolchain": {"elixir": "1.17.3", "otp": "27.3.4.15", "oban": "2.21.1", "phoenix": "1.8.12"}}
         write_json(self.evidence / "inputs.json", self.inputs)
         self.descriptor = {"schema_version": 1, "run_id": run_id, "project": "rindle-twin-" + run_id,
@@ -203,6 +248,50 @@ class Runner:
                "TWIN_DATABASE": self.descriptor["database"], "TWIN_BUCKET": self.descriptor["bucket"], "TWIN_SECRET": secret}
         with open(self.evidence / ".env", "x", opener=lambda p, f: os.open(p, f, 0o600)) as out:
             out.write("".join(k + "=" + v + "\n" for k, v in env.items()))
+
+    def validate_stage(self):
+        require({p.name for p in self.context.iterdir()} == {"host", "package", "Dockerfile", "compose.yml"}, "stage_inputs")
+        validate_archive(self.evidence / "package.tar", self.inputs)
+        validate_package_files(self.context / "package")
+        require(tree_hash(self.context / "package") == self.inputs["package_tree_sha256"], "staged_package_changed")
+        require(tree_hash(self.context / "host") == self.inputs["host_sha256"], "staged_host_changed")
+        require(digest((self.context / "Dockerfile").read_bytes() + (self.context / "compose.yml").read_bytes()) == self.inputs["build_sha256"], "staged_build_changed")
+        config = json.loads(self.compose("config", "--format", "json"))
+        require(set(config["services"]) == {"host", "postgres", "minio"}, "compose_services")
+        service = config["services"]["host"]
+        mounts = [{k: m[k] for k in ("type", "source", "target")} for m in service["volumes"]]
+        validate_mounts(mounts)
+        require(service["build"]["context"] == str(self.context) and service["build"]["dockerfile"] == "Dockerfile", "compose_context")
+        require(not service["build"].get("additional_contexts"), "compose_extra_context")
+        for value in config["services"].values():
+            require(not value.get("ports") and not value.get("privileged") and not value.get("pid") and not value.get("network_mode"), "compose_isolation")
+            require(all(m["type"] == "volume" for m in value.get("volumes", [])), "compose_bind_mount")
+        require(set(service["environment"]) == {"TWIN_RUN_ID", "TWIN_DATABASE", "TWIN_BUCKET", "TWIN_SECRET", "ERL_FLAGS"}, "compose_environment")
+
+    def runtime_isolation(self):
+        ids = self.compose("ps", "--quiet", "host").split()
+        require(len(ids) == 1, "runtime_identity")
+        observed = json.loads(self.command(["docker", "inspect", ids[0]]))[0]
+        require(observed["Config"]["Labels"]["com.docker.compose.project"] == self.descriptor["project"], "runtime_project")
+        mounts = observed["Mounts"]
+        require(len(mounts) == 1 and mounts[0]["Type"] == "volume" and
+                mounts[0]["Name"] == self.descriptor["project"] + "_retained" and mounts[0]["Destination"] == "/retained", "runtime_mounts")
+        env_keys = {v.split("=", 1)[0] for v in observed["Config"]["Env"]}
+        require(not env_keys.intersection({"MIX_PATH", "MIX_HOME", "MIX_ARCHIVES", "MIX_BUILD_PATH", "ERL_LIBS"}), "runtime_mix_paths")
+        return {"image_id": observed["Image"], "mounts_verified": True}
+
+    def capabilities(self):
+        majors = {}
+        for binary in ("ffmpeg", "ffprobe"):
+            text = self.compose("exec", "-T", "host", binary, "-version")
+            match = re.match(binary + r" version (\d+)\.", text)
+            require(match is not None and int(match[1]) >= 6, "media_version_floor")
+            majors[binary + "_major"] = int(match[1])
+        # The actual public upload/ready-variant trace proves storage and image I/O.
+        schema = self.compose("exec", "-T", "postgres", "psql", "-U", "postgres", "-d", self.descriptor["database"],
+                              "-Atc", "SELECT to_regclass('public.oban_jobs') IS NOT NULL AND to_regclass('rindle.media_assets') IS NOT NULL")
+        require(schema.strip() == "t", "database_schema")
+        return {**majors, "database_schema": True, "image_exercised": True, "storage_exercised": True, "av_exercised": False, "doctor_status": "not_used_known_migration_ledger_issue"}
 
     def stop_host(self):
         self.compose("stop", "--timeout", "15", "host", timeout=30)
@@ -218,6 +307,7 @@ class Runner:
         try:
             self.stage_inputs()
             receipt["inputs"] = self.inputs
+            self.validate_stage()
             self.progress("build")
             self.compose("build", "host", timeout=900)
             self.progress("services")
@@ -225,15 +315,17 @@ class Runner:
             self.minio('mc mb local/' + self.descriptor["bucket"])
             self.compose("up", "-d", "host")
             first_health = self.health()
-            require({k: first_health[k] for k in self.inputs["toolchain"]} == self.inputs["toolchain"], "runtime_version")
-            require(first_health["lock_sha256"] == self.inputs["lock_sha256"], "runtime_lock")
-            require(first_health["origin"].startswith("/twin/_build/prod/lib/rindle/ebin/"), "runtime_origin")
+            validate_runtime(first_health, self.inputs)
+            isolation = self.runtime_isolation()
+            capabilities = self.capabilities()
             self.progress("retry-barrier")
             before = self.rpc("begin", {})
             old_container = self.stop_host()
             self.progress("restart")
             self.compose("up", "-d", "--force-recreate", "host")
             second_health = self.health()
+            validate_runtime(second_health, self.inputs)
+            require(self.runtime_isolation() == isolation, "restart_isolation")
             after = self.rpc("resume", {"job_id": before["job_id"], "asset_id": before["asset_id"]})
             self.progress("domain-cleanup")
             inventory = self.rpc("inventory", {})
@@ -241,7 +333,8 @@ class Runner:
             objects = self.minio('mc ls --json --recursive local/' + self.descriptor["bucket"])
             multipart = self.minio('mc ls --json --incomplete --recursive local/' + self.descriptor["bucket"])
             versioning = self.minio('mc version info --json local/' + self.descriptor["bucket"])
-            receipt.update({"before": before, "after": after, "old_runtime": first_health, "new_runtime": second_health,
+            self.validate_stage()
+            receipt.update({"isolation": isolation, "capabilities": capabilities, "before": before, "after": after, "old_runtime": first_health, "new_runtime": second_health,
                             "old_container": old_container, "new_container": new_container,
                             "old_exited": True, "new_exited": True,
                             "inventory": {**inventory, "objects": len(objects.splitlines()), "multipart": len(multipart.splitlines()),
@@ -327,7 +420,9 @@ def main():
     evidence = None
     try:
         if args.operation == "verify":
-            verify_receipt(read_json(args.inputs), read_json(args.receipt))
+            inputs = read_json(args.inputs)
+            validate_archive(args.inputs.resolve().parent / "package.tar", inputs)
+            verify_receipt(inputs, read_json(args.receipt))
         elif args.operation == "cleanup":
             descriptor = read_json(args.descriptor)
             runner = Runner(args.descriptor.resolve().parent, descriptor)
