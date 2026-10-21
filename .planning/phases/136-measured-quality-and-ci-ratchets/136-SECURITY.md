@@ -3,7 +3,7 @@ phase: "136"
 slug: "measured-quality-and-ci-ratchets"
 status: verified
 threats_open: 0
-threats_total: 20
+threats_total: 22
 asvs_level: 1
 register_authored_at_plan_time: true
 method: inline-L1-mitigation-audit
@@ -47,6 +47,8 @@ The configured L1 audit verifies the20unique declared threats, deduplicating the
 | T-136-17 | Repudiation | verify_phase136_qualification.sh | high | mitigate | `scripts/maintainer/phase136_evidence.py`; executable proof `test/install_smoke/phase136_qualification_test.exs` (green current canonical/focused suites). | closed |
 | T-136-18 | Repudiation | final measurement receipts | medium | mitigate | `scripts/maintainer/phase136_evidence.py`; executable proof `test/install_smoke/phase136_measure_test.exs` (green current canonical/focused suites). | closed |
 | T-136-19 | Tampering | subject pin and coverage receipt | high | mitigate | `scripts/maintainer/phase136_evidence.py`; executable proof `test/install_smoke/coverage_floor_policy_test.exs` (green current canonical/focused suites). | closed |
+| T-136-20 | Denial of service | Proof harness concurrency | medium | mitigate | Fixed four-child bound, unchanged timeout; parsed-YAML overlap test in `quality_signal_policy_test.exs`; green PR/main Proof. | closed |
+| T-136-21 | Tampering | Required CI result | high | mitigate | Wait-all/fail-any parsed-YAML tests cover each failing child; green PR/main CI Summary. | closed |
 | T-136-SC | Tampering | package installs | high | mitigate | Existing locked dependencies/tooling rehydrated; no manifest/lock/runtime-file change; pinned consumed FFmpeg/mc/OCI inputs audited. | closed |
 
 ## Supplemental Gap Controls
@@ -80,4 +82,8 @@ The replacement source preserves all twenty declared threat mitigations. Legacy 
 
 ## Parallel harness delta (2026-10-21)
 
-Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; T-136-09 and T-136-10 retain executable mitigation. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.
+Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; Plan15 threats T-136-20 and T-136-21 have executable mitigation. The distinct original Plan05 threats T-136-09 and T-136-10 retain their existing mitigations. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.
+
+## Threat identity repair (2026-10-21)
+
+Plan15 originally reused Plan05 identifiers. Its two distinct threats are now T-136-20 and T-136-21, following the previous highest ID19. The register now contains22 unique threats including SC, all closed; the original20-threat audit remains historical. No source or acceptance claim changed.
