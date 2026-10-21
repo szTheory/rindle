@@ -97,4 +97,34 @@ defmodule Rindle.TwinFaultTest do
     end
   end
 
+  test "public schema reads pass while unsupported shortcuts fail the drift guard" do
+    paths = Path.wildcard(Path.join(@root, "test/twin/host/**/*.{ex,exs}"))
+    for path <- paths, do: assert(allowed?(File.read!(path)), path)
+    assert allowed?("Rindle.ready_variants_for(id); Repo.get(Rindle.Domain.MediaAsset, id)")
+
+    for bad <- [
+          "Rindle.Workers.PurgeStorage.perform(job)",
+          "Rindle.Config.put_repo_override(Repo)",
+          "Oban.drain_queue(queue: :rindle_purge)",
+          "Oban.retry_job(id)",
+          "perform_job(x)",
+          "testing: :inline",
+          "Ecto.Adapters.SQL.Sandbox.checkout(Repo)",
+          ":beam_lib.chunks(file, [])",
+          "Repo.update!(asset)",
+          "UPDATE rindle.media_assets SET state='ready'",
+          ":code.get_object_code(Rindle)",
+          "Oban.Testing.perform_job(x)",
+          "UPDATE oban_jobs SET scheduled_at=now()"
+        ] do
+      refute allowed?(bad), bad
+    end
+  end
+
+  defp allowed?(source) do
+    not Regex.match?(
+      ~r/Rindle\.(Workers|FSM|Config)\b|perform_job|Oban\.(drain_queue|retry_job)|testing\s*:|SQL\.Sandbox|:beam_lib|:code\.get_object_code|Oban\.Testing|Repo\.(update|delete|insert)!?\(|scheduled_at\s*=|(?:UPDATE|INSERT INTO|DELETE FROM)\s+(?!twin_fault_counters\b)[a-z_]+/,
+      source
+    )
+  end
 end

@@ -81,7 +81,7 @@ defmodule Twin.Tracer do
     Process.put(:twin_stage, "upload_verify")
     {:ok, %{asset: asset}} = Rindle.verify_completion(session.id)
 
-    [_] =
+    [variant] =
       wait(fn ->
         case Rindle.ready_variants_for(asset.id) do
           [v] -> [v]
@@ -95,6 +95,12 @@ defmodule Twin.Tracer do
     %{num_rows: 1} =
       Repo.query!(
         "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'delete',$2,0)",
+        [run_id(), asset.storage_key]
+      )
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "UPDATE twin_fault_counters SET source_key=$2 WHERE run_id=$1 AND operation='stimulus'",
         [run_id(), asset.storage_key]
       )
 
@@ -118,6 +124,9 @@ defmodule Twin.Tracer do
 
     true = job.args["asset_id"] == asset.id
     true = Repo.get(MediaAsset, asset.id) != nil
+    {:ok, %{size: source_bytes}} = Twin.StorageFault.head(asset.storage_key, [])
+    true = source_bytes > 0
+    {:error, :not_found} = Twin.StorageFault.head(variant.storage_key, [])
     Process.put(:twin_stage, "pause")
     :ok = Oban.pause_queue(queue: :rindle_purge)
 
@@ -140,6 +149,9 @@ defmodule Twin.Tracer do
       "state" => fresh.state,
       "error_count" => length(fresh.errors),
       "asset_retained" => true,
+      "source_present" => true,
+      "ready_variant_count" => 1,
+      "variant_deletes_before_failure" => 1,
       "paused" => true,
       "running" => 0,
       "stimuli" => %{"upload" => 1, "attach" => 1, "detach" => 1},
