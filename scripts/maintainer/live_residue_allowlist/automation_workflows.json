@@ -61,7 +61,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "planning-path",
-      "text": "grep -q \"MuonTrap is the sole subprocess runner on every platform\" .planning/PROJECT.md",
+      "text": "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json",
       "count": 1,
       "reason_class": "policy",
       "reason": "This CI step reads a maintained planning document or ledger as its input."
@@ -69,7 +69,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "planning-path",
-      "text": "run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json",
+      "text": "grep -q \"MuonTrap is the sole subprocess runner on every platform\" .planning/PROJECT.md",
       "count": 1,
       "reason_class": "policy",
       "reason": "This CI step reads a maintained planning document or ledger as its input."

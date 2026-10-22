@@ -7,5 +7,5 @@ for suite in exact_head_readiness exact_head_qualification readiness_runs readin
   bash "scripts/ci/test_${suite}.sh"
 done
 elapsed=$((SECONDS-started))
-test "$elapsed" -lt 180
-printf 'PASS: all cheap readiness fixtures in %ss (180s fixture budget within existing 5-minute CI seam)\n' "$elapsed"
+test "$elapsed" -lt 240
+printf 'PASS: all cheap readiness fixtures in %ss (240s fixture budget within existing 5-minute CI seam)\n' "$elapsed"

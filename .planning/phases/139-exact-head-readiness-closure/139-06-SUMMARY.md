@@ -14,7 +14,7 @@ provides:
 affects: [139-07]
 actuals:
   tasks: 2
-  commits: 3
+  commits: 5
 tech-stack:
   added: []
   patterns: [separate producer expectations, atomic durable publication, complete tracked inventory, subject-qualified historical claims]
@@ -57,6 +57,16 @@ coverage:
         status: pass
       - kind: integration
         ref: mix test test/rindle/doctor_test.exs test/install_smoke/twin_cli_test.exs test/install_smoke/live_residue_scan_test.exs test/rindle/public_surface_snapshot_test.exs
+        status: pass
+    human_judgment: false
+  - id: bounded-ci-harness-overlap
+    description: All legacy commands and readiness fixtures remain required within the unchanged CI Script Tests job, with both registered groups awaited and failures/timeouts preserved
+    verification:
+      - kind: integration
+        ref: bash scripts/ci/test_script_test_groups.sh
+        status: pass
+      - kind: integration
+        ref: mix test test/install_smoke/quality_signal_policy_test.exs test/install_smoke/ci_timing_automation_test.exs test/install_smoke/ci_cache_hygiene_test.exs
         status: pass
     human_judgment: false
 completed: 2026-10-22
@@ -184,3 +194,25 @@ passed in 84 seconds** under that same runner environment. Evidence:
 `/private/tmp/rindle139-runner-retention-red.log` and
 `/private/tmp/rindle139-runner-fixtures-green.log`. CI still must pass on the final
 PR head before any merge. No READY acceptance is inferred from this repair.
+
+## Preserve the five-minute CI seam with bounded overlap
+
+The repaired CI run 39869147860 passed all 292 readiness fixtures in 162 seconds,
+then reached the unchanged five-minute job ceiling during the existing contract
+harnesses. Its Nightly incident harness passed all 48 cases before cancellation;
+this was aggregate job runtime, not an assertion failure. The CI Script Tests job
+now runs the complete existing command group and the readiness group concurrently,
+with exactly two registered top-level process groups, a 240-second shared budget,
+full wait/exit aggregation, output caps and owned interruption/timeout disposal.
+The original five-minute job limit, all fourteen existing commands, workflow/job
+identity, dependencies, required context and release authority remain unchanged.
+
+The exact new workflow run body passed locally: both group exit codes were zero,
+all old harnesses passed and all 292 readiness fixtures passed (87 seconds for that
+group). Four new real-child regressions cover both-success, either failure while
+awaiting the other group, and bounded timeout disposal. Existing parsed CI/cache/
+quality policy regressions passed **70 tests, zero failures**. Artifacts:
+`/private/tmp/rindle139-overlap-step.log`,
+`/private/tmp/rindle-script-groups-0fd028b8d2a602e3/results.json`,
+`/private/tmp/rindle139-overlap-policy.log`. The final PR head still needs green
+required CI; these implementation checks grant no terminal READY credit.

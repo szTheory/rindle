@@ -482,5 +482,8 @@ nor another machine's temporary matrix directory.
 
 Run `bash scripts/ci/test_readiness_fixtures.sh` for the cheap implementation
 fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runtime;
-it does not run native qualification. Existing CI/CI Summary topology and Release
-Please authority remain the release train gates.
+it does not run native qualification. CI awaits both the existing contract harness
+group and readiness group under a shared four-minute bound within the unchanged
+five-minute job. Either group failure fails the job. `bash scripts/ci/test_script_test_groups.sh`
+checks failure propagation and owned timeout disposal. Existing CI/CI Summary topology
+and Release Please authority remain the release train gates.
