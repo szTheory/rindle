@@ -170,3 +170,17 @@ A fresh execution-mode diagnostic against unchanged main `a046e5be` still return
 binding, not permission to combine an unmerged ledger with main's manifest. Complete
 security visibility, producer credentials, scheduled proof and durable storage still
 need actual post-merge observations.
+
+## PR runner-context regression
+
+Draft PR 163 runs CI on the review branch. Its first CI Script Tests job exposed
+an ambient-environment assumption in the temporary-storage fixture: on Actions,
+the production guard correctly returns durable_host_required before it checks
+whether a destination is ephemeral. The fixture now explicitly simulates a durable
+host for that one path test; the separate runner-rejection test still asserts the
+real runner gate. Production retention policy is unchanged. The failure was
+reproduced locally with GITHUB_ACTIONS=true/RUNNER_TEMP set; all **292 fixtures then
+passed in 84 seconds** under that same runner environment. Evidence:
+`/private/tmp/rindle139-runner-retention-red.log` and
+`/private/tmp/rindle139-runner-fixtures-green.log`. CI still must pass on the final
+PR head before any merge. No READY acceptance is inferred from this repair.

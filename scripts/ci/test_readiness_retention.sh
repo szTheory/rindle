@@ -85,7 +85,8 @@ class Retention(unittest.TestCase):
             with self.assertRaises(OSError):self.retrieve()
         self.assertFalse((self.tmp/'durable').exists())
     def test_real_host_rejects_temporary_storage(self):
-        with self.assertRaisesRegex(r.NotReady,'ephemeral_destination'):r.durable_path(self.tmp/'live',None)
+        with patch.dict(os.environ,{'GITHUB_ACTIONS':'false','RUNNER_TEMP':''}):
+            with self.assertRaisesRegex(r.NotReady,'ephemeral_destination'):r.durable_path(self.tmp/'live',None)
     def test_runner_cannot_be_durable_host(self):
         with patch.dict(os.environ,{'GITHUB_ACTIONS':'true'}):
             with self.assertRaisesRegex(r.NotReady,'durable_host_required'):r.durable_path('/var/maintainer/new-evidence',None)

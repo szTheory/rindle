@@ -30,7 +30,10 @@ The primary checkout retains separate historical work; preserve it.
 
 Phase 139 executes inline at the user's request. Do not dispatch executors for this run.
 Plans 00–06 are verified and committed; 7/8 plans complete across six waves.
-Plan 07 is pending: actual post-merge acceptance on clean main. No producer dispatch or terminal execution acceptance has run.
+Plan 07 is pending: actual post-merge acceptance on clean main. Draft PR #163 owns
+the review: https://github.com/szTheory/rindle/pull/163. GitHub workflow CI is the
+durable owner of its required checks; inspect the latest run for that PR head.
+No producer dispatch or terminal execution acceptance has run.
 
 Doctor's configured-host ledger correction passed 66 focused tests and the unchanged
 quality policy. The offline validator passed 57 fixtures; the isolated qualifier passed
