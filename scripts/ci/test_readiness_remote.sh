@@ -17,13 +17,16 @@ def cached_policy(value):return copy.deepcopy(cached(c.canonical(value)))
 c.policy=cached_policy;runs.policy=cached_policy
 repo='szTheory/rindle';sha='a'*40;prefix='repos/'+repo+'/'
 ledger=json.loads((root/c.LEDGER).read_bytes())
+# Each adversarial scenario supplies its own open PRs; never import live PR heads
+# into a synthetic API map that intentionally starts with no open pulls.
+ledger['items']=[item for item in ledger['items'] if item['kind']!='pr' or 'terminal' in item]
 
 class Remote(unittest.TestCase):
     def setUp(self):
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-remote-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
         self.responses={};self.put('repos/'+repo,{'id':123,'full_name':repo,'default_branch':'main','owner':{'type':'User'},'permissions':{'admin':True}})
         self.put(prefix+'git/ref/heads/main',{'ref':'refs/heads/main','object':{'type':'commit','sha':sha}})
-        self.subject_file(c.LEDGER,(root/c.LEDGER).read_bytes())
+        self.subject_file(c.LEDGER,c.canonical(ledger))
         issues=[]
         for record in ledger['items']:
             number=record['number'];terminal=record.get('terminal')
@@ -85,10 +88,10 @@ class Remote(unittest.TestCase):
     def reject(self,reason):
         code,value,collector=self.collect();self.assertEqual(code,1);self.assertEqual(value['reason'],reason)
         self.assertFalse((collector.portable/'sources.json').exists())
-    def test_complete_real_disposition_ledger_and_two_reads(self):
+    def test_complete_fixture_disposition_ledger_and_two_reads(self):
         code,value,collector=self.collect();self.assertEqual(code,0)
         result=c.read_json(collector.portable/'sources.json');self.assertEqual(result['scope'],'issues-tracer')
-        self.assertEqual(result['sources']['remote-inventory']['source']['normalized']['ledger_sha256'],c.digest((root/c.LEDGER).read_bytes()))
+        self.assertEqual(result['sources']['remote-inventory']['source']['normalized']['ledger_sha256'],c.digest(c.canonical(ledger)))
         self.assertEqual(os.stat(collector.private).st_mode&0o777,0o700)
         self.assertEqual(os.stat(collector.private/'api/0001-response').st_mode&0o777,0o600)
     def test_issues_endpoint_pr_is_not_counted_as_issue(self):
@@ -181,7 +184,7 @@ class Remote(unittest.TestCase):
         calls=[v['path'] for v in collector.api.calls]
         self.assertEqual(calls.count(self.run_path),2);self.assertEqual(calls.count(self.job_path),2)
     def test_undispositioned_pr_fails_before_expensive_job_reads(self):
-        self.add_pr();self.subject_file(c.LEDGER,(root/c.LEDGER).read_bytes());self.full_reject('pull_undispositioned')
+        self.add_pr();self.subject_file(c.LEDGER,c.canonical(ledger));self.full_reject('pull_undispositioned')
     def test_stale_pr_head_rejected_by_actual_ledger_owner(self):
         self.add_pr();raw=c.json_bytes(base64.b64decode(self.body(prefix+'contents/'+c.LEDGER+'?ref='+sha)['content']))
         raw['items'][-1]['head_sha']='d'*40;self.subject_file(c.LEDGER,c.canonical(raw));self.full_reject('ledger_reconciliation_failed')

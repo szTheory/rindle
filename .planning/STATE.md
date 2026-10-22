@@ -64,11 +64,14 @@ authoritative parity and current/historical claim commands are committed. The re
 subject guard correctly refuses this unmerged checkout.
 
 Live prerequisites: merge approval/green PR checks; successful newest scheduled Nightly
-on the accepted main; ledger reconciliation for observed PRs 144–146; authorized
+on the accepted main; landing the pinned retained dispositions for PRs 144–146; authorized
 Dependabot/private-source visibility (Dependabot GET returned 403); provisioning the
 currently absent READINESS_READ_TOKEN producer secret; and a restricted durable host
 path outside temp/runner storage. These require actual live evidence. READY-01–05
-remain open. No security/credential/protection setting or release was changed.
+remain open. The three dependency PRs have local retained dispositions bound to their
+observed heads and separate rebase/CI landing conditions. The current remote main still
+has the old ledger, so its collector correctly refuses it until these records merge.
+No security/credential/protection setting or release was changed.
 
 ## Decisions and Verification Debt
 

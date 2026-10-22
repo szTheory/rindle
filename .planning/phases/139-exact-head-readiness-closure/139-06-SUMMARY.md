@@ -152,3 +152,21 @@ separate fresh 21-test acceptance regression. Supported-toolchain **`mix ci` exi
 PostgreSQL partition; owned database disposal exited 0. Log:
 `/private/tmp/rindle139-pr-mix-ci.log`. This is local implementation/PR validation,
 not actual terminal exact-main acceptance. Plan 07 and READY-01–05 remain open.
+
+## Current inbox prerequisite reconciliation
+
+PRs 144, 145 and 146 were read directly through their authenticated PR and file
+endpoints: each is open, behind main, and modifies only mix.lock. The review branch
+now retains them for separate dependency landing, pinned to their observed head SHAs,
+with rebase and fresh CI Summary/package/adopter proof required before a landing
+decision. This changes local disposition data only and grants no merge or READY credit.
+Offline ledger validation and its 72-case harness pass. The remote-source fixture
+baseline supplies explicit synthetic open PRs instead of importing live candidate heads.
+
+A fresh execution-mode diagnostic against unchanged main `a046e5be` still returns
+`not_ready: pull_undispositioned` because the collector correctly reads the ledger
+**at that remote subject**, where these new dispositions are not yet merged. Evidence:
+`/private/tmp/rindle139-reconciled-remote-inline/verdict.json`. This is expected source
+binding, not permission to combine an unmerged ledger with main's manifest. Complete
+security visibility, producer credentials, scheduled proof and durable storage still
+need actual post-merge observations.
