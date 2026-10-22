@@ -680,8 +680,14 @@ def cleanup_existing(root, output):
 
 
 def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ('close','refresh'):
+        from readiness_closure import main as closure_main
+        return closure_main(argv)
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest='operation', required=True)
+    subs.add_parser('close', help='collect a bounded candidate verdict')
+    subs.add_parser('refresh', help='refresh an immutable same-subject manifest')
     qualify = subs.add_parser('qualify')
     qualify.add_argument('--repo', required=True)
     qualify.add_argument('--subject', required=True)

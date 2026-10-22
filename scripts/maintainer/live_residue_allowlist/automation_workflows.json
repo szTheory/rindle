@@ -547,6 +547,14 @@
       "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
     },
     {
+      "path": "scripts/maintainer/readiness_closure.py",
+      "class": "planning-path",
+      "text": "paths=['.planning/REQUIREMENTS.md','.planning/PROJECT.md','mix.exs','.release-please-manifest.json']",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Candidate and refresh adoption parity reads the actual authoritative requirements, project and release-intent inputs; synthetic evidence cannot close the independent pilot or 1.0 gate."
+    },
+    {
       "path": "scripts/maintainer/repo_hygiene_check.sh",
       "class": "planning-path",
       "text": "grep -Fq './scripts/maintainer/repo_hygiene_check.sh' .planning/RELEASE-TRAIN.md",
