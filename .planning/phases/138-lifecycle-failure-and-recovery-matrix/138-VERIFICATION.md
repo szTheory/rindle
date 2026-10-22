@@ -175,5 +175,5 @@ No phase-goal gaps found. The full six-case synthetic acceptance is complete and
 
 ---
 
-_Verified: 2026-10-22T15:46:43Z_  
+_Verified: 2026-10-22T15:46:43Z_
 _Verifier: the agent (gsd-verifier)_
