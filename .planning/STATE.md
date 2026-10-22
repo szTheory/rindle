@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase 139 Plans 00–03 verified; executing Plan 04 inline
-last_updated: "2026-10-22T20:27:44.142729+00:00"
-state_head: a2873938bca9344861b54753cd59e689f2e5954c
+stopped_at: Phase 139 Plans 00–04 verified; executing Plan 05 inline
+last_updated: "2026-10-22T21:06:34.516458+00:00"
+state_head: b2b8b3bb2b400bfc839a074db4213c7273b97577
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 233
-  completed_plans: 229
+  completed_plans: 230
 last_activity: 2026-10-22
 current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
-current_plan: 139-04
-last_activity_desc: "Four plans verified; Plan 04 current inbox/security collector active inline. All READY requirements remain pending."
+current_plan: 139-05
+last_activity_desc: "Five plans verified; Plan 05 bounded close/refresh controller active inline. All READY requirements remain pending."
 ---
 
 ## Project Reference
@@ -29,8 +29,8 @@ The primary checkout retains separate historical work; preserve it.
 ## Current Position
 
 Phase 139 executes inline at the user's request. Do not dispatch executors for this run.
-Plans 00–03 are verified and committed; 4/8 plans complete across six waves.
-Plan 04 is active: complete current inbox, private security, Hex and disposition evidence.
+Plans 00–04 are verified and committed; 5/8 plans complete across six waves.
+Plan 05 is active: join all local/remote proofs and validate immutable refresh envelopes.
 
 Doctor's configured-host ledger correction passed 66 focused tests and the unchanged
 quality policy. The offline validator passed 57 fixtures; the isolated qualifier passed
@@ -39,7 +39,10 @@ unmerged subject `359e2946` with `not_ready/main_changed` before creating a clon
 Plan 03 passed 54 collector fixtures, 57 validator fixtures and existing qualification/policy
 regressions. Live current-main CI was collected; its newest scheduled Nightly was cancelled,
 so full collection correctly returned not_ready. No closing qualification or READY acceptance
-has run. READY-01–05 remain open.
+has run. Plan 04 passed 53 remote fixtures, 56 workflow fixtures and existing owner checks.
+Its live Hex adapter verified 67 root/49 demo packages; current PRs 144–146 need ledger
+reconciliation and Dependabot GET returned 403. These are actual open evidence gaps.
+READY-01–05 remain open.
 
 Phase 138 remains the completed predecessor: six plans, 20/20 must-haves, RECOV-01..06,
 and retained matrix subject `c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc` at
@@ -49,7 +52,7 @@ This is historical prerequisite evidence, not current-main readiness.
 ## Next GSD Command
 
 Execution is active inline. If interrupted, resume `$gsd-execute-phase 139` now in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`, starting Plan 04.
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`, starting Plan 05.
 Do not replay completed plans or consumed Phase 133 authorizations. Preserve the primary
 checkout's historical work. Plan 06 still owns CI fixture-runtime/preflight portability
 integration; Plan 07 requires all intended changes merged, current CI and a real scheduled
@@ -88,5 +91,5 @@ Nightly, complete remote visibility, and verified durable retained bytes.
 ## Session
 
 Last session: 2026-10-22T15:44:53.867594+00:00
-Stopped at: Phase 139 Plans 00–03 verified; Plan 04 active inline
+Stopped at: Phase 139 Plans 00–04 verified; Plan 05 active inline
 Resume file: None

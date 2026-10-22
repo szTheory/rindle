@@ -59,7 +59,9 @@ receipt validator and isolated eighteen-gate qualifier with observed owned clean
 fixture and upstream regression checks pass. Plan 03 adds complete exact-subject CI/scheduled
 Nightly and effective-protection collectors; its 54 fixtures and live read-only CI probe pass,
 while the cancelled newest scheduled Nightly correctly leaves full collection not ready.
-Final exact-main readiness remains open.
+Plan 04 adds separate complete inbox/security sources and fresh signed Hex audit; fixtures
+and actual root/demo audit probes pass, while undispositioned PRs and unavailable Dependabot
+visibility correctly leave live collection not ready. Final exact-main readiness remains open.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
