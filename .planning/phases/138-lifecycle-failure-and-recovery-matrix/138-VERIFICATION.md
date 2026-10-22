@@ -1,6 +1,6 @@
 ---
 phase: 138-lifecycle-failure-and-recovery-matrix
-verified: 2026-10-22T15:41:47Z
+verified: 2026-10-22T15:46:43Z
 status: passed
 score: 20/20 must-haves verified
 covered_files:
@@ -42,7 +42,7 @@ covered_files:
   - test/twin/host/lib/twin/tracer.ex
   - test/twin/host/lib/twin/web.ex
   - test/twin/host/mix.exs
-covered_digest: "v3:sha256:a0f81629eff38a99498edcfc466996d754b37237ff319444c8f57e3ad4ce2930"
+covered_digest: "v3:sha256:53f6a249e6e423c86c05791070b96c3ad6d751908d958d6e753c2e3ab4d9abc7"
 behavior_unverified: 0
 overrides_applied: 0
 ---
@@ -50,7 +50,7 @@ overrides_applied: 0
 # Phase 138: Lifecycle Failure and Recovery Matrix Verification Report
 
 **Phase Goal:** Maintainers can execute the supported lifecycle's critical interruptions and observe deterministic convergence with no unapproved residue.
-**Verified:** 2026-10-22T15:41:47Z
+**Verified:** 2026-10-22T15:46:43Z
 **Status:** passed
 **Re-verification:** No — initial verification
 
@@ -130,6 +130,10 @@ The source trace supports the reported behaviors: the runner dispatches only the
 
 The matrix was not rerun during verification; the separate verifier was rerun independently. Docker was not started or rebuilt.
 
+## Closeout Re-verification
+
+Commit `c01334cb` only rephrased two summary lines that had been mistaken for filesystem paths by a warning parser. The separate-verifier and repeated-cleanup outcomes, six case results, audit details and implementation evidence remain unchanged. The retained-input verifier was rerun and passed; the covered-file fingerprint was refreshed for the corrected summary.
+
 ## Probe Execution
 
 Not applicable: this phase is a packaged lifecycle/tooling matrix with no separately declared `probe-*.sh` scripts. The real matrix and separate verifier are its executable acceptance evidence.
@@ -171,5 +175,5 @@ No phase-goal gaps found. The full six-case synthetic acceptance is complete and
 
 ---
 
-_Verified: 2026-10-22T15:41:47Z_  
+_Verified: 2026-10-22T15:46:43Z_  
 _Verifier: the agent (gsd-verifier)_
