@@ -186,18 +186,12 @@ defmodule Rindle.Ops.RuntimeChecks do
     repo = Config.repo()
     path = Keyword.get_lazy(opts, :migrations_path, fn -> Migrator.migrations_path(repo) end)
 
-    case Migrator.with_repo(
-           repo,
-           fn started_repo ->
-             Migrator.migrations(started_repo, path)
-           end,
-           mode: :temporary
-         ) do
-      {:ok, statuses, _apps} ->
-        statuses
-
-      {:error, _reason} ->
-        [{:down, -1, @migration_inspection_failure}]
+    with true <- File.dir?(path),
+         {:ok, statuses, _apps} <-
+           Migrator.with_repo(repo, &Migrator.migrations(&1, path), mode: :temporary) do
+      statuses
+    else
+      _unavailable -> [{:down, -1, @migration_inspection_failure}]
     end
   rescue
     _error ->

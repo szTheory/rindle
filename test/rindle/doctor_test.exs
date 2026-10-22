@@ -498,13 +498,19 @@ defmodule Rindle.DoctorTest do
       assert Rindle.Config.repo() == VersionedHostRepo
 
       report =
-        Doctor.run_checks([], Keyword.merge([
-          exit_on_failure?: false,
-          probe: fn -> :ok end,
-          env: %{},
-          profiles: [],
-          oban_config: Keyword.put(healthy_oban_config(), :repo, VersionedHostRepo)
-        ], opts))
+        Doctor.run_checks(
+          [],
+          Keyword.merge(
+            [
+              exit_on_failure?: false,
+              probe: fn -> :ok end,
+              env: %{},
+              profiles: [],
+              oban_config: Keyword.put(healthy_oban_config(), :repo, VersionedHostRepo)
+            ],
+            opts
+          )
+        )
 
       send(self(), {:host_report, report})
     end)
