@@ -102,6 +102,33 @@ defmodule Rindle.DoctorTest do
       refute report.success?
     end
 
+    test "missing host migration directory is inspection failure" do
+      report = real_host_report(migrations_path: "/missing/rindle-doctor-migrations")
+      assert check_status(report, "doctor.migrations.pending") == :error
+      refute report.success?
+    end
+
+    test "unknown applied wrapper stays unresolved despite a ready catalog" do
+      VersionedHostRepo.query!("UPDATE doctor_host_migrations SET version = 20261022000000")
+      report = real_host_report()
+      assert check_status(report, "doctor.migrations.unresolved") == :error
+      refute report.success?
+    end
+
+    test "absent marker table is not legacy credit for a versioned wrapper" do
+      VersionedHostRepo.query!("DROP TABLE public.rindle_migration_versions")
+      report = real_host_report()
+      assert check_status(report, "doctor.rindle_schema.ready") == :error
+      refute report.success?
+    end
+
+    test "invalid marker version fails with an applied wrapper" do
+      VersionedHostRepo.query!("UPDATE public.rindle_migration_versions SET version = 99")
+      report = real_host_report()
+      assert check_status(report, "doctor.rindle_schema.ready") == :error
+      refute report.success?
+    end
+
     test "missing version marker fails despite a completed host ledger" do
       VersionedHostRepo.query!("DELETE FROM public.rindle_migration_versions")
       report = real_host_report()
@@ -466,18 +493,18 @@ defmodule Rindle.DoctorTest do
     end
   end
 
-  defp real_host_report do
+  defp real_host_report(opts \\ []) do
     capture_io(fn ->
       assert Rindle.Config.repo() == VersionedHostRepo
 
       report =
-        Doctor.run_checks([],
+        Doctor.run_checks([], Keyword.merge([
           exit_on_failure?: false,
           probe: fn -> :ok end,
           env: %{},
           profiles: [],
           oban_config: Keyword.put(healthy_oban_config(), :repo, VersionedHostRepo)
-        )
+        ], opts))
 
       send(self(), {:host_report, report})
     end)
