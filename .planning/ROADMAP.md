@@ -841,7 +841,7 @@ Plans:
 - [x] 139-04-PLAN.md — Refresh complete inbox and security dispositions
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 139-05-PLAN.md — Join local and remote evidence into a bounded candidate verdict
+- [x] 139-05-PLAN.md — Join local and remote evidence into a bounded candidate verdict
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 139-06-PLAN.md — Retain byte-verified evidence and enforce honest adoption claims
@@ -861,7 +861,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 5/8 | Executing | - |
+| 139. Exact-Head Readiness Closure | 6/8 | Executing | - |
 
 ---
-*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–04 verified; 5/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
+*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–05 verified; 6/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*

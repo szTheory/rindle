@@ -61,7 +61,9 @@ Nightly and effective-protection collectors; its 54 fixtures and live read-only 
 while the cancelled newest scheduled Nightly correctly leaves full collection not ready.
 Plan 04 adds separate complete inbox/security sources and fresh signed Hex audit; fixtures
 and actual root/demo audit probes pass, while undispositioned PRs and unavailable Dependabot
-visibility correctly leave live collection not ready. Final exact-main readiness remains open.
+visibility correctly leave live collection not ready. Plan 05 adds bounded candidate closure and immutable refresh, with actual-validator and
+owned-cleanup regressions passing. Candidate/fixture results grant no READY credit.
+Final exact-main readiness remains open.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
