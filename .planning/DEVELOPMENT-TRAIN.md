@@ -98,6 +98,12 @@ the exact-ref publish path, as described in `.planning/RELEASE-TRAIN.md` and
 Preserve the user's command loop: `$gsd-discuss-phase N` → `$gsd-plan-phase N`
 → `$gsd-execute-phase N`, with verification and next-phase routing owned by GSD.
 Honor existing context/config when choosing which of those steps is actually next.
+When the next stage is known, hand off directly to that stage: discussion without
+context, planning with context, execution with outstanding plans, or the verification
+owner's recovery command. Do not make the user run `$gsd-progress` to discover an
+action that can already be resolved. If the guard falls back to progress, resolve
+GSD's normal routing before responding. Progress remains available for requested
+status checks and the existing external-job waiting case below.
 
 Every GSD status, pause, completion, and resume response must include:
 

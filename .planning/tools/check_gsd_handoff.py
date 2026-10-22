@@ -49,6 +49,15 @@ def inspect(root, verification):
                 'instruction': 'Inspect the existing job; do not resubmit.' if running else
                                'Reconcile existing artifacts and verify; never infer success from job exit alone.'}
     verdict = verification(phase)
+    if verdict['status'] == 'not_started':
+        # Mirror GSD progress Route B; do not send a known next step back to
+        # the status router. This is guidance only, never workflow execution.
+        has_context = any((planning / 'phases').glob(f'*/{phase}-CONTEXT.md'))
+        command = f'$gsd-plan-phase {phase}' if has_context else f'$gsd-discuss-phase {phase}'
+        return {'phase': phase, 'worktree': str(root), 'status': verdict['status'],
+                'next_command': command,
+                'instruction': 'Context gathered; plan the phase.' if has_context else
+                               'Gather phase context through the normal GSD discussion workflow.'}
     command = verdict.get('next_command')
     if not command:
         # Let the progress owner choose the next phase after verified completion.
@@ -70,8 +79,9 @@ def main():
                                     check=True, text=True, capture_output=True)
             if not json.loads(result.stdout).get('found'):
                 raise ValueError('Current phase does not exist in the roadmap')
-            return {'status': 'not_started', 'next_command': '$gsd-progress',
-                    'next_action': 'Phase exists in the roadmap; let GSD choose discussion or planning.'}
+            return {'status': 'not_started'}
+        if not found['plans']:
+            return {'status': 'not_started'}
         result = subprocess.run(['node', str(cli), 'query', 'verification.status', found['directory']],
                                 cwd=root, check=True, text=True, capture_output=True)
         return json.loads(result.stdout)

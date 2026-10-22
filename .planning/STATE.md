@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: ready_to_plan
-stopped_at: Phase 137 complete, ready to plan Phase 138
+stopped_at: Phase 137 complete, ready to discuss Phase 138
 last_updated: "2026-10-22T00:29:15.806Z"
 state_head: 26164ba3d257f1a10a5834ae072a6e338be72356
 progress:
@@ -48,9 +48,10 @@ API/dependency, pilot, AV execution, readiness, merge or release claim.
 
 ## Next GSD Command
 
-Run `$gsd-progress` now in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` to route the normal
-Phase 138 discussion/planning step. No conversation reset is required. Phase 137
+Run `$gsd-discuss-phase 138` now in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` to gather Phase 138
+context. Give direct stage commands when the next action is known; do not repeatedly
+route the user through `$gsd-progress`. No conversation reset is required. Phase 137
 execution was explicitly inline; preserve ordinary GSD workflow and existing plans.
 Auto-advance remains disabled. Serious work remains on this feature branch; use
 normal PR/green-main gates before merging or releasing.

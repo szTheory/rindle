@@ -79,9 +79,19 @@ class HandoffTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'current_plan disagrees'):
             inspect(self.root, self.missing)
 
-    def test_unstarted_phase_returns_to_gsd_progress_owner(self):
+    def test_unstarted_phase_without_context_hands_off_directly_to_discussion(self):
         result = inspect(self.root, lambda _: {'status': 'not_started', 'next_command': '$gsd-progress'})
-        self.assertEqual(result['next_command'], '$gsd-progress')
+        self.assertEqual(result['next_command'], '$gsd-discuss-phase 136')
+
+    def test_roadmap_only_phase_hands_off_directly_to_discussion(self):
+        (self.planning / 'phases/136-example').rmdir()
+        result = inspect(self.root, lambda _: {'status': 'not_started'})
+        self.assertEqual(result['next_command'], '$gsd-discuss-phase 136')
+
+    def test_unplanned_phase_with_context_hands_off_directly_to_planning(self):
+        (self.planning / 'phases/136-example/136-CONTEXT.md').write_text('Decisions')
+        result = inspect(self.root, lambda _: {'status': 'not_started'})
+        self.assertEqual(result['next_command'], '$gsd-plan-phase 136')
 
 
 if __name__ == '__main__':
