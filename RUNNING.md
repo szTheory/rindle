@@ -342,18 +342,30 @@ existing job. It waits for every harness and fails if any harness fails; the
 
 ### Built-package synthetic twin
 
-Maintainers can run one external packaged image lifecycle, persisted purge retry,
-and controlled between-attempt host restart with:
+Maintainers can exercise six isolated recovery cases against one freshly built
+Hex archive with:
 
 ```sh
 python3 scripts/maintainer/built_package_twin.py check
-python3 scripts/maintainer/built_package_twin.py run --verify --cleanup
+python3 scripts/maintainer/built_package_twin.py run \
+  --evidence-dir /absolute/new-or-empty/evidence --cleanup
+python3 scripts/maintainer/built_package_twin.py verify \
+  --inputs /absolute/new-or-empty/evidence/inputs.json \
+  --receipt /absolute/new-or-empty/evidence/receipt.json
 ```
 
-Use the supported toolchain overrides above. See
-[Built-package twin](guides/built_package_twin.md) for prerequisites, explicit
-`verify --inputs ... --receipt ...`, retained private evidence, JSON results,
-active-host cleanup refusal and the known Doctor migration-ledger issue.
+Use the supported Elixir 1.17.3 / OTP 27.3.4.15 toolchain overrides above. The cases
+cover tus resume, purge after object absence, AV failure and repair, provider event
+ordering/replay, promotion across host death and interrupted maintenance cleanup.
+`run --case CASE` and `verify --case CASE --inputs ... --receipt ...` are focused
+diagnostics; default verification requires all six cases. Explicit `--legacy`
+preserves the earlier image/purge scenario and its narrower evidence.
+
+See [Built-package twin](guides/built_package_twin.md) for prerequisites, retained
+private inputs/archive/receipts, JSON results and exact descriptor cleanup.
+Cleanup refuses active hosts and foreign resources and can be repeated after
+disposal. The Doctor migration-ledger fix remains deferred to phase 139.
 This is maintainer-operated synthetic evidence with `independent_pilot_credit: false`.
 Default tests remain Docker-free; the real run is explicit and grants no independent
-adoption, AV execution or readiness credit.
+adoption, cloud-provider parity, Doctor, readiness or CI-speed credit. Existing CI
+lanes and required contexts stay unchanged.

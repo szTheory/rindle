@@ -2,6 +2,8 @@ defmodule Rindle.TwinCliTest do
   use ExUnit.Case, async: false
   @root Path.expand("../..", __DIR__)
   @script "scripts/maintainer/built_package_twin.py"
+  @cases ~w(tus-resume purge-absence av-repair provider-events promotion-restart interrupted-cleanup)
+
   test "single entrypoint documents explicit authorities and all four operations" do
     assert {help, 0} =
              System.cmd("python3", ["-B", @script, "--help"], cd: @root, stderr_to_stdout: true)
@@ -32,6 +34,56 @@ defmodule Rindle.TwinCliTest do
     assert result["outcome"] == "failed"
     assert result["independent_pilot_credit"] == false
     assert result["kind"] == "maintainer-operated-synthetic"
+  end
+
+  test "run and verify expose finite focused cases and mutually exclusive legacy evidence" do
+    for operation <- ~w(run verify) do
+      assert {help, 0} =
+               System.cmd("python3", ["-B", @script, operation, "--help"],
+                 cd: @root,
+                 stderr_to_stdout: true
+               )
+
+      assert help =~ "--case"
+      assert help =~ "--legacy"
+      for case_id <- @cases, do: assert(help =~ case_id)
+
+      required =
+        if operation == "verify",
+          do: ["--inputs", "/missing/inputs", "--receipt", "/missing/receipt"],
+          else: []
+
+      for flags <- [["--case", "unknown"], ["--case", "tus-resume", "--legacy"]] do
+        assert {_, 2} =
+                 System.cmd("python3", ["-B", @script, operation] ++ required ++ flags,
+                   cd: @root,
+                   stderr_to_stdout: true
+                 )
+      end
+    end
+  end
+
+  @tag :tmp_dir
+  test "default verification refuses focused evidence before archive access", %{tmp_dir: dir} do
+    inputs = Path.join(dir, "inputs.json")
+    receipt = Path.join(dir, "receipt.json")
+    envelope = %{"schema_version" => 2, "scenario" => "tus-resume"}
+    File.write!(inputs, Jason.encode!(envelope))
+    File.write!(receipt, Jason.encode!(Map.put(envelope, "case_id", "tus-resume")))
+
+    assert {output, 1} =
+             System.cmd(
+               "python3",
+               ["-B", @script, "verify", "--inputs", inputs, "--receipt", receipt, "--json"],
+               cd: @root,
+               stderr_to_stdout: true
+             )
+
+    result = Jason.decode!(output)
+    assert result["outcome"] == "failed"
+    assert result["reason"] == "full_matrix_required"
+    assert result["independent_pilot_credit"] == false
+    refute File.exists?(Path.join(dir, "package.tar"))
   end
 
   @tag :tmp_dir

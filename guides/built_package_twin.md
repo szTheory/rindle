@@ -1,103 +1,129 @@
 # Built-package twin
 
-The twin is **maintainer-operated synthetic evidence** with
-`independent_pilot_credit: false`. It checks one image lifecycle and a controlled
-host restart between purge attempts against one freshly built Hex archive.
-It does not satisfy independent adoption or authorize a readiness/release claim.
+The twin produces **maintainer-operated synthetic evidence** with
+`independent_pilot_credit: false`. The default run checks six lifecycle recovery
+cases against one freshly built Hex archive. Each case has its own runtime,
+database and bucket. A focused case is diagnostic evidence; full-matrix acceptance
+requires all six cases and a separate verifier process.
 
-Use the repository's supported Elixir 1.17.3 / OTP 27.3.4.15 build cell, Python 3,
-and a running Docker engine with Compose. The consumer image supplies PostgreSQL,
-MinIO, libvips and FFmpeg/ffprobe. No live provider credentials are needed. Keep
-enough Docker disk space for the image and disposable data; the runner never
-prunes shared Docker resources. Network access is needed on a cold image build.
+Use the supported Elixir 1.17.3 / OTP 27.3.4.15 build cell, Python 3, and a running
+Docker engine with Compose. The consumer image supplies PostgreSQL, MinIO, libvips
+and FFmpeg/ffprobe. The provider case uses a local Mux protocol fixture and dummy
+credentials. Keep enough Docker disk space for the images and disposable data;
+the runner never prunes shared resources. Cold image builds need network access.
 
 ```sh
 export ASDF_ERLANG_VERSION=27.3.4.15
 export ASDF_ELIXIR_VERSION=1.17.3-otp-27
 export ASDF_NODEJS_VERSION=20.18.1
 python3 scripts/maintainer/built_package_twin.py check
-python3 scripts/maintainer/built_package_twin.py run --verify --cleanup
+python3 scripts/maintainer/built_package_twin.py run \
+  --evidence-dir /absolute/new-or-empty/evidence
+python3 scripts/maintainer/built_package_twin.py verify \
+  --inputs /absolute/new-or-empty/evidence/inputs.json \
+  --receipt /absolute/new-or-empty/evidence/receipt.json
+python3 scripts/maintainer/built_package_twin.py cleanup \
+  --descriptor /absolute/new-or-empty/evidence/resources.json
 ```
 
-`run` prints the exact retained inputs, receipt and resource descriptor paths.
-For an explicit location, use `--evidence-dir /absolute/new-or-empty-directory`.
-Existing evidence is refused. Evidence directories are private (0700), and files
-are created exclusively. A run builds one tar, hashes its actual bytes, safely
-extracts that archive, and compiles it in a small external consumer context.
-Checkout/home/socket mounts, private calls, local BEAM output and repository
-fallbacks are refused. The host owns its Repo, default Oban instance and migrations.
-The root library lock and user `.tool-versions` are unchanged.
+Choose a new or empty evidence directory; existing evidence is refused. `run`
+prints the retained input, receipt and resource descriptor paths. Evidence
+directories are private (0700), and files are created exclusively. `run --cleanup`
+also disposes owned infrastructure after freezing the observed verdict. `--verify`
+requests semantic verification during a run; a full run always verifies the full
+matrix. Keep the separate `verify` invocation above for acceptance.
 
-The scenario uploads through a signed HTTP PUT, waits for one ready image variant,
-attaches and finally detaches once, and injects one original-key delete failure
-through the storage behaviour. Its counter is committed in PostgreSQL. The same
-Oban job must be retryable at attempt one with an error and retained source. The
-runner pauses the queue, checks no running jobs and rereads that row, confirms the
-whole old host exited, then starts a new runtime. Ordinary scheduling must complete
-that job at attempt two without repeating upload or detach. Earlier variant deletion
-is a legitimate partial effect and is recorded.
+The runner hashes the actual archive bytes, safely extracts the package and
+compiles each external consumer from that same archive. Checkout, home and socket
+mounts, private calls, local BEAM output and repository fallbacks are refused. Each
+host owns its Repo, default Oban instance and migrations. The root library lock
+and user `.tool-versions` stay unchanged.
 
-This checks a controlled restart **between attempts**. It grants no executing-job
-crash, disk-loss, exactly-once, full recovery-matrix or AV execution credit. Actual
-FFmpeg/ffprobe floors are checked, while the receipt marks AV unexercised.
+## Cases and focused reproduction
+
+| Case | Required observation |
+|------|----------------------|
+| `tus-resume` | One HTTP client stops after a nonfinal PATCH; another resumes the same upload. A wrong offset is rejected, and final bytes and the image variant match. |
+| `purge-absence` | A persisted purge retry encounters an independently removed original object and completes the same job without repeating the initiating action. |
+| `av-repair` | A real AV processing job exhausts five ordinary attempts under a bounded input fault. Supported requeue repairs the selected variant, and the output fully decodes. |
+| `provider-events` | Actual signed webhook ingress and queued processing handle replay and older events without regressing accepted provider state or repeating effects. |
+| `promotion-restart` | The host is killed with promotion still pending. A fresh runtime completes the same persisted job without another upload. |
+| `interrupted-cleanup` | Genuine expiry and a real multipart part exercise supported maintenance. A maintenance process dies after remote deletion but before row deletion; two reruns converge. |
+
+Reproduce one case without claiming a complete matrix:
+
+```sh
+python3 scripts/maintainer/built_package_twin.py run \
+  --case av-repair --evidence-dir /absolute/new-or-empty/av-evidence --cleanup
+python3 scripts/maintainer/built_package_twin.py verify --case av-repair \
+  --inputs /absolute/new-or-empty/av-evidence/inputs.json \
+  --receipt /absolute/new-or-empty/av-evidence/receipt.json
+```
+
+Use any case ID from the table. Default `verify` rejects a focused receipt, even
+when that case passed. The interrupted cleanup case distinguishes two standard
+operations: `rindle.abort_incomplete_uploads` marks the session expired, then
+`rindle.cleanup_orphans` aborts its remote multipart upload. It does not backdate
+session rows. Its interruption affects only the owned maintenance process.
+
+The earlier phase-137 image/purge scenario remains available through explicit
+`run --legacy` and `verify --legacy --inputs PATH --receipt PATH`. `--legacy` and
+`--case` are mutually exclusive. Legacy evidence keeps its original meaning: a
+controlled restart between purge attempts, with AV unexercised. It cannot satisfy
+the six-case matrix.
 
 ## Verify retained evidence
 
-Run verification in a separate process using both explicit paths:
+Retain the complete directory: the root `package.tar`, inputs, receipt and resource
+descriptor, together with every case's inputs and receipt. Move or copy them
+together. The verifier rehashes the archive and compares package, source, host,
+lock, configuration, fixture, contract and toolchain identities against retained
+runner inputs. Each case has a distinct run identity and must bind to the common
+archive. Omitted, duplicate, unknown, skipped or swapped cases fail verification.
 
-```sh
-python3 scripts/maintainer/built_package_twin.py verify \
-  --inputs /absolute/evidence/inputs.json \
-  --receipt /absolute/evidence/receipt.json
-```
-
-Keep `package.tar` beside those files. The verifier checks its bytes and extracted
-identity, then compares the receipt with the retained runner-owned expectations:
-run, source SHA, package, host, lock, fixture, configuration, contract and toolchain.
-The expected scenario and success predicates come from source. Strict keys, types,
-limits, job/runtime identity, observation order, effects and complete inventories
-are required; a submitted success flag cannot replace them. A failed or incomplete
-receipt returns nonzero. Semantic verification cannot authenticate a wholly
-fabricated trusted manifest/receipt pair; there is no signing or witness service.
+Strict keys, types, limits, job and runtime identities, observation order, effects
+and complete inventories are required. A submitted success flag cannot replace
+these checks. Failed or incomplete evidence returns nonzero. Semantic verification
+cannot authenticate a wholly fabricated trusted input/receipt pair; there is no
+signing or witness service.
 
 ## Cleanup and failures
 
-Domain cleanup is observed before infrastructure disposal. All domain rows, objects,
-multipart uploads, temp files and host processes must be absent. Only the fixed
-migration metadata, two fixture rows, bounded peer infrastructure and three completed
-Oban history rows are allowed. Unknown, denied, truncated or residual inventory
-cannot mean zero. Baseline bucket versioning must be disabled.
+The runner stops writers and inventories domain resources **before** infrastructure
+disposal. It checks database rows, exact permitted Oban history and fixture rows,
+source and derivative objects, provider fixture effects, multipart uploads and
+parts, temporary files and owned processes. Each case declares its exact permitted
+identities. Unknown, denied, missing, truncated, raced or residual inventory cannot
+mean zero. Baseline bucket versioning must be disabled.
 
-For interrupted or failed runs, use the printed descriptor:
+For an interrupted or failed run, use its printed descriptor with the `cleanup`
+command above. A matrix descriptor binds a finite set of owned case descriptors.
+Cleanup checks exact ownership labels, mounts and liveness and refuses running,
+paused or unobservable hosts and foreign resource users. Stop the exact run host
+and confirm termination before retrying. There is no active-host override, force
+removal or shared prune. Preserve the descriptor and configuration rather than
+reconstructing ownership from a receipt.
 
-```sh
-python3 scripts/maintainer/built_package_twin.py cleanup \
-  --descriptor /absolute/evidence/resources.json
-```
+Cleanup rechecks liveness before each removal, is safe to repeat after successful
+disposal and preserves original evidence. Emergency disposal cannot turn a failed
+domain verdict into a pass. Private `.env` and bounded raw captures remain for
+local diagnosis; do not publish them.
 
-Cleanup refuses running, paused or unobservable hosts and foreign resource users.
-There is no active-host override. Stop the exact run host and confirm termination
-before cleanup; preserve the descriptor/configuration rather than reconstructing
-ownership from a receipt. Cleanup rechecks liveness before each removal, touches
-only exact run-owned resources, and is safe to repeat after successful disposal.
-It preserves the original inputs and receipt. Emergency disposal cannot turn a
-failed domain verdict into a pass. Private `.env` and bounded raw capture files
-are retained for local diagnosis; do not publish them.
+The CLI reports `passed`, `failed`, `incomplete` or `blocked`, and every unsuccessful
+outcome exits nonzero. `RUNNING` identifies a started stage. Add `--json` after an
+operation for one labeled result containing allowlisted status fields and retained
+paths. Argument errors use argparse usage and a nonzero exit. Child output is
+capped at 4 MiB; builds at 900 seconds, service readiness at 120 seconds, ordinary
+lifecycle waits at 90 seconds and AV retry observation at 600 seconds. Cleanup
+commands are bounded. Archive bytes and extracted contents have size and member
+limits. Diagnostics use fixed stage, reason and dependency codes.
 
-The CLI reports `passed`, `failed`, `incomplete` or `blocked`. Every unsuccessful
-outcome exits nonzero. `RUNNING` identifies a started stage rather than a percentage
-or completed claim. Child output is capped at 4 MiB, builds at 900 seconds, service
-readiness at 120 seconds and each lifecycle wait at 90 seconds. Individual cleanup
-commands are also bounded. Archive bytes and decompressed tar material are capped
-at 64 MiB, with at most 10,000 members. Diagnostics use safe stage/reason/dependency codes.
-For machine output add `--json` after the operation; well-formed invocations emit
-one labeled JSON result. Argument errors use normal argparse usage and nonzero exit.
-
-The public Doctor currently compares the host's versioned migration ledger with
-legacy package migration files and can falsely report pending/unresolved migrations
-for this supported setup. This issue remains open. Twin acceptance uses direct
-schema/catalog, effective-version and real image/storage probes and claims no
-Doctor pass.
+This remains synthetic package-consumer evidence. It grants no independent pilot,
+cloud-provider parity, readiness, release or CI-speed credit. The local provider
+fixture tests the adapter protocol. The public Doctor's versioned migration-ledger
+issue remains deferred to phase 139; this matrix claims no Doctor pass. Acceptance
+uses direct schema/catalog, effective-version and real processing/storage probes.
+No new recurring heavy CI lane or required context is introduced.
 
 ## Maintainer regression
 
@@ -105,8 +131,8 @@ Doctor pass.
 mix test test/install_smoke/twin_*_test.exs --seed 0
 ```
 
-These fast checks run in existing test lanes and never start Docker. They include
-ordinary committed PostgreSQL counter controls, contamination/receipt mutations,
-privacy canaries and safe-cleanup controls. The explicit real run and a separate
-verifier remain required acceptance. No new recurring heavy CI lane, required
-context or release coupling is introduced.
+These fast checks use existing test lanes and never start Docker. They cover
+committed PostgreSQL counters, receipt mutations, privacy canaries, CLI authority
+and safe cleanup. A fresh full run and separate retained-evidence verifier remain
+required acceptance. Follow [RUNNING.md](../RUNNING.md) for the relevant public
+surface, quality and full-suite gates.

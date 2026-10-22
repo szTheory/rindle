@@ -66,17 +66,7 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
     id = Ecto.UUID.generate()
 
     if Process.get(:committed_fixture) do
-      on_exit(fn ->
-        Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
-          assert {1, nil} =
-                   Repo.delete_all(
-                     from a in MediaAsset,
-                       where: a.id == ^id and a.profile == ^to_string(TestProfile)
-                   )
-
-          refute Repo.exists?(from a in MediaAsset, where: a.id == ^id)
-        end)
-      end)
+      on_exit(fn -> delete_committed_asset!(id) end)
     end
 
     %MediaAsset{id: id}
@@ -87,6 +77,18 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
       kind: "video"
     })
     |> Repo.insert!()
+  end
+
+  defp delete_committed_asset!(id) do
+    Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+      assert {1, nil} =
+               Repo.delete_all(
+                 from a in MediaAsset,
+                   where: a.id == ^id and a.profile == ^to_string(TestProfile)
+               )
+
+      refute Repo.exists?(from a in MediaAsset, where: a.id == ^id)
+    end)
   end
 
   # W1/B2 fix: NO :variant_name in changeset attrs (no such column on
