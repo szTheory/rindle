@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: ready_to_plan
-stopped_at: Phase 137 complete, ready to discuss Phase 138
-last_updated: "2026-10-22T00:29:15.806Z"
-state_head: 26164ba3d257f1a10a5834ae072a6e338be72356
+stopped_at: Phase 138 context gathered; ready for planning
+last_updated: "2026-10-22T01:26:20.055Z"
+state_head: 383f70f04aba8b738cfdfb198195159cce473df5
 progress:
   total_phases: 7
   completed_phases: 5
@@ -13,17 +13,17 @@ progress:
   completed_plans: 219
   percent: 71
 last_activity: 2026-10-21
-last_activity_desc: "Phase 137 complete: 6/6 plans, 22/22 must-haves, TWIN-01..06 verified; 1717 tests + 3 doctests and final 63 focused tests passed; Phase 138 not started."
 current_phase: 138
 current_phase_name: Lifecycle Failure and Recovery Matrix
 current_plan: Not started
+last_activity_desc: "Phase 138 research-first discussion complete; user approved six-case matrix and bounded correctness fixes preserving public API/schema. Context ready for planning; RECOV-01..06 remain pending."
 ---
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-10-21).
 **Core value:** Media, made durable.
-**Current focus:** Phase 138 — Lifecycle Failure and Recovery Matrix (not started).
+**Current focus:** Phase 138 — Lifecycle Failure and Recovery Matrix (context gathered; ready for planning).
 **Worktree:** /Users/jon/projects/rindle/.claude/worktrees/phase136-execution
 The primary checkout retains separate historical Phase 133 work; preserve it.
 
@@ -34,7 +34,13 @@ verified automatically. All plan summaries, validation, security, code review,
 review disposition and goal verification are committed or ready for close-out.
 The verification owner reports passed with a current covered-input fingerprint.
 Progress: 5/7 phases complete (71%); 219/219 currently planned plans complete.
-Phase 138 and Phase 139 remain unexecuted/unplanned. No Phase 138 work has begun.
+Phase 138 discussion is complete: local GSD assumptions analysis, three primary-source
+researchers and an independent adversarial pass informed the approved context. The user
+approved the full six-case matrix and bounded correctness fixes if adverse provider probes
+confirm stale-event regression or duplicate effects, preserving public API/schema. Doctor's
+ledger fix remains for Phase 139. Context and research recommendations are in
+`.planning/phases/138-lifecycle-failure-and-recovery-matrix/`.
+Phase 138 and Phase 139 remain unexecuted/unplanned; RECOV-01..06 receive no acceptance credit.
 
 Full stable default suite: 1717 tests plus 3 doctests, zero failures, 87 excluded,
 4 skipped. After final isolation fixes: 63 focused twin/async/CI/public-surface
@@ -48,8 +54,8 @@ API/dependency, pilot, AV execution, readiness, merge or release claim.
 
 ## Next GSD Command
 
-Run `$gsd-discuss-phase 138` now in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` to gather Phase 138
+Run `$gsd-plan-phase 138` now in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` using the approved Phase 138
 context. Give direct stage commands when the next action is known; do not repeatedly
 route the user through `$gsd-progress`. No conversation reset is required. Phase 137
 execution was explicitly inline; preserve ordinary GSD workflow and existing plans.
@@ -81,6 +87,6 @@ normal PR/green-main gates before merging or releasing.
 
 ## Session
 
-Last session: 2026-10-22T00:30:11.827196+00:00
-Stopped at: Phase 137 complete; Phase 138 not started
-Resume file: .planning/STATE.md
+Last session: 2026-10-22T01:26:18.727Z
+Stopped at: Phase 138 context gathered; ready for planning
+Resume file: .planning/phases/138-lifecycle-failure-and-recovery-matrix/138-CONTEXT.md
