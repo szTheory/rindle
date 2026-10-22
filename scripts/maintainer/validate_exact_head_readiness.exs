@@ -439,7 +439,23 @@ defmodule Rindle.ExactHeadReadiness do
         "archive reference absent"
       )
 
-      case :zip.extract(object!(nref, c), [:memory]) do
+      archive = object!(nref, c)
+
+      case :zip.list_dir(archive) do
+        {:ok, [{:zip_comment, _}, {:zip_file, ~c"nightly-incident-verdict.json", info, _, _, _}]} ->
+          stat = File.Stat.from_record(info)
+
+          ensure!(
+            stat.size <= 1_048_576 and stat.type == :regular,
+            "incident_identity",
+            "archive size or type invalid"
+          )
+
+        _ ->
+          throw({:invalid, "incident_identity", "archive inventory differs"})
+      end
+
+      case :zip.extract(archive, [:memory]) do
         {:ok, [{~c"nightly-incident-verdict.json", bytes}]} ->
           ensure!(decode!(bytes) == n["incident"], "incident_identity", "archive verdict differs")
 
@@ -611,6 +627,10 @@ defmodule Rindle.ExactHeadReadiness do
       is_map(incident) and incident["schema"] == "rindle-nightly-incident-verdict-v1" and
         incident["repository"] == r["repository"] and incident["sha"] == r["subject_sha"] and
         incident["workflow_name"] == "Nightly" and incident["event"] == "schedule" and
+        incident["workflow_ref"] ==
+          r["repository"] <> "/.github/workflows/nightly.yml@refs/heads/main" and
+        incident["url"] ==
+          "https://github.com/" <> r["repository"] <> "/actions/runs/" <> to_string(r["run_id"]) and
         incident["ref"] == "refs/heads/main" and incident["run_id"] == r["run_id"] and
         incident["run_attempt"] == r["attempt"],
       "incident_identity",
@@ -676,9 +696,48 @@ defmodule Rindle.ExactHeadReadiness do
 
     ensure!(
       p["enforced"] === true and p["strict"] === true and p["classic_admin_enforced"] === false and
-        p["bypass_actors"] == [] and p["active_rulesets"] == [],
+        p["bypass_actors"] == [] and is_list(p["active_rulesets"]),
       "protection_drift",
       "unexpected enforcement/bypass"
+    )
+
+    rulesets = p["active_rulesets"]
+    effective = p["effective_rules"] || []
+
+    ensure!(
+      is_list(effective) and
+        Enum.sort(Enum.map(rulesets, & &1["id"])) ==
+          Enum.sort(Enum.uniq(Enum.map(effective, & &1["ruleset_id"]))),
+      "protection_drift",
+      "effective ruleset coverage differs"
+    )
+
+    Enum.each(rulesets, fn ruleset ->
+      ensure!(
+        positive?(ruleset["id"]) and ruleset["enforcement"] == "active" and
+          ruleset["bypass_actors"] == [] and
+          is_list(ruleset["rules"]) and ruleset["rules"] != [],
+        "protection_drift",
+        "ruleset enforcement or bypass changed"
+      )
+
+      Enum.each(ruleset["rules"], &validate_required_rule!/1)
+    end)
+
+    Enum.each(effective, &validate_required_rule!/1)
+  end
+
+  defp validate_required_rule!(rule) do
+    parameters = rule["parameters"]
+
+    ensure!(
+      rule["type"] == "required_status_checks" and is_map(parameters) and
+        parameters["strict_required_status_checks_policy"] === true and
+        parameters["required_status_checks"] == [
+          %{"context" => "CI Summary", "integration_id" => 15368}
+        ],
+      "protection_drift",
+      "incompatible effective rule"
     )
   end
 

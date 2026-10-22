@@ -15,6 +15,8 @@ from exact_head_readiness import ROOT, TOOLCHAIN_ENV, NotReady, canonical, diges
 from readiness_github import GitHub, json_bytes
 
 POLICY = 'rindle-exact-head-v1'
+HISTORICAL_QUALIFICATION_SHA = 'aba8565ebfb97fd366efd94c691a977b3c29c78e232e2dda7cb338d69997abce'
+TIMING_DEFERRAL_SHA = 'c15572c572a8ca2e7dbdb564b6a50516f1822b6117c2d2430bad1c0f973b9af3'
 
 
 def policy(request):
@@ -59,10 +61,21 @@ class Collector:
         self.main()
         paths=['.github/workflows/ci.yml','.github/workflows/release.yml'] if self.only=='ci' else ['.github/workflows/ci.yml',
                 '.github/workflows/nightly.yml','.github/workflows/release.yml','config/ci_required_checks.json']
+        paths += ['.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json',
+                  '.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']
         for path in paths:
             raw=self.api.contents(path,self.subject)
             self.inputs[path]=raw.decode()
             write_new(self.portable/'inputs'/path,raw)
+        require(digest(self.inputs[paths[-1]].encode())==HISTORICAL_QUALIFICATION_SHA,'historical_timing_receipt_changed')
+        require(digest(self.inputs[paths[-2]].encode())==TIMING_DEFERRAL_SHA,'timing_deferral_drift')
+        deferral=json_bytes(self.inputs[paths[-2]]);historical=json_bytes(self.inputs[paths[-1]])
+        require(deferral.get('acceptance_status')=='deferred_unfinished' and deferral.get('acceptance_credit') is False and
+                historical.get('outcome')=='blocked','timing_deferral_drift')
+        self.timing={'state':'deferred_unfinished','acceptance_credit':False,'requirement':'CI-16',
+            'follow_up':deferral.get('follow_up'),'original_qualification_outcome':'blocked',
+            'deferral':reference(self.portable,self.portable/'inputs'/paths[-2]),
+            'original_qualification':reference(self.portable,self.portable/'inputs'/paths[-1])}
 
     def latest(self,workflow,event):
         query=urlencode({'head_sha':self.subject,'event':event,'branch':'main','per_page':100})
@@ -132,7 +145,9 @@ class Collector:
             'latest_run_id':run['id'],'rechecked_attempt':run['run_attempt']}
         if event=='schedule': result.update(self.incident(run))
         self.detail(run,event)
-        require(self.latest(workflow,event)['id']==run['id'],'newer_run_observed')
+        latest=self.latest(workflow,event)
+        require(latest['id']==run['id'],'newer_run_observed')
+        require(all(latest.get(k)==run.get(k) for k in ('run_attempt','status','conclusion','workflow_id')), 'attempt_changed')
         policy({'operation':'validate','id':'ci-main' if event=='push' else 'nightly-scheduled',
                 'normalized':result,'inputs':self.inputs})
         return result
@@ -161,7 +176,7 @@ class Collector:
             detail,_=self.api.get(self.api.path('rulesets/'+str(id)+'?includes_parents=true'))
             require(detail.get('id')==id and detail.get('enforcement')=='active','ruleset_visibility')
             active.append(detail)
-        # Any additional active rule is incompatible with the intentionally sole classic context.
+        # Effective rule parameters are validated by the same immutable policy as receipt replay.
         # Organization owners additionally need parent enumeration; an empty public list is not proof.
         if self.metadata['owner']['type']=='Organization':
             require(self.metadata.get('permissions',{}).get('admin') is True,'organization_visibility')
@@ -205,7 +220,7 @@ class Collector:
                     'before_sha256':refs[0]['sha256'],'after_sha256':refs[1]['sha256'],'observations':refs}
                 sources[id]={'source':source,'references':refs+self.artifacts.get(id,[])}
             write_new(self.portable/'sources.json',{'repository':self.repo,'subject_sha':self.subject,'evidence_mode':self.mode,
-                'requirements_credit':False,'observation_interval':interval,'sources':sources})
+                'requirements_credit':False,'numeric_speed':self.timing,'observation_interval':interval,'sources':sources})
             verdict.update(verdict='collected',reason='remote_sources_collected',sources=list(sources))
             code=0
         except NotReady as exc:

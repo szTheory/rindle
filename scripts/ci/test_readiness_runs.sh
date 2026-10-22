@@ -26,7 +26,7 @@ class Runs(unittest.TestCase):
         self.fixture=self.tmp/'fixture';self.fixture.mkdir();self.responses={}
         self.put('repos/'+repo,{'id':123,'full_name':repo,'default_branch':'main','owner':{'type':'User'},'permissions':{'admin':True}})
         self.put(prefix+'git/ref/heads/main',{'ref':'refs/heads/main','object':{'type':'commit','sha':sha}})
-        for relative in ['.github/workflows/ci.yml','.github/workflows/nightly.yml','.github/workflows/release.yml','config/ci_required_checks.json']:
+        for relative in ['.github/workflows/ci.yml','.github/workflows/nightly.yml','.github/workflows/release.yml','config/ci_required_checks.json','.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json','.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']:
             raw=(root/relative).read_bytes()
             self.put(prefix+'contents/'+relative+'?ref='+sha,{'type':'file','path':relative,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
         self.runs={};self.paths={};self.jobs={}
@@ -82,6 +82,10 @@ class Runs(unittest.TestCase):
         self.assertEqual(len(topologies['push']['jobs']),23);self.assertEqual(len(topologies['schedule']['jobs']),11)
         sources=c.read_json(collector.portable/'sources.json')['sources']
         self.assertEqual(set(sources),{'ci-main','nightly-scheduled','protection'})
+        numeric=c.read_json(collector.portable/'sources.json')['numeric_speed'];self.assertEqual(numeric['state'],'deferred_unfinished')
+        self.assertFalse(numeric['acceptance_credit'])
+        ref=numeric['original_qualification'];self.assertEqual((collector.portable/ref['path']).read_bytes(),
+            (root/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json').read_bytes())
         self.assertFalse(sources['nightly-scheduled']['source']['normalized']['incident']['verdict']['jobs'][-1]['applicable'])
         self.assertEqual(os.stat(collector.output/'restricted/0001-response').st_mode&0o777,0o600)
     def test_ci_tracer_is_explicitly_partial_and_has_no_readiness_credit(self):
@@ -130,6 +134,9 @@ class Runs(unittest.TestCase):
         self.rejected('pagination_query_drift','ci')
     def test_count_search_cap_rejected(self):
         self.body(self.paths['push'])['total_count']=1000;self.rejected('inventory_count_limit','ci')
+    def test_cancelled_scheduled_workflow_cannot_use_its_green_incident_artifact(self):
+        self.body(self.paths['schedule'])['workflow_runs'][0]['conclusion']='cancelled'
+        self.body(prefix+'actions/runs/20')['conclusion']='cancelled';self.rejected('latest_attempt_not_green')
     def test_wrong_run_event_never_substitutes(self):
         self.body(self.paths['schedule'])['workflow_runs'][0]['event']='workflow_dispatch';self.rejected('workflow_identity')
     def test_no_scheduled_run_keeps_next_observation(self):
@@ -202,6 +209,17 @@ class Runs(unittest.TestCase):
         self.fixture=self.tmp/'missing'
         collector=c.Collector(repo,sha,self.tmp/'out',self.fixture)
         self.assertEqual(collector.run(),1);self.assertEqual(c.read_json(self.tmp/'out/verdict.json')['verdict'],'not_ready')
+    def test_historical_blocked_receipt_cannot_be_rewritten(self):
+        relative='.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json'
+        value=json.loads((root/relative).read_bytes());value['subject_sha']='b'*40
+        self.subject_file(relative,json.dumps(value));self.rejected('historical_timing_receipt_changed','ci')
+    def test_workflow_alias_next_link_can_use_authenticated_workflow_id(self):
+        path=self.paths['push'];second=prefix+'actions/workflows/110/runs?head_sha='+sha+'&event=push&branch=main&per_page=100&page=2'
+        old={**self.runs['push'],'id':9,'created_at':'2026-10-21T07:27:00Z'}
+        self.body(path)['total_count']=2
+        self.responses[path][0]['headers']={'link':'<https://api.github.com/'+second+'>; rel="next"'}
+        self.put(second,{'total_count':2,'workflow_runs':[old]})
+        code,_,_=self.collect('ci');self.assertEqual(code,0)
     def test_main_moves(self):
         path=prefix+'git/ref/heads/main';self.responses[path].append(copy.deepcopy(self.responses[path][0]))
         self.responses[path][1]['body']['object']['sha']='b'*40;self.rejected('main_changed','ci')

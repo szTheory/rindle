@@ -91,6 +91,30 @@
       "reason": "This fixture lists the check-run names the landing evidence script consumes."
     },
     {
+      "path": "scripts/ci/test_readiness_runs.sh",
+      "class": "planning-path",
+      "text": "(root/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json').read_bytes())",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
+      "path": "scripts/ci/test_readiness_runs.sh",
+      "class": "planning-path",
+      "text": "for relative in ['.github/workflows/ci.yml','.github/workflows/nightly.yml','.github/workflows/release.yml','config/ci_required_checks.json','.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json','.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']:",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
+      "path": "scripts/ci/test_readiness_runs.sh",
+      "class": "planning-path",
+      "text": "relative='.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json'",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
       "path": "scripts/ci/test_repo_hygiene_check.sh",
       "class": "planning-path",
       "text": "cat >\"${d}/.planning/RELEASE-TRAIN.md\" <<EOF",

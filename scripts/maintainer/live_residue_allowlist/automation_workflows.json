@@ -291,6 +291,22 @@
       "reason": "Exclusion pattern: maintainer planning files are outside the adopter-docs link check."
     },
     {
+      "path": "scripts/maintainer/collect_readiness_runs.py",
+      "class": "planning-path",
+      "text": "'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
+      "path": "scripts/maintainer/collect_readiness_runs.py",
+      "class": "planning-path",
+      "text": "paths += ['.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json',",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN_LITERAL=\"not-applicable: twin not built (Phase 137)\"",

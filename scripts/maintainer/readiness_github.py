@@ -137,6 +137,12 @@ class GitHub:
             valid_paths={first.path}
             if self.repo_id:
                 valid_paths.add(first.path.replace('repos/'+self.repo,'repositories/'+str(self.repo_id),1))
+            if key=='workflow_runs' and re.search(r'/actions/workflows/[^/]+/runs$',first.path):
+                workflow_ids={v.get('workflow_id') for v in result if isinstance(v,dict)}
+                require(len(workflow_ids)==1 and all(type(v) is int and v>0 for v in workflow_ids),'workflow_identity')
+                numeric=re.sub(r'/actions/workflows/[^/]+/runs$', '/actions/workflows/'+str(next(iter(workflow_ids)))+'/runs', first.path)
+                valid_paths.add(numeric)
+                if self.repo_id:valid_paths.add(numeric.replace('repos/'+self.repo,'repositories/'+str(self.repo_id),1))
             require(root_path in valid_paths, 'foreign_next_page')
             query=parse_qs(nxt.query)
             require({k:v for k,v in query.items() if k!='page'} == {k:v for k,v in filters.items() if k!='page'} and

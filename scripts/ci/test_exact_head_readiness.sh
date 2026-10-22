@@ -104,7 +104,7 @@ defmodule ReadinessFixture do
     if event == "schedule" do
       Map.merge(value, %{"incident_artifact_id" => 300, "incident_artifact_sha256" => V.sha256("fixture artifact"),
         "incident" => %{"schema" => "rindle-nightly-incident-verdict-v1", "repository" => "szTheory/rindle", "sha" => String.duplicate("a",40),
-          "workflow_name" => "Nightly", "event" => "schedule", "ref" => "refs/heads/main", "run_id" => 10, "run_attempt" => 2,
+          "workflow_name" => "Nightly", "workflow_ref" => "szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main", "url" => "https://github.com/szTheory/rindle/actions/runs/10", "event" => "schedule", "ref" => "refs/heads/main", "run_id" => 10, "run_attempt" => 2,
           "verdict" => %{"verdict" => "green", "errors" => [], "jobs" => Enum.map(~w(compat-matrix dialyzer gcs-soak package-consumer-gcs-live), fn id ->
             %{"name" => id, "result" => "success", "applicable" => true, "execution" => "passed", "reason" => "", "errors" => [], "status" => "passed",
               "applicability_rule" => if(id in ~w(gcs-soak package-consumer-gcs-live), do: "upstream-repository-and-required-secrets", else: "always")}
