@@ -795,7 +795,7 @@ Plans:
   4. Duplicate and out-of-order provider events plus a host restart between durable stages converge without duplicate provider state, duplicate stimulus, lost work, inconsistent terminal state, or secret-bearing telemetry.
   5. After an interrupted cleanup, an idempotent janitor rerun leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue, and the full matrix emits independently verified receipts.
 
-**Plans**: 3/6 plans executed
+**Plans**: 4/6 plans executed
 
 **Wave 1**
 - [x] 138-01-PLAN.md — Packaged tus client interruption and independently verified exact offset/asset inventory.
@@ -807,7 +807,7 @@ Plans:
 - [x] 138-03-PLAN.md — Real AV five-attempt failure, public diagnosis, supported repair and full decode.
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 138-04-PLAN.md — Signed Mux local adapter convergence and bounded provider ordering correction.
+- [x] 138-04-PLAN.md — Signed Mux local adapter convergence and bounded provider ordering correction.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 138-05-PLAN.md — Promotion-stage SIGKILL and same-job continuation in a new runtime.
@@ -841,7 +841,7 @@ Plans:
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
-| 138. Lifecycle Failure and Recovery Matrix | 3/6 | In Progress | - |
+| 138. Lifecycle Failure and Recovery Matrix | 4/6 | In Progress | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
