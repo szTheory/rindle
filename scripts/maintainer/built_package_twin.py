@@ -152,6 +152,22 @@ def validate_host_surface(source):
     require(re.search(r'File\.(?:read|read!)\([^\n]*(?:/lib/|\.beam|/checkout/)', source) is None, "host_source_inspection")
 
 
+PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
+CASES = ("tus-resume",)
+
+
+def validate_tus_clients(first, second, size):
+    require(type(first.get("pid")) is int and type(second.get("pid")) is int
+            and first["pid"] > 0 and second["pid"] > 0 and first["pid"] != second["pid"], "client_identity")
+    require(first.get("create_status") == 201 and first.get("patch_status") == 204
+            and type(first.get("offset")) is int and 0 < first["offset"] < size, "nonfinal_patch")
+    require(second.get("head_status") == 204 and second.get("head_cache") == "no-store"
+            and second.get("head_offset") == first["offset"], "head_authority")
+    require(second.get("wrong_status") == 409 and second.get("after_wrong_status") == 204
+            and second.get("after_wrong_offset") == first["offset"], "wrong_offset_advanced")
+    require(second.get("patch_status") == 204 and second.get("final_offset") == size, "resume_incomplete")
+
+
 class Runner:
     def __init__(self, evidence, descriptor=None):
         self.evidence = Path(evidence).resolve()
@@ -161,6 +177,7 @@ class Runner:
         self.sequence = max((int(p.stem.split("-")[1]) for p in existing), default=0)
         self.stage = "initialization"
         self.machine = False
+        self.case = None
 
     def command(self, argv, timeout=120, cwd=None):
         self.sequence += 1
@@ -203,7 +220,7 @@ class Runner:
         value = json.loads(text)
         if value.get("outcome") == "incomplete":
             code = value.get("reason", "scenario_failed")
-            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier") for suffix in ("_match", "_failed")}
+            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus") for suffix in ("_match", "_failed")}
             require(code in allowed, "host_reason_invalid")
             raise Refused("host_" + code)
         return value
@@ -257,7 +274,7 @@ class Runner:
         source = self.command(["git", "rev-parse", "HEAD"]).strip()
         source_tree = self.command(["git", "diff", "HEAD", "--", "lib", "priv", "mix.exs"]).strip()
         require(not source_tree, "dirty_package_source")
-        self.inputs = {"kind": KIND, "independent_pilot_credit": False, "schema_version": 1, "scenario": SCENARIO, "run_id": run_id,
+        self.inputs = {"kind": KIND, "independent_pilot_credit": False, "schema_version": 2 if self.case else 1, "scenario": self.case or SCENARIO, "run_id": run_id,
                        "source_sha": source, **archive_fields,
                        "package_tree_sha256": tree_hash(package), "host_sha256": tree_hash(self.context / "host"),
                        "lock_sha256": digest((self.context / "host/mix.lock").read_bytes()),
@@ -351,6 +368,99 @@ class Runner:
         require(state["Status"] == "exited" and not state["Running"] and not state["Paused"], "host_not_stopped")
         return ids[0]
 
+    def tus_clients(self):
+        # Two completed exec processes: signed Location and raw headers remain private
+        # on the same retained host node. Only fixed typed observations leave it.
+        common = r'''set -eu
+umask 077
+hdr() { awk -v key="$2" 'tolower($1)==key":" {gsub("\r", "", $2); print $2}' "$1"; }
+request() { target="$1"; shift; curl --silent --show-error --max-time 20 -o /dev/null -D "$target" -w '%{http_code}' -H 'Tus-Resumable: 1.0.0' "$@"; }
+'''
+        first = common + r'''
+printf '%s' "$1" | base64 -d > /retained/tus.png
+size=$(wc -c < /retained/tus.png)
+create=$(request /retained/tus.create -X POST -H "Upload-Length: $size" -H 'Upload-Metadata: filetype aW1hZ2UvcG5n' http://localhost:4100/uploads/tus)
+location=$(hdr /retained/tus.create location)
+case "$location" in /uploads/tus/*) ;; *) exit 1 ;; esac
+printf '%s' "$location" > /retained/tus.location
+head -c 32 /retained/tus.png > /retained/tus.first
+patch=$(request /retained/tus.patch -X PATCH -H 'Content-Type: application/offset+octet-stream' -H 'Upload-Offset: 0' --data-binary @/retained/tus.first "http://localhost:4100$location")
+offset=$(hdr /retained/tus.patch upload-offset)
+printf '{"pid":%s,"create_status":%s,"patch_status":%s,"offset":%s}' "$$" "$create" "$patch" "$offset"
+'''
+        second = common + r'''
+location=$(cat /retained/tus.location)
+head_status=$(request /retained/tus.head -I "http://localhost:4100$location")
+offset=$(hdr /retained/tus.head upload-offset)
+cache=$(hdr /retained/tus.head cache-control)
+wrong=$(request /retained/tus.wrong -X PATCH -H 'Content-Type: application/offset+octet-stream' -H 'Upload-Offset: 0' --data-binary @/retained/tus.first "http://localhost:4100$location")
+after_status=$(request /retained/tus.after -I "http://localhost:4100$location")
+after=$(hdr /retained/tus.after upload-offset)
+tail -c +$((offset + 1)) /retained/tus.png > /retained/tus.rest
+patch=$(request /retained/tus.final -X PATCH -H 'Content-Type: application/offset+octet-stream' -H "Upload-Offset: $offset" --data-binary @/retained/tus.rest "http://localhost:4100$location")
+final=$(hdr /retained/tus.final upload-offset)
+printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_status":%s,"after_wrong_status":%s,"after_wrong_offset":%s,"patch_status":%s,"final_offset":%s}' "$$" "$head_status" "$offset" "$cache" "$wrong" "$after_status" "$after" "$patch" "$final"
+'''
+        a = json.loads(self.compose("exec", "-T", "host", "sh", "-c", first, "tus-client-one", PNG))
+        # compose exec has exited: the first client is dead before the next starts.
+        b = json.loads(self.compose("exec", "-T", "host", "sh", "-c", second, "tus-client-two"))
+        validate_tus_clients(a, b, len(__import__("base64").b64decode(PNG)))
+        return {"first": a, "second": b, "first_exited": True, "second_exited": True}
+
+    def object_keys(self):
+        raw = self.minio('mc ls --json --recursive local/' + self.descriptor["bucket"])
+        records = [json.loads(line) for line in raw.splitlines()]
+        require(all(r.get("status") == "success" and r.get("type") == "file" for r in records), "object_inventory")
+        found = [r["key"] for r in records]
+        require(len(set(found)) == len(found), "object_inventory")
+        return sorted(found)
+
+    def run_case(self, verify, cleanup):
+        receipt = {"schema_version": 2, "kind": KIND, "independent_pilot_credit": False,
+                   "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
+        try:
+            self.stage_inputs()
+            receipt["inputs"] = self.inputs
+            self.validate_stage()
+            self.progress("build")
+            self.compose("build", "host", timeout=900)
+            self.progress("services")
+            self.compose("up", "-d", "--wait", "postgres", "minio", timeout=120)
+            self.minio('mc mb local/' + self.descriptor["bucket"])
+            self.compose("up", "-d", "host")
+            runtime = self.health()
+            validate_runtime(runtime, self.inputs)
+            self.export_canaries()
+            isolation = self.runtime_isolation()
+            self.rpc("tus-start", {})
+            clients = self.tus_clients()
+            result = self.rpc("tus-finish", {})
+            keys = self.object_keys()
+            require(keys == sorted([result["source_key"], *result["variant_keys"]]), "undeclared_objects")
+            expected_hash = digest(__import__("base64").b64decode(PNG))
+            require(result["checksum_sha256"] == expected_hash, "source_checksum")
+            self.stop_host()
+            self.validate_stage()
+            receipt.update(case_id=self.case, clients=clients, result=result, object_keys=keys,
+                           runtime=runtime, isolation=isolation, host_exited=True,
+                           outcome="complete", reason="complete", stage="complete")
+        except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
+            receipt.update(stage=self.stage, outcome="incomplete", reason=str(exc) if isinstance(exc, Refused) else "runner_failed")
+            if self.descriptor:
+                try:
+                    self.stop_host()
+                except (Refused, OSError):
+                    pass
+        finally:
+            write_json(self.evidence / "receipt.json", receipt)
+        if cleanup and self.descriptor:
+            self.progress("disposal")
+            dispose(self)
+        require(receipt["outcome"] == "complete", receipt["reason"])
+        if verify:
+            verify_receipt(read_json(self.evidence / "inputs.json"), read_json(self.evidence / "receipt.json"))
+        return receipt
+
     def run(self, verify, cleanup):
         receipt = {"schema_version": 1, "kind": "maintainer-operated-synthetic", "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
@@ -441,6 +551,7 @@ def main():
     subs = parser.add_subparsers(dest="operation", required=True)
     subs.add_parser("check", help="check local Docker/Compose and supported build toolchain")
     run = subs.add_parser("run", help="build once and run the finite synthetic lifecycle")
+    run.add_argument("--case", choices=CASES, help="focused diagnostic case; never a full matrix verdict")
     run.add_argument("--verify", action="store_true")
     run.add_argument("--cleanup", action="store_true")
     run.add_argument("--evidence", "--evidence-dir", dest="evidence", type=Path, help="new or empty private evidence directory")
@@ -484,7 +595,11 @@ def main():
             version = runner.command(["elixir", "-e", 'IO.puts(System.version()); IO.puts(File.read!(Path.join([:code.root_dir(), "releases", System.otp_release(), "OTP_VERSION"])) |> String.trim())'], timeout=30)
             require(version.splitlines() == ["1.17.3", "27.3.4.15"], "build_toolchain")
             if args.operation == "run":
-                runner.run(args.verify, args.cleanup)
+                runner.case = args.case
+                if args.case:
+                    runner.run_case(args.verify, args.cleanup)
+                else:
+                    runner.run(args.verify, args.cleanup)
         emit(args.operation, "passed", "complete", "complete", "none", evidence, args.json)
         return 0
     except (Refused, OSError, ValueError, KeyError, TypeError) as exc:

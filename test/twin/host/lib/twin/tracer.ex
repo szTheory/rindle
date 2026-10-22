@@ -48,6 +48,62 @@ defmodule Twin.Tracer do
     {:reply, result, state}
   end
 
+  defp scenario("tus-start", %{}) do
+    Process.put(:twin_stage, "tus")
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'tus','one-upload',1) ON CONFLICT DO NOTHING",
+        [run_id()]
+      )
+
+    %{"outcome" => "started"}
+  end
+
+  defp scenario("tus-finish", %{}) do
+    Process.put(:twin_stage, "tus")
+    [session] = Repo.all(Rindle.Domain.MediaUploadSession)
+    true = session.state == "completed"
+    true = session.resumable_protocol == "tus"
+
+    [variant] =
+      wait(fn ->
+        case Rindle.ready_variants_for(session.asset_id) do
+          [v] -> [v]
+          _ -> false
+        end
+      end)
+
+    asset = Repo.get!(MediaAsset, session.asset_id)
+    true = asset.state == "ready"
+    true = Repo.aggregate(MediaAsset, :count) == 1
+    target = "/retained/tus-source.png"
+    {:ok, ^target} = Rindle.download(Twin.Profile, asset.storage_key, target)
+    checksum = :crypto.hash(:sha256, File.read!(target)) |> Base.encode16(case: :lower)
+    File.rm!(target)
+
+    [[1]] =
+      Repo.query!("SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='tus'", [
+        run_id()
+      ]).rows
+
+    %{
+      "outcome" => "ready",
+      "session_id" => session.id,
+      "asset_id" => asset.id,
+      "session_state" => session.state,
+      "asset_state" => asset.state,
+      "source_key" => asset.storage_key,
+      "variant_keys" => [variant.storage_key],
+      "checksum_sha256" => checksum,
+      "sessions" => 1,
+      "assets" => 1,
+      "upload_stimuli" => 1,
+      "offset" => session.last_known_offset,
+      "boot_id" => health()["boot_id"]
+    }
+  end
+
   defp scenario("begin", %{}) do
     Process.put(:twin_stage, "stimulus")
     # Exclusive durable stimulus claim. A second request cannot upload/detach again.

@@ -60,4 +60,23 @@ defmodule Rindle.TwinTracerContractTest do
 
     assert output =~ "--inputs"
   end
+
+  test "tus client boundary rejects same process and offset advancement" do
+    code = """
+    import sys, copy
+    sys.path.insert(0, 'scripts/maintainer')
+    from built_package_twin import validate_tus_clients, Refused
+    first = dict(pid=101, create_status=201, patch_status=204, offset=32)
+    second = dict(pid=202, head_status=204, head_offset=32, head_cache='no-store', wrong_status=409,
+                  after_wrong_status=204, after_wrong_offset=32, patch_status=204, final_offset=69)
+    validate_tus_clients(first, second, 69)
+    for change in [dict(pid=101), dict(head_offset=0), dict(wrong_status=204),
+                   dict(after_wrong_offset=33), dict(final_offset=68), dict(head_cache='max-age=5')]:
+        try: validate_tus_clients(first, dict(second, **change), 69)
+        except Refused: pass
+        else: raise AssertionError(change)
+    """
+
+    assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
+  end
 end

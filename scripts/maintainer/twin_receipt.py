@@ -64,8 +64,9 @@ def labeled(value):
 def validate_inputs(value):
     keys(value, HASHES | {"schema_version", "kind", "independent_pilot_credit", "scenario", "run_id", "source_sha", "toolchain"})
     labeled(value)
-    integer(value["schema_version"], 1, 1)
-    require(value["scenario"] == SCENARIO, "scenario_identity")
+    integer(value["schema_version"], 1, 2)
+    require((value["schema_version"] == 1 and value["scenario"] == SCENARIO) or
+            (value["schema_version"] == 2 and value["scenario"] == "tus-resume"), "scenario_identity")
     text(value["run_id"], r"[0-9a-f]{32}")
     text(value["source_sha"], r"[0-9a-f]{40}")
     for k in HASHES:
