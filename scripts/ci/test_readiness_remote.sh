@@ -31,13 +31,36 @@ class Remote(unittest.TestCase):
             else:issues.append(value)
         self.put(prefix+'issues?state=open&per_page=100',issues)
         self.issue_path=prefix+'issues?state=open&per_page=100'
+        self.put(prefix+'pulls?state=open&per_page=100',[])
+        self.put(prefix+'security-advisories?state=triage&per_page=100',[],headers={'x-oauth-scopes':'repo'})
+        self.put(prefix+'security-advisories?state=draft&per_page=100',[],headers={'x-oauth-scopes':'repo'})
+        self.put(prefix+'security-advisories?state=published&per_page=100',[],headers={'x-oauth-scopes':'repo'})
+        self.put(prefix+'security-advisories?state=closed&per_page=100',[],headers={'x-oauth-scopes':'repo'})
+        self.put(prefix+'dependabot/alerts?state=open%2Cdismissed%2Cfixed%2Cauto_dismissed&per_page=100',[],headers={'x-oauth-scopes':'repo'})
+        self.put(prefix+'branches/main/protection',{'required_status_checks':{'strict':True,'contexts':['CI Summary'],
+            'checks':[{'context':'CI Summary','app_id':15368}]},'enforce_admins':{'enabled':False}})
+        self.put(prefix+'rules/branches/main?per_page=100',[]);self.put(prefix+'rulesets?includes_parents=true&per_page=100',[])
+        for relative in ['mix.lock','examples/adoption_demo/mix.lock','.github/workflows/ci.yml','.github/workflows/release.yml','config/ci_required_checks.json']:
+            self.subject_file(relative,(root/relative).read_bytes())
+        self.hex_payload=[]
+        for scope,relative in [('root','mix.lock'),('examples/adoption_demo','examples/adoption_demo/mix.lock')]:
+            text=(root/relative).read_text()
+            import re
+            packages=[{'package':p,'version':v,'retired':False,'advisories':[]} for p,v in re.findall(r'^  "[a-z0-9_]+": \{:hex, :([a-z0-9_]+), "([^"\n]+)"',text,re.M)]
+            for package in packages:
+                package['advisories']=[{'id':a['id'],'severity':'SEVERITY_MEDIUM'} for a in ledger['advisories']
+                    if a['scope']==scope and a['package']==package['package'] and a['status']=='exception']
+            self.hex_payload.append({'schema':'rindle-readiness-hex-v1','scope':scope,'lock_sha256':c.digest(text.encode()),
+                'hex_version':'2.5.1','online':True,'registry_signature_verification':True,'https_verified':True,
+                'packages':packages,'database':[{'key':['version'],'value_sha256':'f'*64}]})
+        (self.fixture/'hex.json').write_bytes(c.canonical([self.hex_payload,self.hex_payload]))
     def tearDown(self):shutil.rmtree(self.tmp)
     def put(self,path,body,status=200,headers=None):self.responses[path]=[{'status':status,'body':copy.deepcopy(body),'headers':headers or {}}]
     def subject_file(self,path,raw):self.put(prefix+'contents/'+path+'?ref='+sha,{'path':path,'type':'file','encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
     def body(self,path):return self.responses[path][0]['body']
-    def collect(self):
+    def collect(self,full=False):
         (self.fixture/'responses.json').write_bytes(c.canonical(self.responses))
-        collector=c.RemoteCollector(repo,sha,self.tmp/'out',self.fixture,'issues');code=collector.run()
+        collector=c.RemoteCollector(repo,sha,self.tmp/'out',self.fixture,None if full else 'issues');code=collector.run()
         value=c.read_json(collector.output/'verdict.json');self.assertFalse(value['requirements_credit'])
         portable=b''.join(f.read_bytes() for f in collector.portable.rglob('*') if f.is_file())
         self.assertNotIn(b'ADVISORY-CANARY-PRIVATE-BODY',portable)
@@ -90,6 +113,24 @@ class Remote(unittest.TestCase):
         self.body(prefix+'pulls/'+str(record['number']))['merged']=not record['terminal']['merged']
         # The issue-only tracer cannot close PR reconciliation; full mode must reject this in Task 2.
         code,_,_=self.collect();self.assertEqual(code,0)
+    def test_full_mode_cannot_claim_complete_from_issue_tracer(self):
+        code,value,collector=self.collect(full=True);self.assertEqual(code,0)
+        source=c.read_json(collector.portable/'sources.json')['sources']['remote-inventory']['source']['normalized']['sources']
+        self.assertEqual(set(source),{'issues','pulls','checks','statuses','advisories','dependabot','hex','protection','absent'})
+        self.assertIn('database_sha256',source['hex'])
+    def test_full_mode_runs_actual_existing_ledger_validator(self):
+        record=next(r for r in ledger['items'] if r['kind']=='pr' and 'terminal' in r)
+        self.body(prefix+'pulls/'+str(record['number']))['merged']=not record['terminal']['merged']
+        code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'ledger_reconciliation_failed')
+    def test_unpublished_advisory_404_cannot_be_empty(self):
+        self.put(prefix+'security-advisories?state=draft&per_page=100',{},404)
+        code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_unavailable')
+    def test_missing_advisory_scope_cannot_be_empty(self):
+        self.responses[prefix+'security-advisories?state=draft&per_page=100'][0]['headers']={'x-oauth-scopes':'public_repo'}
+        code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'advisory_visibility_unproved')
+    def test_null_security_source_is_unavailable(self):
+        self.put(prefix+'dependabot/alerts?state=open%2Cdismissed%2Cfixed%2Cauto_dismissed&per_page=100',None)
+        code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'incomplete_pages')
     def test_actual_cli_tracer_uses_same_fixture(self):
         (self.fixture/'responses.json').write_bytes(c.canonical(self.responses));out=self.tmp/'cli'
         result=subprocess.run(['bash',str(root/'scripts/maintainer/collect_readiness_remote.sh'),'--repo',repo,'--subject',sha,
