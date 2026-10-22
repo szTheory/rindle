@@ -833,7 +833,7 @@ Plans:
 Plans:
 **Wave 1**
 - [x] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
-- [ ] 139-01-PLAN.md — Validate the immutable readiness evidence graph
+- [x] 139-01-PLAN.md — Validate the immutable readiness evidence graph
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 139-02-PLAN.md — Qualify an isolated exact-subject checkout and packaged recovery matrix
@@ -861,7 +861,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 1/8 | Executing | - |
+| 139. Exact-Head Readiness Closure | 2/8 | Executing | - |
 
 ---
-*Last updated: 2026-10-22 during Phase 139 inline execution: Plan 00 verified; 1/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
+*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00 and 01 verified; 2/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
