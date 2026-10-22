@@ -29,10 +29,12 @@ def json_bytes(raw):
 
 
 class GitHub:
-    def __init__(self, repo, private, fixture=None, budget=180):
+    def __init__(self, repo, private, fixture=None, budget=180, max_calls=400):
         require(re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repo), 'invalid_repository')
         self.repo, self.private = repo, Path(private)
         self.private.mkdir(mode=0o700, parents=True, exist_ok=True)
+        require(type(max_calls) is int and 1<=max_calls<=3000, 'remote_call_limit_policy')
+        self.max_calls=max_calls
         self.deadline = time.monotonic() + budget
         self.fixture = read_json(Path(fixture)/'responses.json') if fixture is not None else None
         require(fixture is None or isinstance(self.fixture,dict),'fixture_response_map_invalid')
@@ -49,8 +51,9 @@ class GitHub:
     def path(self, suffix):
         return 'repos/' + self.repo + '/' + suffix
 
-    def get(self, path, binary=False):
-        require(time.monotonic() < self.deadline and len(self.calls) < 400, 'remote_budget_exhausted')
+    def get(self, path, binary=False, limit=MAX_BYTES):
+        require(type(limit) is int and 0<limit<=256_000_000 and (binary or limit==MAX_BYTES), 'remote_limit_policy')
+        require(time.monotonic() < self.deadline and len(self.calls) < self.max_calls, 'remote_budget_exhausted')
         require(not path.startswith('/') and not urlsplit(path).scheme and '\\' not in path,
                 'unsafe_api_path')
         require(path.startswith('repos/'+self.repo+'/') or path == 'repos/'+self.repo or
@@ -73,12 +76,12 @@ class GitHub:
                         stdout=stream, stderr=subprocess.DEVNULL)
                     end = min(self.deadline, time.monotonic()+35)
                     while child.poll() is None:
-                        require(stream.tell() <= MAX_BYTES, 'remote_response_limit')
+                        require(stream.tell() <= limit, 'remote_response_limit')
                         if time.monotonic() >= end:
                             child.kill(); child.wait(); raise NotReady('remote_timeout')
                         time.sleep(0.03)
-                    require(stream.tell() <= MAX_BYTES, 'remote_response_limit')
-                    stream.seek(0); payload=stream.read(MAX_BYTES+1)
+                    require(stream.tell() <= limit, 'remote_response_limit')
+                    stream.seek(0); payload=stream.read(limit+1)
                 # gh --include emits one final HTTP header block, followed by response bytes.
                 match = re.match(rb'HTTP/[^\s]+ ([0-9]{3})[^\r\n]*\r?\n',payload)
                 require(match is not None, 'remote_unavailable')
@@ -95,7 +98,7 @@ class GitHub:
                 raise
             except (OSError, ValueError, UnicodeError) as exc:
                 raise NotReady('remote_unavailable') from exc
-        require(len(raw) <= MAX_BYTES, 'remote_response_limit')
+        require(len(raw) <= limit, 'remote_response_limit')
         record={'path':path,'status':status,'headers':headers,'body_sha256':digest(raw),'observed_at':now()}
         self.calls.append(record)
         prefix=f'{len(self.calls):04d}'

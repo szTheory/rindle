@@ -51,6 +51,22 @@
       "reason": "byte-for-byte copy of the retained Nightly failure fingerprint receipt (sha256 119b2f9a...); the match is the Elixir toolchain version, not a milestone"
     },
     {
+      "path": "scripts/ci/readiness_fixture.exs",
+      "class": "planning-path",
+      "text": "\"ledger_sha256\" => manifest[\"input_identity\"][\".planning/INBOX-LEDGER.json\"],",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Exact source fixture for historical/current claim rejection and authoritative input binding; no runtime readiness credit."
+    },
+    {
+      "path": "scripts/ci/readiness_fixture.exs",
+      "class": "planning-path",
+      "text": "~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Exact source fixture for historical/current claim rejection and authoritative input binding; no runtime readiness credit."
+    },
+    {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
@@ -91,12 +107,20 @@
       "reason": "This fixture lists the check-run names the landing evidence script consumes."
     },
     {
-      "path": "scripts/ci/test_exact_head_readiness.sh",
-      "class": "planning-path",
-      "text": "\"remote-inventory\" -> %{\"ledger_sha256\" => manifest[\"input_identity\"][\".planning/INBOX-LEDGER.json\"], \"sources\" => Map.new(~w(issues pulls checks statuses advisories dependabot hex protection absent), fn source ->",
+      "path": "scripts/ci/test_readiness_acceptance.sh",
+      "class": "phase-ref",
+      "text": "path=self.tmp/'.planning';path.mkdir();(path/'REQUIREMENTS.md').write_text('| READY-05 | Phase 139 | Complete |\\n')",
       "count": 1,
       "reason_class": "fixture",
-      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+      "reason": "Exact source fixture for historical/current claim rejection and authoritative input binding; no runtime readiness credit."
+    },
+    {
+      "path": "scripts/ci/test_readiness_acceptance.sh",
+      "class": "spec-ref",
+      "text": "path=self.tmp/a.PHASE;path.mkdir(parents=True);(path/'139-07-SUMMARY.md').write_text('---\\nstatus: complete\\n---\\nready\\n')",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Exact source fixture for historical/current claim rejection and authoritative input binding; no runtime readiness credit."
     },
     {
       "path": "scripts/ci/test_readiness_runs.sh",

@@ -700,6 +700,9 @@ def cleanup_existing(root, output):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ('verify-subject','accept','claim-status'):
+        from readiness_acceptance import main as acceptance_main
+        return acceptance_main(argv)
     if argv and argv[0] in ('close','refresh'):
         from readiness_closure import main as closure_main
         return closure_main(argv)

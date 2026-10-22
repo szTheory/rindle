@@ -36,6 +36,14 @@
     },
     {
       "path": ".github/workflows/ci.yml",
+      "class": "milestone-ref",
+      "text": "uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Existing reviewed SHA-pinned BEAM action version comment for the readiness parser/producer runtime; no CI topology or release-authority change."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
       "class": "planning-path",
       "text": "! grep -A3 \"parent-death subprocess\" .planning/PROJECT.md | grep -q \"Rambo on macOS\"",
       "count": 1,
@@ -105,6 +113,14 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "class": "milestone-ref",
+      "text": "- uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Existing reviewed SHA-pinned BEAM action version comment for the readiness parser/producer runtime; no CI topology or release-authority change."
     },
     {
       "path": ".github/workflows/release.yml",
@@ -547,12 +563,44 @@
       "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
     },
     {
-      "path": "scripts/maintainer/readiness_closure.py",
-      "class": "planning-path",
-      "text": "paths=['.planning/REQUIREMENTS.md','.planning/PROJECT.md','mix.exs','.release-please-manifest.json']",
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "phase-ref",
+      "text": "if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\\s*complete\\s*$|.*\\|\\s*(?:139|Phase 139)[^\\n]*\\|\\s*Complete\\s*\\||.*Phase 139:\\s*Complete\\b)',text):",
       "count": 1,
       "reason_class": "policy",
-      "reason": "Candidate and refresh adoption parity reads the actual authoritative requirements, project and release-intent inputs; synthetic evidence cannot close the independent pilot or 1.0 gate."
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "planning-path",
+      "text": "PHASE='.planning/phases/139-exact-head-readiness-closure'",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "planning-path",
+      "text": "paths=[root/'.planning/REQUIREMENTS.md',root/'.planning/ROADMAP.md',root/'.planning/STATE.md',",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "spec-ref",
+      "text": "if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\\s*complete\\s*$|.*\\|\\s*(?:139|Phase 139)[^\\n]*\\|\\s*Complete\\s*\\||.*Phase 139:\\s*Complete\\b)',text):",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_adoption.py",
+      "class": "planning-path",
+      "text": "INPUTS = ('.planning/REQUIREMENTS.md','.planning/PROJECT.md','mix.exs',",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
     },
     {
       "path": "scripts/maintainer/repo_hygiene_check.sh",
@@ -717,6 +765,14 @@
     {
       "path": "scripts/maintainer/validate_exact_head_readiness.exs",
       "class": "planning-path",
+      "text": ".planning/phases/139-exact-head-readiness-closure/139-preflight.sh",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
       "text": "config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json",
       "count": 1,
       "reason_class": "contract",
@@ -745,6 +801,14 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",

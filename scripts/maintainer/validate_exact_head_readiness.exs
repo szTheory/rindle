@@ -26,7 +26,12 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/exact_head_readiness.py scripts/maintainer/qualify_generated_consumer.exs
     scripts/maintainer/readiness_workflow.exs scripts/maintainer/readiness_github.py
     scripts/maintainer/collect_readiness_runs.py scripts/maintainer/collect_readiness_remote.py scripts/maintainer/readiness_closure.py scripts/maintainer/readiness_process.py
-    .release-please-manifest.json
+    .release-please-manifest.json release-please-config.json
+    .github/workflows/readiness-retention.yml
+    scripts/maintainer/readiness_adoption.py scripts/maintainer/readiness_retention.py
+    scripts/maintainer/readiness_acceptance.py scripts/maintainer/retain_readiness_bundle.sh
+    scripts/maintainer/exact_head_readiness.sh
+    .planning/phases/139-exact-head-readiness-closure/139-preflight.sh
     scripts/maintainer/readiness_hex_audit.exs scripts/maintainer/validate_inbox_ledger.sh
     examples/adoption_demo/mix.lock
     scripts/ci/run_nightly_dialyzer.sh scripts/maintainer/verify_contributor_bootstrap.sh
@@ -510,6 +515,19 @@ defmodule Rindle.ExactHeadReadiness do
 
       "adoption-parity" ->
         validate_adoption!(n["adoption"])
+
+        expected =
+          Map.take(
+            m["input_identity"],
+            ~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)
+          )
+
+        ensure!(
+          n["adoption_policy"] == "rindle-synthetic-adoption-v1" and
+            n["authoritative_inputs"] == expected,
+          "adoption_authority",
+          "adoption observations must bind every authoritative input"
+        )
     end
   end
 

@@ -1,0 +1,92 @@
+name: Readiness Retention
+run-name: Readiness ${{ inputs.request_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_subject:
+        description: Exact authenticated main SHA selected by the durable controller
+        required: true
+        type: string
+      request_id:
+        description: Unique controller request nonce
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: readiness-retention
+  cancel-in-progress: false
+
+jobs:
+  retain:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 190
+    outputs:
+      archive-id: ${{ steps.archive.outputs.artifact-id }}
+      archive-digest: ${{ steps.archive.outputs.artifact-digest }}
+      sidecar-id: ${{ steps.sidecar.outputs.artifact-id }}
+      sidecar-digest: ${{ steps.sidecar.outputs.artifact-digest }}
+    env:
+      MIX_ENV: test
+      ERL_FLAGS: '+S 4:4'
+      GH_TOKEN: ${{ secrets.READINESS_READ_TOKEN }}
+      EXPECTED_SUBJECT: ${{ inputs.expected_subject }}
+      REQUEST_ID: ${{ inputs.request_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Bind dispatch to main and require private-source read credentials
+        run: |
+          test "$GITHUB_SHA" = "$EXPECTED_SUBJECT"
+          test -n "$GH_TOKEN"
+          [[ "$REQUEST_ID" =~ ^[0-9a-f]{32}$ ]]
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT"
+      - uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
+        with:
+          otp-version: '27.3.4.15'
+          elixir-version: '1.17.3-otp-27'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '20.18.1'
+      - name: Native qualification prerequisites
+        run: |
+          bash scripts/ci/install_apt_packages.sh libvips-dev postgresql-client
+          bash scripts/ci/install_ffmpeg.sh
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get --check-locked
+          mix compile --warnings-as-errors
+          npm ci --prefix examples/adoption_demo
+          (cd examples/adoption_demo && npx playwright install-deps chromium)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Collect exact-main candidate
+        run: bash scripts/maintainer/exact_head_readiness.sh close --repo "$GITHUB_REPOSITORY" --output "$RUNNER_TEMP/readiness-candidate"
+      - name: Prepare redacted archive and separate producer digests
+        id: prepare
+        run: bash scripts/maintainer/retain_readiness_bundle.sh prepare --manifest "$RUNNER_TEMP/readiness-candidate/portable/manifest.json" --output "$RUNNER_TEMP/readiness-upload"
+      - name: Upload immutable archive
+        id: archive
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.prepare.outputs.archive_name }}
+          path: ${{ steps.prepare.outputs.archive_path }}
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 30
+          compression-level: 0
+      - name: Upload separate producer digest sidecar
+        id: sidecar
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.prepare.outputs.sidecar_name }}
+          path: ${{ steps.prepare.outputs.sidecar_path }}
+          if-no-files-found: error
+          overwrite: false
+          retention-days: 30

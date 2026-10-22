@@ -16,8 +16,7 @@ class ClosureTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.shared=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-closure-shared-')).resolve()
-        shell=(root/'scripts/ci/test_exact_head_readiness.sh').read_text()
-        fixture='defmodule ReadinessFixture do'+shell.split('defmodule ReadinessFixture do',1)[1].split('\ndefmodule ReadinessPolicyTest do',1)[0]
+        fixture='Code.require_file("scripts/ci/readiness_fixture.exs")\n'
         script=cls.shared/'generate.exs'
         script.write_text('Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs")\n'+fixture+'''
 {base,m} = ReadinessFixture.fixture()

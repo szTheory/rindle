@@ -220,17 +220,8 @@ class Closure:
         return {'adoption-parity':(packet,root)}
 
     def adoption_facts(self):
-        # The full authoritative claim reader and mutation suite are completed in the retention plan.
-        paths=['.planning/REQUIREMENTS.md','.planning/PROJECT.md','mix.exs','.release-please-manifest.json']
-        inputs={p:(ROOT/p).read_bytes() for p in paths};requirements=inputs[paths[0]].decode();project=inputs[paths[1]].decode()
-        for id in ('PILOT-01','PILOT-02'):
-            require(re.search(r'(?m)^- (?:\[ \] )?\*\*'+id+r'\*\*:',requirements) and
-                    not re.search(r'(?im)^.*\[[xX]\].*'+id,requirements),'adoption_inflation')
-        version=re.search(r'@version\s+"([^"]+)"',inputs['mix.exs'].decode())
-        require(version and version[1].startswith('0.') and read_json(ROOT/'.release-please-manifest.json').get('.', '').startswith('0.'),'adoption_inflation')
-        require('does not satisfy the named independent Phoenix pilot gate' in project and 'synthetic twin cannot satisfy it' in project,'adoption_inflation')
-        return {'adoption':{'class':'maintainer_operated_synthetic','independent_pilot_credit':False,'pilot_01':'open','pilot_02':'open','one_point_zero_authority':False},
-                'authoritative_inputs':{p:digest(data) for p,data in inputs.items()}}
+        from readiness_adoption import check
+        return check(ROOT)
 
     def collect(self,position):
         value={**self.producer_sources('runs',position),**self.producer_sources('remote',position),**self.adoption(position)}
