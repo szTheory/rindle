@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
+  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
   "phases": [
     {
       "number": "133",
@@ -31,7 +31,7 @@
     {
       "number": "138",
       "name": "Lifecycle Failure and Recovery Matrix",
-      "status": "in_progress"
+      "status": "complete"
     },
     {
       "number": "139",
@@ -40,9 +40,9 @@
     }
   ],
   "next": {
-    "command": "$gsd-execute-phase 138",
-    "label": "Execute Phase 138",
-    "reason": "All six plans committed and summarized. Full matrix, separate verification, repeated cleanup and final CI pass; finish normal phase verification and closeout without replaying production work."
+    "command": "$gsd-progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 7 of 7 · 86% · executing"
   },
-  "updated_at": "2026-10-22T15:31:32.148494+00:00"
+  "updated_at": "2026-10-22T15:43:23.829Z"
 }

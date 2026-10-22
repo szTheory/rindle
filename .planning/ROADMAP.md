@@ -27,7 +27,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 - [x] **Phase 135: Repository and Code-Craft Consolidation** - Remove only proven residue and improve candidate-backed readability under preserved contracts. (completed 2026-10-20)
 - [x] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed. (completed 2026-10-21)
 - [x] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup. (completed 2026-10-21)
-- [ ] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries.
+- [x] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries. (completed 2026-10-22)
 - [ ] **Phase 139: Exact-Head Readiness Closure** - Produce one fail-closed, exact-head readiness verdict while keeping independent adoption open.
 
 ## Phase Details
@@ -795,7 +795,7 @@ Plans:
   4. Duplicate and out-of-order provider events plus a host restart between durable stages converge without duplicate provider state, duplicate stimulus, lost work, inconsistent terminal state, or secret-bearing telemetry.
   5. After an interrupted cleanup, an idempotent janitor rerun leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue, and the full matrix emits independently verified receipts.
 
-**Plans**: 6/6 plans executed; phase verification pending
+**Plans**: 6/6 plans complete; phase verification pending
 
 **Wave 1**
 - [x] 138-01-PLAN.md — Packaged tus client interruption and independently verified exact offset/asset inventory.
@@ -841,7 +841,7 @@ Plans:
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
-| 138. Lifecycle Failure and Recovery Matrix | 6/6 | Verification Pending | - |
+| 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---

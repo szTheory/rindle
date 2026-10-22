@@ -54,12 +54,12 @@ completion credit.
 
 ### Failure and Recovery Matrix
 
-- [ ] **RECOV-01**: An interrupted tus upload resumes from committed offset after client recreation and converges to exactly one ready asset and object.
-- [ ] **RECOV-02**: A transient storage-delete failure preserves durable state, produces an Oban retry, succeeds later, and treats authoritative absence idempotently.
-- [ ] **RECOV-03**: A real AV processing failure becomes visible through supported diagnostics and recovers through the supported repair path.
-- [ ] **RECOV-04**: Duplicate and out-of-order provider events converge idempotently without duplicate provider state or secret-bearing telemetry.
-- [ ] **RECOV-05**: Host restart between durable lifecycle stages resumes without duplicate stimulus, lost work, or inconsistent terminal state.
-- [ ] **RECOV-06**: Interrupted cleanup followed by an idempotent janitor run leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue.
+- [x] **RECOV-01**: An interrupted tus upload resumes from committed offset after client recreation and converges to exactly one ready asset and object.
+- [x] **RECOV-02**: A transient storage-delete failure preserves durable state, produces an Oban retry, succeeds later, and treats authoritative absence idempotently.
+- [x] **RECOV-03**: A real AV processing failure becomes visible through supported diagnostics and recovers through the supported repair path.
+- [x] **RECOV-04**: Duplicate and out-of-order provider events converge idempotently without duplicate provider state or secret-bearing telemetry.
+- [x] **RECOV-05**: Host restart between durable lifecycle stages resumes without duplicate stimulus, lost work, or inconsistent terminal state.
+- [x] **RECOV-06**: Interrupted cleanup followed by an idempotent janitor run leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue.
 
 ### Exact-Head Closure
 
@@ -130,12 +130,12 @@ completion credit.
 | TWIN-04 | Phase 137 | Complete |
 | TWIN-05 | Phase 137 | Complete |
 | TWIN-06 | Phase 137 | Complete |
-| RECOV-01 | Phase 138 | Pending |
-| RECOV-02 | Phase 138 | Pending |
-| RECOV-03 | Phase 138 | Pending |
-| RECOV-04 | Phase 138 | Pending |
-| RECOV-05 | Phase 138 | Pending |
-| RECOV-06 | Phase 138 | Pending |
+| RECOV-01 | Phase 138 | Complete |
+| RECOV-02 | Phase 138 | Complete |
+| RECOV-03 | Phase 138 | Complete |
+| RECOV-04 | Phase 138 | Complete |
+| RECOV-05 | Phase 138 | Complete |
+| RECOV-06 | Phase 138 | Complete |
 | READY-01 | Phase 139 | Pending |
 | READY-02 | Phase 139 | Pending |
 | READY-03 | Phase 139 | Pending |
