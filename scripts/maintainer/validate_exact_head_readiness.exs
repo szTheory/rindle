@@ -1,3 +1,6 @@
+unless Code.ensure_loaded?(Rindle.ReadinessHexAudit),
+  do: Code.require_file("readiness_hex_audit.exs", __DIR__)
+
 unless Code.ensure_loaded?(Rindle.ReadinessWorkflow),
   do: Code.require_file("readiness_workflow.exs", __DIR__)
 
@@ -9,6 +12,8 @@ defmodule Rindle.ExactHeadReadiness do
                          File.read!(Path.join(__DIR__, "readiness_workflow.exs"))
                        )
                        |> Base.encode16(case: :lower)
+  @hex_helper_sha :crypto.hash(:sha256, File.read!(Path.join(__DIR__, "readiness_hex_audit.exs")))
+                  |> Base.encode16(case: :lower)
   @ci_guard "0fd9484418302825a2120a13d9c38d71e22f4621c40e0c0f7ed72d5074b1ba27"
   @release_guard "324c0c57e801b1e09e304a89008c9dfd92699951a75ff1e82b6dfb636a45d322"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
@@ -20,7 +25,9 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/artifact_ledger.json scripts/maintainer/refactor_contract.sh
     scripts/maintainer/exact_head_readiness.py scripts/maintainer/qualify_generated_consumer.exs
     scripts/maintainer/readiness_workflow.exs scripts/maintainer/readiness_github.py
-    scripts/maintainer/collect_readiness_runs.py
+    scripts/maintainer/collect_readiness_runs.py scripts/maintainer/collect_readiness_remote.py
+    scripts/maintainer/readiness_hex_audit.exs scripts/maintainer/validate_inbox_ledger.sh
+    examples/adoption_demo/mix.lock
     scripts/ci/run_nightly_dialyzer.sh scripts/maintainer/verify_contributor_bootstrap.sh
     scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/built_package_twin.py
     scripts/maintainer/twin_receipt.py scripts/maintainer/twin_cleanup.py
@@ -190,6 +197,12 @@ defmodule Rindle.ExactHeadReadiness do
       m["input_identity"]["scripts/maintainer/readiness_workflow.exs"] == @workflow_helper_sha,
       "tool_identity",
       "topology evaluator differs"
+    )
+
+    ensure!(
+      m["input_identity"]["scripts/maintainer/readiness_hex_audit.exs"] == @hex_helper_sha,
+      "tool_identity",
+      "Hex evaluator differs"
     )
 
     validate_refs!(m["input_files"], c)
@@ -492,7 +505,7 @@ defmodule Rindle.ExactHeadReadiness do
         validate_protection!(n)
 
       "remote-inventory" ->
-        validate_inventory!(n)
+        validate_inventory!(n, m, c, r["references"])
 
       "adoption-parity" ->
         validate_adoption!(n["adoption"])
@@ -741,7 +754,7 @@ defmodule Rindle.ExactHeadReadiness do
     )
   end
 
-  defp validate_inventory!(i) do
+  defp validate_inventory!(i, m, c, references) do
     sources = i["sources"]
 
     ensure!(
@@ -768,10 +781,110 @@ defmodule Rindle.ExactHeadReadiness do
     end)
 
     ensure!(
-      sha?(sources["hex"]["database_sha256"]),
-      "hex_identity",
-      "Hex database identity absent"
+      i["ledger_sha256"] == m["input_identity"][".planning/INBOX-LEDGER.json"],
+      "remote_inventory",
+      "ledger identity differs"
     )
+
+    database = sources["hex"]["database"]
+
+    ensure!(
+      is_map(database) and database in references and
+        database["sha256"] == sources["hex"]["database_sha256"],
+      "hex_identity",
+      "Hex database reference absent"
+    )
+
+    payloads = decode!(object!(database, c))["audits"]
+
+    locks = %{
+      "root" => object!(m["input_files"]["mix.lock"], c),
+      "examples/adoption_demo" => object!(m["input_files"]["examples/adoption_demo/mix.lock"], c)
+    }
+
+    validate_hex_payloads!(payloads, locks)
+  end
+
+  def validate_hex(payloads, locks) do
+    validate_hex_payloads!(payloads, locks)
+    %{"ok" => true}
+  rescue
+    _ -> %{"ok" => false, "reason" => "hex_identity"}
+  catch
+    {:invalid, id, _detail} -> %{"ok" => false, "reason" => id}
+  end
+
+  defp validate_hex_payloads!(payloads, locks) do
+    ensure!(
+      is_list(payloads) and
+        Enum.sort(Enum.map(payloads, & &1["scope"])) == ~w(examples/adoption_demo root),
+      "hex_identity",
+      "separate root/demo audits required"
+    )
+
+    Enum.each(payloads, fn audit ->
+      lock = locks[audit["scope"]]
+      {:ok, expected} = Rindle.ReadinessHexAudit.lock_packages(lock)
+
+      ensure!(
+        audit["schema"] == "rindle-readiness-hex-v1" and audit["hex_version"] == "2.5.1" and
+          audit["online"] === true and
+          audit["registry_signature_verification"] === true and audit["https_verified"] === true and
+          audit["lock_sha256"] == sha256(lock),
+        "hex_identity",
+        "unverified registry or foreign lock"
+      )
+
+      packages = audit["packages"]
+
+      ensure!(
+        is_list(packages) and
+          Enum.sort(Enum.map(packages, &Map.take(&1, ~w(package version)))) ==
+            Enum.sort(Enum.map(expected, &Map.take(&1, ~w(package version)))),
+        "hex_identity",
+        "partial lock coverage"
+      )
+
+      Enum.each(packages, fn p ->
+        ensure!(
+          p["retired"] === false and is_list(p["advisories"]),
+          "hex_identity",
+          "retired or unavailable package"
+        )
+      end)
+
+      records = audit["database"]
+
+      ensure!(
+        is_list(records) and length(records) in 1..200_000 and
+          length(Enum.uniq_by(records, & &1["key"])) == length(records),
+        "hex_identity",
+        "invalid database inventory"
+      )
+
+      Enum.each(records, fn record ->
+        ensure!(
+          is_list(record["key"]) and sha?(record["value_sha256"]),
+          "hex_identity",
+          "invalid database identity"
+        )
+      end)
+
+      values = Map.new(records, &{&1["key"], &1["value_sha256"]})
+
+      Enum.each(expected, fn package ->
+        key = ["outer_checksum", "hexpm", package["package"], package["version"]]
+        outer = Base.decode16!(package["outer_checksum"], case: :lower)
+
+        ensure!(
+          values[key] == sha256(:erlang.term_to_binary(outer)) and
+            sha?(values[["advisories", "hexpm", package["package"], package["version"]]]) and
+            sha?(values[["versions", "hexpm", package["package"]]]),
+          "hex_identity",
+          "database lacks a locked package record"
+        )
+      end)
+    end)
   end
 
   defp validate_refresh!(e, m, c) do

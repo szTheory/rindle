@@ -91,6 +91,14 @@
       "reason": "This fixture lists the check-run names the landing evidence script consumes."
     },
     {
+      "path": "scripts/ci/test_exact_head_readiness.sh",
+      "class": "planning-path",
+      "text": "\"remote-inventory\" -> %{\"ledger_sha256\" => manifest[\"input_identity\"][\".planning/INBOX-LEDGER.json\"], \"sources\" => Map.new(~w(issues pulls checks statuses advisories dependabot hex protection absent), fn source ->",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+    },
+    {
       "path": "scripts/ci/test_readiness_runs.sh",
       "class": "planning-path",
       "text": "(root/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json').read_bytes())",

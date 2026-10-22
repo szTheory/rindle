@@ -291,6 +291,22 @@
       "reason": "Exclusion pattern: maintainer planning files are outside the adopter-docs link check."
     },
     {
+      "path": "scripts/maintainer/collect_readiness_remote.py",
+      "class": "phase-ref",
+      "text": "verdict['next_action']='Phase 134 disposition owner: reconcile the current ledger against restricted collected evidence, then collect again'",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+    },
+    {
+      "path": "scripts/maintainer/collect_readiness_remote.py",
+      "class": "planning-path",
+      "text": "LEDGER = '.planning/INBOX-LEDGER.json'",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+    },
+    {
       "path": "scripts/maintainer/collect_readiness_runs.py",
       "class": "planning-path",
       "text": "'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']",
@@ -697,6 +713,14 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "i[\"ledger_sha256\"] == m[\"input_identity\"][\".planning/INBOX-LEDGER.json\"],",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
     },
     {
       "path": "scripts/maintainer/validate_exact_head_readiness.exs",

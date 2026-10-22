@@ -389,6 +389,11 @@ case System.argv() do
             {:error, reason} -> %{"ok" => false, "reason" => reason}
           end
 
+        "hex" ->
+          System.put_env("RINDLE_EXACT_HEAD_LIBRARY_ONLY", "1")
+          Code.require_file("validate_exact_head_readiness.exs", __DIR__)
+          Rindle.ExactHeadReadiness.validate_hex(request["payloads"], request["locks"])
+
         "validate" ->
           System.put_env("RINDLE_EXACT_HEAD_LIBRARY_ONLY", "1")
           Code.require_file("validate_exact_head_readiness.exs", __DIR__)

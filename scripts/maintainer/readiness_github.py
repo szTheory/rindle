@@ -34,7 +34,8 @@ class GitHub:
         self.repo, self.private = repo, Path(private)
         self.private.mkdir(mode=0o700, parents=True, exist_ok=True)
         self.deadline = time.monotonic() + budget
-        self.fixture = read_json(Path(fixture)/'responses.json') if fixture else None
+        self.fixture = read_json(Path(fixture)/'responses.json') if fixture is not None else None
+        require(fixture is None or isinstance(self.fixture,dict),'fixture_response_map_invalid')
         self.calls, self.counts = [], {}
         self.repo_id = None
         if self.fixture is None:
@@ -145,8 +146,11 @@ class GitHub:
                 if self.repo_id:valid_paths.add(numeric.replace('repos/'+self.repo,'repositories/'+str(self.repo_id),1))
             require(root_path in valid_paths, 'foreign_next_page')
             query=parse_qs(nxt.query)
-            require({k:v for k,v in query.items() if k!='page'} == {k:v for k,v in filters.items() if k!='page'} and
-                    len(query.get('page',[]))==1 and query['page'][0].isdigit(), 'pagination_query_drift')
+            cursor_keys={'page','before','after'}
+            cursors=[k for k in cursor_keys if k in query]
+            require({k:v for k,v in query.items() if k not in cursor_keys} == {k:v for k,v in filters.items() if k not in cursor_keys} and
+                    len(cursors)==1 and len(query[cursors[0]])==1 and 0<len(query[cursors[0]][0])<=1024 and
+                    (cursors[0]!='page' or query['page'][0].isdigit()), 'pagination_query_drift')
         require(total is None or len(result)==total, 'incomplete_pages')
         return result
 

@@ -41,7 +41,7 @@ defmodule ReadinessFixture do
   def fixture do
     root = Path.join(System.fetch_env!("RINDLE_READINESS_TEST_ROOT"), "case-#{System.unique_integer([:positive])}")
     File.mkdir_p!(root)
-    input_files = Map.new(V.input_paths(), &{&1, put(root, "inputs/#{&1}", if(&1 in [".github/workflows/ci.yml", ".github/workflows/nightly.yml", ".github/workflows/release.yml", "scripts/maintainer/readiness_workflow.exs"], do: File.read!(&1), else: "fixture committed input #{&1}"))})
+    input_files = Map.new(V.input_paths(), &{&1, put(root, "inputs/#{&1}", if(&1 in [".github/workflows/ci.yml", ".github/workflows/nightly.yml", ".github/workflows/release.yml", "scripts/maintainer/readiness_workflow.exs", "scripts/maintainer/readiness_hex_audit.exs", "mix.lock", "examples/adoption_demo/mix.lock"], do: File.read!(&1), else: "fixture committed input #{&1}"))})
     package_files = Map.new(~w(package_tar_sha256 package_metadata_sha256 package_tree_sha256), &{&1, put(root, "package/#{&1}", "fixture bytes #{&1}")})
     manifest = %{
       "schema_version" => 1, "repository" => "szTheory/rindle", "subject_sha" => String.duplicate("a", 40),
@@ -65,8 +65,14 @@ defmodule ReadinessFixture do
         else
           n
         end
+        n = if id == "remote-inventory" do
+          database = put(root, "hex-database.json", %{"audits" => hex_payloads()})
+          n |> put_in(["sources", "hex", "database"], database) |> put_in(["sources", "hex", "database_sha256"], database["sha256"]) |> put_in(["sources", "hex", "count"], 2)
+        else
+          n
+        end
         observations = Enum.map(["before", "after"], &put(root, "observations/#{id}-#{&1}.json", n))
-        Map.merge(receipt, %{"references" => observations ++ if(id == "nightly-scheduled", do: [n["incident_artifact"]], else: []), "source" => %{
+        Map.merge(receipt, %{"references" => observations ++ extra_refs(n, id), "source" => %{
           "complete" => true, "authenticated" => true, "query" => "fixture/#{id}", "pages" => 1, "observation_interval" => interval(),
           "before_sha256" => hd(observations)["sha256"], "after_sha256" => List.last(observations)["sha256"],
           "observations" => observations, "policy" => V.policy(), "normalized" => n}})
@@ -81,6 +87,26 @@ defmodule ReadinessFixture do
     {root, manifest}
   end
 
+  def extra_refs(n, "nightly-scheduled"), do: [n["incident_artifact"]]
+  def extra_refs(n, "remote-inventory"), do: [n["sources"]["hex"]["database"]]
+  def extra_refs(_n, _id), do: []
+
+  def hex_payloads do
+    Enum.map([{"root", "mix.lock"}, {"examples/adoption_demo", "examples/adoption_demo/mix.lock"}], fn {scope, path} ->
+      lock = File.read!(path)
+      {:ok, packages} = Rindle.ReadinessHexAudit.lock_packages(lock)
+      database = Enum.flat_map(packages, fn p ->
+        outer = p["outer_checksum"] |> Base.decode16!(case: :lower) |> :erlang.term_to_binary() |> V.sha256()
+        [%{"key" => ["outer_checksum", "hexpm", p["package"], p["version"]], "value_sha256" => outer},
+         %{"key" => ["advisories", "hexpm", p["package"], p["version"]], "value_sha256" => V.sha256("fixture advisories")},
+         %{"key" => ["versions", "hexpm", p["package"]], "value_sha256" => V.sha256("fixture versions")}]
+      end)
+      %{"schema" => "rindle-readiness-hex-v1", "scope" => scope, "lock_sha256" => V.sha256(lock), "hex_version" => "2.5.1", "online" => true,
+        "https_verified" => true, "registry_signature_verification" => true, "database" => database,
+        "packages" => Enum.map(packages, &(Map.take(&1, ~w(package version)) |> Map.merge(%{"retired" => false, "advisories" => []})))}
+    end)
+  end
+
   def normalized(id, manifest) do
     base = Map.take(manifest, ~w(repository subject_sha))
     specific = case id do
@@ -88,7 +114,7 @@ defmodule ReadinessFixture do
       "nightly-scheduled" -> run("Nightly", "schedule", "nightly.yml")
       "protection" -> %{"classic_visible" => true, "rulesets_visible" => true, "organization_visible" => true, "enforced" => true, "strict" => true, "classic_admin_enforced" => false, "active_rulesets" => [], "bypass_actors" => [], "effective_checks" => [%{"context" => "CI Summary", "app_id" => 15368}]}
       "adoption-parity" -> %{"adoption" => adoption()}
-      "remote-inventory" -> %{"sources" => Map.new(~w(issues pulls checks statuses advisories dependabot hex protection absent), fn source ->
+      "remote-inventory" -> %{"ledger_sha256" => manifest["input_identity"][".planning/INBOX-LEDGER.json"], "sources" => Map.new(~w(issues pulls checks statuses advisories dependabot hex protection absent), fn source ->
         {source, %{"complete" => true, "authorized" => true, "reconciled" => true, "changed" => false, "count" => 0, "identity_sha256" => V.sha256("fixture inventory"), "database_sha256" => V.sha256("fixture Hex database")}}
       end)}
     end
@@ -138,7 +164,7 @@ defmodule ReadinessFixture do
       observations = Enum.map(["before", "after"], &put(root, "mutated/#{id}-#{&1}.json", n))
       source = r["source"] |> Map.put("normalized", n) |> Map.put("observations", observations)
         |> Map.put("before_sha256", hd(observations)["sha256"]) |> Map.put("after_sha256", List.last(observations)["sha256"])
-      r |> Map.put("source", source) |> Map.put("references", observations ++ if(id == "nightly-scheduled", do: [n["incident_artifact"]], else: []))
+      r |> Map.put("source", source) |> Map.put("references", observations ++ extra_refs(n, id))
     end)
   end
 

@@ -220,6 +220,16 @@ class Runs(unittest.TestCase):
         self.responses[path][0]['headers']={'link':'<https://api.github.com/'+second+'>; rel="next"'}
         self.put(second,{'total_count':2,'workflow_runs':[old]})
         code,_,_=self.collect('ci');self.assertEqual(code,0)
+    def test_null_fixture_map_never_falls_through_to_authenticated_network(self):
+        (self.fixture/'responses.json').write_text('null')
+        with patch('readiness_github.subprocess.run',side_effect=AssertionError('fixture reached network')):
+            with self.assertRaisesRegex(c.NotReady,'fixture_response_map_invalid'):
+                GitHub(repo,self.tmp/'invalid-private',self.fixture)
+    def test_explicit_empty_fixture_path_never_enables_live_mode(self):
+        collector=c.Collector(repo,sha,self.tmp/'empty-fixture','',only='ci')
+        with patch('readiness_github.subprocess.run',side_effect=AssertionError('fixture reached network')):
+            self.assertEqual(collector.run(),1)
+        self.assertEqual(c.read_json(collector.output/'verdict.json')['evidence_mode'],'fixture')
     def test_main_moves(self):
         path=prefix+'git/ref/heads/main';self.responses[path].append(copy.deepcopy(self.responses[path][0]))
         self.responses[path][1]['body']['object']['sha']='b'*40;self.rejected('main_changed','ci')

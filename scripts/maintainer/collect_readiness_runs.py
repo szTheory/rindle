@@ -44,7 +44,7 @@ class Collector:
         self.portable=self.output/'portable';self.portable.mkdir(mode=0o700)
         self.fixture=fixture
         self.api=None
-        self.mode='fixture' if fixture else 'execution'
+        self.mode='fixture' if fixture is not None else 'execution'
         self.only=only
         self.inputs={};self.artifacts={}
 
