@@ -835,18 +835,20 @@ Plans:
 - [x] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
 - [x] 139-01-PLAN.md — Validate the immutable readiness evidence graph
 
-**Wave 2** *(blocked on Wave 1 completion)*
+**Wave 2**
 - [x] 139-02-PLAN.md — Qualify an isolated exact-subject checkout and packaged recovery matrix
 - [x] 139-03-PLAN.md — Collect full main CI, scheduled Nightly, and effective protection
+
+**Wave 3**
 - [x] 139-04-PLAN.md — Refresh complete inbox and security dispositions
 
-**Wave 3** *(blocked on Wave 2 completion)*
+**Wave 4**
 - [x] 139-05-PLAN.md — Join local and remote evidence into a bounded candidate verdict
 
-**Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 139-06-PLAN.md — Retain byte-verified evidence and enforce honest adoption claims
+**Wave 5**
+- [x] 139-06-PLAN.md — Retain byte-verified evidence and enforce honest adoption claims
 
-**Wave 5** *(blocked on Wave 4 completion)*
+**Wave 6** *(requires merged main and actual live prerequisites)*
 - [ ] 139-07-PLAN.md — Run final post-merge main acceptance with historical claim scope
 
 ## Progress
@@ -861,7 +863,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 6/8 | Executing | - |
+| 139. Exact-Head Readiness Closure | 7/8 | Executing | - |
 
 ---
-*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–05 verified; 6/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
+*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–06 verified; 7/8 plans complete. Plan 07 awaits actual post-merge main acceptance. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*

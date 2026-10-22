@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase 139 Plans 00–05 verified; executing Plan 06 inline
-last_updated: "2026-10-22T21:57:37.855230+00:00"
-state_head: d964045e5a1f18b6f93117241e341bc4cdfc5dec
+stopped_at: Phase 139 Plans 00–06 verified; Plan 07 awaits merged main and live prerequisites
+last_updated: "2026-10-22T22:33:28.155444+00:00"
+state_head: 9ebf92ad
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 233
-  completed_plans: 231
+  completed_plans: 232
 last_activity: 2026-10-22
 current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
-current_plan: 139-06
-last_activity_desc: "Six plans verified; Plan 06 retention, acceptance and adoption parity active inline. All READY requirements remain pending."
+current_plan: 139-07
+last_activity_desc: "Seven plans verified; Plan 07 needs merged main, authorized security reads, scheduled proof and durable storage. All READY requirements remain pending."
 ---
 
 ## Project Reference
@@ -29,8 +29,8 @@ The primary checkout retains separate historical work; preserve it.
 ## Current Position
 
 Phase 139 executes inline at the user's request. Do not dispatch executors for this run.
-Plans 00–05 are verified and committed; 6/8 plans complete across six waves.
-Plan 06 is active: durable retention, authoritative adoption parity, acceptance/claim commands and CI/docs integration.
+Plans 00–06 are verified and committed; 7/8 plans complete across six waves.
+Plan 07 is pending: actual post-merge acceptance on clean main. No producer dispatch or terminal execution acceptance has run.
 
 Doctor's configured-host ledger correction passed 66 focused tests and the unchanged
 quality policy. The offline validator passed 57 fixtures; the isolated qualifier passed
@@ -53,12 +53,22 @@ This is historical prerequisite evidence, not current-main readiness.
 
 ## Next GSD Command
 
-Execution is active inline. If interrupted, resume `$gsd-execute-phase 139` now in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`, starting Plan 06.
-Do not replay completed plans or consumed Phase 133 authorizations. Preserve the primary
-checkout's historical work. Plan 06 still owns CI fixture-runtime/preflight portability
-integration; Plan 07 requires all intended changes merged, current CI and a real scheduled
-Nightly, complete remote visibility, and verified durable retained bytes.
+Resume `$gsd-execute-phase 139` in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` after the complete
+PR train reaches main and the live prerequisites below are repaired. Resume Plan 07;
+do not replay completed plans, consumed authorizations or the deferred speed job.
+
+Plan 06 passes all 290 cheap fixtures in 83 seconds, 58 owner regressions, unchanged
+quality policies and existing workflow truth checks. Its producer/retrieval/controller,
+authoritative parity and current/historical claim commands are committed. The real
+subject guard correctly refuses this unmerged checkout.
+
+Live prerequisites: merge approval/green PR checks; successful newest scheduled Nightly
+on the accepted main; ledger reconciliation for observed PRs 144–146; authorized
+Dependabot/private-source visibility (Dependabot GET returned 403); provisioning the
+currently absent READINESS_READ_TOKEN producer secret; and a restricted durable host
+path outside temp/runner storage. These require actual live evidence. READY-01–05
+remain open. No security/credential/protection setting or release was changed.
 
 ## Decisions and Verification Debt
 
