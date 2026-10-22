@@ -40,7 +40,17 @@ strict private receipts and safe owned-resource cleanup passed. Default regressi
 1717 tests plus 3 doctests, zero failures; final focused checks: 63 tests, zero failures.
 No new CI lane, public API, independent-pilot, AV-execution, numeric-speed or readiness
 credit. Doctor's legacy/host migration-ledger false failure is explicitly deferred;
-actual catalog/version/image/storage probes passed. Phase 138/139 remain open.
+actual catalog/version/image/storage probes passed. Phase 138 subsequently closes the recovery matrix; Phase 139 remains open.
+
+**Phase 138 result (2026-10-22):** All six plans, 20/20 must-haves and RECOV-01..06
+verified automatically. One fresh archive completed six isolated lifecycle recovery cases,
+with independent retained-input verification and complete stopped-writer audits before
+safe repeated disposal. Provider writes now serialize accepted events and stale snapshots,
+with success effects after commit. Final regression: 1748 tests plus 3 doctests, zero
+failures; prior-phase gate: 372 tests, zero failures. Local matrix verdict runtime: 342727 ms,
+excluding disposal. Public API/schema/root lock and required CI contexts are preserved.
+Doctor ledger correction and final readiness remain Phase 139; no independent-pilot,
+release or deferred CI-speed credit.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
@@ -362,6 +372,9 @@ To keep this posture durable across GSD workflows:
 
 ### Validated
 
+- ✓ Six isolated packaged lifecycle recovery cases, strict independent receipts and complete
+  pre-disposal audits, with bounded provider convergence fixes — Phase 138.
+
 <!-- Shipped and confirmed valuable. -->
 
 - Phase 137 — TWIN-01 through TWIN-06: maintainer-operated external-package image
@@ -567,8 +580,8 @@ To keep this posture durable across GSD workflows:
   and free of mechanically proven planning/artifact residue.
 - [ ] Ratchet measured complexity, type, coverage, determinism, bootstrap, and CI/CD debt without
   weakening public or release contracts.
-- [ ] Complete the recovery matrix and aggregate readiness on the verified dedicated built-package
-  twin foundation, with machine-readable receipts and no skipped-as-green scenarios.
+- [ ] Complete aggregate readiness on the verified built-package foundation and recovery matrix;
+  reconcile Doctor migration-ledger diagnostics and current-head evidence in Phase 139.
 - [ ] Close v1.26 from a clean checkout and clean worktree with green supported-toolchain, package,
   documentation, CI, Nightly, release-train, and remote-triage evidence.
 
@@ -731,6 +744,8 @@ that section on next docs maintenance pass.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Serialize provider freshness and writes; emit success effects after commit | Prevent stale/replayed events and stale poll snapshots from regressing accepted state or duplicating effects | ✓ Verified in Phase 138 |
+| Freeze complete six-case inventory before safe disposal | Infrastructure cleanup must never hide domain residue or manufacture acceptance | ✓ Verified in Phase 138 |
 | Media-agnostic core, image-first implementation | Images are the highest-leverage wedge; core domain model must not assume image so video/audio can slot in later | ✓ Good |
 | Variants are first-class DB records, not hidden filenames | Queryable state enables admin, retries, stale detection, cleanup, and reporting | ✓ Good |
 | Oban as required job backend | Oban is SQL-backed, persistent, observable, and supports transactional enqueueing | ✓ Good |
@@ -1000,4 +1015,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-10-21 after Phase 137 verification and transition to Phase 138.*
+*Last updated: 2026-10-22 after Phase 138 verification and transition to Phase 139.*

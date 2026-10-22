@@ -795,7 +795,7 @@ Plans:
   4. Duplicate and out-of-order provider events plus a host restart between durable stages converge without duplicate provider state, duplicate stimulus, lost work, inconsistent terminal state, or secret-bearing telemetry.
   5. After an interrupted cleanup, an idempotent janitor rerun leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue, and the full matrix emits independently verified receipts.
 
-**Plans**: 6/6 plans complete; phase verification pending
+**Plans**: 6/6 plans complete; 20/20 must-haves and RECOV-01..06 verified
 
 **Wave 1**
 - [x] 138-01-PLAN.md — Packaged tus client interruption and independently verified exact offset/asset inventory.
@@ -845,4 +845,4 @@ Plans:
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-10-21 after Phase 138 planning: six plans, six waves, thirteen tasks; independent plan check passed. Phase 137 remains complete; RECOV-01..06 remain pending. Numeric CI speed acceptance remains deferred unfinished to SEED-261021-918 with zero credit. Next: `$gsd-execute-phase 138`.*
+*Last updated: 2026-10-22 after Phase 138 completion: six plans, 20/20 must-haves and RECOV-01..06 verified. Phase 139 discussion next: `$gsd-discuss-phase 139`. Numeric CI speed acceptance remains deferred unfinished to SEED-261021-918 with zero credit.*

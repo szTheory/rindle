@@ -80,8 +80,8 @@ Tasks 1–2 share one cohesive commit because the final case supplies the typed 
 
 - Acceptance implementation subject: `c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc`.
 - Fresh `run --evidence-dir /private/tmp/rindle-138-matrix-verified --verify --cleanup`: exit zero, `PASSED run: complete`.
-- Separate process `verify --inputs /private/tmp/rindle-138-matrix-verified/inputs.json --receipt /private/tmp/rindle-138-matrix-verified/receipt.json`: exit zero, `PASSED verify: complete`.
-- Repeated `cleanup --descriptor /private/tmp/rindle-138-matrix-verified/resources.json`: exit zero. Frozen receipt remains independently valid after disposal.
+- Separate verifier process against the retained inputs and receipt: exit zero, `PASSED verify: complete`.
+- Repeated cleanup against the retained resources descriptor: exit zero. Frozen receipt remains independently valid after disposal.
 - Six ordered cases all complete: tus-resume, purge-absence, av-repair, provider-events, promotion-restart and interrupted-cleanup. All use the same archive checksum, with distinct child run IDs. Root verdict is frozen and every host exited.
 - Measured full local runtime: 342727 ms (5 minutes 42.727 seconds), including build and all six case/audit work through verdict freezing, excluding final infrastructure disposal. No numeric CI-speed credit.
 - Each stopped-writer audit has empty lifecycle domain rows, objects, uploads, parts, temp files, peers and processes; exact infrastructure catalog and migration ledgers are retained. Exact allowed Oban histories contain respectively 3, 3, 4, 8, 3 and 2 jobs, with IDs/queue/asset/event/attempt/error predicates rather than broad count allowances. Fixture counters have exact source/run ownership.
