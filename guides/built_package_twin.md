@@ -66,7 +66,7 @@ operations: `rindle.abort_incomplete_uploads` marks the session expired, then
 `rindle.cleanup_orphans` aborts its remote multipart upload. It does not backdate
 session rows. Its interruption affects only the owned maintenance process.
 
-The earlier phase-137 image/purge scenario remains available through explicit
+The earlier foundation image/purge scenario remains available through explicit
 `run --legacy` and `verify --legacy --inputs PATH --receipt PATH`. `--legacy` and
 `--case` are mutually exclusive. Legacy evidence keeps its original meaning: a
 controlled restart between purge attempts, with AV unexercised. It cannot satisfy
@@ -121,7 +121,7 @@ limits. Diagnostics use fixed stage, reason and dependency codes.
 This remains synthetic package-consumer evidence. It grants no independent pilot,
 cloud-provider parity, readiness, release or CI-speed credit. The local provider
 fixture tests the adapter protocol. The public Doctor's versioned migration-ledger
-issue remains deferred to phase 139; this matrix claims no Doctor pass. Acceptance
+issue remains deferred to dedicated readiness work; this matrix claims no Doctor pass. Acceptance
 uses direct schema/catalog, effective-version and real processing/storage probes.
 No new recurring heavy CI lane or required context is introduced.
 

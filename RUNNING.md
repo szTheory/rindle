@@ -364,7 +364,7 @@ preserves the earlier image/purge scenario and its narrower evidence.
 See [Built-package twin](guides/built_package_twin.md) for prerequisites, retained
 private inputs/archive/receipts, JSON results and exact descriptor cleanup.
 Cleanup refuses active hosts and foreign resources and can be repeated after
-disposal. The Doctor migration-ledger fix remains deferred to phase 139.
+disposal. The Doctor migration-ledger fix remains deferred to dedicated readiness work.
 This is maintainer-operated synthetic evidence with `independent_pilot_credit: false`.
 Default tests remain Docker-free; the real run is explicit and grants no independent
 adoption, cloud-provider parity, Doctor, readiness or CI-speed credit. Existing CI

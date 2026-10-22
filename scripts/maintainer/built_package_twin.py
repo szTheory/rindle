@@ -882,7 +882,7 @@ def main():
     run = subs.add_parser("run", help="build once and run the finite synthetic lifecycle")
     modes = run.add_mutually_exclusive_group()
     modes.add_argument("--case", choices=CASES, help="focused diagnostic case; never a full matrix verdict")
-    modes.add_argument("--legacy", action="store_true", help="run the distinct phase-137 foundation diagnostic")
+    modes.add_argument("--legacy", action="store_true", help="run the legacy image/purge foundation diagnostic")
     run.add_argument("--verify", action="store_true")
     run.add_argument("--cleanup", action="store_true")
     run.add_argument("--evidence", "--evidence-dir", dest="evidence", type=Path, help="new or empty private evidence directory")
@@ -891,7 +891,7 @@ def main():
     check.add_argument("--receipt", type=Path, required=True)
     modes = check.add_mutually_exclusive_group()
     modes.add_argument("--case", choices=CASES, help="explicitly verify one focused diagnostic")
-    modes.add_argument("--legacy", action="store_true", help="explicitly verify phase-137 evidence")
+    modes.add_argument("--legacy", action="store_true", help="explicitly verify legacy foundation evidence")
     clean = subs.add_parser("cleanup", help="dispose exact run-owned resources after writers stop")
     clean.add_argument("--descriptor", type=Path, required=True)
     for command in subs.choices.values():
