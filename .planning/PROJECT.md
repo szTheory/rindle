@@ -52,6 +52,10 @@ excluding disposal. Public API/schema/root lock and required CI contexts are pre
 Doctor ledger correction and final readiness remain Phase 139; no independent-pilot,
 release or deferred CI-speed credit.
 
+**Phase 139 implementation progress (2026-10-22):** Plan 00 corrects public Doctor to inspect
+the host-owned migration ledger and reject unavailable inspection and invalid version markers.
+Focused regression and unchanged quality policies pass. Final exact-main readiness remains open.
+
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
 delete historical planning or generated assets without consumer/provenance proof. Preserve public API,

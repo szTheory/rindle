@@ -2,27 +2,27 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: planned
-stopped_at: Phase 139 prerequisites verified; eight plans ready to execute
+status: executing
+stopped_at: Phase 139 Plan 00 verified; executing Plan 01 inline
 last_updated: "2026-10-22T17:28:54.691Z"
 state_head: 47945252d418c132ff49662ef4dffbc432ae4080
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 233
-  completed_plans: 225
+  completed_plans: 226
 last_activity: 2026-10-22
 current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
-current_plan: Not started
-last_activity_desc: "Phase 139 reconciled to completed Phase 138; eight plans independently checked, preflight and negative controls passed. Next: execute Phase 139."
+current_plan: 139-01
+last_activity_desc: "Plan 00 Doctor correction verified and committed; Plan 01 evidence validator next. READY-01–05 remain pending."
 ---
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-10-22).
 **Core value:** Media, made durable.
-**Current focus:** Phase 139 — Exact-Head Readiness Closure (ready to execute).
+**Current focus:** Phase 139 — Exact-Head Readiness Closure (executing inline).
 **Worktree:** /Users/jon/projects/rindle/.claude/worktrees/phase136-execution
 The primary checkout retains separate historical work; preserve it.
 
@@ -51,24 +51,20 @@ readiness, release or deferred numeric CI-speed credit is granted by Phase 138.
 
 ## Next GSD Command
 
-Run `$gsd-execute-phase 139` in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` after
-`bash .planning/phases/139-exact-head-readiness-closure/139-preflight-test.sh`.
-Eight plans are ready across five waves. Wave 1 starts Plans 00 (Doctor correction)
-and 01 (manifest validator). All READY requirements remain pending; final acceptance
-still requires actual post-merge exact-main qualification and live CI/Nightly evidence.
-See `139-EXECUTION-RECOVERY.md` in the phase directory for source and evidence identity.
-Preserve the primary checkout's historical work. No repeated discussion, old Phase 133
-cache recovery, or CI-speed measurement is required. Auto-advance is disabled; this
-prerequisite-unblock task has not started Phase 139 implementation or merged any work.
+Execution is active inline in this session. Plan 00 is complete; Plan 01 is next.
+Resume with `$gsd-execute-phase 139` in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` if interrupted.
+One of eight plans is complete. Final READY acceptance requires actual post-merge
+exact-main qualification, complete CI and scheduled Nightly, refreshed remote sources
+and verified durable retained bytes. No READY requirement has been closed.
 
 ## Decisions and Verification Debt
 
 - Dedicated minimal external Phoenix/Repo/default-Oban host supersedes the earlier
   Cohort-centered assumption; Cohort and existing smoke semantics remain intact.
-- Doctor's legacy-package/host migration-ledger comparison falsely fails for the
-  supported versioned host. Pending todo: 2026-10-21-doctor-versioned-host-migration-ledger.md.
-  Twin acceptance uses direct supported catalog/version/real-I/O checks; no Doctor pass.
+- Plan 139-00 fixes Doctor's versioned-host ledger inspection. Focused regression: 66 tests,
+  zero failures, four excluded; quality_signals passes with unchanged baselines. Historical
+  twin receipts retain their original no-Doctor-credit scope.
 - Numeric CI speed target remains deferred unfinished to SEED-261021-918 with zero
   credit. Do not collect or wait for it here. Historical failed/blocked receipts remain.
 - PR 162 was already squash merged and its PR/main CI passed; this phase is not yet

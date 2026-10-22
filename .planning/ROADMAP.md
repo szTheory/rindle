@@ -832,7 +832,7 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
+- [x] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
 - [ ] 139-01-PLAN.md — Validate the immutable readiness evidence graph
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -861,7 +861,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
+| 139. Exact-Head Readiness Closure | 1/8 | Executing | - |
 
 ---
-*Last updated: 2026-10-22 after Phase 138 completion: six plans, 20/20 must-haves and RECOV-01..06 verified. Phase 139 discussion next: `$gsd-discuss-phase 139`. Numeric CI speed acceptance remains deferred unfinished to SEED-261021-918 with zero credit.*
+*Last updated: 2026-10-22 during Phase 139 inline execution: Plan 00 verified; 1/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
