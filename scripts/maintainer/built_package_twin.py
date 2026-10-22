@@ -21,7 +21,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 from twin_cleanup import dispose, validate_descriptor
-from twin_receipt import SCENARIO, KIND, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic, MAX_BYTES
+from twin_receipt import SCENARIO, KIND, PNG, CASES, validate_tus_clients, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic, MAX_BYTES
 
 TOOLCHAIN = {"ASDF_ERLANG_VERSION": "27.3.4.15", "ASDF_ELIXIR_VERSION": "1.17.3-otp-27", "ASDF_NODEJS_VERSION": "20.18.1"}
 LIMIT = 4 * 1024 * 1024
@@ -151,21 +151,6 @@ def validate_host_surface(source):
     require(re.search(forbidden, source) is None, "unsupported_host_call")
     require(re.search(r'File\.(?:read|read!)\([^\n]*(?:/lib/|\.beam|/checkout/)', source) is None, "host_source_inspection")
 
-
-PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
-CASES = ("tus-resume",)
-
-
-def validate_tus_clients(first, second, size):
-    require(type(first.get("pid")) is int and type(second.get("pid")) is int
-            and first["pid"] > 0 and second["pid"] > 0 and first["pid"] != second["pid"], "client_identity")
-    require(first.get("create_status") == 201 and first.get("patch_status") == 204
-            and type(first.get("offset")) is int and 0 < first["offset"] < size, "nonfinal_patch")
-    require(second.get("head_status") == 204 and second.get("head_cache") == "no-store"
-            and second.get("head_offset") == first["offset"], "head_authority")
-    require(second.get("wrong_status") == 409 and second.get("after_wrong_status") == 204
-            and second.get("after_wrong_offset") == first["offset"], "wrong_offset_advanced")
-    require(second.get("patch_status") == 204 and second.get("final_offset") == size, "resume_incomplete")
 
 
 class Runner:

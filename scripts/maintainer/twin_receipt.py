@@ -4,10 +4,18 @@ Expected identities come from separately retained runner inputs. Consistency is 
 an authentication mechanism for a wholly fabricated trusted inputs/receipt pair.
 """
 import json
+import base64
+import hashlib
 import re
 import uuid
 
 SCENARIO = "image-delete-once-between-attempts"
+PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
+CASES = ("tus-resume",)
+
+TUS_SHA256 = hashlib.sha256(base64.b64decode(PNG)).hexdigest()
+# Exact image recipe declared by Twin.Profile, measured in the packaged host.
+THUMB_KEY = "thumb-3a9ab2f60b2d26217471f22cc329252acba546c6341111a3ef89a8d9978d30a7.jpeg"
 KIND = "maintainer-operated-synthetic"
 MAX_BYTES = 65_536
 MAX_ID = 2**63 - 1
@@ -89,6 +97,9 @@ def health(value, inputs):
 
 
 def verify_receipt(inputs, receipt):
+    require(type(inputs) is dict and type(receipt) is dict, "record_keys")
+    if inputs.get("schema_version") == 2 or receipt.get("schema_version") == 2:
+        return verify_case_receipt(inputs, receipt)
     validate_inputs(inputs)
     keys(receipt, {"schema_version", "kind", "independent_pilot_credit", "inputs", "outcome", "reason", "stage", "dependency",
                    "before", "after", "old_runtime", "new_runtime", "old_container", "new_container", "old_exited", "new_exited", "inventory", "capabilities", "isolation"})
@@ -163,6 +174,70 @@ def verify_receipt(inputs, receipt):
             require(job["id"] == after["job_id"], "purge_identity")
         seen.add(job["queue"]); ids.add(job["id"])
     require((before["sequence"], after["sequence"], inventory["sequence"]) == (1, 2, 3), "observation_order")
+    return True
+
+
+
+def validate_tus_clients(first, second, size):
+    keys(first, {"pid", "create_status", "patch_status", "offset"})
+    keys(second, {"pid", "head_status", "head_offset", "head_cache", "wrong_status",
+                  "after_wrong_status", "after_wrong_offset", "patch_status", "final_offset"})
+    for record in (first, second):
+        for key, value in record.items():
+            if key != "head_cache":
+                integer(value, 0)
+        integer(record["pid"], 1)
+    require(first["pid"] != second["pid"], "client_identity")
+    require(first["create_status"] == 201 and first["patch_status"] == 204
+            and 0 < first["offset"] < size, "nonfinal_patch")
+    require(second["head_status"] == 204 and second["head_cache"] == "no-store"
+            and second["head_offset"] == first["offset"], "head_authority")
+    require(second["wrong_status"] == 409 and second["after_wrong_status"] == 204
+            and second["after_wrong_offset"] == first["offset"], "wrong_offset_advanced")
+    require(second["patch_status"] == 204 and second["final_offset"] == size, "resume_incomplete")
+
+
+def verify_case_receipt(inputs, receipt):
+    validate_inputs(inputs)
+    require(inputs["schema_version"] == 2, "case_inputs")
+    keys(receipt, {"schema_version", "kind", "independent_pilot_credit", "inputs", "case_id",
+                   "outcome", "reason", "stage", "dependency", "clients", "result", "object_keys",
+                   "runtime", "isolation", "host_exited"})
+    labeled(receipt)
+    integer(receipt["schema_version"], 2, 2)
+    require(receipt["inputs"] == inputs, "input_identity")
+    require(receipt["case_id"] == inputs["scenario"] == "tus-resume", "case_identity")
+    require(receipt["outcome"] == receipt["reason"] == receipt["stage"] == "complete"
+            and receipt["dependency"] == "none", "incomplete_receipt")
+    require(receipt["host_exited"] is True, "runtime_not_stopped")
+    health(receipt["runtime"], inputs)
+    keys(receipt["isolation"], {"image_id", "mounts_verified"})
+    text(receipt["isolation"]["image_id"], r"sha256:[0-9a-f]{64}")
+    require(receipt["isolation"]["mounts_verified"] is True, "runtime_mounts")
+    clients = receipt["clients"]
+    keys(clients, {"first", "second", "first_exited", "second_exited"})
+    require(clients["first_exited"] is True and clients["second_exited"] is True, "client_not_exited")
+    size = len(base64.b64decode(PNG))
+    validate_tus_clients(clients["first"], clients["second"], size)
+    result = receipt["result"]
+    keys(result, {"outcome", "session_id", "asset_id", "session_state", "asset_state", "source_key",
+                  "variant_keys", "checksum_sha256", "sessions", "assets", "upload_stimuli", "offset", "boot_id"})
+    for key in ("session_id", "asset_id", "boot_id"):
+        identity(result[key])
+    require(result["session_id"] != result["asset_id"] and result["boot_id"] == receipt["runtime"]["boot_id"], "domain_identity")
+    for key in ("sessions", "assets", "upload_stimuli"):
+        integer(result[key], 1, 1)
+    integer(result["offset"], size, size)
+    require(result["outcome"] == result["asset_state"] == "ready"
+            and result["session_state"] == "completed", "terminal_state")
+    require(result["checksum_sha256"] == inputs["fixture_sha256"] == TUS_SHA256, "source_checksum")
+    prefix = re.escape(result["asset_id"])
+    text(result["source_key"], r"elixir-twin-profile/" + prefix + r"/[0-9a-f-]{36}")
+    identity(result["source_key"].split("/")[-1])
+    expected_variants = ["Elixir.Twin.Profile/" + result["asset_id"] + "/" + THUMB_KEY]
+    require(result["variant_keys"] == expected_variants, "undeclared_variants")
+    expected_objects = sorted([result["source_key"], *expected_variants])
+    require(receipt["object_keys"] == expected_objects, "undeclared_objects")
     return True
 
 

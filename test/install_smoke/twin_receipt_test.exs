@@ -105,4 +105,64 @@ defmodule Rindle.TwinReceiptTest do
     assert {_, 0} = python(code)
     assert File.dir?(dir)
   end
+
+  test "typed tus evidence requires a new client, exact original and derivative and bound inputs" do
+    code = """
+    import copy
+    from twin_fixture import fixture
+    from twin_receipt import verify_receipt, verify_case_receipt, Refused, TUS_SHA256, THUMB_KEY
+    inputs, old = fixture()
+    inputs.update(schema_version=2, scenario='tus-resume', fixture_sha256=TUS_SHA256)
+    asset = old['before']['asset_id']
+    source = 'elixir-twin-profile/'+asset+'/00000000-0000-4000-8000-000000000004'
+    variant = 'Elixir.Twin.Profile/'+asset+'/'+THUMB_KEY
+    first = dict(pid=100, create_status=201, patch_status=204, offset=32)
+    second = dict(pid=200, head_status=204, head_offset=32, head_cache='no-store', wrong_status=409,
+                  after_wrong_status=204, after_wrong_offset=32, patch_status=204, final_offset=69)
+    result = dict(outcome='ready', session_id='00000000-0000-4000-8000-000000000005',
+                  asset_id=asset, session_state='completed', asset_state='ready', source_key=source,
+                  variant_keys=[variant], checksum_sha256=TUS_SHA256, sessions=1, assets=1,
+                  upload_stimuli=1, offset=69, boot_id=old['old_runtime']['boot_id'])
+    receipt = dict(schema_version=2, kind=old['kind'], independent_pilot_credit=False, inputs=copy.deepcopy(inputs),
+                   case_id='tus-resume', outcome='complete', reason='complete', stage='complete', dependency='none',
+                   clients=dict(first=first, second=second, first_exited=True, second_exited=True),
+                   result=result, object_keys=sorted([source,variant]), runtime=old['old_runtime'],
+                   isolation=old['isolation'],host_exited=True)
+    assert verify_receipt(inputs,receipt)
+    mutations=[(['inputs','run_id'],'b'*32),(['inputs','package_tar_sha256'],'b'*64),
+      (['case_id'],'unknown'),(['schema_version'],1),(['clients','first_exited'],False),
+      (['clients','second','pid'],100),(['clients','second','head_offset'],31),
+      (['clients','second','head_status'],200),(['clients','second','wrong_status'],204),
+      (['clients','second','after_wrong_offset'],33),(['clients','first','offset'],True),
+      (['result','sessions'],2),(['result','assets'],2),(['result','upload_stimuli'],2),
+      (['result','checksum_sha256'],'b'*64),(['result','asset_state'],'available'),
+      (['result','offset'],68),(['result','source_key'],source+'extra'),
+      (['result','variant_keys'],[]),(['object_keys'],[source]),(['object_keys'],[source,variant,'extra']),
+      (['host_exited'],False),(['runtime','origin'],'checkout'),(['outcome'],'incomplete')]
+    for path,value in mutations:
+        r=copy.deepcopy(receipt); target=r
+        for key in path[:-1]: target=target[key]
+        target[path[-1]]=value
+        try:verify_case_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(path)
+    for key in receipt:
+        r=copy.deepcopy(receipt);del r[key]
+        try:verify_case_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError('missing '+key)
+    for field in ['raw_body','signature','job_error','pubsub','signed_url']:
+        r=copy.deepcopy(receipt);r[field]='SECRET_CANARY'
+        try:verify_receipt(inputs,r)
+        except Refused as e: assert 'SECRET_CANARY' not in str(e)
+        else:raise AssertionError(field)
+    legacy_inputs, legacy = fixture()
+    assert verify_receipt(legacy_inputs,legacy)
+    try:verify_case_receipt(legacy_inputs,legacy)
+    except Refused:pass
+    else:raise AssertionError('legacy counted as matrix case')
+    """
+
+    assert {_, 0} = python(code)
+  end
 end
