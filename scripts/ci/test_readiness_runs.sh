@@ -173,6 +173,35 @@ class Runs(unittest.TestCase):
         self.put(prefix+'rulesets?includes_parents=true&per_page=100',[{'id':7,'source_type':'Organization','enforcement':'active'}])
         self.put(prefix+'rulesets/7?includes_parents=true',{'id':7,'enforcement':'active','bypass_actors':[],'rules':[{'type':'required_signatures'}]})
         self.rejected('protection_drift')
+    def subject_file(self,relative,text):
+        raw=text.encode();path=prefix+'contents/'+relative+'?ref='+sha
+        self.put(path,{'type':'file','path':relative,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+    def test_release_exact_sha_coupling_drift(self):
+        relative='.github/workflows/release.yml';self.subject_file(relative,(root/relative).read_text().replace('head_sha: sha,','head_sha: context.sha,'))
+        self.rejected('workflow_policy_drift','ci')
+    def test_fork_trigger_drift(self):
+        relative='.github/workflows/ci.yml';self.subject_file(relative,(root/relative).read_text().replace('  pull_request:', '  pull_request_target:'))
+        self.rejected('workflow_policy_drift','ci')
+    def test_script_seam_can_add_cheap_fixture_without_widening_jobs(self):
+        relative='.github/workflows/ci.yml';text=(root/relative).read_text().replace('      - name: CI Summary gate logic', '      - name: Additional fixture\n        run: echo safe-fixture\n      - name: CI Summary gate logic')
+        self.subject_file(relative,text);code,_,_=self.collect('ci');self.assertEqual(code,0)
+    def test_listing_attempt_changes_after_detail_recheck(self):
+        path=self.paths['push'];self.responses[path].append(copy.deepcopy(self.responses[path][0]))
+        self.responses[path][1]['body']['workflow_runs'][0]['run_attempt']=3;self.rejected('attempt_changed','ci')
+    def test_incident_workflow_ref_cannot_be_foreign(self):
+        self.incident['workflow_ref']='foreign/repo/.github/workflows/nightly.yml@refs/heads/main';self.artifact();self.rejected('incident_identity')
+    def test_compatible_active_ruleset_preserves_only_intended_check(self):
+        rule={'type':'required_status_checks','ruleset_id':7,'parameters':{'strict_required_status_checks_policy':True,
+             'required_status_checks':[{'context':'CI Summary','integration_id':15368}]}}
+        self.put(prefix+'rules/branches/main?per_page=100',[rule])
+        self.put(prefix+'rulesets?includes_parents=true&per_page=100',[{'id':7,'source_type':'Repository','enforcement':'active'}])
+        self.put(prefix+'rulesets/7?includes_parents=true',{'id':7,'enforcement':'active','bypass_actors':[],
+            'rules':[{'type':rule['type'],'parameters':rule['parameters']}]})
+        code,_,_=self.collect();self.assertEqual(code,0)
+    def test_unavailable_fixture_writes_nonpassing_terminal_verdict(self):
+        self.fixture=self.tmp/'missing'
+        collector=c.Collector(repo,sha,self.tmp/'out',self.fixture)
+        self.assertEqual(collector.run(),1);self.assertEqual(c.read_json(self.tmp/'out/verdict.json')['verdict'],'not_ready')
     def test_main_moves(self):
         path=prefix+'git/ref/heads/main';self.responses[path].append(copy.deepcopy(self.responses[path][0]))
         self.responses[path][1]['body']['object']['sha']='b'*40;self.rejected('main_changed','ci')
