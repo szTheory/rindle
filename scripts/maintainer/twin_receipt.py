@@ -11,7 +11,7 @@ import uuid
 
 SCENARIO = "image-delete-once-between-attempts"
 PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
-CASES = ("tus-resume", "purge-absence", "av-repair", "provider-events")
+CASES = ("tus-resume", "purge-absence", "av-repair", "provider-events", "promotion-restart")
 # Fixed 0.2-second H.264/AAC fixture, generated once with FFmpeg bitexact flags.
 AV_BASE64 = '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'
 AV_RECIPE = "7adba05438de4278fad4a4e708b2bfe66b1f35cbf1e80469258fcc886d5725b8"
@@ -213,7 +213,8 @@ def verify_case_receipt(inputs, receipt):
     fields = {"tus-resume": {"clients", "result", "object_keys"},
               "purge-absence": {"before", "absence", "after", "inventory"},
               "av-repair": {"failure", "repair", "output", "versions", "object_keys"},
-              "provider-events": {"provider", "object_keys"}}
+              "provider-events": {"provider", "object_keys"},
+              "promotion-restart": {"restart", "object_keys"}}
     require(receipt.get("case_id") in fields, "case_identity")
     keys(receipt, {"schema_version", "kind", "independent_pilot_credit", "inputs", "case_id",
                    "outcome", "reason", "stage", "dependency", "runtime", "isolation", "host_exited"}
@@ -235,6 +236,8 @@ def verify_case_receipt(inputs, receipt):
         return verify_purge_case(receipt)
     if receipt["case_id"] == "provider-events":
         return verify_provider_case(inputs, receipt)
+    if receipt["case_id"] == "promotion-restart":
+        return verify_promotion_restart_case(inputs, receipt)
     return verify_av_case(inputs, receipt)
 
 
@@ -447,6 +450,60 @@ def verify_provider_case(inputs, receipt):
     integer(provider["create_calls"], 1, 1)
     integer(provider["invalid_signatures"], 1, 1)
     integer(provider["leaks"], 0, 0)
+    return True
+
+
+def verify_promotion_restart_case(inputs, receipt):
+    restart = receipt["restart"]
+    keys(restart, {"before", "cut", "after", "old_runtime", "new_runtime", "old_container", "new_container",
+                   "signal", "exit_code", "old_exited", "elapsed_ms", "deadline_ms", "jobs"})
+    before, cut, after = (restart[key] for key in ("before", "cut", "after"))
+    for value in (before, cut):
+        keys(value, {"session_id", "asset_id", "source_key", "job_id", "attempt", "state", "asset_state",
+                     "session_state", "paused", "running", "upload_stimuli", "completion_stimuli", "boot_id"})
+        for key in ("session_id", "asset_id", "boot_id"):
+            identity(value[key])
+        require(len({value[key] for key in ("session_id", "asset_id", "boot_id")}) == 3, "restart_domain_identity")
+        integer(value["job_id"], 1); integer(value["attempt"], 0, 0); integer(value["running"], 0, 0)
+        integer(value["upload_stimuli"], 1, 1); integer(value["completion_stimuli"], 1, 1)
+        require(value["paused"] is True and value["state"] == "available"
+                and value["asset_state"] == "validating" and value["session_state"] == "completed", "restart_queued_barrier")
+        text(value["source_key"], r"elixir-twin-profile/" + re.escape(value["asset_id"]) + r"/[0-9a-f-]{36}\.png")
+        identity(value["source_key"].split("/")[-1][:-4])
+    require(before == cut, "restart_cut_changed")
+    keys(after, {"session_id", "asset_id", "source_key", "job_id", "attempt", "state", "asset_state", "session_state",
+                 "upload_stimuli", "completion_stimuli", "boot_id", "checksum_sha256", "variant_key"})
+    require(all(after[key] == before[key] for key in ("session_id", "asset_id", "source_key", "job_id")), "restart_identity")
+    identity(after["boot_id"])
+    require(len({after[key] for key in ("session_id", "asset_id", "boot_id")}) == 3, "restart_domain_identity")
+    integer(after["job_id"], 1); integer(after["attempt"], 1, 1)
+    integer(after["upload_stimuli"], 1, 1); integer(after["completion_stimuli"], 1, 1)
+    require(after["state"] == "completed" and after["asset_state"] == "ready"
+            and after["session_state"] == "completed", "restart_terminal_state")
+    require(after["checksum_sha256"] == inputs["fixture_sha256"] == TUS_SHA256, "source_checksum")
+    variant = "Elixir.Twin.Profile/" + before["asset_id"] + "/" + THUMB_KEY
+    require(after["variant_key"] == variant and receipt["object_keys"] == sorted([before["source_key"], variant]), "undeclared_objects")
+    health(restart["old_runtime"], inputs); health(restart["new_runtime"], inputs)
+    require(before["boot_id"] == restart["old_runtime"]["boot_id"]
+            and after["boot_id"] == restart["new_runtime"]["boot_id"]
+            and before["boot_id"] != after["boot_id"]
+            and receipt["runtime"] == restart["new_runtime"], "restart_boot_identity")
+    for key in ("old_container", "new_container"):
+        text(restart[key], r"[0-9a-f]{64}")
+    require(restart["old_container"] != restart["new_container"]
+            and restart["signal"] == "SIGKILL" and restart["old_exited"] is True, "restart_process_replacement")
+    integer(restart["exit_code"], 137, 137)
+    integer(restart["elapsed_ms"], 1, 179999); integer(restart["deadline_ms"], 180000, 180000)
+    jobs = restart["jobs"]
+    require(type(jobs) is list and len(jobs) == 2, "restart_job_inventory")
+    ids = set()
+    for job, queue in zip(jobs, ("rindle_promote", "rindle_process")):
+        keys(job, {"id", "queue", "state", "attempt"})
+        integer(job["id"], 1); integer(job["attempt"], 1, 1)
+        require(job["id"] not in ids and job["queue"] == queue and job["state"] == "completed", "restart_job_identity")
+        if queue == "rindle_promote":
+            require(job["id"] == before["job_id"], "restart_promotion_identity")
+        ids.add(job["id"])
     return True
 
 

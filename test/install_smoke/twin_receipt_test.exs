@@ -345,4 +345,101 @@ defmodule Rindle.TwinReceiptTest do
 
     assert {_, 0} = python(code)
   end
+
+  test "promotion restart requires the unchanged queued job, killed old runtime and one resumed promotion" do
+    code = """
+    import copy
+    from twin_fixture import fixture
+    from twin_receipt import verify_receipt, verify_case_receipt, Refused, TUS_SHA256, THUMB_KEY
+    inputs,old=fixture();inputs.update(schema_version=2,scenario='promotion-restart',fixture_sha256=TUS_SHA256)
+    asset=old['before']['asset_id'];session='00000000-0000-4000-8000-000000000005'
+    source='elixir-twin-profile/'+asset+'/00000000-0000-4000-8000-000000000004.png'
+    variant='Elixir.Twin.Profile/'+asset+'/'+THUMB_KEY
+    before=dict(session_id=session,asset_id=asset,source_key=source,job_id=1,attempt=0,state='available',
+      asset_state='validating',session_state='completed',paused=True,running=0,upload_stimuli=1,
+      completion_stimuli=1,boot_id=old['old_runtime']['boot_id'])
+    after=dict(session_id=session,asset_id=asset,source_key=source,job_id=1,attempt=1,state='completed',
+      asset_state='ready',session_state='completed',upload_stimuli=1,completion_stimuli=1,
+      boot_id=old['new_runtime']['boot_id'],checksum_sha256=TUS_SHA256,variant_key=variant)
+    jobs=[dict(id=1,queue='rindle_promote',state='completed',attempt=1),
+          dict(id=2,queue='rindle_process',state='completed',attempt=1)]
+    restart=dict(before=before,cut=copy.deepcopy(before),after=after,old_runtime=old['old_runtime'],
+      new_runtime=old['new_runtime'],old_container=old['old_container'],new_container=old['new_container'],
+      signal='SIGKILL',exit_code=137,old_exited=True,elapsed_ms=1000,deadline_ms=180000,jobs=jobs)
+    receipt=dict(schema_version=2,kind=old['kind'],independent_pilot_credit=False,inputs=copy.deepcopy(inputs),
+      case_id='promotion-restart',outcome='complete',reason='complete',stage='complete',dependency='none',
+      runtime=old['new_runtime'],isolation=old['isolation'],host_exited=True,restart=restart,
+      object_keys=sorted([source,variant]))
+    assert verify_receipt(inputs,receipt)
+    mutations=[(['case_id'],'tus-resume'),(['schema_version'],1),(['outcome'],'incomplete'),(['stage'],'restart'),
+      (['host_exited'],False),(['runtime'],old['old_runtime']),(['object_keys'],[source]),
+      (['object_keys'],sorted([source,variant,'foreign'])),(['restart','before','paused'],False),
+      (['restart','before','running'],1),(['restart','before','attempt'],1),
+      (['restart','before','state'],'executing'),(['restart','before','asset_state'],'staged'),
+      (['restart','before','session_state'],'signed'),(['restart','before','session_id'],asset),
+      (['restart','before','asset_id'],session),(['restart','before','boot_id'],session),
+      (['restart','before','source_key'],source+'extra'),(['restart','before','job_id'],True),
+      (['restart','after','session_id'],'00000000-0000-4000-8000-000000000009'),
+      (['restart','after','asset_id'],'00000000-0000-4000-8000-000000000009'),
+      (['restart','after','source_key'],'elixir-twin-profile/'+asset+'/00000000-0000-4000-8000-000000000009.png'),
+      (['restart','after','job_id'],3),(['restart','after','attempt'],2),
+      (['restart','after','state'],'available'),(['restart','after','asset_state'],'validating'),
+      (['restart','after','session_state'],'expired'),(['restart','after','boot_id'],before['boot_id']),
+      (['restart','after','checksum_sha256'],'b'*64),(['restart','after','variant_key'],source),
+      (['restart','old_runtime'],old['new_runtime']),(['restart','new_runtime'],old['old_runtime']),
+      (['restart','old_runtime','origin'],'checkout'),(['restart','new_runtime','lock_sha256'],'b'*64),
+      (['restart','new_container'],restart['old_container']),(['restart','old_container'],'foreign'),
+      (['restart','signal'],'SIGTERM'),(['restart','exit_code'],0),(['restart','exit_code'],True),
+      (['restart','old_exited'],False),(['restart','elapsed_ms'],0),(['restart','elapsed_ms'],180000),
+      (['restart','elapsed_ms'],True),(['restart','deadline_ms'],180001),
+      (['restart','jobs'],jobs[:1]),(['restart','jobs'],jobs+[dict(jobs[1],id=3)]),
+      (['restart','jobs',0,'id'],3),(['restart','jobs',1,'id'],1),
+      (['restart','jobs',0,'queue'],'rindle_process'),(['restart','jobs',1,'queue'],'rindle_promote'),
+      (['restart','jobs',1,'attempt'],2),(['restart','jobs',0,'state'],'available')]
+    for phase in ['before','cut','after']:
+        for key in ['upload_stimuli','completion_stimuli']:
+            mutations.extend([(['restart',phase,key],2),(['restart',phase,key],True)])
+    substitutions=dict(before,session_id='00000000-0000-4000-8000-000000000009',
+      asset_id='00000000-0000-4000-8000-000000000008',
+      source_key='elixir-twin-profile/'+asset+'/00000000-0000-4000-8000-000000000009.png',
+      job_id=3,attempt=1,state='executing',asset_state='ready',session_state='expired',paused=False,
+      running=1,upload_stimuli=2,completion_stimuli=2,boot_id=after['boot_id'])
+    for field,value in substitutions.items():mutations.append((['restart','cut',field],value))
+    for path,value in mutations:
+        r=copy.deepcopy(receipt);target=r
+        for key in path[:-1]:target=target[key]
+        target[path[-1]]=value
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(path)
+    for path in [[],['restart'],['restart','before'],['restart','cut'],['restart','after'],
+                 ['restart','old_runtime'],['restart','new_runtime'],['restart','jobs',0],['restart','jobs',1]]:
+        original=receipt
+        for key in path:original=original[key]
+        for field in original:
+            r=copy.deepcopy(receipt);target=r
+            for key in path:target=target[key]
+            del target[field]
+            try:verify_receipt(inputs,r)
+            except Refused:pass
+            else:raise AssertionError(('missing',path,field))
+        r=copy.deepcopy(receipt);target=r
+        for key in path:target=target[key]
+        target['raw_job_error']='SECRET_CANARY'
+        try:verify_receipt(inputs,r)
+        except Refused as error:assert 'SECRET_CANARY' not in str(error)
+        else:raise AssertionError(('unknown',path))
+    for field in ['run_id','package_tar_sha256','fixture_sha256','lock_sha256']:
+        r=copy.deepcopy(receipt);r['inputs'][field]='b'*(32 if field=='run_id' else 64)
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(('input',field))
+    legacy_inputs,legacy=fixture()
+    try:verify_case_receipt(legacy_inputs,legacy)
+    except Refused:pass
+    else:raise AssertionError('legacy substituted for queued promotion recovery')
+    """
+
+    assert {_, 0} = python(code)
+  end
 end
