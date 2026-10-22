@@ -2,70 +2,84 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: executing
-stopped_at: Phase 137 Plan 01 Task 1; Docker disk full; awaiting build-cache cleanup approval or externally freed space
-last_updated: "2026-10-21T23:53:30.544Z"
-state_head: 55d9559e6c2228f637c6f1551a7713520306b758
+status: ready_to_plan
+stopped_at: Phase 137 complete, ready to plan Phase 138
+last_updated: "2026-10-22T00:29:15.806Z"
+state_head: 26164ba3d257f1a10a5834ae072a6e338be72356
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 219
-  completed_plans: 213
+  completed_plans: 219
+  percent: 71
 last_activity: 2026-10-21
-current_plan: 06
-current_phase: 137
-current_phase_name: Built-Package Twin Foundation
-last_activity_desc: "Phase 137 executing inline. Plan 01 source created; four fast tests pass. Real tracer incomplete: Docker services could not allocate data because disk is full. No plan or TWIN requirement closed."
+last_activity_desc: "Phase 137 complete: 6/6 plans, 22/22 must-haves, TWIN-01..06 verified; 1717 tests + 3 doctests and final 63 focused tests passed; Phase 138 not started."
+current_phase: 138
+current_phase_name: Lifecycle Failure and Recovery Matrix
+current_plan: Not started
 ---
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-10-21).
 **Core value:** Media, made durable.
-**Current focus:** Phase 137 — Built-Package Twin Foundation.
+**Current focus:** Phase 138 — Lifecycle Failure and Recovery Matrix (not started).
 **Worktree:** /Users/jon/projects/rindle/.claude/worktrees/phase136-execution
 The primary checkout retains separate historical Phase 133 work; preserve it.
 
 ## Current Position
 
-Phase 136 is complete: 15/15 plans, 41/41 active must-haves verified.
-Phase 137 is executing inline. Plan 01 is complete (two task commits plus summary).
-Two fresh real runs and explicit separate verification passed; fast checks: 4 tests,
-0 failures. Continue Plans 02/03, then 04/05/06 by dependency order. All TWIN
-requirements remain open pending hardening and final automated verification.
-Progress remains 4/7 phases complete (57%).
+Phase 137 is complete: six plans, twelve tasks, 22/22 must-haves and TWIN-01..06
+verified automatically. All plan summaries, validation, security, code review,
+review disposition and goal verification are committed or ready for close-out.
+The verification owner reports passed with a current covered-input fingerprint.
+Progress: 5/7 phases complete (71%); 219/219 currently planned plans complete.
+Phase 138 and Phase 139 remain unexecuted/unplanned. No Phase 138 work has begun.
 
-Final subject: e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9; source projection:
-9e66e48b2fc64a29f5b973ce28c922eed053cfc3. The existing external job was
-reconciled and closed by its committed summary; never resubmit it.
-Coverage is 5206/6329. Canonical 1700 tests plus 3 doctests passed with no
-failures; 25 isolation seeds, supported Dialyzer and clean bootstrap passed.
-Fresh prior-phase regression passed 228 tests, zero failures, 17 excluded.
-Review: zero findings. Security: 22 threats, zero open. UI review: no UI scope.
+Full stable default suite: 1717 tests plus 3 doctests, zero failures, 87 excluded,
+4 skipped. After final isolation fixes: 63 focused twin/async/CI/public-surface
+tests, zero failures. Final real acceptance subject: 4e41e644. Native build output
+proves uncached Rindle compilation from the single fresh archive. The actual
+retry/restart trace, separate retained-inputs verifier and repeated stopped-host
+cleanup passed; real active/paused cleanup controls preserved owned storage.
+Evidence: /private/tmp/rindle-twin-137-accepted-9hf_wi4o. Observed local real-run
+runtime 55.63 seconds; no numeric CI timing credit. No new CI lane, public library
+API/dependency, pilot, AV execution, readiness, merge or release claim.
 
 ## Next GSD Command
 
-Continue `$gsd-execute-phase 137` inline now in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`.
-Plan 01 tracer and feedback gate passed; continue existing plans without custom
-recovery workflows. User approved unused Docker build-cache cleanup; 4.524 GB was
-reclaimed, resolving the disk blocker. Auto-advance remains disabled.
+Run `$gsd-progress` now in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` to route the normal
+Phase 138 discussion/planning step. No conversation reset is required. Phase 137
+execution was explicitly inline; preserve ordinary GSD workflow and existing plans.
+Auto-advance remains disabled. Serious work remains on this feature branch; use
+normal PR/green-main gates before merging or releasing.
 
 ## Decisions and Verification Debt
 
-- Exact-ten numeric CI speed acceptance remains deferred unfinished to
-  SEED-261021-918 with zero speed credit. Do not collect or wait for it here.
-- CI-16's amended active guarantees passed; the original timing authority remains
-  blocked in the immutable qualification receipt and tracked in REQUIREMENTS.
-- PR 162 is already squash merged; required PR and main CI passed. No release action.
-- Older Phase 133–135 fingerprints can be stale after shared-file changes. Retain
-  this audit debt; current-source prior-phase regression passed. Never rewrite
-  old fingerprints or restart consumed qualification authorizations to erase it.
-- Preserve model routing and user-owned .tool-versions. Local checks use accepted
-  Elixir 1.17.3 / OTP 27.3.4.15 via environment overrides.
+- Dedicated minimal external Phoenix/Repo/default-Oban host supersedes the earlier
+  Cohort-centered assumption; Cohort and existing smoke semantics remain intact.
+- Doctor's legacy-package/host migration-ledger comparison falsely fails for the
+  supported versioned host. Pending todo: 2026-10-21-doctor-versioned-host-migration-ledger.md.
+  Twin acceptance uses direct supported catalog/version/real-I/O checks; no Doctor pass.
+- Numeric CI speed target remains deferred unfinished to SEED-261021-918 with zero
+  credit. Do not collect or wait for it here. Historical failed/blocked receipts remain.
+- PR 162 was already squash merged and its PR/main CI passed; this phase is not yet
+  merged and no release action was taken.
+- Older Phase 133–136 covered-input fingerprints can be stale after shared source,
+  docs or config changes. Retain this audit debt. The full default regression passed;
+  never rewrite old fingerprints or replay consumed qualification authorizations.
+- The existing Phase 136 external measurement job was reconciled and closed by its
+  committed summary; do not resubmit it. Its historical accepted coverage was
+  5206/6329; no new coverage-floor measurement was taken in Phase 137.
+- User approved unused Docker build-cache cleanup; 4.524 GB reclaimed. No unrelated
+  containers, volumes or tagged images were removed. This was environment approval,
+  not acceptance evidence. There is no pending approval.
+- Preserve model routing and .tool-versions. Canonical checks use Elixir 1.17.3 /
+  OTP 27.3.4.15 / Node 20.18.1 environment overrides. No independent-adopter credit.
 
 ## Session
 
-Last session: 2026-10-21T22:24:44.267790+00:00
-Stopped at: Plan 01 complete; continue existing hardening plans inline
-Resume file: .planning/phases/137-built-package-twin-foundation/137-02-PLAN.md
+Last session: 2026-10-22T00:30:11.827196+00:00
+Stopped at: Phase 137 complete; Phase 138 not started
+Resume file: .planning/STATE.md

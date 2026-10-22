@@ -45,12 +45,12 @@ completion credit.
 
 ### Synthetic Adopter Twin
 
-- [ ] **TWIN-01**: Every twin artifact identifies itself as maintainer-operated synthetic evidence and explicitly states that it does not satisfy the independent-adopter requirement.
-- [ ] **TWIN-02**: The twin consumes a freshly built external Hex artifact and fails if it falls back to repository paths, private modules, source introspection, or prebuilt local BEAM output.
-- [ ] **TWIN-03**: The twin uses adopter-owned Repo, Oban, migrations, PostgreSQL, MinIO, and media runtimes through supported contracts.
-- [ ] **TWIN-04**: Deterministic failures enter only through documented storage, processor, provider, HTTP, tus, or webhook boundaries; no twin-only production API is added.
-- [ ] **TWIN-05**: Real retry claims use persisted database-backed Oban execution, and restart claims terminate and resume a separately supervised runtime without duplicate stimulus.
-- [ ] **TWIN-06**: Every scenario emits a redacted, versioned receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue.
+- [x] **TWIN-01**: Every twin artifact identifies itself as maintainer-operated synthetic evidence and explicitly states that it does not satisfy the independent-adopter requirement.
+- [x] **TWIN-02**: The twin consumes a freshly built external Hex artifact and fails if it falls back to repository paths, private modules, source introspection, or prebuilt local BEAM output.
+- [x] **TWIN-03**: The twin uses adopter-owned Repo, Oban, migrations, PostgreSQL, MinIO, and media runtimes through supported contracts.
+- [x] **TWIN-04**: Deterministic failures enter only through documented storage, processor, provider, HTTP, tus, or webhook boundaries; no twin-only production API is added.
+- [x] **TWIN-05**: Real retry claims use persisted database-backed Oban execution, and restart claims terminate and resume a separately supervised runtime without duplicate stimulus.
+- [x] **TWIN-06**: Every scenario emits a redacted, versioned receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue.
 
 ### Failure and Recovery Matrix
 
@@ -124,12 +124,12 @@ completion credit.
 | CI-15 | Phase 136 | Complete |
 | CI-16 | Phase 136 / SEED-261021-918 | Active scope verified; numeric speed target deferred unfinished (zero credit) |
 | DX-05 | Phase 136 | Complete |
-| TWIN-01 | Phase 137 | Pending |
-| TWIN-02 | Phase 137 | Pending |
-| TWIN-03 | Phase 137 | Pending |
-| TWIN-04 | Phase 137 | Pending |
-| TWIN-05 | Phase 137 | Pending |
-| TWIN-06 | Phase 137 | Pending |
+| TWIN-01 | Phase 137 | Complete |
+| TWIN-02 | Phase 137 | Complete |
+| TWIN-03 | Phase 137 | Complete |
+| TWIN-04 | Phase 137 | Complete |
+| TWIN-05 | Phase 137 | Complete |
+| TWIN-06 | Phase 137 | Complete |
 | RECOV-01 | Phase 138 | Pending |
 | RECOV-02 | Phase 138 | Pending |
 | RECOV-03 | Phase 138 | Pending |

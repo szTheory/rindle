@@ -18,9 +18,9 @@ real adopter through an evidence-led quality pass and a maintainer-operated synt
 - Ratchet only measured quality debt: the reviewed complexity baseline, Dialyzer suppressions,
   coverage gaps, brittle implementation-literal tests, workflow truth, deterministic tool inputs,
   timeouts, and contributor bootstrap/reproduction paths.
-- Extend the existing Cohort, canonical-adopter, and generated-package proof into a deterministic
-  failure-and-recovery digital twin that consumes the built package, exercises real job behavior,
-  and emits machine-readable lifecycle, retry, residue, cleanup, and readiness receipts.
+- Build a dedicated minimal external Phoenix twin, informed by existing canonical/generated
+  package proof, with ordinary Repo/default Oban, deterministic fault/recovery observations and
+  machine-readable lifecycle, retry, residue and cleanup receipts; keep Cohort semantics intact.
 - Close from a clean checkout with supported-toolchain, package, docs, CI, Nightly, remote-inbox,
   release-train, and clean-worktree evidence. Phase 136 numeric CI speed acceptance is deferred,
   unfinished, to SEED-261021-918; required CI must remain green before merge.
@@ -32,6 +32,15 @@ Removal-only complexity and Dialyzer policies, exact coverage (5206/6329), clean
 supported bootstrap, finite 25-seed isolation, and CI structure have executable
 acceptance evidence. Required PR and main CI passed on the final source. The
 numeric speed target remains deferred unfinished with zero acceptance credit.
+
+**Phase 137 result (2026-10-21):** Six plans and all six TWIN foundation requirements
+verified. The dedicated external host consumes one fresh archive and compiles Rindle
+uncached per run; real same-job retry, controlled between-attempt runtime replacement,
+strict private receipts and safe owned-resource cleanup passed. Default regression:
+1717 tests plus 3 doctests, zero failures; final focused checks: 63 tests, zero failures.
+No new CI lane, public API, independent-pilot, AV-execution, numeric-speed or readiness
+credit. Doctor's legacy/host migration-ledger false failure is explicitly deferred;
+actual catalog/version/image/storage probes passed. Phase 138/139 remain open.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
@@ -355,6 +364,10 @@ To keep this posture durable across GSD workflows:
 
 <!-- Shipped and confirmed valuable. -->
 
+- Phase 137 — TWIN-01 through TWIN-06: maintainer-operated external-package image
+  lifecycle, committed fault/retry/restart, strict receipts and safe cleanup verified
+  automatically. This is synthetic foundation evidence, not independent adoption.
+
 - Phase 1 — Foundation: schemas, FSMs, profile DSL, validation primitives, and
   local/S3 storage adapters shipped in v1.0.
 - Phase 2 — Upload & Processing: proxied/direct upload flows, image
@@ -554,8 +567,8 @@ To keep this posture durable across GSD workflows:
   and free of mechanically proven planning/artifact residue.
 - [ ] Ratchet measured complexity, type, coverage, determinism, bootstrap, and CI/CD debt without
   weakening public or release contracts.
-- [ ] Prove the built package through a deterministic Cohort-centered failure-and-recovery digital twin
-  with machine-readable receipts and no skipped-as-green scenarios.
+- [ ] Complete the recovery matrix and aggregate readiness on the verified dedicated built-package
+  twin foundation, with machine-readable receipts and no skipped-as-green scenarios.
 - [ ] Close v1.26 from a clean checkout and clean worktree with green supported-toolchain, package,
   documentation, CI, Nightly, release-train, and remote-triage evidence.
 
@@ -987,4 +1000,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-10-21 after Phase 136 verification and transition to Phase 137.*
+*Last updated: 2026-10-21 after Phase 137 verification and transition to Phase 138.*
