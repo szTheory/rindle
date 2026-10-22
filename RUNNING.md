@@ -369,3 +369,117 @@ This is maintainer-operated synthetic evidence with `independent_pilot_credit: f
 Default tests remain Docker-free; the real run is explicit and grants no independent
 adoption, cloud-provider parity, Doctor, readiness or CI-speed credit. Existing CI
 lanes and required contexts stay unchanged.
+
+## Maintainer: exact-head readiness evidence
+
+Readiness is an observation of one merged main SHA over a recorded interval. The
+maintainer-operated synthetic twin grants no independent Phoenix pilot or 1.0
+release authority. PILOT-01 and PILOT-02 stay open. The exact-ten median/p95 speed
+target remains `deferred_unfinished`, with zero acceptance credit; its original
+blocked receipt and the recorded follow-up remain unchanged.
+
+Use the pinned OTP 27.3.4.15, Elixir 1.17.3-otp-27 and Node 20.18.1 toolchain,
+Docker Compose, PostgreSQL client, libvips, FFmpeg and the normal contributor tools.
+Authenticate `gh` for the selected repository. Read access must cover complete
+private advisory states, Dependabot, effective protection, Actions and all inbox
+sources. Missing authorization fails closed. The producer requires a
+`READINESS_READ_TOKEN` secret; provisioning it or changing repository security policy
+is a separate authorized maintainer operation.
+
+Every output below must be a **new external directory**. Run from a clean checkout
+of the authenticated current main after all implementation, workflow, documentation
+and planning changes have merged. Choose an absolute durable evidence location on
+a restricted maintainer host, outside temporary directories and Actions runners.
+Keep the parent directory mode 0700. A runner directory or artifact URL earns no
+READY credit. The controller restricts files to 0600 and directories to 0700.
+
+```bash
+# Set these to distinct new absolute directories outside the checkout.
+export READINESS_SUBJECT_DIR=/durable/maintainer/readiness/subject-UNIQUE
+export READINESS_EVIDENCE_DIR=/durable/maintainer/readiness/accept-UNIQUE
+bash scripts/maintainer/exact_head_readiness.sh verify-subject \
+  --repo szTheory/rindle --output "$READINESS_SUBJECT_DIR"
+bash scripts/maintainer/exact_head_readiness.sh accept \
+  --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"
+```
+
+`verify-subject` compares clean local HEAD to authenticated remote main and checks
+all declared source paths and all eight plans at that SHA. `accept` repeats that
+check, dispatches `readiness-retention.yml` on main with a unique request nonce,
+and waits at most 200 minutes for the matching successful first attempt. The
+producer runs `close` and uploads two uniquely named, immutable artifacts: the
+redacted archive and a separate producer run/attempt-bound digest sidecar. It
+does not retrieve its own output. Each upload has missing-file errors, no overwrite
+and 30-day retention. The workflow exposes both artifact IDs and transport digests.
+
+The durable controller authenticates the completed run and current attempt,
+downloads the sidecar first, then verifies downloaded archive and manifest bytes
+against the producer's separate digests. It atomically stores the bundle and
+locator, collects a new same-subject mutable refresh, runs the immutable graph
+validator and rechecks main and authoritative adoption parity. Only its execution
+`terminal-verdict.json` with `verdict: ready` grants subject- and interval-qualified
+historical READY credit. `candidate_ready`, `fixture_ready`, an upload, a human
+approval, or any fixture pass grants none. Inspect `attempt.json` and the terminal
+reason on failure; private API bodies and command logs stay under `restricted/`.
+
+The underlying operations are also callable independently:
+
+```bash
+bash scripts/maintainer/exact_head_readiness.sh qualify \
+  --repo szTheory/rindle --subject EXACT_MAIN_SHA --output NEW_EXTERNAL_LOCAL
+bash scripts/maintainer/exact_head_readiness.sh close \
+  --repo szTheory/rindle --output NEW_EXTERNAL_CANDIDATE
+mix run --no-start scripts/maintainer/validate_exact_head_readiness.exs \
+  --manifest CANDIDATE/portable/manifest.json --root CANDIDATE/portable \
+  --verdict NEW_OFFLINE_VERDICT.json
+bash scripts/maintainer/exact_head_readiness.sh refresh \
+  --repo szTheory/rindle --manifest CANDIDATE/portable/manifest.json \
+  --output NEW_EXTERNAL_REFRESH
+# prepare is for the authenticated maintainer-dispatched producer environment.
+bash scripts/maintainer/retain_readiness_bundle.sh prepare \
+  --manifest CANDIDATE/portable/manifest.json --output NEW_EXTERNAL_UPLOAD
+# retrieve is for the durable host after that producer run completes.
+bash scripts/maintainer/retain_readiness_bundle.sh retrieve \
+  --repo szTheory/rindle --run-id PRODUCER_RUN_ID --attempt PRODUCER_ATTEMPT \
+  --destination NEW_DURABLE_DIRECTORY
+bash scripts/maintainer/exact_head_readiness.sh claim-status \
+  --repo szTheory/rindle --verdict "$READINESS_EVIDENCE_DIR/terminal-verdict.json" \
+  --output NEW_EXTERNAL_CLAIM_OBSERVATION
+```
+
+The retained layout is `durable/locator.json`, `durable/readiness-digest.json`,
+`durable/readiness-evidence.tar.gz` and `durable/bundle/manifest.json`. Refreshed
+receipts and the original unchanged manifest live in `refresh/portable/`.
+`terminal-verdict.json` hashes those references and the final validator result.
+Keep the complete directory together. `claim-status` rechecks referenced bytes
+and the stored refresh graph. If main advanced, it reports `historical_ready`
+without current readiness. If main still matches, it requires a clean matching
+checkout and a new complete mutable refresh before reporting `current_ready`.
+An omitted claim output creates a new sibling observation directory. Later READY
+completion metadata must include the accepted SHA, interval, terminal locator and
+explicit historical scope; unqualified checked requirements or completion rows fail.
+
+| Reason | Repair / next observation |
+|---|---|
+| `closing_subject_not_checked_out`, `dirty_closing_checkout`, `phase_inventory_missing` | Land the complete PR train, obtain a clean main checkout, then rerun `verify-subject` into a new directory. |
+| `main_changed` | Select the new current main and rerun `accept`; never splice old-subject receipts. |
+| `scheduled_run_missing`, failed newest scheduled run | Wait for the next successful scheduled Nightly on that same SHA, then rerun `accept`; dispatching Nightly grants no scheduled credit. |
+| `pull_undispositioned`, remote inventory drift | Reconcile the executable inbox ledger with every current item, merge it through the PR train, then collect the new main. |
+| `remote_unauthorized`, `remote_forbidden`, unavailable protection/security source | Restore authorized complete source visibility; do not substitute an empty inventory. |
+| `producer_failed`, `producer_wait_timeout`, absent sidecar/archive | Inspect the matching producer run and its bounded failure; rerun `accept` with a new request and output after repair. |
+| `producer_identity`, `producer_sidecar_identity`, digest mismatch, expired artifact | Retrieve the exact completed run/current attempt's intact artifact pair or produce a new candidate. Never recompute expected digests from downloaded bytes. |
+| `ephemeral_destination`, `durable_host_required`, storage failure | Use restricted persistent maintainer storage and rerun retrieval into a new directory. |
+| `adoption_inflation`, `one_point_zero_authority`, `adoption_authority` | Restore honest synthetic-only authoritative claims and matching input bytes; independent pilot acceptance needs its own automated evidence. |
+| `unqualified_readiness_metadata` | Qualify historical completion with SHA, interval and terminal locator; rerun `claim-status`. |
+| local gate / cleanup failure | Inspect restricted diagnostics; `exact_head_readiness.sh cleanup --output ORIGINAL_LOCAL_OUTPUT` retries only owned resources and preserves the original failed attempt. Start a new qualification after repair. |
+
+Historical prerequisite reports are checked as committed delivery records. Their
+old covered fingerprints and original timing debt are preserved; they provide no
+current READY credit. The current qualifier reruns all eighteen local gates and
+the six-case package twin recovery matrix. It needs neither a local GSD install
+nor another machine's temporary matrix directory.
+
+Run `bash scripts/ci/test_readiness_fixtures.sh` for the cheap implementation
+fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runtime;
+it does not run native qualification. Existing CI/CI Summary topology and Release
+Please authority remain the release train gates.

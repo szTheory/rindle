@@ -1490,6 +1490,17 @@ jobs:
     # as its own required context — CI Summary stays the single required check.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up fixture parser runtime
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
+        with:
+          otp-version: '27.3.4.15'
+          elixir-version: '1.17.3-otp-27'
+      - name: Prepare only root-lock Jason and yamerl
+        run: bash scripts/ci/prepare_readiness_fixture_runtime.sh "$RUNNER_TEMP/readiness-parsers"
+      - name: Exact-head readiness fixtures (no native qualification)
+        env:
+          ERL_FLAGS: '+S 4:4'
+        run: bash scripts/ci/test_readiness_fixtures.sh
       - name: CI Summary gate logic
         run: bash scripts/ci/test_ci_summary_gate.sh
       - name: Nightly Summary gate logic
