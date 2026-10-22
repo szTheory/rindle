@@ -112,6 +112,16 @@ defmodule ReadinessFixture do
     Map.put(m, "proofs", refs)
   end
 
+  def change_source(root, m, id, fun) do
+    change(root, m, id, fn r ->
+      n = fun.(r["source"]["normalized"])
+      observations = Enum.map(["before", "after"], &put(root, "mutated/#{id}-#{&1}.json", n))
+      source = r["source"] |> Map.put("normalized", n) |> Map.put("observations", observations)
+        |> Map.put("before_sha256", hd(observations)["sha256"]) |> Map.put("after_sha256", List.last(observations)["sha256"])
+      r |> Map.put("source", source) |> Map.put("references", observations)
+    end)
+  end
+
   def refresh(root, m) do
     refs = m["proofs"] |> Enum.filter(&(&1["id"] in V.mutable_proofs())) |> Enum.map(fn ref ->
       value = root |> Path.join(ref["path"]) |> File.read!() |> Jason.decode!() |> Map.put("observation_interval", interval(2))
@@ -224,6 +234,49 @@ defmodule ReadinessPolicyTest do
       {root, m} = F.fixture()
       m = F.change(root, m, "ci-main", &put_in(&1, ["source", "normalized"] ++ unquote(path), unquote(Macro.escape(value))))
       assert V.validate_contract(m, F.context(root, m))["verdict"] == "not_ready"
+    end
+  end
+
+  test "a help-only command cannot earn a gate result" do
+    {root, m} = F.fixture()
+    m = F.change(root, m, "format", &update_in(&1, ["command", "argv"], fn argv -> argv ++ ["--help"] end))
+    assert V.validate_contract(m, F.context(root, m))["verdict"] == "not_ready"
+  end
+
+  test "tracked changes cannot be declared tool caches" do
+    {root, m} = F.fixture()
+    m = update_in(m, ["cleanup", "inventories"], fn [first | rest] ->
+      [Map.merge(first, %{"after" => ["mix.exs"], "allowed" => [%{"path" => "mix.exs", "class" => "tool_cache", "reason" => "arbitrary declaration"}]}) | rest]
+    end)
+    assert V.validate_contract(m, F.context(root, m))["verdict"] == "not_ready"
+  end
+
+  test "source observations need their own invocation interval" do
+    {root, m} = F.fixture()
+    m = F.change(root, m, "ci-main", &put_in(&1, ["source", "observation_interval"], F.interval(10)))
+    assert V.validate_contract(m, F.context(root, m))["verdict"] == "not_ready"
+  end
+
+  for {id, path, value, reason} <- [
+    {"ci-main", ["event"], "pull_request", "workflow_identity"},
+    {"nightly-scheduled", ["event"], "workflow_dispatch", "workflow_identity"},
+    {"ci-main", ["jobs"], [], "job_inventory"},
+    {"ci-main", ["rechecked_attempt"], 3, "attempt_changed"},
+    {"ci-main", ["latest_run_id"], 11, "attempt_changed"},
+    {"ci-main", ["topology_resolved"], false, "unknown_topology"},
+    {"protection", ["classic_visible"], false, "protection_unavailable"},
+    {"protection", ["organization_visible"], false, "protection_unavailable"},
+    {"protection", ["effective_checks"], [], "protection_drift"},
+    {"protection", ["bypass_actors"], ["unexpected"], "protection_drift"},
+    {"remote-inventory", ["sources", "advisories", "authorized"], false, "remote_inventory"},
+    {"remote-inventory", ["sources", "dependabot", "changed"], true, "remote_inventory"},
+    {"remote-inventory", ["sources", "hex", "database_sha256"], nil, "hex_identity"},
+    {"adoption-parity", ["adoption", "pilot_02"], "complete", "adoption_inflation"}
+  ] do
+    test "bound source policy rejects #{id} #{inspect(path)}" do
+      {root, m} = F.fixture()
+      m = F.change_source(root, m, unquote(id), &put_in(&1, unquote(path), unquote(Macro.escape(value))))
+      assert [%{"id" => unquote(reason)}] = V.validate_contract(m, F.context(root, m))["reasons"]
     end
   end
 
