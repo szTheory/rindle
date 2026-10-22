@@ -961,10 +961,5 @@
   ],
   "repo": "szTheory/rindle",
   "schema": "rindle-inbox-ledger-v1",
-  "sources": {
-    "dependabot_alerts": {
-      "rationale": "GitHub dependency graph does not parse mix.lock, so enabling Dependabot alerts adds no Hex coverage by itself; mix hex.audit (root and demo) is the advisory source and the enable action is offered in Plan 06",
-      "status": "source_disabled"
-    }
-  }
+  "sources": {}
 }

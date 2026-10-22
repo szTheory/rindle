@@ -19,7 +19,10 @@ Each attempt needs distinct, previously nonexistent subject and acceptance child
 Keep successful evidence through the lifetime of the readiness claim. Keep failed
 attempts while diagnosing them; do not overwrite a failure to make it appear successful.
 Include the evidence folder in an encrypted backup and periodically restore and verify
-the recorded hashes. Folder creation alone does not establish backup or disk encryption.
+the recorded hashes. Folder creation alone does not establish backup or disk encryption. The maintainer
+selected `~/Dropbox/Rindle/readiness` for the secondary redacted evidence copy. Keep
+credentials and raw restricted diagnostics local; verify copied bytes and confirm
+Dropbox synchronization separately. No terminal bundle has yet been copied.
 
 | Choice | Benefit | Limitation | Decision |
 | --- | --- | --- | --- |
@@ -64,12 +67,14 @@ and [Dependabot alert listing](https://docs.github.com/en/rest/dependabot/alerts
 
 ## Current live prerequisites
 
-The authenticated Dependabot alerts GET on 2026-10-22 explicitly returned
-`Dependabot alerts are disabled for this repository` (403). This is not an empty
-security inventory. Enable dependency graph/Dependabot alerts with maintainer
-authorization, then collect and disposition actual findings. Enabling alerts does
-not require enabling automatic security-update PRs, and existing exceptions must
-still be checked against the findings. The producer secret is currently absent.
+The authenticated Dependabot alerts GET on 2026-10-22 initially returned
+`Dependabot alerts are disabled for this repository` (403). After user authorization,
+dependency alerts and the graph were enabled; the setting read returned 204 and
+the alerts GET succeeded. Automatic security-update PRs remain disabled. A fresh
+complete inventory must still be collected and actual findings dispositioned;
+existing exceptions must be checked against those findings. The user provisioned the
+Rindle-only expiring producer token on 2026-10-22; the secret metadata confirms its
+presence, while actual workflow reads must still prove its access.
 Security-setting changes and credential provisioning are separate authorized
 maintainer operations under RUNNING.md.
 

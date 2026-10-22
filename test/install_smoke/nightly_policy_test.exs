@@ -103,20 +103,25 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
     script_tests = job(workflow, "ci-script-tests")
     summary = job(workflow, "ci-summary")
 
-    assert step(script_tests, "Nightly Summary gate logic")["run"] ==
-             "bash scripts/ci/test_nightly_summary_gate.sh"
+    assert script_tests["timeout-minutes"] == 5
 
-    assert step(script_tests, "Inbox collector harness")["run"] ==
-             "bash scripts/ci/test_collect_inbox.sh"
-
-    assert step(script_tests, "Inbox ledger validator harness")["run"] ==
-             "bash scripts/ci/test_validate_inbox_ledger.sh"
-
-    assert step(script_tests, "Dependency landing evidence harness")["run"] ==
-             "bash scripts/ci/test_dep_landing_evidence.sh"
-
-    assert step(script_tests, "Inbox ledger shape (offline)")["run"] ==
-             "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json"
+    assert script_commands(script_tests) == [
+             "bash scripts/ci/test_script_test_groups.sh",
+             "bash scripts/ci/test_ci_summary_gate.sh",
+             "bash scripts/ci/test_nightly_summary_gate.sh",
+             "bash scripts/ci/test_nightly_incident.sh",
+             "bash scripts/ci/test_setup_branch_protection.sh",
+             "bash scripts/ci/test_collect_inbox.sh",
+             "bash scripts/ci/test_validate_inbox_ledger.sh",
+             "bash scripts/ci/test_dep_landing_evidence.sh",
+             "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json",
+             "bash scripts/ci/test_craft_contract_tools.sh",
+             "bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json",
+             "bash scripts/ci/test_validate_artifact_ledger.sh",
+             "bash scripts/maintainer/validate_artifact_ledger.sh --offline --require-settled --ledger scripts/maintainer/artifact_ledger.json",
+             "bash scripts/ci/test_repo_hygiene_check.sh",
+             "bash scripts/ci/test_collect_phase_gate_evidence.sh"
+           ]
 
     assert workflow["name"] == "CI"
     assert summary["name"] == "CI Summary"
@@ -239,8 +244,9 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
                end)
            end)
 
-    assert step(job(ci, "ci-script-tests"), "Nightly incident lifecycle")["run"] ==
-             "bash scripts/ci/test_nightly_incident.sh"
+    assert Enum.count(script_commands(job(ci, "ci-script-tests")), fn command ->
+             command == "bash scripts/ci/test_nightly_incident.sh"
+           end) == 1
   end
 
   test "Nightly has one executable incident-policy owner", %{nightly: workflow} do
@@ -286,6 +292,16 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
   end
 
   defp job(workflow, name), do: workflow |> Map.fetch!("jobs") |> Map.fetch!(name)
+
+  defp script_commands(job) do
+    carrier = step(job, "Await existing contracts and readiness fixtures")
+    refute Map.has_key?(carrier, "if")
+    refute carrier["continue-on-error"]
+    [invocation | body] = String.split(String.trim(carrier["run"]), "\n")
+    assert invocation == "python3 scripts/ci/run_script_test_groups.py <<'HARNESSES'"
+    assert List.last(body) == "HARNESSES"
+    Enum.drop(body, -1)
+  end
 
   defp step(job, name) do
     Enum.find(job["steps"], &(Map.get(&1, "name") == name)) || flunk("missing step: #{name}")

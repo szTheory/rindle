@@ -245,3 +245,51 @@ The exact workflow body then passed locally under the runner environment with al
 three group exit codes zero; all original harnesses and all 292 readiness fixtures
 passed (91 seconds for the readiness group). Logs: `/private/tmp/rindle139-three-groups-step.log`
 and `/private/tmp/rindle139-three-groups-final.log`. Automation-first and diff checks passed.
+
+
+## Live prerequisite setup and CI owner-test correction
+
+On 2026-10-22 the user authorized the recommended prerequisite setup. The GitHub
+vulnerability-alerts PUT succeeded, setting GET returned 204, and the complete
+alerts GET succeeded. Automatic security-update PRs remain disabled. A first empty
+read is not terminal inventory acceptance; fresh source coverage is still required.
+Time Machine reports no configured destination. The private evidence parent is
+ready; backup configuration and producer secret are pending user input. Chrome is
+at GitHub Confirm access, requiring the user's passkey before fine-grained token
+setup. No broad CLI token was replicated into Actions.
+
+Run 39872109756 passed the complete CI Script Tests job (all three group exits
+zero; 292 readiness fixtures in 217 seconds), plus Integration, Contract, package
+consumer, adoption smoke and both optional-dependency cells. Both Quality cells
+reported the same three failures: two Nightly policy assertions pinned obsolete
+individual script step labels, and RUNNING accidentally included a release-system
+name forbidden by the adopter-doc copy guard. The actual policy was preserved: the
+updated test requires all fifteen carrier lines (the fourteen original commands
+and the process-group regression), unconditional/nonmasked execution, the unchanged
+five-minute job and sole required join. Driver real-process tests separately require
+all owned groups to finish and propagate any failure. RUNNING uses the existing
+release-automation wording; release authority and workflow bytes are unchanged.
+
+The focused reproduction was **31 tests, 3 failures**; after correction, the workflow,
+docs, CI timing/cache and quality owner suite passed **101 tests, zero failures**.
+Its new isolated database was checked absent before use and removed afterward. Logs:
+`/private/tmp/rindle139-policy-red.log`, `/private/tmp/rindle139-policy-green.log`.
+Required final-head CI and actual Plan 07 terminal acceptance remain pending; no
+READY credit is inferred from configuration or these checks.
+
+The obsolete source-disabled ledger exception was removed after the authenticated
+setting/read succeeded; existing advisory exceptions and dependency PR dispositions
+are unchanged. Hex audit remains a separate source. The scanner allowlist changes
+only the existing policy literal's trailing list comma; no new entry or broad baseline
+regeneration was introduced.
+
+The user completed GitHub authentication, then generated and submitted the prepared
+Rindle-only seven-day read token directly to Actions. Secret metadata confirms
+READINESS_READ_TOKEN creation at 2026-10-22T23:47:29Z; no token value entered agent
+output or a tracked file. The user selected ~/Dropbox, resolving to the existing
+CloudStorage Dropbox folder. ~/Dropbox/Rindle/readiness is prepared at 0700 for
+redacted evidence; no terminal bundle exists to copy and cloud sync is unverified.
+After the ledger correction, 72 ledger, 53 remote and 21 acceptance fixtures pass;
+live residue scan reports 693 files/273 hits/240 reviewed entries with zero violations,
+and the artifact ledger covers 3314 files/46 classes. These are implementation and
+setup checks only, with no terminal READY credit.

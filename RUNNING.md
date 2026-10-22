@@ -492,4 +492,4 @@ contracts, Nightly incident fixtures, readiness fixtures) under a shared four-mi
 bound within the unchanged five-minute job. Any group failure fails the job.
 `bash scripts/ci/test_script_test_groups.sh`
 checks failure propagation and owned timeout disposal. Existing CI/CI Summary topology
-and Release Please authority remain the release train gates.
+and release automation authority remain the release train gates.

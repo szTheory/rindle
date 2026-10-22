@@ -30,7 +30,7 @@ The primary checkout retains separate historical work; preserve it.
 
 Phase 139 executes inline at the user's request. Do not dispatch executors for this run.
 Plans 00–06 are verified and committed; 7/8 plans complete across six waves.
-Plan 07 is pending: actual post-merge acceptance on clean main. Draft PR #163 owns
+Plan 07 is pending: actual post-merge acceptance on clean main. PR #163 owns
 the review: https://github.com/szTheory/rindle/pull/163. GitHub workflow CI is the
 durable owner of its required checks; inspect the latest run for that PR head.
 No producer dispatch or terminal execution acceptance has run.
@@ -68,19 +68,26 @@ subject guard correctly refuses this unmerged checkout.
 
 PR #163 squash merge is authorized after required checks pass on its final head; do not
 ask again. Approval is saved privately at `/Users/jon/Library/Application Support/Rindle/
-readiness/pr-163-merge-authorization.json`. Latest CI repair isolates the slow independent
-Nightly incident fixture group without changing the five-minute job limit.
+readiness/pr-163-merge-authorization.json`. The three-group CI harness passed on GitHub. Its Quality legs exposed two old
+step-label assertions plus one adopter-doc copy guard; focused owner checks now
+pass 101 tests after preserving every required command and the five-minute limit.
 
 Live prerequisites: green PR checks and approved merge; successful newest scheduled Nightly
 on the accepted main; landing the pinned retained dispositions for PRs 144–146; authorized
-Dependabot/private-source visibility (the authenticated 403 explicitly says alerts are
-disabled); and provisioning the currently absent READINESS_READ_TOKEN producer secret.
+complete live private-source visibility using the provisioned READINESS_READ_TOKEN
+producer secret. User completed the prepared seven-day Rindle-only token setup;
+secret metadata confirms creation at 2026-10-22T23:47:29Z. Dependabot alerts and
+dependency graph are enabled (setting GET 204; alerts GET succeeds); automatic security
+updates remain disabled. User selected Dropbox for the secondary evidence copy.
 Restricted persistent storage is prepared at `/Users/jon/Library/Application Support/
-Rindle/readiness` (0700), outside checkouts; backup configuration is not verified. These require actual live evidence. READY-01–05
+Rindle/readiness` (0700), outside checkouts. Secondary redacted evidence storage is
+prepared at `~/Dropbox/Rindle/readiness` (0700); no final bundle exists to copy and
+cloud synchronization is not verified. These require actual live evidence. READY-01–05
 remain open. The three dependency PRs have local retained dispositions bound to their
 observed heads and separate rebase/CI landing conditions. The current remote main still
 has the old ledger, so its collector correctly refuses it until these records merge.
-No security/credential/protection setting or release was changed.
+Authorized dependency-alert detection and the producer secret were configured.
+Protection and release settings are unchanged; no terminal acceptance has run.
 
 ## Decisions and Verification Debt
 
