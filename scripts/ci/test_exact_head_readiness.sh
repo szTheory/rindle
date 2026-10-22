@@ -59,7 +59,7 @@ defmodule ReadinessFixture do
         n = normalized(id, manifest)
         observations = Enum.map(["before", "after"], &put(root, "observations/#{id}-#{&1}.json", n))
         Map.merge(receipt, %{"references" => observations, "source" => %{
-          "complete" => true, "authenticated" => true, "query" => "fixture/#{id}", "pages" => 1,
+          "complete" => true, "authenticated" => true, "query" => "fixture/#{id}", "pages" => 1, "observation_interval" => interval(),
           "before_sha256" => hd(observations)["sha256"], "after_sha256" => List.last(observations)["sha256"],
           "observations" => observations, "policy" => V.policy(), "normalized" => n}})
       else
@@ -125,6 +125,7 @@ defmodule ReadinessFixture do
   def refresh(root, m) do
     refs = m["proofs"] |> Enum.filter(&(&1["id"] in V.mutable_proofs())) |> Enum.map(fn ref ->
       value = root |> Path.join(ref["path"]) |> File.read!() |> Jason.decode!() |> Map.put("observation_interval", interval(2))
+      value = put_in(value, ["source", "observation_interval"], interval(2))
       Map.put(put(root, "refresh/#{ref["id"]}.json", value), "id", ref["id"])
     end)
     Map.merge(Map.take(m, ~w(repository subject_sha policy validator_sha256 remote_main_before remote_main_after adoption)),

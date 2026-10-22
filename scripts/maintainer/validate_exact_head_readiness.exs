@@ -269,11 +269,43 @@ defmodule Rindle.ExactHeadReadiness do
       "command does not execute the registered gate"
     )
 
+    ensure!(
+      valid_command_args?(r["id"], command["argv"]),
+      "command_identity",
+      "unregistered command arguments"
+    )
+
     object!(command["output"], c)
     ensure!(command["output"] in r["references"], "unbound_reference", "command output not bound")
     validate_identity!(r["tool_identity"], "tool_identity")
     validate_cleanup!(r["cleanup"])
   end
+
+  defp valid_command_args?(id, argv) do
+    suffix = Enum.drop(argv, length(command_prefix(id)))
+
+    case {id, suffix} do
+      {_id, []} ->
+        true
+
+      {"twin-recovery", ["--evidence-dir", path, "--cleanup"]} ->
+        absolute_argument?(path)
+
+      {"contributor-bootstrap", ["--receipt", path]} ->
+        absolute_argument?(path)
+
+      {"async-isolation", ["--report", path]} ->
+        absolute_argument?(path)
+
+      {"inbox-ledger", ["--ledger", ".planning/INBOX-LEDGER.json", "--inventory", path]} ->
+        absolute_argument?(path)
+
+      _other ->
+        false
+    end
+  end
+
+  defp absolute_argument?(path), do: is_binary(path) and Path.type(path) == :absolute
 
   defp validate_source!(r, c) do
     s = r["source"]
@@ -302,6 +334,14 @@ defmodule Rindle.ExactHeadReadiness do
       s["policy"] == @policy and is_map(s["normalized"]),
       "source_identity",
       "normalized source absent"
+    )
+
+    validate_interval!(s["observation_interval"])
+
+    ensure!(
+      contained?(s["observation_interval"], r["observation_interval"]),
+      "stale_observation",
+      "source observations outside receipt invocation"
     )
 
     n = s["normalized"]
@@ -531,6 +571,12 @@ defmodule Rindle.ExactHeadReadiness do
         end),
         "residue_inventory",
         "unclassified allowed residue"
+      )
+
+      ensure!(
+        entry["allowed"] == [] or entry["kind"] in ["ignored", "generated", "temporary"],
+        "residue_inventory",
+        "only build caches and external evidence may be excepted"
       )
 
       ensure!(
