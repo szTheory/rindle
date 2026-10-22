@@ -2,28 +2,27 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: ready_to_plan
-stopped_at: Phase 138 complete; ready to discuss Phase 139
-last_updated: "2026-10-22T15:44:53.867594+00:00"
-state_head: ad1d386014832b86356ee75af1e0bfb303800946
+status: planned
+stopped_at: Phase 139 prerequisites verified; eight plans ready to execute
+last_updated: "2026-10-22T17:28:54.691Z"
+state_head: 47945252d418c132ff49662ef4dffbc432ae4080
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 225
+  total_plans: 233
   completed_plans: 225
-  percent: 86
 last_activity: 2026-10-22
-current_phase: 139
 current_phase_name: Exact-Head Readiness Closure
+current_phase: 139
 current_plan: Not started
-last_activity_desc: "Phase 138 complete: six plans, 20/20 must-haves, RECOV-01..06 verified. Next: discuss Phase 139."
+last_activity_desc: "Phase 139 reconciled to completed Phase 138; eight plans independently checked, preflight and negative controls passed. Next: execute Phase 139."
 ---
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-10-22).
 **Core value:** Media, made durable.
-**Current focus:** Phase 139 — Exact-Head Readiness Closure (discussion next).
+**Current focus:** Phase 139 — Exact-Head Readiness Closure (ready to execute).
 **Worktree:** /Users/jon/projects/rindle/.claude/worktrees/phase136-execution
 The primary checkout retains separate historical work; preserve it.
 
@@ -34,8 +33,12 @@ verified automatically. Coverage has zero gaps, all 16 planned security threats 
 closed, independent standard-depth review found zero issues across 26 files, and
 the verification owner reports passed with a current covered-input fingerprint.
 Progress: 6/7 phases complete (86%); 225/225 currently planned plans complete.
-Phase 139 has no context or plans yet. Its approved roadmap includes Doctor's
-versioned-host migration-ledger diagnostic correction and final readiness evidence.
+Phase 139 now has eight plans across five waves, reconciled to the delivered upstream
+contracts and independently checked with zero findings. Its execution preflight passes
+with current Phase 138 covered-input identity and separate retained-matrix verification;
+missing evidence and dirty upstream evidence are rejected. The plan includes Doctor's
+versioned-host migration-ledger correction and final readiness evidence. Numeric CI
+speed remains deferred unfinished to SEED-261021-918 with zero acceptance credit.
 
 Current implementation evidence subject: c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc.
 Full six-case matrix: /private/tmp/rindle-138-matrix-verified. One fresh archive,
@@ -48,15 +51,16 @@ readiness, release or deferred numeric CI-speed credit is granted by Phase 138.
 
 ## Next GSD Command
 
-Run `$gsd-discuss-phase 139` in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`.
-Give the direct stage command when known; do not repeatedly route the user through
-`$gsd-progress`. No conversation reset or reapproval is required. All Phase 138
-plans are committed and summarized; do not replay completed production work.
-Finish the normal transition after phase.complete: its generic next pointer and
-preserved custom prose must be reconciled before handing back to the user.
-Auto-advance remains disabled. Continue through ordinary discuss → plan → execute;
-serious work remains on the feature branch until normal PR/green-main gates pass.
+Run `$gsd-execute-phase 139` in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` after
+`bash .planning/phases/139-exact-head-readiness-closure/139-preflight-test.sh`.
+Eight plans are ready across five waves. Wave 1 starts Plans 00 (Doctor correction)
+and 01 (manifest validator). All READY requirements remain pending; final acceptance
+still requires actual post-merge exact-main qualification and live CI/Nightly evidence.
+See `139-EXECUTION-RECOVERY.md` in the phase directory for source and evidence identity.
+Preserve the primary checkout's historical work. No repeated discussion, old Phase 133
+cache recovery, or CI-speed measurement is required. Auto-advance is disabled; this
+prerequisite-unblock task has not started Phase 139 implementation or merged any work.
 
 ## Decisions and Verification Debt
 
@@ -91,5 +95,5 @@ serious work remains on the feature branch until normal PR/green-main gates pass
 ## Session
 
 Last session: 2026-10-22T15:44:53.867594+00:00
-Stopped at: Phase 138 complete; ready to discuss Phase 139
+Stopped at: Phase 139 prerequisites verified; eight checked plans ready to execute
 Resume file: None

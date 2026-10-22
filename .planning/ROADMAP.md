@@ -828,7 +828,26 @@ Plans:
   4. One fail-closed readiness manifest rejects missing, stale, partial, impermissibly skipped, foreign-SHA, unclean, residue-bearing, or unexplained evidence.
   5. Automated release and adoption-truth checks keep the named independent Phoenix pilot open and reject any claim that the synthetic twin satisfies real-adopter validation or authorizes 1.0.
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+**Wave 1**
+- [ ] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
+- [ ] 139-01-PLAN.md — Validate the immutable readiness evidence graph
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 139-02-PLAN.md — Qualify an isolated exact-subject checkout and packaged recovery matrix
+- [ ] 139-03-PLAN.md — Collect full main CI, scheduled Nightly, and effective protection
+- [ ] 139-04-PLAN.md — Refresh complete inbox and security dispositions
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 139-05-PLAN.md — Join local and remote evidence into a bounded candidate verdict
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 139-06-PLAN.md — Retain byte-verified evidence and enforce honest adoption claims
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 139-07-PLAN.md — Run final post-merge main acceptance with historical claim scope
 
 ## Progress
 
