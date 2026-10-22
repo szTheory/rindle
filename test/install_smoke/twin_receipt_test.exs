@@ -165,4 +165,45 @@ defmodule Rindle.TwinReceiptTest do
 
     assert {_, 0} = python(code)
   end
+
+  test "purge case rejects denial, substituted job identity, repeated stimulus and residue" do
+    code = """
+    import copy
+    from twin_fixture import fixture
+    from twin_receipt import verify_receipt, Refused
+    inputs,legacy=fixture(); inputs.update(schema_version=2,scenario='purge-absence')
+    before,after,inventory = [copy.deepcopy(legacy[k]) for k in ['before','after','inventory']]
+    after.update(boot_id=before['boot_id'], sequence=3); inventory['sequence']=4
+    absence=dict(source_key=before['source_key'], asset_id=before['asset_id'], job_id=before['job_id'],
+                 head='not_found', asset_retained=True, paused=True, running=0, state='retryable',
+                 attempt=1,error_count=1,sequence=2)
+    receipt=dict(schema_version=2,kind=legacy['kind'],independent_pilot_credit=False,inputs=copy.deepcopy(inputs),
+                 case_id='purge-absence',outcome='complete',reason='complete',stage='complete',dependency='none',
+                 before=before,absence=absence,after=after,inventory=inventory,runtime=legacy['old_runtime'],
+                 isolation=legacy['isolation'],host_exited=True)
+    assert verify_receipt(inputs,receipt)
+    mutations=[(['before','error_count'],0),(['after','job_id'],9),(['after','attempt'],1),
+      (['absence','head'],'denied'),(['absence','head'],'unknown'),(['absence','source_key'],'foreign'),
+      (['absence','asset_id'],'00000000-0000-4000-8000-000000000009'),(['absence','job_id'],9),
+      (['absence','paused'],False),(['absence','running'],1),(['absence','attempt'],2),
+      (['absence','error_count'],0),(['absence','sequence'],1),(['before','stimuli','detach'],2),
+      (['inventory','objects'],1),(['inventory','domain','media_assets'],1),(['inventory','listing_complete'],False),
+      (['inventory','writers_paused'],False),(['inventory','jobs',2,'id'],9),(['inventory','temp_files'],1),
+      (['inventory','multipart'],1),(['after','asset_absent'],False)]
+    for path,value in mutations:
+        r=copy.deepcopy(receipt);target=r
+        for key in path[:-1]:target=target[key]
+        target[path[-1]]=value
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(path)
+    for key in ['absence','before','after','inventory']:
+        r=copy.deepcopy(receipt);del r[key]
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(key)
+    """
+
+    assert {_, 0} = python(code)
+  end
 end

@@ -146,7 +146,14 @@ def verify_receipt(inputs, receipt):
     for k in ("ffmpeg_major", "ffprobe_major"):
         integer(caps[k], 6, 99)
     require(all(caps[k] is True for k in ("database_schema", "image_exercised", "storage_exercised")) and caps["av_exercised"] is False and caps["doctor_status"] == "not_used_known_migration_ledger_issue", "capability_claim")
-    inventory = receipt["inventory"]
+    verify_empty_inventory(receipt["inventory"], after["job_id"], 3)
+    require((before["sequence"], after["sequence"], receipt["inventory"]["sequence"]) == (1, 2, 3), "observation_order")
+    return True
+
+
+
+
+def verify_empty_inventory(inventory, purge_id, sequence):
     keys(inventory, {"domain", "jobs", "temp_files", "fault_claims", "writers_paused", "objects", "multipart", "versioning_disabled", "processes", "complete", "sequence", "relations", "fixture_rows", "schema_migration_rows", "peer_rows", "listing_complete"})
     require(all(inventory[k] is True for k in ("complete", "writers_paused", "versioning_disabled")), "unknown_inventory")
     for k in ("objects", "multipart", "temp_files", "processes"):
@@ -171,11 +178,10 @@ def verify_receipt(inputs, receipt):
         integer(job["attempt"], expected[job["queue"]], expected[job["queue"]])
         require(job["state"] == "completed", "job_residue")
         if job["queue"] == "rindle_purge":
-            require(job["id"] == after["job_id"], "purge_identity")
+            require(job["id"] == purge_id, "purge_identity")
         seen.add(job["queue"]); ids.add(job["id"])
-    require((before["sequence"], after["sequence"], inventory["sequence"]) == (1, 2, 3), "observation_order")
+    integer(inventory["sequence"], sequence, sequence)
     return True
-
 
 
 def validate_tus_clients(first, second, size):
@@ -200,13 +206,16 @@ def validate_tus_clients(first, second, size):
 def verify_case_receipt(inputs, receipt):
     validate_inputs(inputs)
     require(inputs["schema_version"] == 2, "case_inputs")
+    fields = {"tus-resume": {"clients", "result", "object_keys"},
+              "purge-absence": {"before", "absence", "after", "inventory"}}
+    require(receipt.get("case_id") in fields, "case_identity")
     keys(receipt, {"schema_version", "kind", "independent_pilot_credit", "inputs", "case_id",
-                   "outcome", "reason", "stage", "dependency", "clients", "result", "object_keys",
-                   "runtime", "isolation", "host_exited"})
+                   "outcome", "reason", "stage", "dependency", "runtime", "isolation", "host_exited"}
+                   | fields[receipt["case_id"]])
     labeled(receipt)
     integer(receipt["schema_version"], 2, 2)
     require(receipt["inputs"] == inputs, "input_identity")
-    require(receipt["case_id"] == inputs["scenario"] == "tus-resume", "case_identity")
+    require(receipt["case_id"] == inputs["scenario"], "case_identity")
     require(receipt["outcome"] == receipt["reason"] == receipt["stage"] == "complete"
             and receipt["dependency"] == "none", "incomplete_receipt")
     require(receipt["host_exited"] is True, "runtime_not_stopped")
@@ -214,6 +223,12 @@ def verify_case_receipt(inputs, receipt):
     keys(receipt["isolation"], {"image_id", "mounts_verified"})
     text(receipt["isolation"]["image_id"], r"sha256:[0-9a-f]{64}")
     require(receipt["isolation"]["mounts_verified"] is True, "runtime_mounts")
+    if receipt["case_id"] == "tus-resume":
+        return verify_tus_case(inputs, receipt)
+    return verify_purge_case(receipt)
+
+
+def verify_tus_case(inputs, receipt):
     clients = receipt["clients"]
     keys(clients, {"first", "second", "first_exited", "second_exited"})
     require(clients["first_exited"] is True and clients["second_exited"] is True, "client_not_exited")
@@ -238,6 +253,45 @@ def verify_case_receipt(inputs, receipt):
     require(result["variant_keys"] == expected_variants, "undeclared_variants")
     expected_objects = sorted([result["source_key"], *expected_variants])
     require(receipt["object_keys"] == expected_objects, "undeclared_objects")
+    return True
+
+
+
+def verify_purge_case(receipt):
+    before, absence, after = (receipt[k] for k in ("before", "absence", "after"))
+    keys(before, {"asset_id", "source_key", "job_id", "attempt", "state", "outcome", "error_count",
+                  "asset_retained", "source_present", "ready_variant_count", "variant_deletes_before_failure",
+                  "paused", "running", "stimuli", "boot_id", "sequence"})
+    keys(absence, {"asset_id", "source_key", "job_id", "head", "asset_retained", "paused", "running",
+                   "attempt", "state", "error_count", "sequence"})
+    keys(after, {"outcome", "job_id", "attempt", "state", "asset_absent", "error_count", "boot_id", "fault_claims", "sequence"})
+    identity(before["asset_id"])
+    text(before["source_key"], r"elixir-twin-profile/" + re.escape(before["asset_id"]) + r"/[0-9a-f-]{36}\.png")
+    identity(before["source_key"].split("/")[-1][:-4])
+    for value in (before, absence, after):
+        integer(value["job_id"], 1)
+        integer(value["error_count"], 1, 1)
+        integer(value["sequence"], 1, 4)
+    for value in (before, absence):
+        integer(value["attempt"], 1, 1)
+        integer(value["running"], 0, 0)
+        require(value["paused"] is True and value["asset_retained"] is True
+                and value["state"] == "retryable", "raced_barrier")
+    require(before["outcome"] == "paused" and before["source_present"] is True, "retained_source")
+    integer(before["ready_variant_count"], 1, 1)
+    integer(before["variant_deletes_before_failure"], 1, 1)
+    keys(before["stimuli"], {"upload", "attach", "detach"})
+    for count in before["stimuli"].values():
+        integer(count, 1, 1)
+    require(all(absence[k] == before[k] for k in ("asset_id", "source_key", "job_id"))
+            and absence["head"] == "not_found", "absence_not_authoritative")
+    integer(after["attempt"], 2, 2)
+    integer(after["fault_claims"], 1, 1)
+    require(after["job_id"] == before["job_id"] and after["state"] == after["outcome"] == "completed"
+            and after["asset_absent"] is True, "job_continuity")
+    require(before["boot_id"] == after["boot_id"] == receipt["runtime"]["boot_id"], "boot_identity")
+    verify_empty_inventory(receipt["inventory"], after["job_id"], 4)
+    require((before["sequence"], absence["sequence"], after["sequence"]) == (1, 2, 3), "observation_order")
     return True
 
 
