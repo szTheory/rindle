@@ -39,7 +39,9 @@ defmodule Rindle.Ops.RuntimeChecks do
       Keyword.get_lazy(opts, :migration_statuses, fn -> migration_statuses(opts) end)
 
     rindle_schema_catalog =
-      Keyword.get_lazy(opts, :rindle_schema_catalog, fn -> rindle_schema_catalog(opts) end)
+      Keyword.get_lazy(opts, :rindle_schema_catalog, fn ->
+        rindle_schema_catalog(Keyword.put(opts, :migration_statuses, migration_statuses))
+      end)
 
     oban_jobs_catalog = Keyword.get(opts, :oban_jobs_catalog)
 
@@ -182,7 +184,7 @@ defmodule Rindle.Ops.RuntimeChecks do
 
   defp migration_statuses(opts) do
     repo = Config.repo()
-    path = Keyword.get(opts, :migrations_path, Config.migrations_path())
+    path = Keyword.get_lazy(opts, :migrations_path, fn -> Migrator.migrations_path(repo) end)
 
     case Migrator.with_repo(
            repo,
@@ -220,12 +222,12 @@ defmodule Rindle.Ops.RuntimeChecks do
                """,
                [prefix, inspected_tables]
              ) do
-        schema_catalog(started_repo, prefix, marker_table, requirements, table_rows)
+        schema_catalog(started_repo, prefix, marker_table, requirements, table_rows, opts)
       end
     end)
   end
 
-  defp schema_catalog(repo, prefix, marker_table, requirements, table_rows) do
+  defp schema_catalog(repo, prefix, marker_table, requirements, table_rows, opts) do
     present_tables = Enum.map(table_rows, fn [table_name] -> table_name end)
     marker_versions = marker_versions(repo, prefix, marker_table, present_tables)
     missing_tables = Map.fetch!(requirements, :tables) -- present_tables
@@ -234,7 +236,9 @@ defmodule Rindle.Ops.RuntimeChecks do
       marker_versions: marker_versions,
       tables: present_tables -- [marker_table],
       missing_tables: missing_tables,
-      legacy_packaged_install?: marker_versions == [] and missing_tables == [],
+      legacy_packaged_install?:
+        marker_table not in present_tables and missing_tables == [] and
+          OwnershipChecks.applied_legacy_history?(Keyword.fetch!(opts, :migration_statuses)),
       prefix: prefix
     }
   end

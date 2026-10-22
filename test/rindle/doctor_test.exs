@@ -43,7 +43,8 @@ defmodule Rindle.DoctorTest do
 
   describe "real versioned host ledger" do
     setup do
-      path = Path.join(System.tmp_dir!(), "rindle-doctor-#{System.unique_integer([:positive])}")
+      priv = "priv/rindle-doctor-#{System.unique_integer([:positive])}"
+      path = Application.app_dir(:rindle, priv)
       migrations = Path.join(path, "migrations")
       File.mkdir_p!(migrations)
 
@@ -54,7 +55,7 @@ defmodule Rindle.DoctorTest do
 
       config =
         Rindle.Repo.config()
-        |> Keyword.put(:priv, path)
+        |> Keyword.put(:priv, priv)
         |> Keyword.put(:migration_source, "doctor_host_migrations")
         |> Keyword.put(:pool, Ecto.Adapters.SQL.Sandbox)
         |> Keyword.put(:pool_size, 2)
@@ -76,7 +77,9 @@ defmodule Rindle.DoctorTest do
         "CREATE TABLE doctor_host_migrations (version bigint PRIMARY KEY, inserted_at timestamp)"
       )
 
-      VersionedHostRepo.query!("INSERT INTO doctor_host_migrations (version) VALUES (20261021000000)")
+      VersionedHostRepo.query!(
+        "INSERT INTO doctor_host_migrations (version) VALUES (20261021000000)"
+      )
 
       on_exit(fn -> File.rm_rf!(path) end)
       on_exit(fn -> Rindle.Config.delete_repo_override() end)
@@ -466,6 +469,7 @@ defmodule Rindle.DoctorTest do
   defp real_host_report do
     capture_io(fn ->
       assert Rindle.Config.repo() == VersionedHostRepo
+
       report =
         Doctor.run_checks([],
           exit_on_failure?: false,
