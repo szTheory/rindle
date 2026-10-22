@@ -393,6 +393,11 @@ and planning changes have merged. Choose an absolute durable evidence location o
 a restricted maintainer host, outside temporary directories and Actions runners.
 Keep the parent directory mode 0700. A runner directory or artifact URL earns no
 READY credit. The controller restricts files to 0600 and directories to 0700.
+On a maintainer Mac, the recommended parent is
+`$HOME/Library/Application Support/Rindle/readiness`; use a distinct child for each
+attempt and include the folder in an encrypted backup. See
+[storage and credential decisions](guides/readiness_evidence.md) for the tradeoffs
+and exact producer token permissions. Creating the folder does not configure a backup.
 
 ```bash
 # Set these to distinct new absolute directories outside the checkout.
@@ -482,8 +487,9 @@ nor another machine's temporary matrix directory.
 
 Run `bash scripts/ci/test_readiness_fixtures.sh` for the cheap implementation
 fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runtime;
-it does not run native qualification. CI awaits both the existing contract harness
-group and readiness group under a shared four-minute bound within the unchanged
-five-minute job. Either group failure fails the job. `bash scripts/ci/test_script_test_groups.sh`
+it does not run native qualification. CI awaits three independent groups (existing
+contracts, Nightly incident fixtures, readiness fixtures) under a shared four-minute
+bound within the unchanged five-minute job. Any group failure fails the job.
+`bash scripts/ci/test_script_test_groups.sh`
 checks failure propagation and owned timeout disposal. Existing CI/CI Summary topology
 and Release Please authority remain the release train gates.

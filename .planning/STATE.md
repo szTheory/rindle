@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase 139 Plans 00–06 verified; Plan 07 awaits merged main and live prerequisites
+stopped_at: Phase 139 Plans 00–06 verified; Plan 07 awaits authorized PR 163 merge and live prerequisites
 last_updated: "2026-10-22T22:33:28.155444+00:00"
 state_head: 9ebf92ad
 progress:
@@ -66,11 +66,17 @@ quality policies and existing workflow truth checks. Its producer/retrieval/cont
 authoritative parity and current/historical claim commands are committed. The real
 subject guard correctly refuses this unmerged checkout.
 
-Live prerequisites: merge approval/green PR checks; successful newest scheduled Nightly
+PR #163 squash merge is authorized after required checks pass on its final head; do not
+ask again. Approval is saved privately at `/Users/jon/Library/Application Support/Rindle/
+readiness/pr-163-merge-authorization.json`. Latest CI repair isolates the slow independent
+Nightly incident fixture group without changing the five-minute job limit.
+
+Live prerequisites: green PR checks and approved merge; successful newest scheduled Nightly
 on the accepted main; landing the pinned retained dispositions for PRs 144–146; authorized
-Dependabot/private-source visibility (Dependabot GET returned 403); provisioning the
-currently absent READINESS_READ_TOKEN producer secret; and a restricted durable host
-path outside temp/runner storage. These require actual live evidence. READY-01–05
+Dependabot/private-source visibility (the authenticated 403 explicitly says alerts are
+disabled); and provisioning the currently absent READINESS_READ_TOKEN producer secret.
+Restricted persistent storage is prepared at `/Users/jon/Library/Application Support/
+Rindle/readiness` (0700), outside checkouts; backup configuration is not verified. These require actual live evidence. READY-01–05
 remain open. The three dependency PRs have local retained dispositions bound to their
 observed heads and separate rebase/CI landing conditions. The current remote main still
 has the old ledger, so its collector correctly refuses it until these records merge.

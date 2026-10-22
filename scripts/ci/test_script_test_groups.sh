@@ -19,6 +19,20 @@ class Groups(unittest.TestCase):
     def test_early_failure_still_awaits_other_group(self):self.assertEqual(self.run_groups((.01,7),(.2,0)),(1,[True,True]))
     def test_second_group_failure_cannot_be_masked(self):self.assertEqual(self.run_groups((.1,0),(.01,3)),(1,[True,True]))
     def test_timeout_is_nonpassing_and_disposes_both_groups(self):self.assertEqual(self.run_groups((5,0),(5,0),.1),(1,[False,False]))
+    def test_three_groups_awaited_with_failure_preserved(self):
+        with tempfile.TemporaryDirectory(prefix='rindle-script-groups-test-') as tmp:
+            path=pathlib.Path(tmp);marker=path/'last'
+            groups=[('first',[sys.executable,'-c','raise SystemExit(7)']),('second',[sys.executable,'-c','pass']),('last',[sys.executable,'-c','import pathlib,time;time.sleep(.2);pathlib.Path('+repr(str(marker))+').touch()'])]
+            self.assertEqual(g.run(groups,path/'logs'),1);self.assertTrue(marker.exists())
+    def test_workflow_split_preserves_every_command_once(self):
+        commands=['bash a.sh','bash scripts/ci/test_nightly_incident.sh','bash b.sh']
+        groups=g.workflow_groups('\n'.join(commands))
+        self.assertEqual(len(groups),3)
+        self.assertEqual(groups[0][1][-1],'bash a.sh\nbash b.sh')
+        self.assertEqual(groups[1][1],commands[1].split())
+        self.assertEqual(groups[2][1],['bash','scripts/ci/test_readiness_fixtures.sh'])
+        for script in ('bash a.sh',commands[1]+'\n'+commands[1]):
+            with self.assertRaises(ValueError):g.workflow_groups(script)
 unittest.main(argv=['groups'],verbosity=1)
 PY
-echo 'PASS: both CI groups awaited; either failure and bounded disposal remain nonpassing'
+echo 'PASS: all CI groups awaited; every command retained, failure and bounded disposal remain nonpassing'

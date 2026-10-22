@@ -216,3 +216,32 @@ quality policy regressions passed **70 tests, zero failures**. Artifacts:
 `/private/tmp/rindle-script-groups-0fd028b8d2a602e3/results.json`,
 `/private/tmp/rindle139-overlap-policy.log`. The final PR head still needs green
 required CI; these implementation checks grant no terminal READY credit.
+
+
+## Storage/access recommendation and three-group scheduling repair
+
+User approved PR #163 squash merge after all required final-head checks pass and
+continuation of Plan 07. That approval is saved privately under
+`/Users/jon/Library/Application Support/Rindle/readiness/pr-163-merge-authorization.json`;
+the persistent parent is mode 0700. No backup configuration is inferred. The new
+`guides/readiness_evidence.md` records the local-files-plus-encrypted-backup default,
+30-day Actions transfer retention, repository-scoped expiring read token permissions,
+and the separate local dispatch credential. No new dependency or storage service is added.
+
+Read-only live diagnosis confirmed Dependabot alerts are disabled (the authenticated
+403 explicitly says so), rather than merely inaccessible. READINESS_READ_TOKEN remains
+absent. Separate authorization for enabling alerts and human secret provisioning is
+pending; no security setting, credential or release was changed.
+
+CI run 39871137258 passed all 292 readiness fixtures in 155 seconds, but the serial
+legacy group exhausted the 240-second shared budget during hygiene fixtures. The
+independent Nightly incident command now has its own third owned group. Every original
+workflow command remains exactly once; all three groups are awaited, any failure or
+timeout stays nonpassing, and the 240-second shared bound/five-minute job remain.
+The driver now prints its aggregate failure reason as well as recording it locally.
+Six real-process/command-preservation regressions pass. Final CI remains required.
+
+The exact workflow body then passed locally under the runner environment with all
+three group exit codes zero; all original harnesses and all 292 readiness fixtures
+passed (91 seconds for the readiness group). Logs: `/private/tmp/rindle139-three-groups-step.log`
+and `/private/tmp/rindle139-three-groups-final.log`. Automation-first and diff checks passed.
