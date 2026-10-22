@@ -6,7 +6,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export ASDF_ERLANG_VERSION="${ASDF_ERLANG_VERSION:-27.3.4.15}"
 export ASDF_ELIXIR_VERSION="${ASDF_ELIXIR_VERSION:-1.17.3-otp-27}"
 python3 - "$root" <<'PY'
-import copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest
+import copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,time,signal
 from unittest.mock import patch
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
 import readiness_closure as c
@@ -115,6 +115,76 @@ IO.puts(Jason.encode!(%{base: base}))
         self.refreshing();self.config['main_sequence']=['b'*40];self.reject('main_changed',True)
     def test_refresh_rejects_changed_source_during_invocation(self):
         self.refreshing();self.mutate_source('runs','ci-main',lambda n:n.update(run_id=11,latest_run_id=11));self.reject('mutable_source_changed',True)
+    def test_unexpected_crash_persists_nonpassing_terminal_and_private_diagnostics(self):
+        with patch.object(c.Closure,'collect',side_effect=RuntimeError('PRIVATE-CLOSURE-CANARY')):
+            code,value,owner=self.close()
+        self.assertEqual(code,1);self.assertEqual(value['reason'],'closure_unavailable')
+        self.assertNotIn(b'PRIVATE-CLOSURE-CANARY',(owner.output/'verdict.json').read_bytes())
+        self.assertTrue((owner.private/'failure.json').is_file())
+    def test_missing_scheduled_run_is_bounded_with_next_observation(self):
+        value={'repository':repo,'subject_sha':sha,'evidence_mode':'fixture','verdict':'not_ready','reason':'scheduled_run_missing','sources':{}}
+        path=self.fixture/'data/missing-scheduled.json';c.write_new(path,value);self.config['runs_before']='data/missing-scheduled.json'
+        code,value,owner=self.close();self.assertEqual(code,1);self.assertEqual(value['reason'],'scheduled_run_missing')
+        self.assertIn('scheduled Nightly',value['next_observation']);self.assertFalse((owner.portable/'manifest.json').exists())
+    def test_real_collection_deadline_persists_not_ready(self):
+        self.save();owner=c.Closure(repo,self.tmp/'deadline',fixture=self.fixture,deadline=.01)
+        self.assertEqual(owner.run(),1);value=c.read_json(owner.output/'verdict.json')
+        self.assertIn(value['reason'],('closure_deadline','closure_command_timeout'));self.assertFalse(value['requirements_credit'])
+    def test_invalid_fixture_after_reservation_has_terminal_reason(self):
+        self.config['repository']='foreign/repo';self.save();out=self.tmp/'bad-fixture'
+        self.assertEqual(c.main(['close','--repo',repo,'--output',str(out),'--fixture',str(self.fixture)]),1)
+        self.assertEqual(c.read_json(out/'verdict.json')['reason'],'invalid_closure_fixture')
+    def test_refresh_cannot_publish_after_original_manifest_changes(self):
+        self.refreshing();original_validate=c.Closure.validate
+        def change_original(owner,manifest,envelope=None):
+            result=original_validate(owner,manifest,envelope)
+            if envelope:owner.original.write_bytes(owner.original.read_bytes()+b' ')
+            return result
+        with patch.object(c.Closure,'validate',change_original):
+            self.reject('manifest_bytes_changed',True)
+    def test_refresh_rejects_omitted_mutable_receipt(self):
+        self.refreshing();original_validate=c.Closure.validate
+        def omit(owner,manifest,envelope=None):
+            if envelope:
+                value=c.read_json(envelope);value['proofs'].pop();c.atomic(envelope,value)
+            return original_validate(owner,manifest,envelope)
+        with patch.object(c.Closure,'validate',omit):self.reject('validator_refresh_inventory',True)
+    def test_refresh_rejects_swapped_original_receipt(self):
+        self.refreshing();original_validate=c.Closure.validate
+        def swap(owner,manifest,envelope=None):
+            if envelope:
+                value=c.read_json(envelope);original=c.read_json(manifest)
+                value['proofs'][0]=next(r for r in original['proofs'] if r['id']==value['proofs'][0]['id']);c.atomic(envelope,value)
+            return original_validate(owner,manifest,envelope)
+        with patch.object(c.Closure,'validate',swap):self.reject('validator_refresh_inventory',True)
+    def test_forged_ready_envelope_cannot_override_failed_refreshed_receipt(self):
+        self.refreshing();original_validate=c.Closure.validate
+        def forge(owner,manifest,envelope=None):
+            if envelope:
+                value=c.read_json(envelope);ref=value['proofs'][0];path=owner.portable/ref['path'];receipt=c.read_json(path)
+                receipt['outcome']='failed';c.atomic(path,receipt);value['proofs'][0]['sha256']=c.digest(path.read_bytes());value['verdict']='ready';c.atomic(envelope,value)
+            return original_validate(owner,manifest,envelope)
+        with patch.object(c.Closure,'validate',forge):self.reject('validator_proof_outcome',True)
+    def test_cleanup_failure_cannot_be_hidden_by_original_collection_failure(self):
+        with patch.object(c.Closure,'collect',side_effect=c.NotReady('scheduled_run_missing')),patch.object(c.Closure,'retry_cleanup',return_value={'state':'failed'}):
+            self.reject('cleanup_failed')
+    def test_cleanup_retry_has_separate_budget_and_preserves_actual_original_bytes(self):
+        owner=c.Closure(repo,self.tmp/'cleanup-budget',deadline=-1)
+        owner.output.mkdir();owner.private=owner.output/'restricted';owner.private.mkdir();owner.portable=owner.output/'portable';owner.portable.mkdir()
+        owner.local_output=owner.private/'local-qualification';owner.local_output.mkdir()
+        (owner.local_output/'restricted').mkdir();(owner.local_output/'portable').mkdir()
+        attempt={'schema_version':1,'run_id':'f'*32,'repository':repo,'subject_sha':sha,'workspace':None,'verdict':'not_ready'}
+        path=owner.local_output/'attempt.json';before=json.dumps(attempt,indent=2).encode();path.write_bytes(before)
+        result=owner.retry_cleanup();self.assertEqual(result['state'],'observed');self.assertTrue(result['original_attempt_unchanged'])
+        self.assertEqual(path.read_bytes(),before)
+    def test_actual_cli_sigterm_stops_owned_children_and_records_not_ready(self):
+        self.save();out=self.tmp/'interrupted'
+        child=subprocess.Popen(['bash',str(root/'scripts/maintainer/exact_head_readiness.sh'),'close','--repo',repo,
+            '--output',str(out),'--fixture',str(self.fixture)],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)
+        end=time.monotonic()+10
+        while time.monotonic()<end and not list((out/'restricted').glob('command-*.log')) and child.poll() is None:time.sleep(.01)
+        self.assertIsNone(child.poll());child.terminate();stdout,stderr=child.communicate(timeout=10)
+        self.assertEqual(child.returncode,1,stdout+stderr);self.assertEqual(c.read_json(out/'verdict.json')['reason'],'closure_interrupted')
     def test_actual_cli_candidate_fixture(self):
         out=self.tmp/'cli';result=subprocess.run(['bash',str(root/'scripts/maintainer/exact_head_readiness.sh'),'close','--repo',repo,
             '--output',str(out),'--fixture',str(self.fixture)],capture_output=True,timeout=45)
