@@ -3,7 +3,16 @@ defmodule Rindle.ExactHeadReadiness do
   @policy "rindle-exact-head-v1"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
-  @inputs ~w(mix.exs mix.lock RUNNING.md .github/workflows/ci.yml .github/workflows/nightly.yml .github/workflows/release.yml config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md)
+  @inputs ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
+    .github/workflows/ci.yml .github/workflows/nightly.yml .github/workflows/release.yml
+    config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json
+    scripts/maintainer/credo_complexity_baseline.json scripts/maintainer/phase136_evidence_contract.json
+    scripts/maintainer/artifact_ledger.json scripts/maintainer/refactor_contract.sh
+    scripts/maintainer/exact_head_readiness.py scripts/maintainer/qualify_generated_consumer.exs
+    scripts/ci/run_nightly_dialyzer.sh scripts/maintainer/verify_contributor_bootstrap.sh
+    scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/built_package_twin.py
+    scripts/maintainer/twin_receipt.py scripts/maintainer/twin_cleanup.py
+    test/install_smoke/support/generated_app_helper.ex test/install_smoke/support/generated_app/workspace.ex)
   @commands %{
     "format" => ["mix", "format", "--check-formatted"],
     "compile" => ["mix", "compile", "--warnings-as-errors"],
@@ -16,7 +25,12 @@ defmodule Rindle.ExactHeadReadiness do
     "docs" => ["mix", "doctor", "--full", "--raise"],
     "contracts" => ["mix", "refactor_contract"],
     "package" => ["mix", "hex.build"],
-    "generated-consumer" => ["mix", "test", "test/install_smoke/generated_app_smoke_test.exs"],
+    "generated-consumer" => [
+      "mix",
+      "run",
+      "--no-start",
+      "scripts/maintainer/qualify_generated_consumer.exs"
+    ],
     "twin-recovery" => ["python3", "scripts/maintainer/built_package_twin.py", "run"],
     "hygiene" => ["bash", "scripts/maintainer/repo_hygiene_check.sh", "--release-prep"],
     "inbox-ledger" => ["bash", "scripts/maintainer/validate_inbox_ledger.sh"],
@@ -128,6 +142,29 @@ defmodule Rindle.ExactHeadReadiness do
     )
 
     ensure!(m["toolchain"] == @toolchain, "toolchain", "unsupported resolved toolchain")
+
+    ensure!(
+      is_map(m["runtime_evidence"]) and
+        Enum.sort(Map.keys(m["runtime_evidence"])) == ["elixir", "node"],
+      "tool_identity",
+      "actual runtime probes required"
+    )
+
+    ensure!(
+      String.split(String.trim(object!(m["runtime_evidence"]["elixir"], c)), "\n") == [
+        "1.17.3",
+        "27.3.4.15"
+      ],
+      "tool_identity",
+      "observed Elixir/OTP unsupported"
+    )
+
+    ensure!(
+      String.trim(object!(m["runtime_evidence"]["node"], c)) == "v20.18.1",
+      "tool_identity",
+      "observed Node unsupported"
+    )
+
     validate_interval!(m["observation_interval"])
     validate_identity!(m["input_identity"], "input_identity")
 
@@ -288,11 +325,17 @@ defmodule Rindle.ExactHeadReadiness do
       {_id, []} ->
         true
 
+      {"package", ["--output", path]} ->
+        absolute_argument?(path)
+
+      {"inbox-ledger", ["--ledger", ".planning/INBOX-LEDGER.json", "--offline"]} ->
+        true
+
       {"twin-recovery", ["--evidence-dir", path, "--cleanup"]} ->
         absolute_argument?(path)
 
-      {"contributor-bootstrap", ["--receipt", path]} ->
-        absolute_argument?(path)
+      {"contributor-bootstrap", ["--receipt", path, "--subject-sha", sha]} ->
+        absolute_argument?(path) and is_binary(sha) and Regex.match?(~r/\A[0-9a-f]{40}\z/, sha)
 
       {"async-isolation", ["--report", path]} ->
         absolute_argument?(path)
@@ -653,11 +696,33 @@ defmodule Rindle.ExactHeadReadiness do
   defp validate_refs!(_refs, _c), do: reject!("object_reference", "object inventory absent")
 
   defp decode!(bytes) do
-    case Jason.decode(bytes) do
-      {:ok, value} when is_map(value) -> value
-      _other -> reject!("malformed_json", "receipt must be a JSON object")
+    ensure!(byte_size(bytes) <= 8_000_000, "object_limit", "JSON object too large")
+
+    case Jason.decode(bytes, objects: :ordered_objects) do
+      {:ok, value} ->
+        value = normalize_json!(value)
+        ensure!(is_map(value), "malformed_json", "receipt must be a JSON object")
+        value
+
+      _other ->
+        reject!("malformed_json", "receipt must be a JSON object")
     end
   end
+
+  defp normalize_json!(%Jason.OrderedObject{values: values}) do
+    keys = Enum.map(values, &elem(&1, 0))
+
+    ensure!(
+      length(keys) == length(Enum.uniq(keys)),
+      "duplicate_json_key",
+      "duplicate JSON object key"
+    )
+
+    Map.new(values, fn {key, value} -> {key, normalize_json!(value)} end)
+  end
+
+  defp normalize_json!(values) when is_list(values), do: Enum.map(values, &normalize_json!/1)
+  defp normalize_json!(value), do: value
 
   defp sha?(v), do: is_binary(v) and Regex.match?(~r/\A[0-9a-f]{64}\z/, v)
   defp ensure!(true, _id, _detail), do: :ok
@@ -717,15 +782,22 @@ defmodule Rindle.ExactHeadReadiness do
     )
 
     Enum.reduce(references(value), objects, fn ref, acc ->
+      ensure!(map_size(acc) < 2000, "graph_limit", "too many evidence objects")
+      used = Enum.reduce(acc, 0, fn {_path, bytes}, total -> total + byte_size(bytes) end)
+      ensure!(used <= 512_000_000, "graph_limit", "aggregate evidence limit")
       path = ref["path"]
       ensure!(not MapSet.member?(visited, path), "cyclic_reference", "cyclic/self reference")
       bytes = safe_read!(root, path)
+      ensure!(used + byte_size(bytes) <= 512_000_000, "graph_limit", "aggregate evidence limit")
       ensure!(sha256(bytes) == ref["sha256"], "object_digest", "corrupt #{path}")
       acc = Map.put(acc, path, bytes)
 
-      case Jason.decode(bytes) do
-        {:ok, nested} -> load_objects!(nested, root, acc, MapSet.put(visited, path), depth + 1)
-        _other -> acc
+      # Only readiness proof receipts carry graph edges. Committed policy,
+      # package data, logs and upstream JSON remain opaque byte objects.
+      if ref["id"] in required_proofs() do
+        load_objects!(decode!(bytes), root, acc, MapSet.put(visited, path), depth + 1)
+      else
+        acc
       end
     end)
   end

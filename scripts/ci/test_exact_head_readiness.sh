@@ -50,6 +50,7 @@ defmodule ReadinessFixture do
       "state" => "complete", "evidence_mode" => "fixture", "toolchain" => V.toolchain(),
       "input_identity" => Map.new(input_files, fn {p, r} -> {p, r["sha256"]} end), "input_files" => input_files,
       "package_identity" => Map.new(package_files, fn {p, r} -> {p, r["sha256"]} end), "package_files" => package_files,
+      "runtime_evidence" => %{"elixir" => put(root, "runtime/elixir.txt", "1.17.3\n27.3.4.15\n"), "node" => put(root, "runtime/node.txt", "v20.18.1\n")},
       "observation_interval" => interval(), "cleanup" => cleanup(), "adoption" => adoption()
     }
     proofs = Enum.map(V.required_proofs(), fn id ->
@@ -279,6 +280,36 @@ defmodule ReadinessPolicyTest do
       m = F.change_source(root, m, unquote(id), &put_in(&1, unquote(path), unquote(Macro.escape(value))))
       assert [%{"id" => unquote(reason)}] = V.validate_contract(m, F.context(root, m))["reasons"]
     end
+  end
+
+  test "actual runtime bytes cannot be replaced by declared supported versions" do
+    for {name, bytes} <- [{"elixir", "1.18.0\n28.0\n"}, {"node", "v22.0.0\n"}] do
+      {root, m} = F.fixture()
+      ref = F.put(root, "runtime/#{name}.txt", bytes)
+      m = put_in(m, ["runtime_evidence", name], ref)
+      assert [%{"id" => "tool_identity"}] = V.validate_contract(m, F.context(root, m))["reasons"]
+    end
+  end
+
+  test "CLI rejects duplicate JSON keys before choosing any claimed state" do
+    {root, m} = F.fixture()
+    bytes = Jason.encode!(m)
+    File.write!(Path.join(root, "manifest.json"), String.replace_prefix(bytes, "{", "{\"state\":\"running\","))
+    assert {:error, verdict} = V.run(["--manifest", Path.join(root, "manifest.json"), "--root", root, "--verdict", Path.join(root, "verdict.json")])
+    assert [%{"id" => "duplicate_json_key"}] = verdict["reasons"]
+  end
+
+  test "opaque policy JSON is data rather than a receipt graph edge" do
+    {root, m} = F.fixture()
+    path = "config/ci_required_checks.json"
+    ref = F.put(root, "inputs/#{path}", %{"path" => "/foreign/data", "sha256" => String.duplicate("f", 64)})
+    m = put_in(m, ["input_files", path], ref)
+    m = put_in(m, ["input_identity", path], ref["sha256"])
+    m = Enum.reduce(V.required_proofs(), m, fn id, current ->
+      F.change(root, current, id, &Map.put(&1, "input_identity", m["input_identity"]))
+    end)
+    F.put(root, "manifest.json", m)
+    assert :ok = V.run(["--manifest", Path.join(root, "manifest.json"), "--root", root, "--verdict", Path.join(root, "verdict.json")])
   end
 
   test "CLI rejects symlink, traversal, absolute reference and missing byte" do

@@ -347,6 +347,38 @@
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
     },
     {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "PREFLIGHT = '.planning/phases/139-exact-head-readiness-closure/139-preflight.sh'",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Executable predecessor-verification owner required before isolated qualification; this is an invoked contract path, not historical narration."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "argv = argv + ['--ledger', '.planning/INBOX-LEDGER.json', '--offline']",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "historical = self.workspace/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json'",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical deferral and qualification receipt identities; the original numeric-speed outcome stays blocked and receives no readiness credit."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "path = self.workspace / '.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json'",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical deferral and qualification receipt identities; the original numeric-speed outcome stays blocked and receives no readiness credit."
+    },
+    {
       "path": "scripts/maintainer/phase136_evidence.py",
       "class": "phase-ref",
       "text": "parser = argparse.ArgumentParser(prog=\"phase136_measure.sh\")",
@@ -633,6 +665,38 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "phase-ref",
+      "text": "scripts/maintainer/credo_complexity_baseline.json scripts/maintainer/phase136_evidence_contract.json",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Exact upstream coverage/toolchain receipt contract included in the closing subject input fingerprint; changing the path changes acceptance inputs."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "{\"inbox-ledger\", [\"--ledger\", \".planning/INBOX-LEDGER.json\", \"--inventory\", path]} ->",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "{\"inbox-ledger\", [\"--ledger\", \".planning/INBOX-LEDGER.json\", \"--offline\"]} ->",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",
