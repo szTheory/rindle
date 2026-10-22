@@ -27,6 +27,10 @@ class Adoption(unittest.TestCase):
     def test_duplicate_pilot_requirement(self):self.mutate(a.INPUTS[0],lambda s:s+'\n- **PILOT-01**: Duplicate.\n');self.rejects()
     def test_independent_project_claim(self):self.mutate(a.INPUTS[1],lambda s:s+'\nIndependent Phoenix pilot: verified.\n');self.rejects()
     def test_claim_cannot_hide_behind_later_negation(self):self.mutate(a.INPUTS[1],lambda s:s+'\nIndependent adopter verified; not synthetic.\n');self.rejects()
+    def test_reverse_independent_claim_is_rejected(self):
+        self.mutate(a.INPUTS[1],lambda s:s+'\nWe verified an independent Phoenix pilot.\n');self.rejects()
+    def test_current_one_point_zero_authorization_is_rejected(self):
+        self.mutate(a.INPUTS[1],lambda s:s.replace('**Goal:**','We authorize release 1.0 from the synthetic twin.\n\n**Goal:**',1));self.rejects('one_point_zero_authority')
     def test_requirements_claim_inflation(self):self.mutate(a.INPUTS[0],lambda s:s+'\nPILOT-01 is complete.\n');self.rejects()
     def test_missing_synthetic_boundary(self):self.mutate(a.INPUTS[1],lambda s:s.replace('synthetic twin cannot satisfy it','synthetic twin satisfies it'));self.rejects('adoption_boundary_missing')
     def test_project_version_cannot_be_one_point_zero(self):

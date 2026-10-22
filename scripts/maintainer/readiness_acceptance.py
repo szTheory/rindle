@@ -31,8 +31,9 @@ def main_sha(api):
 
 
 def declared_files(root=ROOT):
-    paths={'RUNNING.md','.github/workflows/ci.yml',WORKFLOW,'scripts/maintainer/exact_head_readiness.sh',
-        PHASE+'/139-preflight.sh'}
+    paths=set(git(root,'ls-files','-z','--',PHASE).decode().split('\0'))-{''}
+    paths.update({'RUNNING.md','.github/workflows/ci.yml',WORKFLOW,'scripts/maintainer/exact_head_readiness.sh',
+        PHASE+'/139-preflight.sh'})
     for n in range(8):
         relative=f'{PHASE}/139-{n:02d}-PLAN.md';paths.add(relative);path=root/relative
         require(path.is_file() and not path.is_symlink(),'phase_inventory_missing')

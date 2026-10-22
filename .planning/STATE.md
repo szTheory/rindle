@@ -58,7 +58,7 @@ Resume `$gsd-execute-phase 139` in
 PR train reaches main and the live prerequisites below are repaired. Resume Plan 07;
 do not replay completed plans, consumed authorizations or the deferred speed job.
 
-Plan 06 passes all 290 cheap fixtures in 83 seconds, 58 owner regressions, unchanged
+Plan 06 passes all 292 cheap fixtures in 89 seconds, 58 owner regressions, unchanged
 quality policies and existing workflow truth checks. Its producer/retrieval/controller,
 authoritative parity and current/historical claim commands are committed. The real
 subject guard correctly refuses this unmerged checkout.

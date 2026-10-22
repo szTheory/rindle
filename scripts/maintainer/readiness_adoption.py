@@ -22,7 +22,19 @@ def positive_independent_claim(text):
         for match in re.finditer(r'(?i)\b(?:independent|non[- ]maintainer|real)[- ]+(?:Phoenix[- ]+)?(?:adopter|pilot|adoption)\b(?P<between>.{0,90}?)\b(?:complete[ds]?|verified|satisfied|achieved|closed|passed)\b',clause):
             prefix=clause[max(0,match.start()-50):match.start()]+match['between']
             if not re.search(r'(?i)\b(?:no|not|cannot|never|without|unless|requires|once|after)\b',prefix):return True
+        reverse=r'(?i)\b(?:complete[ds]?|verified|satisfied|achieved|closed|passed)\b(?P<between>.{0,70}?)\b(?:independent|non[- ]maintainer|real)[- ]+(?:Phoenix[- ]+)?(?:adopter|pilot|adoption)\b'
+        for match in re.finditer(reverse,clause):
+            prefix=clause[max(0,match.start()-50):match.start()]+match['between']
+            if not re.search(r'(?i)\b(?:no|not|cannot|never|without|unless|requires|once|after)\b',prefix):return True
         if re.search(r'(?i)\bPILOT-0[12]\b.{0,50}\b(?:complete[ds]?|verified|satisfied|achieved|closed|passed)\b',clause) and not re.search(r'(?i)\b(?:not|cannot|never|unless|after)\b',clause):return True
+    return False
+
+
+def positive_release_claim(text):
+    for clause in re.split(r'(?<=[.!?;])\s+|\n',text):
+        for match in re.finditer(r'(?i)\b(?:authoriz(?:e[ds]?|ation)|approv(?:e[ds]?|al)|ready for)\b.{0,35}\b1\.0(?:\.0)?\b|\b1\.0(?:\.0)?\s+(?:release\s+)?(?:is\s+)?(?:authorized|approved|ready)\b',clause):
+            prefix=clause[max(0,match.start()-50):match.end()]
+            if not re.search(r'(?i)\b(?:no|not|cannot|never|without|unless|requires|once|after)\b',prefix):return True
     return False
 
 
@@ -42,6 +54,8 @@ def check(root=ROOT,classification=None):
     require('does not satisfy the named independent Phoenix pilot gate' in project and
             'synthetic twin cannot satisfy it' in project,'adoption_boundary_missing')
     require(not positive_independent_claim(requirements) and not positive_independent_claim(project),'adoption_inflation')
+    current_project=project.split('\n## Previous Milestone:',1)[0]
+    require(not positive_release_claim(current_project) and not positive_release_claim(requirements),'one_point_zero_authority')
     version=re.search(r'@version\s+"([^"]+)"',snapshots['mix.exs'].decode())
     release=read_json(root/'.release-please-manifest.json')
     require(version and pre_major(version[1]) and release.get('.')==version[1],'one_point_zero_authority')

@@ -64,8 +64,8 @@ and actual root/demo audit probes pass, while undispositioned PRs and unavailabl
 visibility correctly leave live collection not ready. Plan 05 adds bounded candidate closure and immutable refresh, with actual-validator and
 owned-cleanup regressions passing. Candidate/fixture results grant no READY credit.
 Plan 06 adds producer-bound digest sidecars, authenticated durable retrieval, authoritative
-adoption parity and merged-subject/accept/claim-status commands. All 290 cheap fixtures
-pass in 83 seconds; 58 owner regressions and unchanged quality policies pass. Plan 07
+adoption parity and merged-subject/accept/claim-status commands. All 292 cheap fixtures
+pass in 89 seconds; 58 owner regressions and unchanged quality policies pass. Plan 07
 awaits the complete merged source and actual scheduled/security/durable proof, including
 the currently absent READINESS_READ_TOKEN producer secret. No terminal execution
 acceptance ran; all READY requirements and final exact-main readiness remain open.

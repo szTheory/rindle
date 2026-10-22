@@ -117,7 +117,7 @@ class Acceptance(unittest.TestCase):
         return checkout,a.git(checkout,'rev-parse','HEAD').decode().strip()
     def test_subject_requires_actual_clean_git_and_all_eight_plans(self):
         checkout,subject=self.checkout();value=a.verify_subject(Main([subject]),repo,checkout)
-        self.assertEqual(value['subject_sha'],subject);self.assertTrue(all(f'{a.PHASE}/139-{n:02d}-PLAN.md' in value['tracked_inventory'] for n in range(8)))
+        self.assertEqual(value['subject_sha'],subject);self.assertIn(a.PHASE+'/139-CONTEXT.md',value['tracked_inventory']);self.assertIn(a.PHASE+'/139-06-SUMMARY.md',value['tracked_inventory']);self.assertTrue(all(f'{a.PHASE}/139-{n:02d}-PLAN.md' in value['tracked_inventory'] for n in range(8)))
     def test_unmerged_subject_refused(self):
         checkout,subject=self.checkout()
         with self.assertRaisesRegex(a.NotReady,'closing_subject_not_checked_out'):a.verify_subject(Main([sha]),repo,checkout)

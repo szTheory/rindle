@@ -14,7 +14,7 @@ provides:
 affects: [139-07]
 actuals:
   tasks: 2
-  commits: 2
+  commits: 3
 tech-stack:
   added: []
   patterns: [separate producer expectations, atomic durable publication, complete tracked inventory, subject-qualified historical claims]
@@ -129,3 +129,26 @@ complete authorized security-source visibility. The observed PRs 144–146 are u
 Dependabot GET returned 403, and `READINESS_READ_TOKEN` is absent from repository secret
 names. Provisioning credentials/security policy and merging are separate maintainer actions;
 no credential, protection, PR, release or security setting was changed by this plan.
+
+## Post-review integration evidence
+
+The review branch incorporates current main `a046e5be` as an ancestry-only merge.
+Its fourteen shared-file conflicts were older pre-merge Phase 136 records versus
+later verified closeout and subsequent removal-only ratchets; resolution preserved
+the verified branch tree byte-for-byte. Main itself was unchanged.
+
+Two adverse real-state mutations exposed adoption prose gaps: reversed independent
+pilot assertions and current synthetic-based 1.0 authorization. Both failed before
+repair and pass afterward (19 adoption fixtures). The inventory now includes every
+tracked Phase 139 artifact in addition to declared source and all eight plans;
+context and summary presence are asserted through real temporary Git checkouts.
+The twin runbooks distinguish historical no-Doctor-credit receipts from the corrected
+public Doctor exercised by current readiness.
+
+Full parser-only suite after the claim repair: **292 tests, zero failures in 89 seconds**
+(`/private/tmp/rindle139-pr-fixtures-final.log`); the final inventory change has a
+separate fresh 21-test acceptance regression. Supported-toolchain **`mix ci` exited 0**:
+**3 doctests, 1755 tests, zero failures, 87 excluded, 4 skipped**, in its own new
+PostgreSQL partition; owned database disposal exited 0. Log:
+`/private/tmp/rindle139-pr-mix-ci.log`. This is local implementation/PR validation,
+not actual terminal exact-main acceptance. Plan 07 and READY-01–05 remain open.

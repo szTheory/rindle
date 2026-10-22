@@ -123,6 +123,14 @@
       "reason": "Exact source fixture for historical/current claim rejection and authoritative input binding; no runtime readiness credit."
     },
     {
+      "path": "scripts/ci/test_readiness_acceptance.sh",
+      "class": "spec-ref",
+      "text": "self.assertEqual(value['subject_sha'],subject);self.assertIn(a.PHASE+'/139-CONTEXT.md',value['tracked_inventory']);self.assertIn(a.PHASE+'/139-06-SUMMARY.md',value['tracked_inventory']);self.assertTrue(all(f'{a.PHASE}/139-{n:02d}-PLAN.md' in value['tracked_inventory'] for n in range(8)))",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Real Git subject-inventory regression asserts exact tracked context, summary and all eight plan names; these are executable acceptance inputs."
+    },
+    {
       "path": "scripts/ci/test_readiness_runs.sh",
       "class": "planning-path",
       "text": "(root/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json').read_bytes())",

@@ -120,8 +120,9 @@ limits. Diagnostics use fixed stage, reason and dependency codes.
 
 This remains synthetic package-consumer evidence. It grants no independent pilot,
 cloud-provider parity, readiness, release or CI-speed credit. The local provider
-fixture tests the adapter protocol. The public Doctor's versioned migration-ledger
-issue remains deferred to dedicated readiness work; this matrix claims no Doctor pass. Acceptance
+fixture tests the adapter protocol. Historical matrix receipts retain their original
+exclusion of Doctor; exact-head readiness separately exercises the corrected public
+Doctor. Matrix acceptance
 uses direct schema/catalog, effective-version and real processing/storage probes.
 No new recurring heavy CI lane or required context is introduced.
 
