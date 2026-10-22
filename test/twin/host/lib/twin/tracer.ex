@@ -213,6 +213,68 @@ defmodule Twin.Tracer do
     }
   end
 
+  defp scenario("av-repair", %{"job_id" => old_id, "asset_id" => asset_id}) do
+    Process.put(:twin_stage, "av")
+    old = Repo.get!(Oban.Job, old_id)
+    true = old.state == "discarded" and old.attempt == 5 and old.args["asset_id"] == asset_id
+    [variant] = Repo.all(from v in Rindle.Domain.MediaVariant, where: v.asset_id == ^asset_id)
+    true = variant.state == "failed"
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "UPDATE twin_fault_counters SET claims=0 WHERE run_id=$1 AND operation='av-enabled' AND claims=1",
+        [run_id()]
+      )
+
+    {:ok, report} = Rindle.requeue_variants(asset_id, variant_names: [:web_720p])
+
+    true =
+      report.selected == 1 and report.enqueued == 1 and report.skipped == 0 and report.errors == 0
+
+    [new_job] = Repo.all(from j in Oban.Job, where: j.queue == "rindle_media" and j.id != ^old_id)
+    true = new_job.args["asset_id"] == asset_id and new_job.args["variant_name"] == "web_720p"
+
+    completed =
+      wait(fn ->
+        j = Repo.get!(Oban.Job, new_job.id)
+
+        cond do
+          j.state == "completed" and j.attempt == 1 -> j
+          j.state in ["discarded", "cancelled"] or j.attempt > 1 -> raise "repair_failed"
+          true -> false
+        end
+      end)
+
+    [ready] = Rindle.ready_variants_for(asset_id)
+    true = ready.id == variant.id and ready.name == "web_720p" and is_nil(ready.error_reason)
+    asset = Repo.get!(MediaAsset, asset_id)
+    true = asset.state == "ready"
+    {:ok, _} = Rindle.download(Twin.AVProfile, asset.storage_key, "/retained/av-source-check.mp4")
+    {:ok, _} = Rindle.download(Twin.AVProfile, ready.storage_key, "/retained/av-output.mp4")
+    hash = fn path -> :crypto.hash(:sha256, File.read!(path)) |> Base.encode16(case: :lower) end
+
+    %{
+      "asset_id" => asset_id,
+      "variant_id" => ready.id,
+      "source_key" => asset.storage_key,
+      "variant_key" => ready.storage_key,
+      "source_sha256" => hash.("/retained/av-source-check.mp4"),
+      "output_sha256" => hash.("/retained/av-output.mp4"),
+      "asset_state" => asset.state,
+      "variant_state" => ready.state,
+      "discarded_job_id" => old_id,
+      "new_job_id" => completed.id,
+      "new_job_state" => completed.state,
+      "new_job_attempt" => completed.attempt,
+      "selected" => report.selected,
+      "enqueued" => report.enqueued,
+      "skipped" => report.skipped,
+      "errors" => report.errors,
+      "fault_restored" => true,
+      "error_cleared" => true
+    }
+  end
+
   defp scenario("begin", %{}) do
     Process.put(:twin_stage, "stimulus")
     # Exclusive durable stimulus claim. A second request cannot upload/detach again.

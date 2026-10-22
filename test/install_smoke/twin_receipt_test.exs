@@ -206,4 +206,52 @@ defmodule Rindle.TwinReceiptTest do
 
     assert {_, 0} = python(code)
   end
+
+  test "AV repair requires five failures, a new committed repair and a fully decoded declared derivative" do
+    code = """
+    import copy
+    from twin_fixture import fixture
+    from twin_receipt import verify_receipt, Refused, AV_SHA256, AV_RECIPE
+    inputs,old=fixture(); inputs.update(schema_version=2,scenario='av-repair',fixture_sha256=AV_SHA256)
+    asset=old['before']['asset_id'];variant='00000000-0000-4000-8000-000000000005'
+    source='elixir-twin-avprofile/'+asset+'/00000000-0000-4000-8000-000000000004.mp4'
+    key='Elixir.Twin.AVProfile/'+asset+'/web_720p-'+AV_RECIPE+'.mp4'
+    before=dict(asset_id=asset,session_id='00000000-0000-4000-8000-000000000006',source_key=source,
+                job_id=2,variant_id=variant,variant_name='web_720p',recipe_digest=AV_RECIPE,max_attempts=5,
+                source_video=True,source_audio=True,source_duration_ms=200,upload_stimuli=1,boot_id=old['old_runtime']['boot_id'])
+    failed=dict(job_id=2,attempt=5,state='discarded',error_attempts=[1,2,3,4,5],variant_id=variant,
+                variant_state='failed',diagnostic='failed_work',fault_downloads=5,processor_reason='unsupported_codec')
+    trail=[dict(job_id=2,attempt=i,state='retryable' if i<5 else 'discarded',error_attempts=list(range(1,i+1)),fault_downloads=i) for i in range(1,6)]
+    failure=dict(before=before,failed=failed,attempts=trail,elapsed_ms=100000,deadline_ms=600000,remaining_ms=500000,input_decoded=True)
+    repair=dict(asset_id=asset,variant_id=variant,source_key=source,variant_key=key,source_sha256=AV_SHA256,
+                output_sha256='b'*64,asset_state='ready',variant_state='ready',discarded_job_id=2,new_job_id=3,
+                new_job_state='completed',new_job_attempt=1,selected=1,enqueued=1,skipped=0,errors=0,
+                fault_restored=True,error_cleared=True)
+    output=dict(video_codec='h264',audio_codec='aac',width=1280,height=720,duration_ms=200,fully_decoded=True)
+    receipt=dict(schema_version=2,kind=old['kind'],independent_pilot_credit=False,inputs=copy.deepcopy(inputs),case_id='av-repair',
+                 outcome='complete',reason='complete',stage='complete',dependency='none',runtime=old['old_runtime'],
+                 isolation=old['isolation'],host_exited=True,failure=failure,repair=repair,output=output,
+                 object_keys=sorted([source,key]),versions=dict(ffmpeg='7.1.1',ffprobe='7.1.1'))
+    assert verify_receipt(inputs,receipt)
+    mutations=[(['failure','failed','attempt'],4),(['failure','failed','error_attempts'],[1,2,3,4]),
+      (['failure','failed','state'],'retryable'),(['failure','failed','diagnostic'],'pending'),
+      (['failure','failed','fault_downloads'],4),(['failure','input_decoded'],False),
+      (['failure','elapsed_ms'],600000),(['failure','remaining_ms'],0),
+      (['repair','new_job_id'],2),(['repair','enqueued'],0),(['repair','skipped'],1),
+      (['repair','variant_id'],'00000000-0000-4000-8000-000000000009'),(['repair','fault_restored'],False),
+      (['repair','source_sha256'],'b'*64),(['repair','variant_key'],source),(['repair','asset_state'],'degraded'),
+      (['repair','new_job_state'],'available'),(['repair','error_cleared'],False),
+      (['output','fully_decoded'],False),(['output','audio_codec'],'none'),(['output','duration_ms'],0),
+      (['versions','ffmpeg'],'5.1.1'),(['object_keys'],[source])]
+    for path,value in mutations:
+        r=copy.deepcopy(receipt);target=r
+        for k in path[:-1]:target=target[k]
+        target[path[-1]]=value
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(path)
+    """
+
+    assert {_, 0} = python(code)
+  end
 end

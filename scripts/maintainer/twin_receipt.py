@@ -14,6 +14,7 @@ PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cR
 CASES = ("tus-resume", "purge-absence", "av-repair")
 # Fixed 0.2-second H.264/AAC fixture, generated once with FFmpeg bitexact flags.
 AV_BASE64 = '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'
+AV_RECIPE = "7adba05438de4278fad4a4e708b2bfe66b1f35cbf1e80469258fcc886d5725b8"
 AV_SHA256 = hashlib.sha256(base64.b64decode(AV_BASE64)).hexdigest()
 
 TUS_SHA256 = hashlib.sha256(base64.b64decode(PNG)).hexdigest()
@@ -210,7 +211,8 @@ def verify_case_receipt(inputs, receipt):
     validate_inputs(inputs)
     require(inputs["schema_version"] == 2, "case_inputs")
     fields = {"tus-resume": {"clients", "result", "object_keys"},
-              "purge-absence": {"before", "absence", "after", "inventory"}}
+              "purge-absence": {"before", "absence", "after", "inventory"},
+              "av-repair": {"failure", "repair", "output", "versions", "object_keys"}}
     require(receipt.get("case_id") in fields, "case_identity")
     keys(receipt, {"schema_version", "kind", "independent_pilot_credit", "inputs", "case_id",
                    "outcome", "reason", "stage", "dependency", "runtime", "isolation", "host_exited"}
@@ -228,7 +230,9 @@ def verify_case_receipt(inputs, receipt):
     require(receipt["isolation"]["mounts_verified"] is True, "runtime_mounts")
     if receipt["case_id"] == "tus-resume":
         return verify_tus_case(inputs, receipt)
-    return verify_purge_case(receipt)
+    if receipt["case_id"] == "purge-absence":
+        return verify_purge_case(receipt)
+    return verify_av_case(inputs, receipt)
 
 
 def verify_tus_case(inputs, receipt):
@@ -295,6 +299,78 @@ def verify_purge_case(receipt):
     require(before["boot_id"] == after["boot_id"] == receipt["runtime"]["boot_id"], "boot_identity")
     verify_empty_inventory(receipt["inventory"], after["job_id"], 4)
     require((before["sequence"], absence["sequence"], after["sequence"]) == (1, 2, 3), "observation_order")
+    return True
+
+
+
+def verify_av_case(inputs, receipt):
+    failure, repair, output = (receipt[k] for k in ("failure", "repair", "output"))
+    keys(failure, {"before", "failed", "attempts", "elapsed_ms", "deadline_ms", "remaining_ms", "input_decoded"})
+    before, failed = failure["before"], failure["failed"]
+    keys(before, {"asset_id", "session_id", "source_key", "job_id", "variant_id", "variant_name", "recipe_digest",
+                  "max_attempts", "source_video", "source_audio", "source_duration_ms", "upload_stimuli", "boot_id"})
+    for key in ("asset_id", "session_id", "variant_id", "boot_id"):
+        identity(before[key])
+    require(len({before[k] for k in ("asset_id", "session_id", "variant_id")}) == 3, "domain_identity")
+    require(before["boot_id"] == receipt["runtime"]["boot_id"], "boot_identity")
+    require(before["source_video"] is True and before["source_audio"] is True and failure["input_decoded"] is True, "invalid_av_source")
+    require(before["variant_name"] == "web_720p" and before["recipe_digest"] == AV_RECIPE, "av_recipe")
+    integer(before["source_duration_ms"], 100, 1000)
+    integer(before["upload_stimuli"], 1, 1)
+    integer(before["max_attempts"], 5, 5)
+    integer(before["job_id"], 1)
+    text(before["source_key"], r"elixir-twin-avprofile/" + re.escape(before["asset_id"]) + r"/[0-9a-f-]{36}\.mp4")
+    identity(before["source_key"].split("/")[-1][:-4])
+    keys(failed, {"job_id", "attempt", "state", "error_attempts", "variant_id", "variant_state", "diagnostic", "fault_downloads", "processor_reason"})
+    require(failed["job_id"] == before["job_id"] and failed["variant_id"] == before["variant_id"], "av_job_identity")
+    integer(failed["attempt"], 5, 5); integer(failed["fault_downloads"], 5, 5)
+    require(failed["state"] == "discarded" and failed["variant_state"] == "failed"
+            and failed["diagnostic"] == "failed_work" and failed["processor_reason"] == "unsupported_codec", "av_failure_unproven")
+    require(type(failed["error_attempts"]) is list and len(failed["error_attempts"]) == 5, "av_attempts")
+    for attempt in failed["error_attempts"]:
+        integer(attempt, 1, 5)
+    require(sorted(failed["error_attempts"]) == [1,2,3,4,5], "av_attempts")
+    trail = failure["attempts"]
+    require(type(trail) is list and 5 <= len(trail) <= 32, "av_attempt_observations")
+    seen = set()
+    for item in trail:
+        keys(item, {"job_id", "attempt", "state", "error_attempts", "fault_downloads"})
+        require(item["job_id"] == before["job_id"] and item["state"] in {"available", "executing", "retryable", "discarded"}, "av_attempt_observations")
+        integer(item["attempt"], 0, 5); integer(item["fault_downloads"], 0, 5)
+        require(type(item["error_attempts"]) is list and len(item["error_attempts"]) <= item["attempt"], "av_attempts")
+        for attempt in item["error_attempts"]:
+            integer(attempt, 1, 5)
+        require(sorted(item["error_attempts"]) == list(range(1, len(item["error_attempts"]) + 1)), "av_attempts")
+        if item["state"] in {"retryable", "discarded"}:
+            seen.update(item["error_attempts"])
+    require(seen == {1,2,3,4,5} and trail[-1]["state"] == "discarded", "av_attempt_observations")
+    integer(failure["elapsed_ms"], 1, 599999); integer(failure["deadline_ms"], 600000, 600000)
+    integer(failure["remaining_ms"], 1, 599999)
+    require(failure["elapsed_ms"] + failure["remaining_ms"] == 600000, "av_deadline")
+    keys(repair, {"asset_id", "variant_id", "source_key", "variant_key", "source_sha256", "output_sha256", "asset_state", "variant_state",
+                  "discarded_job_id", "new_job_id", "new_job_state", "new_job_attempt", "selected", "enqueued", "skipped", "errors", "fault_restored", "error_cleared"})
+    require(all(repair[k] == before[k] for k in ("asset_id", "variant_id", "source_key")), "av_repair_identity")
+    require(repair["discarded_job_id"] == before["job_id"], "av_job_identity")
+    integer(repair["new_job_id"], 1)
+    require(repair["new_job_id"] != before["job_id"] and repair["new_job_state"] == "completed", "repair_not_new")
+    for key in ("selected", "enqueued", "new_job_attempt"):
+        integer(repair[key], 1, 1)
+    for key in ("skipped", "errors"):
+        integer(repair[key], 0, 0)
+    require(repair["fault_restored"] is True and repair["error_cleared"] is True
+            and repair["asset_state"] == repair["variant_state"] == "ready", "repair_terminal_state")
+    require(repair["source_sha256"] == inputs["fixture_sha256"] == AV_SHA256, "source_checksum")
+    text(repair["output_sha256"], r"[0-9a-f]{64}")
+    require(repair["output_sha256"] != AV_SHA256, "derivative_checksum")
+    expected_key = "Elixir.Twin.AVProfile/" + before["asset_id"] + "/web_720p-" + AV_RECIPE + ".mp4"
+    require(repair["variant_key"] == expected_key and receipt["object_keys"] == sorted([before["source_key"], expected_key]), "undeclared_objects")
+    keys(output, {"video_codec", "audio_codec", "width", "height", "duration_ms", "fully_decoded"})
+    require(output["fully_decoded"] is True and output["video_codec"] == "h264" and output["audio_codec"] == "aac", "av_output_decode")
+    integer(output["width"], 1280, 1280); integer(output["height"], 720, 720); integer(output["duration_ms"], 100, 1000)
+    keys(receipt["versions"], {"ffmpeg", "ffprobe"})
+    for version in receipt["versions"].values():
+        text(version, r"[0-9][A-Za-z0-9.+~_-]{0,79}")
+        require(int(version.split(".")[0]) >= 6, "media_version_floor")
     return True
 
 

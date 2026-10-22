@@ -489,7 +489,21 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                 payload = self.purge_absence()
             elif self.case == "av-repair":
                 receipt["failure"] = self.av_failure()
-                raise Refused("repair_pending")
+                before = receipt["failure"]["before"]
+                repair = self.rpc("av-repair", {"job_id": before["job_id"], "asset_id": before["asset_id"]})
+                probe = json.loads(self.compose("exec", "-T", "host", "ffprobe", "-v", "error", "-show_format", "-show_streams", "-of", "json", "/retained/av-output.mp4"))
+                video = [v for v in probe["streams"] if v.get("codec_type") == "video"]
+                audio = [v for v in probe["streams"] if v.get("codec_type") == "audio"]
+                require(len(video) == len(audio) == 1, "av_output_streams")
+                self.compose("exec", "-T", "host", "ffmpeg", "-v", "error", "-xerror", "-i", "/retained/av-output.mp4", "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-")
+                versions = {binary: self.compose("exec", "-T", "host", binary, "-version").splitlines()[0].split()[2] for binary in ("ffmpeg", "ffprobe")}
+                output = dict(video_codec=video[0]["codec_name"], audio_codec=audio[0]["codec_name"],
+                              width=video[0]["width"], height=video[0]["height"],
+                              duration_ms=int(float(probe["format"]["duration"]) * 1000), fully_decoded=True)
+                keys = self.object_keys()
+                require(keys == sorted([repair["source_key"], repair["variant_key"]]), "undeclared_objects")
+                self.stop_host()
+                payload = dict(repair=repair, output=output, versions=versions, object_keys=keys)
             else:
                 raise Refused("case_not_implemented")
             self.validate_stage()
