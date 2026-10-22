@@ -837,7 +837,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [x] 139-02-PLAN.md — Qualify an isolated exact-subject checkout and packaged recovery matrix
-- [ ] 139-03-PLAN.md — Collect full main CI, scheduled Nightly, and effective protection
+- [x] 139-03-PLAN.md — Collect full main CI, scheduled Nightly, and effective protection
 - [ ] 139-04-PLAN.md — Refresh complete inbox and security dispositions
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -861,7 +861,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 3/8 | Executing | - |
+| 139. Exact-Head Readiness Closure | 4/8 | Executing | - |
 
 ---
-*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–02 verified; 3/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
+*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–03 verified; 4/8 plans complete. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*

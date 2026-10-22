@@ -56,7 +56,10 @@ release or deferred CI-speed credit.
 the host-owned migration ledger and reject unavailable inspection and invalid version markers.
 Focused regression and unchanged quality policies pass. Plans 01/02 implement the finite
 receipt validator and isolated eighteen-gate qualifier with observed owned cleanup; their
-fixture and upstream regression checks pass. Final exact-main readiness remains open.
+fixture and upstream regression checks pass. Plan 03 adds complete exact-subject CI/scheduled
+Nightly and effective-protection collectors; its 54 fixtures and live read-only CI probe pass,
+while the cancelled newest scheduled Nightly correctly leaves full collection not ready.
+Final exact-main readiness remains open.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
