@@ -121,6 +121,25 @@ defmodule Rindle.TwinFaultTest do
     end
   end
 
+  test "authoritative absence requires exact key, paused job and a real not-found HEAD" do
+    code = """
+    import sys
+    sys.path.insert(0,'scripts/maintainer')
+    from built_package_twin import validate_absence, Refused
+    before = dict(source_key='source', job_id=17, asset_id='asset')
+    absence = dict(source_key='source', job_id=17, asset_id='asset', head='not_found',
+                   asset_retained=True, paused=True, running=0, state='retryable', attempt=1, error_count=1)
+    validate_absence(before, absence)
+    for change in [dict(head='denied'),dict(head='unknown'),dict(source_key='foreign'),
+                   dict(asset_retained=False),dict(running=1),dict(attempt=2),dict(job_id=18)]:
+        try: validate_absence(before,dict(absence,**change))
+        except Refused: pass
+        else: raise AssertionError(change)
+    """
+
+    assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
+  end
+
   defp allowed?(source) do
     not Regex.match?(
       ~r/Rindle\.(Workers|FSM|Config)\b|perform_job|Oban\.(drain_queue|retry_job)|testing\s*:|SQL\.Sandbox|:beam_lib|:code\.get_object_code|Oban\.Testing|Repo\.(update|delete|insert)!?\(|scheduled_at\s*=|(?:UPDATE|INSERT INTO|DELETE FROM)\s+(?!twin_fault_counters\b)[a-z_]+/,

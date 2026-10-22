@@ -11,7 +11,7 @@ import uuid
 
 SCENARIO = "image-delete-once-between-attempts"
 PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
-CASES = ("tus-resume",)
+CASES = ("tus-resume", "purge-absence")
 
 TUS_SHA256 = hashlib.sha256(base64.b64decode(PNG)).hexdigest()
 # Exact image recipe declared by Twin.Profile, measured in the packaged host.
@@ -74,7 +74,7 @@ def validate_inputs(value):
     labeled(value)
     integer(value["schema_version"], 1, 2)
     require((value["schema_version"] == 1 and value["scenario"] == SCENARIO) or
-            (value["schema_version"] == 2 and value["scenario"] == "tus-resume"), "scenario_identity")
+            (value["schema_version"] == 2 and value["scenario"] in CASES), "scenario_identity")
     text(value["run_id"], r"[0-9a-f]{32}")
     text(value["source_sha"], r"[0-9a-f]{40}")
     for k in HASHES:

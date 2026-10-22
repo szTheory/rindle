@@ -244,6 +244,35 @@ defmodule Twin.Tracer do
     }
   end
 
+  defp scenario("purge-absent", %{"source_key" => key, "asset_id" => asset_id, "job_id" => id}) do
+    Process.put(:twin_stage, "barrier")
+    asset = Repo.get!(MediaAsset, asset_id)
+    true = asset.storage_key == key
+    queue = Oban.check_queue(queue: :rindle_purge)
+    job = Repo.get!(Oban.Job, id)
+    true = job.args["asset_id"] == asset_id
+    true = barrier?(queue, job)
+    {:error, :not_found} = Rindle.head(Twin.Profile, key)
+
+    %{
+      "source_key" => key,
+      "asset_id" => asset_id,
+      "job_id" => id,
+      "head" => "not_found",
+      "asset_retained" => true,
+      "paused" => queue.paused,
+      "running" => length(queue.running),
+      "attempt" => job.attempt,
+      "state" => job.state,
+      "error_count" => length(job.errors)
+    }
+  end
+
+  defp scenario("purge-resume", body) do
+    :ok = Oban.resume_queue(queue: :rindle_purge)
+    scenario("resume", body)
+  end
+
   defp scenario("inventory", %{}) do
     for queue <- [
           :rindle_media,

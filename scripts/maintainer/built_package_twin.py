@@ -153,6 +153,13 @@ def validate_host_surface(source):
 
 
 
+def validate_absence(before, absence):
+    require(all(absence.get(k) == before.get(k) for k in ("source_key", "job_id", "asset_id")), "absence_identity")
+    require(absence.get("head") == "not_found" and absence.get("asset_retained") is True,
+            "absence_not_authoritative")
+    require(barrier_ok({"paused": absence.get("paused"), "running": absence.get("running")}, absence), "raced_barrier")
+
+
 class Runner:
     def __init__(self, evidence, descriptor=None):
         self.evidence = Path(evidence).resolve()
@@ -400,6 +407,33 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         require(len(set(found)) == len(found), "object_inventory")
         return sorted(found)
 
+    def purge_absence(self):
+        self.progress("retry-barrier")
+        before = self.rpc("begin", {})
+        before["sequence"] = 1
+        require(barrier_ok({"paused": before["paused"], "running": before["running"]}, before), "raced_barrier")
+        key = before["source_key"]
+        require(re.fullmatch(r"elixir-twin-profile/" + re.escape(before["asset_id"]) + r"/[0-9a-f-]{36}\.png", key) is not None, "source_identity")
+        # Independent authority removes only this exact already-observed source.
+        removed = json.loads(self.minio('mc rm --json ' + shlex.quote('local/' + self.descriptor["bucket"] + '/' + key)))
+        require(removed.get("status") == "success", "independent_delete_failed")
+        absence = self.rpc("purge-absent", {"source_key": key, "asset_id": before["asset_id"], "job_id": before["job_id"]})
+        validate_absence(before, absence)
+        absence["sequence"] = 2
+        after = self.rpc("purge-resume", {"asset_id": before["asset_id"], "job_id": before["job_id"]})
+        after["sequence"] = 3
+        self.progress("domain-cleanup")
+        inventory = self.rpc("inventory", {})
+        inventory["sequence"] = 4
+        self.stop_host()
+        objects = self.object_keys()
+        multipart = self.minio('mc ls --json --incomplete --recursive local/' + self.descriptor["bucket"])
+        require(not multipart.strip(), "multipart_residue")
+        versioning = json.loads(self.minio('mc version info --json local/' + self.descriptor["bucket"]))
+        inventory.update(objects=len(objects), multipart=0, versioning_disabled=(versioning.get("status") == "success" and versioning.get("versioning") == {"status": "", "MFADelete": ""}), processes=0, complete=True)
+        require(not objects and all(v == int(k == "rindle_migration_versions") for k,v in inventory["domain"].items()), "purge_residue")
+        return {"before": before, "absence": absence, "after": after, "inventory": inventory}
+
     def run_case(self, verify, cleanup):
         receipt = {"schema_version": 2, "kind": KIND, "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
@@ -417,16 +451,22 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
             validate_runtime(runtime, self.inputs)
             self.export_canaries()
             isolation = self.runtime_isolation()
-            self.rpc("tus-start", {})
-            clients = self.tus_clients()
-            result = self.rpc("tus-finish", {})
-            keys = self.object_keys()
-            require(keys == sorted([result["source_key"], *result["variant_keys"]]), "undeclared_objects")
-            expected_hash = digest(__import__("base64").b64decode(PNG))
-            require(result["checksum_sha256"] == expected_hash, "source_checksum")
-            self.stop_host()
+            if self.case == "tus-resume":
+                self.rpc("tus-start", {})
+                clients = self.tus_clients()
+                result = self.rpc("tus-finish", {})
+                keys = self.object_keys()
+                require(keys == sorted([result["source_key"], *result["variant_keys"]]), "undeclared_objects")
+                expected_hash = digest(__import__("base64").b64decode(PNG))
+                require(result["checksum_sha256"] == expected_hash, "source_checksum")
+                self.stop_host()
+                payload = dict(clients=clients, result=result, object_keys=keys)
+            elif self.case == "purge-absence":
+                payload = self.purge_absence()
+            else:
+                raise Refused("case_not_implemented")
             self.validate_stage()
-            receipt.update(case_id=self.case, clients=clients, result=result, object_keys=keys,
+            receipt.update(case_id=self.case, **payload,
                            runtime=runtime, isolation=isolation, host_exited=True,
                            outcome="complete", reason="complete", stage="complete")
         except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
