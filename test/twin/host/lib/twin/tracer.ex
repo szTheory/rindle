@@ -1,6 +1,7 @@
 defmodule Twin.Tracer do
   use GenServer
   import Ecto.Query
+  import SweetXml, only: [sigil_x: 2]
   alias Twin.Repo
   alias Rindle.Domain.MediaAsset
 
@@ -197,6 +198,243 @@ defmodule Twin.Tracer do
       {:stop, parent} ->
         send(parent, :provider_observer_stopped)
     end
+  end
+
+  defp scenario("cleanup-begin", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    false = :persistent_term.get({Twin, :cleanup}, false)
+
+    {:ok, %{session: multipart, multipart: %{upload_id: upload_id}}} =
+      Rindle.initiate_multipart_upload(Twin.Profile, filename: "multipart.png", expires_in: 5)
+
+    {:ok, %{session: signed_multipart, presigned: signed}} =
+      Rindle.sign_multipart_part(multipart.id, 1)
+
+    png =
+      Base.decode64!(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
+      )
+
+    etag = cleanup_put(signed.url, png)
+    {:ok, orphan} = Rindle.initiate_upload(Twin.Profile, filename: "orphan.png", expires_in: 5)
+
+    {:ok, %{session: signed_orphan, presigned: orphan_signed}} =
+      Rindle.Upload.Broker.sign_url(orphan.id)
+
+    _ = cleanup_put(orphan_signed.url, png)
+    {:ok, %{size: 69}} = Rindle.head(Twin.Profile, orphan.upload_key)
+    true = Repo.aggregate(Rindle.Domain.MediaUploadSession, :count) == 2
+    true = Repo.aggregate(MediaAsset, :count) == 2
+    true = Repo.aggregate(Oban.Job, :count) == 0
+
+    private = %{
+      multipart: signed_multipart,
+      orphan: signed_orphan,
+      upload_id: upload_id,
+      etag: etag,
+      expires: [signed_multipart.expires_at, signed_orphan.expires_at]
+    }
+
+    :persistent_term.put({Twin, :cleanup}, private)
+    parts = cleanup_observe_multipart(private)
+    observed = DateTime.utc_now()
+    true = Enum.all?(private.expires, &(DateTime.compare(observed, &1) == :lt))
+
+    for {operation, key} <- [
+          {"cleanup-multipart", multipart.upload_key},
+          {"cleanup-orphan", orphan.upload_key}
+        ] do
+      %{num_rows: 1} =
+        Repo.query!(
+          "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,$2,$3,1)",
+          [run_id(), operation, key]
+        )
+    end
+
+    %{
+      "multipart_session_id" => multipart.id,
+      "orphan_session_id" => orphan.id,
+      "multipart_asset_id" => multipart.asset_id,
+      "orphan_asset_id" => orphan.asset_id,
+      "multipart_key" => multipart.upload_key,
+      "orphan_key" => orphan.upload_key,
+      "upload_sha256" => hash(upload_id),
+      "parts" => parts,
+      "expiry_seconds" => 5,
+      "observed_at" => DateTime.to_iso8601(observed),
+      "expires_at" => Enum.map(private.expires, &DateTime.to_iso8601/1),
+      "stimuli" => %{"multipart" => 1, "orphan" => 1}
+    }
+  end
+
+  defp scenario("cleanup-expired", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    now = DateTime.utc_now()
+    %{"expired" => Enum.all?(cleanup_private().expires, &(DateTime.compare(now, &1) != :lt))}
+  end
+
+  defp scenario("cleanup-after-abort", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    private = cleanup_private()
+    sessions = cleanup_sessions(private)
+    true = Enum.map(sessions, & &1.state) == ["expired", "expired"]
+    observed = DateTime.utc_now()
+    true = Enum.all?(private.expires, &(DateTime.compare(observed, &1) != :lt))
+
+    %{
+      "states" => ["expired", "expired"],
+      "observed_at" => DateTime.to_iso8601(observed),
+      "task_exit" => 0,
+      "multipart_present" => true,
+      "parts" => cleanup_observe_multipart(private),
+      "listing_complete" => true
+    }
+  end
+
+  defp scenario("cleanup-arm", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    private = cleanup_private()
+    true = Enum.all?(cleanup_sessions(private), &(&1.state == "expired"))
+    {:ok, %{size: 69}} = Rindle.head(Twin.Profile, private.orphan.upload_key)
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'cleanup-arm',$2,1)",
+        [run_id(), private.orphan.upload_key]
+      )
+
+    %{"armed" => true}
+  end
+
+  defp scenario("cleanup-barrier", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    private = cleanup_private()
+
+    case cleanup_barrier(private) do
+      [] ->
+        %{"ready" => false}
+
+      [[pid]] when is_integer(pid) and pid > 1 ->
+        true = pid != String.to_integer(System.pid())
+
+        %{
+          "ready" => true,
+          "maintenance_pid" => pid,
+          "main_pid" => String.to_integer(System.pid())
+        }
+    end
+  end
+
+  defp scenario("cleanup-interrupted", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    private = cleanup_private()
+    orphan = Repo.get!(Rindle.Domain.MediaUploadSession, private.orphan.id)
+    true = orphan.state == "expired" and orphan.upload_key == private.orphan.upload_key
+    {:error, :not_found} = Rindle.head(Twin.Profile, orphan.upload_key)
+    [[pid]] = cleanup_barrier(private)
+    true = pid > 1 and pid != String.to_integer(System.pid())
+
+    [[0]] =
+      Repo.query!(
+        "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='cleanup-arm' AND source_key=$2",
+        [run_id(), orphan.upload_key]
+      ).rows
+
+    %{
+      "orphan_session_id" => orphan.id,
+      "orphan_key" => orphan.upload_key,
+      "row_retained" => true,
+      "row_state" => orphan.state,
+      "object_head" => "not_found",
+      "barrier" => "after_delete_before_row",
+      "maintenance_pid" => pid,
+      "main_pid" => String.to_integer(System.pid()),
+      "main_boot_id" => health()["boot_id"]
+    }
+  end
+
+  defp scenario("cleanup-converged", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    private = cleanup_private()
+    true = Repo.aggregate(Rindle.Domain.MediaUploadSession, :count) == 0
+    true = Repo.aggregate(Oban.Job, :count) == 0
+
+    for original <- [private.multipart, private.orphan] do
+      asset = Repo.get!(MediaAsset, original.asset_id)
+      true = asset.state == "staged" and asset.storage_key == original.upload_key
+      {:error, :not_found} = Rindle.head(Twin.Profile, original.upload_key)
+    end
+
+    true = Repo.aggregate(MediaAsset, :count) == 2
+    true = cleanup_missing_upload?(cleanup_list_parts(private))
+    {:ok, []} = cleanup_list_uploads()
+
+    {:ok, %{status_code: 200, body: xml}} =
+      cleanup_s3(ExAws.S3.list_objects_v2(System.fetch_env!("TWIN_BUCKET"), max_keys: 1000))
+
+    {:ok, []} = cleanup_objects(xml, System.fetch_env!("TWIN_BUCKET"))
+
+    %{
+      "task_exit" => 0,
+      "sessions" => 0,
+      "objects" => 0,
+      "multipart" => 0,
+      "parts" => 0,
+      "listing_complete" => true
+    }
+  end
+
+  defp scenario("cleanup-finish", %{}) do
+    Process.put(:twin_stage, "cleanup")
+    private = cleanup_private()
+    true = Repo.aggregate(Rindle.Domain.MediaUploadSession, :count) == 0
+    true = Repo.aggregate(Oban.Job, :count) == 0
+    ids = Enum.sort([private.multipart.asset_id, private.orphan.asset_id])
+
+    for id <- ids do
+      %{state: "staged"} = Repo.get!(MediaAsset, id)
+      owner = %Owner{id: Ecto.UUID.generate()}
+      {:ok, _} = Rindle.attach(id, owner, "cleanup")
+      :ok = Rindle.detach(owner, "cleanup")
+    end
+
+    jobs =
+      wait(fn ->
+        jobs = Repo.all(from j in Oban.Job, order_by: j.id)
+        true = length(jobs) == 2
+        true = Enum.sort(Enum.map(jobs, & &1.args["asset_id"])) == ids
+        true = Enum.all?(jobs, &(&1.queue == "rindle_purge"))
+
+        cond do
+          Enum.all?(jobs, &(&1.state == "completed" and &1.attempt == 1)) ->
+            jobs
+
+          Enum.any?(jobs, &(&1.state in ["discarded", "cancelled"] or &1.attempt > 1)) ->
+            raise "cleanup_purge_failed"
+
+          true ->
+            false
+        end
+      end)
+
+    tables =
+      Repo.query!("SELECT tablename FROM pg_tables WHERE schemaname='rindle' ORDER BY tablename").rows
+
+    domain =
+      ~w(media_assets media_attachments media_processing_runs media_provider_assets media_upload_sessions media_variants)
+
+    true = Enum.sort(Enum.map(tables, &hd/1)) == Enum.sort(["rindle_migration_versions" | domain])
+
+    for table <- domain do
+      quoted = String.replace(table, "\"", "\"\"")
+      [[0]] = Repo.query!("SELECT count(*) FROM rindle.\"#{quoted}\"").rows
+    end
+
+    %{
+      "asset_ids" => ids,
+      "purge_jobs" => Enum.map(jobs, &Map.take(&1, [:id, :queue, :state, :attempt])),
+      "domain_empty" => true
+    }
   end
 
   defp scenario("promotion-begin", %{}) do
@@ -867,6 +1105,45 @@ defmodule Twin.Tracer do
     scenario("resume", body)
   end
 
+  defp scenario("audit-prepare", %{"case_id" => case_id, "asset_ids" => asset_ids}) do
+    Process.put(:twin_stage, "audit")
+    current_ids = Repo.all(from a in MediaAsset, order_by: a.id, select: a.id)
+    true = audit_scope?(case_id, asset_ids, current_ids)
+    audit_pause_queues()
+    if case_id == "provider-events", do: audit_provider_cleanup(asset_ids)
+
+    for id <- current_ids do
+      owner = %Owner{id: Ecto.UUID.generate()}
+      {:ok, _} = Rindle.attach(id, owner, "twin-cleanup")
+      :ok = Rindle.detach(owner, "twin-cleanup")
+    end
+
+    if current_ids != [], do: :ok = Oban.resume_queue(queue: :rindle_purge)
+
+    purge_jobs =
+      wait(fn ->
+        jobs = Repo.all(from j in Oban.Job, where: j.queue == "rindle_purge", order_by: j.id)
+        true = Enum.sort(Enum.map(jobs, & &1.args["asset_id"])) == asset_ids
+
+        cond do
+          Enum.all?(jobs, &(&1.state == "completed")) -> jobs
+          Enum.any?(jobs, &(&1.state in ["cancelled", "discarded"])) -> raise "audit_purge_failed"
+          true -> false
+        end
+      end)
+
+    audit_pause_queues()
+    true = Repo.aggregate(MediaAsset, :count) == 0
+    %{type: :directory} = File.lstat!("/retained/tmp")
+    [] = audit_temp_entries("/retained/tmp")
+
+    %{
+      "writers_paused" => true,
+      "temp_files" => [],
+      "purge_job_ids" => Enum.map(purge_jobs, & &1.id)
+    }
+  end
+
   defp scenario("inventory", %{}) do
     for queue <- [
           :rindle_media,
@@ -924,6 +1201,267 @@ defmodule Twin.Tracer do
   end
 
   defp scenario(_, _), do: %{"outcome" => "incomplete", "reason" => "operation_refused"}
+
+  def audit_scope?(case_id, requested, current) when is_list(requested) and is_list(current) do
+    expected =
+      Map.get(
+        %{
+          "tus-resume" => 1,
+          "purge-absence" => 1,
+          "av-repair" => 1,
+          "provider-events" => 1,
+          "promotion-restart" => 1,
+          "interrupted-cleanup" => 2
+        },
+        case_id,
+        0
+      )
+
+    expected > 0 and length(requested) == expected and
+      requested == Enum.sort(Enum.uniq(requested)) and
+      Enum.all?(requested, &audit_uuid?/1) and
+      current == Enum.sort(Enum.uniq(current)) and
+      MapSet.subset?(MapSet.new(current), MapSet.new(requested))
+  end
+
+  def audit_scope?(_, _, _), do: false
+
+  defp audit_uuid?(id) when is_binary(id), do: Ecto.UUID.cast(id) == {:ok, id}
+  defp audit_uuid?(_), do: false
+
+  defp audit_pause_queues do
+    for queue <- [
+          :rindle_media,
+          :rindle_promote,
+          :rindle_process,
+          :rindle_purge,
+          :rindle_maintenance,
+          :rindle_provider
+        ] do
+      :ok = Oban.pause_queue(queue: queue)
+
+      wait(fn ->
+        status = Oban.check_queue(queue: queue)
+        status.paused and status.running == []
+      end)
+    end
+  end
+
+  defp audit_provider_cleanup(asset_ids) do
+    calls = provider_count("provider-delete")
+    true = calls in [0, 1]
+
+    if calls == 0 do
+      [row] = Repo.all(Rindle.Domain.MediaProviderAsset)
+      true = row.asset_id in asset_ids and row.provider_name == "mux"
+      true = row.provider_asset_id == provider_id()
+      audit_stop_provider_observers(false)
+      :ok = Rindle.Streaming.Provider.Mux.delete_asset(row.provider_asset_id)
+      true = provider_count("provider-delete") == 1
+    else
+      audit_stop_provider_observers(true)
+    end
+  end
+
+  defp audit_stop_provider_observers(allow_absent?) do
+    case :persistent_term.get({Twin, :provider_handler}, nil) do
+      nil ->
+        true = allow_absent?
+
+      handler ->
+        :ok = :telemetry.detach(handler)
+        :persistent_term.erase({Twin, :provider_handler})
+    end
+
+    case :persistent_term.get({Twin, :provider_observer}, nil) do
+      nil ->
+        true = allow_absent?
+
+      observer ->
+        true = Process.alive?(observer)
+        monitor = Process.monitor(observer)
+        send(observer, {:stop, self()})
+
+        receive do
+          :provider_observer_stopped -> :ok
+        after
+          5000 -> raise "audit_observer_timeout"
+        end
+
+        receive do
+          {:DOWN, ^monitor, :process, ^observer, :normal} -> :ok
+        after
+          5000 -> raise "audit_observer_alive"
+        end
+
+        :persistent_term.erase({Twin, :provider_observer})
+    end
+  end
+
+  defp audit_temp_entries(directory) do
+    directory
+    |> File.ls!()
+    |> Enum.sort()
+    |> Enum.flat_map(fn name ->
+      path = Path.join(directory, name)
+
+      case File.lstat!(path).type do
+        :directory -> audit_temp_entries(path)
+        _ -> [path]
+      end
+    end)
+  end
+
+  defp cleanup_private, do: :persistent_term.get({Twin, :cleanup})
+
+  defp cleanup_sessions(private) do
+    Enum.map([private.multipart, private.orphan], fn original ->
+      session = Repo.get!(Rindle.Domain.MediaUploadSession, original.id)
+      true = session.asset_id == original.asset_id and session.upload_key == original.upload_key
+      true = session.expires_at == original.expires_at
+      session
+    end)
+  end
+
+  defp cleanup_put(url, png) do
+    {:ok, {{_, status, _}, headers, _}} =
+      :httpc.request(
+        :put,
+        {String.to_charlist(url), [], ~c"image/png", png},
+        [timeout: 10_000],
+        []
+      )
+
+    true = status in 200..299
+    {_, etag} = Enum.find(headers, fn {name, _} -> String.downcase(to_string(name)) == "etag" end)
+    to_string(etag)
+  end
+
+  defp cleanup_observe_multipart(private) do
+    bucket = System.fetch_env!("TWIN_BUCKET")
+    {:ok, [{key, upload}]} = cleanup_list_uploads()
+    true = key == private.multipart.upload_key and upload == private.upload_id
+    {:ok, %{status_code: 200, body: xml}} = cleanup_list_parts(private)
+    {:ok, [part]} = cleanup_parts(xml, bucket, key, upload)
+    true = part["etag_sha256"] == hash(private.etag)
+    [part]
+  end
+
+  defp cleanup_list_parts(private) do
+    ExAws.S3.list_parts(
+      System.fetch_env!("TWIN_BUCKET"),
+      private.multipart.upload_key,
+      private.upload_id,
+      [{"max-parts", 1000}, {"part-number-marker", 0}]
+    )
+    |> cleanup_s3()
+  end
+
+  defp cleanup_list_uploads do
+    bucket = System.fetch_env!("TWIN_BUCKET")
+
+    {:ok, %{status_code: 200, body: xml}} =
+      cleanup_s3(ExAws.S3.list_multipart_uploads(bucket, max_uploads: 1000))
+
+    cleanup_uploads(xml, bucket)
+  end
+
+  # Keep pagination and error XML intact: the SDK's convenient list parsers
+  # omit IsTruncated, so an empty parsed collection cannot prove completion.
+  defp cleanup_s3(operation), do: ExAws.request(%{operation | parser: &Function.identity/1})
+
+  defp cleanup_barrier(private) do
+    Repo.query!(
+      "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='cleanup-barrier' AND source_key=$2",
+      [run_id(), private.orphan.upload_key]
+    ).rows
+  end
+
+  def cleanup_parts(xml, bucket, key, upload) do
+    doc = cleanup_xml(xml)
+    [root] = SweetXml.xpath(doc, ~x"/ListPartsResult"l)
+    ^bucket = SweetXml.xpath(root, ~x"./Bucket/text()"s)
+    ^key = SweetXml.xpath(root, ~x"./Key/text()"s)
+    ^upload = SweetXml.xpath(root, ~x"./UploadId/text()"s)
+    "false" = SweetXml.xpath(root, ~x"./IsTruncated/text()"s)
+    "0" = SweetXml.xpath(root, ~x"./PartNumberMarker/text()"s)
+    "1000" = SweetXml.xpath(root, ~x"./MaxParts/text()"s)
+    true = SweetXml.xpath(root, ~x"./NextPartNumberMarker/text()"s) in ["", "0", "1"]
+    [part] = SweetXml.xpath(root, ~x"./Part"l)
+    "1" = SweetXml.xpath(part, ~x"./PartNumber/text()"s)
+    "69" = SweetXml.xpath(part, ~x"./Size/text()"s)
+    etag = SweetXml.xpath(part, ~x"./ETag/text()"s)
+    true = Regex.match?(~r/^"[0-9a-f]{32}"$/, etag)
+    {:ok, [%{"number" => 1, "etag_sha256" => hash(etag), "bytes" => 69}]}
+  rescue
+    _ -> {:error, :incomplete_inventory}
+  catch
+    _, _ -> {:error, :incomplete_inventory}
+  end
+
+  def cleanup_uploads(xml, bucket) do
+    doc = cleanup_xml(xml)
+    [root] = SweetXml.xpath(doc, ~x"/ListMultipartUploadsResult"l)
+    ^bucket = SweetXml.xpath(root, ~x"./Bucket/text()"s)
+    "false" = SweetXml.xpath(root, ~x"./IsTruncated/text()"s)
+    "" = SweetXml.xpath(root, ~x"./KeyMarker/text()"s)
+    "" = SweetXml.xpath(root, ~x"./UploadIdMarker/text()"s)
+    "1000" = SweetXml.xpath(root, ~x"./MaxUploads/text()"s)
+    "" = SweetXml.xpath(root, ~x"./EncodingType/text()"s)
+    [] = SweetXml.xpath(root, ~x"./CommonPrefixes"l)
+
+    uploads =
+      Enum.map(SweetXml.xpath(root, ~x"./Upload"l), fn entry ->
+        key = SweetXml.xpath(entry, ~x"./Key/text()"s)
+        upload = SweetXml.xpath(entry, ~x"./UploadId/text()"s)
+        true = key != "" and upload != ""
+        {key, upload}
+      end)
+
+    true = length(uploads) < 1000 and length(Enum.uniq(uploads)) == length(uploads)
+    {last_key, last_upload} = List.last(uploads) || {"", ""}
+    true = SweetXml.xpath(root, ~x"./NextKeyMarker/text()"s) in ["", last_key]
+    true = SweetXml.xpath(root, ~x"./NextUploadIdMarker/text()"s) in ["", last_upload]
+    {:ok, uploads}
+  rescue
+    _ -> {:error, :incomplete_inventory}
+  catch
+    _, _ -> {:error, :incomplete_inventory}
+  end
+
+  def cleanup_objects(xml, bucket) do
+    doc = cleanup_xml(xml)
+    [root] = SweetXml.xpath(doc, ~x"/ListBucketResult"l)
+    ^bucket = SweetXml.xpath(root, ~x"./Name/text()"s)
+    "false" = SweetXml.xpath(root, ~x"./IsTruncated/text()"s)
+    "1000" = SweetXml.xpath(root, ~x"./MaxKeys/text()"s)
+    "0" = SweetXml.xpath(root, ~x"./KeyCount/text()"s)
+    "" = SweetXml.xpath(root, ~x"./ContinuationToken/text()"s)
+    "" = SweetXml.xpath(root, ~x"./NextContinuationToken/text()"s)
+    "" = SweetXml.xpath(root, ~x"./StartAfter/text()"s)
+    [] = SweetXml.xpath(root, ~x"./CommonPrefixes"l)
+    [] = SweetXml.xpath(root, ~x"./Contents"l)
+    {:ok, []}
+  rescue
+    _ -> {:error, :incomplete_inventory}
+  catch
+    _, _ -> {:error, :incomplete_inventory}
+  end
+
+  def cleanup_missing_upload?({:error, {:http_error, 404, %{body: xml}}}) do
+    doc = cleanup_xml(xml)
+    [root] = SweetXml.xpath(doc, ~x"/Error"l)
+    SweetXml.xpath(root, ~x"./Code/text()"s) == "NoSuchUpload"
+  rescue
+    _ -> false
+  catch
+    _, _ -> false
+  end
+
+  def cleanup_missing_upload?(_), do: false
+
+  defp cleanup_xml(xml) when is_binary(xml) and byte_size(xml) in 1..1_048_576,
+    do: SweetXml.parse(xml, dtd: :none, quiet: true)
 
   defp promotion_count(operation) do
     [[1]] =

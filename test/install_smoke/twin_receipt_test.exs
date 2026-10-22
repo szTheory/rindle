@@ -442,4 +442,292 @@ defmodule Rindle.TwinReceiptTest do
 
     assert {_, 0} = python(code)
   end
+
+  test "interrupted cleanup requires genuine expiry, a real part, the exact cut and two complete reruns" do
+    code = """
+    import copy
+    from twin_fixture import fixture
+    from twin_receipt import verify_receipt, Refused, TUS_SHA256
+    inputs,old=fixture();inputs.update(schema_version=2,scenario='interrupted-cleanup',fixture_sha256=TUS_SHA256)
+    multi_asset='00000000-0000-4000-8000-000000000001';orphan_asset='00000000-0000-4000-8000-000000000002'
+    multi_session='00000000-0000-4000-8000-000000000003';orphan_session='00000000-0000-4000-8000-000000000004'
+    multi_key='elixir-twin-profile/'+multi_asset+'/00000000-0000-4000-8000-000000000005.png'
+    orphan_key='elixir-twin-profile/'+orphan_asset+'/00000000-0000-4000-8000-000000000006.png'
+    part=dict(number=1,etag_sha256='b'*64,bytes=69)
+    before=dict(multipart_session_id=multi_session,orphan_session_id=orphan_session,
+      multipart_asset_id=multi_asset,orphan_asset_id=orphan_asset,multipart_key=multi_key,orphan_key=orphan_key,
+      upload_sha256='a'*64,parts=[part],expiry_seconds=5,observed_at='2026-05-06T00:00:00.000001Z',
+      expires_at=['2026-05-06T00:00:05.000001Z','2026-05-06T00:00:05.000002Z'],stimuli=dict(multipart=1,orphan=1))
+    abort=dict(states=['expired','expired'],observed_at='2026-05-06T00:00:05.000002Z',task_exit=0,
+      multipart_present=True,parts=[copy.deepcopy(part)],listing_complete=True)
+    interrupted=dict(orphan_session_id=orphan_session,orphan_key=orphan_key,row_retained=True,row_state='expired',
+      object_head='not_found',barrier='after_delete_before_row',maintenance_pid=100,main_pid=1,
+      maintenance_exited=True,maintenance_exit=137,main_boot_id=old['old_runtime']['boot_id'],main_alive=True)
+    rerun=dict(task_exit=0,sessions=0,objects=0,multipart=0,parts=0,listing_complete=True)
+    jobs=[dict(id=1,queue='rindle_purge',state='completed',attempt=1),
+          dict(id=2,queue='rindle_purge',state='completed',attempt=1)]
+    converged=dict(asset_ids=sorted([multi_asset,orphan_asset]),purge_jobs=jobs,domain_empty=True)
+    cleanup=dict(before=before,abort=abort,interrupted=interrupted,reruns=[copy.deepcopy(rerun) for _ in range(2)],converged=converged)
+    receipt=dict(schema_version=2,kind=old['kind'],independent_pilot_credit=False,inputs=copy.deepcopy(inputs),
+      case_id='interrupted-cleanup',outcome='complete',reason='complete',stage='complete',dependency='none',
+      runtime=old['old_runtime'],isolation=old['isolation'],host_exited=True,cleanup=cleanup)
+    assert verify_receipt(inputs,receipt)
+    mutations=[(['cleanup','before','multipart_session_id'],orphan_session),
+      (['cleanup','before','multipart_asset_id'],orphan_asset),(['cleanup','before','multipart_key'],orphan_key),
+      (['cleanup','before','orphan_key'],orphan_key+'extra'),(['cleanup','before','upload_sha256'],'raw-upload-id'),
+      (['cleanup','before','parts'],[]),(['cleanup','before','parts'],[part,part]),
+      (['cleanup','before','parts',0,'number'],2),(['cleanup','before','parts',0,'number'],True),
+      (['cleanup','before','parts',0,'bytes'],0),(['cleanup','before','parts',0,'etag_sha256'],'etag'),
+      (['cleanup','before','expiry_seconds'],0),(['cleanup','before','expiry_seconds'],-5),
+      (['cleanup','before','expiry_seconds'],True),
+      (['cleanup','before','observed_at'],'2026-05-06T00:00:05.000001Z'),
+      (['cleanup','before','observed_at'],'2026-05-06T00:00:00'),
+      (['cleanup','before','observed_at'],'2026-02-31T00:00:00Z'),
+      (['cleanup','before','expires_at'],['2026-05-05T23:59:59Z']*2),
+      (['cleanup','before','expires_at'],list(reversed(before['expires_at']))),
+      (['cleanup','before','expires_at'],before['expires_at'][:1]),
+      (['cleanup','before','stimuli','multipart'],2),(['cleanup','before','stimuli','orphan'],2),
+      (['cleanup','abort','states'],['signed','expired']),(['cleanup','abort','states'],['expired']),
+      (['cleanup','abort','observed_at'],'2026-05-06T00:00:05.000001Z'),
+      (['cleanup','abort','task_exit'],1),(['cleanup','abort','task_exit'],False),
+      (['cleanup','abort','multipart_present'],False),(['cleanup','abort','parts'],[]),
+      (['cleanup','abort','parts',0,'etag_sha256'],'c'*64),(['cleanup','abort','listing_complete'],False),
+      (['cleanup','interrupted','orphan_session_id'],multi_session),(['cleanup','interrupted','orphan_key'],multi_key),
+      (['cleanup','interrupted','row_retained'],False),(['cleanup','interrupted','row_state'],'signed'),
+      (['cleanup','interrupted','object_head'],'denied'),(['cleanup','interrupted','object_head'],'unknown'),
+      (['cleanup','interrupted','object_head'],'present'),(['cleanup','interrupted','barrier'],'before_delete'),
+      (['cleanup','interrupted','maintenance_pid'],1),(['cleanup','interrupted','maintenance_pid'],True),
+      (['cleanup','interrupted','main_pid'],100),(['cleanup','interrupted','main_alive'],False),
+      (['cleanup','interrupted','maintenance_exited'],False),(['cleanup','interrupted','maintenance_exit'],0),
+      (['cleanup','interrupted','main_boot_id'],old['new_runtime']['boot_id']),
+      (['cleanup','reruns'],[rerun]),(['cleanup','reruns'],[rerun,rerun,rerun]),
+      (['cleanup','converged','asset_ids'],[multi_asset]),
+      (['cleanup','converged','asset_ids'],[multi_asset,'00000000-0000-4000-8000-000000000009']),
+      (['cleanup','converged','domain_empty'],False),(['cleanup','converged','purge_jobs'],jobs[:1]),
+      (['cleanup','converged','purge_jobs'],list(reversed(jobs))),
+      (['cleanup','converged','purge_jobs',1,'id'],1),(['cleanup','converged','purge_jobs',0,'id'],True),
+      (['cleanup','converged','purge_jobs',0,'queue'],'foreign'),
+      (['cleanup','converged','purge_jobs',0,'state'],'available'),
+      (['cleanup','converged','purge_jobs',1,'attempt'],2)]
+    for index in range(2):
+        for key in ['task_exit','sessions','objects','multipart','parts']:
+            mutations.extend([(['cleanup','reruns',index,key],1),(['cleanup','reruns',index,key],False)])
+        mutations.append((['cleanup','reruns',index,'listing_complete'],False))
+    for path,value in mutations:
+        r=copy.deepcopy(receipt);target=r
+        for key in path[:-1]:target=target[key]
+        target[path[-1]]=value
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(path)
+    for path in [[],['cleanup'],['cleanup','before'],['cleanup','before','parts',0],['cleanup','before','stimuli'],
+                 ['cleanup','abort'],['cleanup','abort','parts',0],['cleanup','interrupted'],
+                 ['cleanup','reruns',0],['cleanup','reruns',1],['cleanup','converged'],['cleanup','converged','purge_jobs',0]]:
+        original=receipt
+        for key in path:original=original[key]
+        for field in original:
+            r=copy.deepcopy(receipt);target=r
+            for key in path:target=target[key]
+            del target[field]
+            try:verify_receipt(inputs,r)
+            except Refused:pass
+            else:raise AssertionError(('missing',path,field))
+        for field in ['upload_id','signed_url','raw_job_error']:
+            r=copy.deepcopy(receipt);target=r
+            for key in path:target=target[key]
+            target[field]='SECRET_CANARY'
+            try:verify_receipt(inputs,r)
+            except Refused as error:assert 'SECRET_CANARY' not in str(error)
+            else:raise AssertionError(('unknown',path,field))
+    bad_inputs=copy.deepcopy(inputs);bad_inputs['fixture_sha256']='b'*64
+    r=copy.deepcopy(receipt);r['inputs']=bad_inputs
+    try:verify_receipt(bad_inputs,r)
+    except Refused:pass
+    else:raise AssertionError('wrong fixture')
+    r=copy.deepcopy(receipt)
+    r['cleanup']['before']['observed_at']='2026-05-05T20:00:00.000001-04:00'
+    r['cleanup']['abort']['observed_at']='2026-05-06T01:00:05.000002+01:00'
+    assert verify_receipt(inputs,r)
+    """
+
+    assert {_, 0} = python(code)
+  end
+
+  test "full matrix binds all six cases to one archive and exact frozen inventories" do
+    code = """
+    import copy,hashlib,json,re,textwrap
+    from pathlib import Path
+    import twin_fixture
+    from twin_receipt import (verify_receipt, verify_matrix_receipt, validate_inputs, decode, Refused,
+      CASES, DOMAIN, MATRIX_SCENARIO, FIXTURE_MATRIX_SHA256, TUS_SHA256, MAX_BYTES)
+    # Reuse only the six positive builder prefixes above, before their first assertion.
+    # Each executes with a fresh run identity; their negative controls are not executed here.
+    source=Path('test/install_smoke/twin_receipt_test.exs').read_text()
+    builders={}
+    for block in source.split('code = '+chr(34)*3)[1:]:
+        match=re.search(r"scenario\\s*=\\s*'([^']+)'",block)
+        if match and match.group(1) in CASES:
+            builders[match.group(1)]=textwrap.dedent(block.split('assert verify_receipt(inputs,receipt)',1)[0])
+    assert set(builders)==set(CASES)
+    original_fixture=twin_fixture.fixture
+    children={};receipts={}
+    for index,case in enumerate(CASES,1):
+        def seeded_fixture():
+            inputs,receipt=original_fixture();inputs.update(run_id=format(index,'032x'),fixture_sha256=TUS_SHA256)
+            return inputs,receipt
+        twin_fixture.fixture=seeded_fixture
+        namespace={};exec(builders[case],namespace)
+        children[case]=namespace['inputs'];receipts[case]=namespace['receipt']
+        assert verify_receipt(children[case],receipts[case])
+    twin_fixture.fixture=original_fixture
+    root_inputs=copy.deepcopy(children[CASES[0]])
+    root_inputs.update(schema_version=3,scenario=MATRIX_SCENARIO,run_id='f'*32,
+      fixture_sha256=FIXTURE_MATRIX_SHA256,case_inputs=copy.deepcopy(children))
+    sha=lambda value:hashlib.sha256(value.encode()).hexdigest()
+    def job(job_id,queue,asset,attempt=1,state='completed',errors=None,event=None):
+        return dict(id=job_id,queue=queue,asset_id=asset,attempt=attempt,state=state,
+                    error_attempts=[] if errors is None else errors,event_sha256=event)
+    def audit_for(case,receipt):
+        if case=='tus-resume':asset=receipt['result']['asset_id']
+        elif case=='purge-absence':asset=receipt['before']['asset_id']
+        elif case=='av-repair':asset=receipt['failure']['before']['asset_id']
+        elif case=='provider-events':asset=receipt['provider']['asset_id']
+        elif case=='promotion-restart':asset=receipt['restart']['before']['asset_id']
+        else:asset=None
+        assets=[asset] if asset else sorted(receipt['cleanup']['before'][k] for k in ['multipart_asset_id','orphan_asset_id'])
+        rows=[];fixture_rows=[]
+        def fixture(operation,value,claims):
+            fixture_rows.append(dict(run_id=children[case]['run_id'],operation=operation,source_sha256=sha(value),claims=claims))
+        if case=='tus-resume':
+            rows=[job(1,'rindle_promote',asset),job(2,'rindle_process',asset),job(3,'rindle_purge',asset)]
+            fixture('tus','one-upload',1)
+        elif case=='purge-absence':
+            for original in receipt['inventory']['jobs']:
+                rows.append(job(original['id'],original['queue'],asset,attempt=original['attempt'],
+                                errors=[1] if original['queue']=='rindle_purge' else []))
+            fixture('stimulus',receipt['before']['source_key'],1);fixture('delete',receipt['before']['source_key'],1)
+        elif case=='av-repair':
+            rows=[job(1,'rindle_promote',asset),job(receipt['failure']['before']['job_id'],'rindle_media',asset,
+                  attempt=5,state='discarded',errors=[1,2,3,4,5]),
+                  job(receipt['repair']['new_job_id'],'rindle_media',asset),job(4,'rindle_purge',asset)]
+            fixture('av-stimulus','one-upload',1);fixture('av-enabled',receipt['failure']['before']['source_key'],0)
+            fixture('av-download',receipt['failure']['before']['source_key'],5)
+        elif case=='provider-events':
+            rows=[job(j['id'],j['queue'],asset,event=j['event_sha256']) for j in receipt['provider']['jobs']]
+            rows.append(job(8,'rindle_purge',asset))
+            fixture('provider-create',receipt['provider']['input_path_sha256'],1)
+            for operation,count in [('provider-delete',1),('provider-state',3),('provider-processed',1),
+                                    ('provider-ready',2),('provider-leak',0),('provider-invalid',1)]:
+                fixture(operation,'local-mux',count)
+        elif case=='promotion-restart':
+            rows=[job(j['id'],j['queue'],asset) for j in receipt['restart']['jobs']]+[job(3,'rindle_purge',asset)]
+            fixture('promotion-upload','one-upload',1)
+            fixture('promotion-completion',receipt['restart']['before']['session_id'],1)
+        else:
+            rows=[job(j['id'],'rindle_purge',a) for j,a in zip(receipt['cleanup']['converged']['purge_jobs'],assets)]
+            before=receipt['cleanup']['before']
+            fixture('cleanup-multipart',before['multipart_key'],1);fixture('cleanup-orphan',before['orphan_key'],1)
+            fixture('cleanup-arm',before['orphan_key'],0)
+            fixture('cleanup-barrier',before['orphan_key'],receipt['cleanup']['interrupted']['maintenance_pid'])
+        container=receipt['restart']['new_container'] if case=='promotion-restart' else sha('host-'+case)
+        return dict(asset_ids=assets,purge_job_ids=sorted(j['id'] for j in rows if j['queue']=='rindle_purge'),
+          domain={k:[1] if k=='rindle_migration_versions' else [] for k in DOMAIN},
+          relations=dict(public=['oban_jobs','oban_peers','schema_migrations','twin_fault_counters'],rindle=sorted(DOMAIN)),
+          jobs=sorted(rows,key=lambda j:j['id']),fixtures=sorted(fixture_rows,key=lambda f:f['operation']),
+          schema_migrations=[20261021000000],peers=[],objects=[],multipart=[],parts=[],temp_files=[],processes=[],
+          host_container=container,host_exited=True,writers_stopped=True,listing_complete=True,
+          versioning_disabled=True,frozen_before_disposal=True)
+    items=[dict(case_id=case,receipt=receipts[case],audit=audit_for(case,receipts[case])) for case in CASES]
+    receipt=dict(schema_version=3,kind=root_inputs['kind'],independent_pilot_credit=False,inputs=copy.deepcopy(root_inputs),
+      outcome='complete',reason='complete',stage='complete',dependency='none',cases=items,elapsed_ms=100000,
+      all_hosts_exited=True,domain_verdict_frozen=True)
+    assert verify_receipt(root_inputs,receipt)
+    assert verify_matrix_receipt(root_inputs,decode(json.dumps(receipt,indent=2)))
+    assert len(json.dumps(receipt,indent=2).encode())<=MAX_BYTES
+    def rejected(inputs,record,label):
+        try:verify_receipt(inputs,record)
+        except Refused:pass
+        else:raise AssertionError(label)
+    mutations=[(['cases'],items[:-1]),(['cases'],items+[items[0]]),(['cases',1],items[0]),
+      (['cases',0,'case_id'],'unknown'),(['cases'],list(reversed(items))),
+      (['cases',0,'receipt'],None),(['cases',0,'receipt','case_id'],[]),
+      (['cases',0,'receipt'],items[1]['receipt']),(['cases',0,'receipt','outcome'],'skipped'),
+      (['cases',0,'receipt','inputs','package_tar_sha256'],'b'*64),
+      (['cases',1,'receipt','inputs','run_id'],children[CASES[0]]['run_id']),
+      (['cases',2,'receipt','inputs','host_sha256'],'b'*64),
+      (['cases',3,'receipt','inputs','config_sha256'],'b'*64),
+      (['cases',4,'receipt','inputs','lock_sha256'],'b'*64),
+      (['cases',5,'receipt','inputs','contract_sha256'],'b'*64),
+      (['cases',0,'audit','asset_ids'],['00000000-0000-4000-8000-000000000009']),
+      (['cases',0,'audit','purge_job_ids'],[99]),(['cases',1,'audit','purge_job_ids'],[99]),
+      (['cases',5,'audit','purge_job_ids'],[1,3]),(['cases',0,'audit','jobs'],items[0]['audit']['jobs'][:-1]),
+      (['cases',0,'audit','jobs',0,'asset_id'],'00000000-0000-4000-8000-000000000009'),
+      (['cases',0,'audit','jobs',0,'queue'],'foreign'),(['cases',0,'audit','jobs',0,'id'],True),
+      (['cases',0,'audit','jobs',0,'state'],'executing'),(['cases',0,'audit','jobs',1,'id'],1),
+      (['cases',0,'audit','jobs'],list(reversed(items[0]['audit']['jobs']))),
+      (['cases',1,'audit','jobs',2,'attempt'],1),(['cases',1,'audit','jobs',2,'error_attempts'],[]),
+      (['cases',2,'audit','jobs',1,'error_attempts'],[1,2,3,4]),(['cases',2,'audit','jobs',1,'id'],99),
+      (['cases',2,'audit','jobs',2,'id'],99),(['cases',3,'audit','jobs',3,'event_sha256'],'b'*64),
+      (['cases',3,'audit','jobs',3,'id'],99),(['cases',4,'audit','jobs',0,'id'],99),
+      (['cases',4,'audit','host_container'],items[4]['receipt']['restart']['old_container']),
+      (['cases',1,'audit','host_container'],items[0]['audit']['host_container']),
+      (['cases',0,'audit','fixtures'],[]),(['cases',0,'audit','fixtures',0,'operation'],'foreign'),
+      (['cases',0,'audit','fixtures',0,'source_sha256'],'b'*64),
+      (['cases',0,'audit','fixtures',0,'run_id'],root_inputs['run_id']),
+      (['cases',0,'audit','fixtures',0,'claims'],2),(['cases',0,'audit','fixtures',0,'claims'],True),
+      (['cases',0,'audit','domain','media_assets'],['foreign']),
+      (['cases',0,'audit','domain','rindle_migration_versions'],[True]),
+      (['cases',0,'audit','domain','rindle_migration_versions'],[1,2]),
+      (['cases',0,'audit','relations','public'],['oban_jobs']),
+      (['cases',0,'audit','schema_migrations'],[20261021000001]),
+      (['all_hosts_exited'],False),(['domain_verdict_frozen'],False),(['elapsed_ms'],0),
+      (['elapsed_ms'],7200001),(['elapsed_ms'],True),(['outcome'],'incomplete'),(['stage'],'disposal')]
+    for index in range(len(CASES)):
+        for field in ['host_exited','writers_stopped','listing_complete','versioning_disabled','frozen_before_disposal']:
+            mutations.extend([(['cases',index,'audit',field],False),(['cases',index,'audit',field],1)])
+        for field in ['peers','objects','multipart','parts','temp_files','processes']:
+            mutations.append((['cases',index,'audit',field],['residue']))
+    for path,value in mutations:
+        r=copy.deepcopy(receipt);target=r
+        for key in path[:-1]:target=target[key]
+        target[path[-1]]=value
+        rejected(root_inputs,r,path)
+    for case in CASES:
+        for field in ['source_sha','package_tar_sha256','package_metadata_sha256','package_tree_sha256',
+                      'host_sha256','lock_sha256','config_sha256','contract_sha256','build_sha256','fixture_sha256']:
+            i=copy.deepcopy(root_inputs);i['case_inputs'][case][field]='b'*(40 if field=='source_sha' else 64)
+            r=copy.deepcopy(receipt);r['inputs']=copy.deepcopy(i)
+            rejected(i,r,('shared input',case,field))
+        for duplicate in [root_inputs['run_id'],children[CASES[(CASES.index(case)+1)%len(CASES)]]['run_id']]:
+            i=copy.deepcopy(root_inputs);i['case_inputs'][case]['run_id']=duplicate
+            r=copy.deepcopy(receipt);r['inputs']=copy.deepcopy(i)
+            rejected(i,r,('duplicate run',case))
+    for path in [[],['cases',0],['cases',0,'audit'],['cases',0,'audit','jobs',0],['cases',0,'audit','fixtures',0]]:
+        original=receipt
+        for key in path:original=original[key]
+        for field in original:
+            r=copy.deepcopy(receipt);target=r
+            for key in path:target=target[key]
+            del target[field]
+            rejected(root_inputs,r,('missing',path,field))
+        r=copy.deepcopy(receipt);target=r
+        for key in path:target=target[key]
+        target['raw_body']='SECRET_CANARY'
+        rejected(root_inputs,r,('unknown secret',path))
+    for field in ['case_inputs','run_id','fixture_sha256']:
+        i=copy.deepcopy(root_inputs);del i[field]
+        rejected(i,receipt,('missing input',field))
+    i=copy.deepcopy(root_inputs);i['fixture_sha256']='b'*64
+    rejected(i,receipt,'wrong aggregate fixture')
+    i=copy.deepcopy(root_inputs);i['case_inputs'][CASES[0]],i['case_inputs'][CASES[1]]=i['case_inputs'][CASES[1]],i['case_inputs'][CASES[0]]
+    rejected(i,receipt,'swapped case authorities')
+    for case in CASES:
+        try:verify_matrix_receipt(children[case],receipts[case])
+        except Refused:pass
+        else:raise AssertionError('focused receipt counted as full matrix')
+    """
+
+    assert {output, 0} = python(code)
+    refute output =~ "SECRET_CANARY"
+  end
 end

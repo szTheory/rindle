@@ -7,27 +7,30 @@ defmodule Twin.StorageFault do
   @impl true
   def download(key, destination, opts) do
     with {:ok, _} = result <- Rindle.Storage.S3.download(key, destination, opts) do
-      root = Path.join(Application.get_env(:rindle, :tmp_dir, System.tmp_dir!()), "Rindle.tmp")
-      parent = Path.dirname(destination)
-
-      selected_temp =
-        Path.dirname(parent) == root and Path.basename(destination) == "source.mp4" and
-          Regex.match?(
-            ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-            Path.basename(parent)
-          )
-
-      if selected_temp do
-        claim =
-          Twin.Repo.query!(
-            "UPDATE twin_fault_counters SET claims=claims+1 WHERE run_id=$1 AND operation='av-download' AND source_key=$2 AND EXISTS (SELECT 1 FROM twin_fault_counters WHERE run_id=$1 AND operation='av-enabled' AND source_key=$2 AND claims=1) RETURNING claims",
-            [System.fetch_env!("TWIN_RUN_ID"), key]
-          )
-
-        if claim.num_rows == 1, do: File.write!(destination, "twin-malformed-av-input")
-      end
-
+      maybe_corrupt_av(key, destination)
       result
+    end
+  end
+
+  defp maybe_corrupt_av(key, destination) do
+    root = Path.join(Application.get_env(:rindle, :tmp_dir, System.tmp_dir!()), "Rindle.tmp")
+    parent = Path.dirname(destination)
+
+    selected_temp =
+      Path.dirname(parent) == root and Path.basename(destination) == "source.mp4" and
+        Regex.match?(
+          ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+          Path.basename(parent)
+        )
+
+    if selected_temp do
+      claim =
+        Twin.Repo.query!(
+          "UPDATE twin_fault_counters SET claims=claims+1 WHERE run_id=$1 AND operation='av-download' AND source_key=$2 AND EXISTS (SELECT 1 FROM twin_fault_counters WHERE run_id=$1 AND operation='av-enabled' AND source_key=$2 AND claims=1) RETURNING claims",
+          [System.fetch_env!("TWIN_RUN_ID"), key]
+        )
+
+      if claim.num_rows == 1, do: File.write!(destination, "twin-malformed-av-input")
     end
   end
 
@@ -56,6 +59,43 @@ defmodule Twin.StorageFault do
   def delete(key, opts) do
     run = System.fetch_env!("TWIN_RUN_ID")
 
+    if claim_cleanup_cut(run, key),
+      do: delete_at_cleanup_cut(run, key, opts),
+      else: delete_with_existing_fault(run, key, opts)
+  end
+
+  defp claim_cleanup_cut(run, key) do
+    if System.get_env("TWIN_START_ROLE") == "maintenance" do
+      result =
+        Twin.Repo.query!(
+          "UPDATE twin_fault_counters SET claims=0 WHERE run_id=$1 AND operation='cleanup-arm' AND source_key=$2 AND claims=1 RETURNING claims",
+          [run, key]
+        )
+
+      result.num_rows == 1
+    else
+      false
+    end
+  end
+
+  defp delete_at_cleanup_cut(run, key, opts) do
+    with {:ok, _} <- Rindle.Storage.S3.delete(key, opts) do
+      %{num_rows: 1} =
+        Twin.Repo.query!(
+          "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'cleanup-barrier',$2,$3)",
+          [run, key, String.to_integer(System.pid())]
+        )
+
+      # The controller kills this VM after seeing the committed barrier. A
+      # timeout retains the expired row rather than allowing a false cut.
+      receive do
+      after
+        180_000 -> {:error, :twin_cleanup_barrier_timeout}
+      end
+    end
+  end
+
+  defp delete_with_existing_fault(run, key, opts) do
     expected =
       Twin.Repo.query!(
         "SELECT source_key FROM twin_fault_counters WHERE run_id=$1 AND operation='stimulus'",

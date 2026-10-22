@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 import shutil
-from twin_receipt import KIND, decode, keys, require, validate_inputs
+from twin_receipt import CASES, KIND, decode, keys, require, validate_inputs
 
 
 def sha(path):
@@ -43,10 +43,18 @@ def containers(runner):
         return []
     values = json.loads(runner.command(["docker", "inspect", *ids]))
     require(type(values) is list and len(values) == len(ids), "container_inventory")
+    require({c.get("Id") for c in values} == set(ids), "container_inventory")
     for c in values:
         labels = c["Config"]["Labels"]
         service = labels.get("com.docker.compose.service")
         require(labels.get("com.docker.compose.project") == project and service in {"host", "postgres", "minio"} and c["Name"] == "/" + project + "-" + service + "-1", "container_ownership")
+        volume, destination = {"host": ("_retained", "/retained"),
+                               "postgres": ("_database", "/var/lib/postgresql/data"),
+                               "minio": ("_objects", "/data")}[service]
+        mounts = c.get("Mounts")
+        require(type(mounts) is list and len(mounts) == 1 and mounts[0].get("Type") == "volume"
+                and mounts[0].get("Name") == project + volume
+                and mounts[0].get("Destination") == destination, "container_mount_ownership")
         if service == "host":
             require(c["State"]["Status"] == "exited" and c["State"]["Running"] is False and c["State"]["Paused"] is False, "cleanup_active_runtime")
     return values
@@ -56,7 +64,7 @@ def named(runner, kind):
     return runner.command(["docker", kind, "ls", "--filter", "label=com.docker.compose.project=" + runner.descriptor["project"], "--format", "{{.Name}}"]).split()
 
 
-def dispose(runner):
+def preflight_disposal(runner):
     d = validate_descriptor(runner)
     observed = containers(runner)  # No mutation precedes complete liveness observation.
     volumes, networks = named(runner, "volume"), named(runner, "network")
@@ -68,6 +76,11 @@ def dispose(runner):
     for network in networks:
         value = json.loads(runner.command(["docker", "network", "inspect", network]))
         require(len(value) == 1 and set(value[0]["Containers"]) <= owned_ids, "foreign_network_user")
+    return d, observed, volumes, networks
+
+
+def dispose(runner):
+    d, observed, volumes, networks = preflight_disposal(runner)
     for c in observed:
         containers(runner)
         if c["Config"]["Labels"]["com.docker.compose.service"] != "host" and c["State"]["Running"]:
@@ -90,4 +103,35 @@ def dispose(runner):
     if runner.context.exists():
         shutil.rmtree(runner.context)
     require(not containers(runner) and not named(runner, "volume") and not named(runner, "network"), "disposal_residue")
+    return True
+
+
+def dispose_matrix(runner, make_runner):
+    """Preflight every finite child before any resource mutation."""
+    d, root = runner.descriptor, runner.evidence
+    keys(d, {"schema_version", "kind", "independent_pilot_credit", "run_id", "evidence", "inputs_sha256", "cases"})
+    require(type(d["schema_version"]) is int and d["schema_version"] == 2 and d["kind"] == KIND
+            and d["independent_pilot_credit"] is False, "matrix_descriptor_schema")
+    require(d["evidence"] == str(root) and not root.is_symlink(), "matrix_descriptor_path")
+    authority_path = root / "inputs.json"
+    require(authority_path.is_file() and not authority_path.is_symlink() and sha(authority_path) == d["inputs_sha256"], "matrix_descriptor_binding")
+    inputs = decode(authority_path.read_text()); validate_inputs(inputs)
+    require(inputs["schema_version"] == 3 and d["run_id"] == inputs["run_id"], "matrix_descriptor_run")
+    require(type(d["cases"]) is list and len(d["cases"]) == len(CASES), "matrix_descriptor_cases")
+    children = []
+    for entry, case_id in zip(d["cases"], CASES):
+        keys(entry, {"case_id", "run_id", "descriptor_sha256"})
+        require(entry["case_id"] == case_id and entry["run_id"] == inputs["case_inputs"][case_id]["run_id"], "matrix_descriptor_case")
+        case_root = root / "cases" / case_id
+        require(case_root.resolve() == case_root and not case_root.is_symlink(), "matrix_descriptor_path")
+        descriptor_path = case_root / "resources.json"
+        require(descriptor_path.is_file() and not descriptor_path.is_symlink()
+                and sha(descriptor_path) == entry["descriptor_sha256"], "matrix_descriptor_child")
+        descriptor = decode(descriptor_path.read_text())
+        child = make_runner(case_root, descriptor)
+        require(decode((case_root / "inputs.json").read_text()) == inputs["case_inputs"][case_id], "matrix_descriptor_authority")
+        preflight_disposal(child)
+        children.append(child)
+    for child in children:
+        dispose(child)  # Each child rechecks liveness/foreign use immediately before mutation.
     return True

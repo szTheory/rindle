@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """One finite, synthetic external-package consumer trace. Python standard library only."""
+import concurrent.futures
 import argparse
 import hashlib
 import gzip
@@ -20,7 +21,8 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
-from twin_cleanup import dispose, validate_descriptor
+from twin_cleanup import dispose_matrix, dispose, validate_descriptor
+import twin_receipt as contracts
 from twin_receipt import SCENARIO, KIND, PNG, AV_BASE64, CASES, validate_tus_clients, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic, MAX_BYTES
 
 TOOLCHAIN = {"ASDF_ERLANG_VERSION": "27.3.4.15", "ASDF_ELIXIR_VERSION": "1.17.3-otp-27", "ASDF_NODEJS_VERSION": "20.18.1"}
@@ -170,8 +172,11 @@ class Runner:
         self.stage = "initialization"
         self.machine = False
         self.case = None
+        self.inputs = None
+        self.full_audit = False
+        self.audit = None
 
-    def command(self, argv, timeout=120, cwd=None):
+    def command(self, argv, timeout=120, cwd=None, expected_exit=0):
         self.sequence += 1
         logs = self.evidence / "private"
         logs.mkdir(mode=0o700, exist_ok=True)
@@ -191,13 +196,13 @@ class Runner:
                 proc.wait()
                 raise
         require(target.stat().st_size <= LIMIT, "stage_output_limit")
-        require(proc.returncode == 0, "stage_command_failed")
+        require(proc.returncode == expected_exit, "stage_command_failed")
         return target.read_text(errors="replace")
 
-    def compose(self, *args, timeout=120):
+    def compose(self, *args, timeout=120, expected_exit=0):
         return self.command(["docker", "compose", "--env-file", str(self.evidence / ".env"),
                              "-p", self.descriptor["project"], "-f", str(self.context / "compose.yml"),
-                             *args], timeout=timeout, cwd=self.context)
+                             *args], timeout=timeout, cwd=self.context, expected_exit=expected_exit)
 
     def progress(self, stage):
         self.stage = stage
@@ -212,7 +217,7 @@ class Runner:
         value = json.loads(text)
         if value.get("outcome") == "incomplete":
             code = value.get("reason", "scenario_failed")
-            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av", "provider", "promotion") for suffix in ("_match", "_failed")}
+            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av", "provider", "promotion", "cleanup", "audit") for suffix in ("_match", "_failed")}
             require(code in allowed, "host_reason_invalid")
             raise Refused("host_" + code)
         return value
@@ -231,7 +236,7 @@ class Runner:
         return self.compose("exec", "-T", "minio", "sh", "-c",
                             'export MC_HOST_local="http://twinlocal:$MINIO_ROOT_PASSWORD@localhost:9000"; ' + command)
 
-    def stage_inputs(self):
+    def stage_inputs(self, shared_archive=None):
         self.progress("package")
         run_id = uuid.uuid4().hex
         self.context.mkdir()
@@ -246,7 +251,10 @@ class Runner:
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(file, dest)
         archive = self.evidence / "package.tar"
-        self.command(["mix", "hex.build", "--output", str(archive)], timeout=180)
+        if shared_archive is None:
+            self.command(["mix", "hex.build", "--output", str(archive)], timeout=180)
+        else:
+            shutil.copyfile(shared_archive, archive)
         outer = self.context / "hex"
         outer.mkdir()
         extract_tar(archive.read_bytes(), outer)
@@ -425,7 +433,6 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         self.progress("domain-cleanup")
         inventory = self.rpc("inventory", {})
         inventory["sequence"] = 4
-        self.stop_host()
         objects = self.object_keys()
         multipart = self.minio('mc ls --json --incomplete --recursive local/' + self.descriptor["bucket"])
         require(not multipart.strip(), "multipart_residue")
@@ -482,7 +489,6 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         logs = self.compose("logs", "--no-color", "--tail", "200", "host")
         require("MUX_PROVIDER_CANARY_" not in logs and "BODY_CANARY" not in logs, "provider_export_canary")
         objects = self.object_keys()
-        self.stop_host()
         return dict(provider=provider, object_keys=objects)
 
     def promotion_restart(self, runtime, isolation):
@@ -506,7 +512,9 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         require(self.runtime_isolation() == isolation, "restart_isolation")
         result = self.rpc("promotion-finish", request)
         objects = self.object_keys()
-        new = self.stop_host()
+        new_ids = self.compose("ps", "--all", "--quiet", "host").split()
+        require(len(new_ids) == 1, "host_identity_unknown")
+        new = new_ids[0]
         elapsed = int((time.monotonic() - started) * 1000)
         require(elapsed < 180_000, "promotion_deadline")
         restart = dict(before=before, cut=cut, **result, old_runtime=runtime, new_runtime=new_runtime,
@@ -514,11 +522,61 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                        old_exited=True, elapsed_ms=elapsed, deadline_ms=180_000)
         return dict(restart=restart, object_keys=objects)
 
+    def maintenance(self, task, *args, expected_exit=0):
+        return self.compose("exec", "-T", "-e", "TWIN_START_ROLE=maintenance", "host",
+                            "mix", task, *args, timeout=200, expected_exit=expected_exit)
+
+    def interrupted_cleanup(self, runtime):
+        before = self.rpc("cleanup-begin", {})
+        deadline = time.monotonic() + 30
+        while self.rpc("cleanup-expired", {}) != {"expired": True}:
+            require(time.monotonic() < deadline, "cleanup_expiry_timeout")
+            time.sleep(0.1)
+        self.maintenance("rindle.abort_incomplete_uploads")
+        abort = self.rpc("cleanup-after-abort", {})
+        require(self.rpc("cleanup-arm", {}) == {"armed": True}, "cleanup_arm_failed")
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = executor.submit(self.maintenance, "rindle.cleanup_orphans", "--no-dry-run",
+                                 "--storage", "Elixir.Twin.StorageFault", expected_exit=137)
+        try:
+            deadline = time.monotonic() + 90
+            while True:
+                barrier = self.rpc("cleanup-barrier", {})
+                if barrier.get("ready") is True:
+                    break
+                require(barrier == {"ready": False} and not future.done()
+                        and time.monotonic() < deadline, "cleanup_barrier_failed")
+                time.sleep(0.1)
+            pid, main_pid = barrier["maintenance_pid"], barrier["main_pid"]
+            require(type(pid) is int and type(main_pid) is int and pid > 1 and main_pid >= 1
+                    and pid != main_pid, "cleanup_pid_invalid")
+            self.compose("exec", "-T", "host", "sh", "-c",
+                'set -eu; test "$1" -gt 1; test "$1" != "$2"; test "$(cat /proc/"$1"/comm)" = beam.smp; kill -0 "$2"; kill -KILL "$1"',
+                "owned-maintenance-cut", str(pid), str(main_pid))
+            future.result(timeout=30)
+            observed = self.health()
+            require(observed == runtime, "cleanup_main_changed")
+            self.compose("exec", "-T", "host", "sh", "-c", 'kill -0 "$1"', "main-alive", str(main_pid))
+            interrupted = self.rpc("cleanup-interrupted", {})
+            require(interrupted["maintenance_pid"] == pid and interrupted["main_pid"] == main_pid,
+                    "cleanup_cut_identity")
+            interrupted.update(maintenance_exited=True, maintenance_exit=137, main_alive=True)
+        finally:
+            executor.shutdown(wait=False, cancel_futures=True)
+        reruns = []
+        for _ in range(2):
+            self.maintenance("rindle.cleanup_orphans", "--no-dry-run", "--storage", "Elixir.Twin.StorageFault")
+            reruns.append(self.rpc("cleanup-converged", {}))
+        converged = self.rpc("cleanup-finish", {})
+        return dict(cleanup=dict(before=before, abort=abort, interrupted=interrupted,
+                                 reruns=reruns, converged=converged))
+
     def run_case(self, verify, cleanup):
         receipt = {"schema_version": 2, "kind": KIND, "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
         try:
-            self.stage_inputs()
+            if self.inputs is None:
+                self.stage_inputs()
             receipt["inputs"] = self.inputs
             self.validate_stage()
             self.progress("build")
@@ -539,7 +597,6 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                 require(keys == sorted([result["source_key"], *result["variant_keys"]]), "undeclared_objects")
                 expected_hash = digest(__import__("base64").b64decode(PNG))
                 require(result["checksum_sha256"] == expected_hash, "source_checksum")
-                self.stop_host()
                 payload = dict(clients=clients, result=result, object_keys=keys)
             elif self.case == "purge-absence":
                 payload = self.purge_absence()
@@ -548,6 +605,8 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
             elif self.case == "promotion-restart":
                 payload = self.promotion_restart(runtime, isolation)
                 runtime = payload["restart"]["new_runtime"]
+            elif self.case == "interrupted-cleanup":
+                payload = self.interrupted_cleanup(runtime)
             elif self.case == "av-repair":
                 receipt["failure"] = self.av_failure()
                 before = receipt["failure"]["before"]
@@ -563,15 +622,25 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                               duration_ms=int(float(probe["format"]["duration"]) * 1000), fully_decoded=True)
                 keys = self.object_keys()
                 require(keys == sorted([repair["source_key"], repair["variant_key"]]), "undeclared_objects")
-                self.stop_host()
                 payload = dict(repair=repair, output=output, versions=versions, object_keys=keys)
             else:
                 raise Refused("case_not_implemented")
+            prepared = None
+            if self.full_audit:
+                prepared = self.rpc("audit-prepare", {"case_id": self.case, "asset_ids": self.case_assets(payload)})
+            self.stop_host()
+            if self.full_audit:
+                self.audit = self.collect_audit(payload, prepared)
             self.validate_stage()
             receipt.update(case_id=self.case, **payload,
                            runtime=runtime, isolation=isolation, host_exited=True,
                            outcome="complete", reason="complete", stage="complete")
+            verify_receipt(self.inputs, receipt)
+            if self.full_audit:
+                contracts.verify_matrix_audit(self.inputs, receipt, self.audit)
+                write_json(self.evidence / "audit.json", self.audit)
         except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
+            self.audit = None
             receipt.update(stage=self.stage, outcome="incomplete", reason=str(exc) if isinstance(exc, Refused) else "runner_failed")
             if self.descriptor:
                 try:
@@ -588,7 +657,140 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
             verify_receipt(read_json(self.evidence / "inputs.json"), read_json(self.evidence / "receipt.json"))
         return receipt
 
+    def case_assets(self, payload):
+        if self.case == "tus-resume":
+            return [payload["result"]["asset_id"]]
+        if self.case == "purge-absence":
+            return [payload["before"]["asset_id"]]
+        if self.case == "av-repair":
+            return [payload["repair"]["asset_id"]]
+        if self.case == "provider-events":
+            return [payload["provider"]["asset_id"]]
+        if self.case == "promotion-restart":
+            return [payload["restart"]["before"]["asset_id"]]
+        before = payload["cleanup"]["before"]
+        return sorted([before["multipart_asset_id"], before["orphan_asset_id"]])
+
+    def collect_audit(self, payload, prepared):
+        self.progress("domain-cleanup")
+        require(prepared["writers_paused"] is True and prepared["temp_files"] == [], "audit_writers")
+        # Independent reads after host exit: the producer cannot race these lists.
+        ids = self.compose("ps", "--all", "--quiet", "host").split()
+        require(len(ids) == 1, "audit_host_identity")
+        state = json.loads(self.command(["docker", "inspect", ids[0]]))[0]["State"]
+        require(state["Status"] == "exited" and state["Running"] is False, "audit_host_alive")
+        sql = """SELECT json_build_object(
+          'relations', (SELECT json_agg(json_build_array(schemaname,tablename) ORDER BY schemaname,tablename) FROM pg_tables WHERE schemaname IN ('public','rindle')),
+          'jobs', (SELECT coalesce(json_agg(json_build_object('id',id,'queue',queue,'state',state,'attempt',attempt,'args',args,'errors',errors) ORDER BY id),'[]') FROM public.oban_jobs),
+          'fixtures', (SELECT coalesce(json_agg(json_build_object('run_id',run_id,'operation',operation,'source_key',source_key,'claims',claims) ORDER BY operation),'[]') FROM public.twin_fault_counters),
+          'schema_migrations', (SELECT coalesce(json_agg(version ORDER BY version),'[]') FROM public.schema_migrations),
+          'peers', (SELECT coalesce(json_agg(name ORDER BY name),'[]') FROM public.oban_peers))"""
+        raw = json.loads(self.compose("exec", "-T", "postgres", "psql", "-U", "postgres", "-d", self.descriptor["database"], "-Atc", sql))
+        relations = {}
+        for schema, table in raw["relations"]:
+            relations.setdefault(schema, []).append(table)
+        require(relations == {"public": ["oban_jobs", "oban_peers", "schema_migrations", "twin_fault_counters"],
+                              "rindle": sorted(contracts.DOMAIN)}, "audit_relations")
+        domain = {}
+        for table in sorted(contracts.DOMAIN):
+            # Identifiers come only from the source-owned finite table set.
+            field = "version" if table == "rindle_migration_versions" else "id"
+            query = "SELECT coalesce(json_agg(" + field + " ORDER BY " + field + "),'[]') FROM rindle." + table
+            domain[table] = json.loads(self.compose("exec", "-T", "postgres", "psql", "-U", "postgres", "-d", self.descriptor["database"], "-Atc", query))
+        asset_ids = self.case_assets(payload)
+        jobs = []
+        for job in raw["jobs"]:
+            args = job["args"]
+            asset_id = args.get("asset_id")
+            if asset_id is None and self.case == "provider-events":
+                provider_id = args.get("event", {}).get("provider_asset_id")
+                require(type(provider_id) is str and digest(provider_id.encode()) == payload["provider"]["provider_sha256"], "audit_provider_job")
+                asset_id = payload["provider"]["asset_id"]
+            require(asset_id in asset_ids, "audit_foreign_job")
+            errors = job["errors"]
+            require(type(errors) is list and all(type(e) is dict and type(e.get("attempt")) is int for e in errors), "audit_job_errors")
+            jobs.append({**{k: job[k] for k in ("id", "queue", "state", "attempt")}, "asset_id": asset_id,
+                         "event_sha256": digest(args["event_id"].encode()) if "event_id" in args else None,
+                         "error_attempts": [e["attempt"] for e in errors]})
+        fixtures = [{"run_id": row["run_id"], "operation": row["operation"],
+                     "source_sha256": digest(row["source_key"].encode()), "claims": row["claims"]} for row in raw["fixtures"]]
+        objects = self.object_keys()
+        incomplete = self.minio('mc ls --json --incomplete --recursive local/' + self.descriptor["bucket"])
+        require(not incomplete.strip(), "audit_multipart_residue")
+        require(not objects, "audit_object_residue")
+        versioning = json.loads(self.minio('mc version info --json local/' + self.descriptor["bucket"]))
+        require(versioning.get("status") == "success" and versioning.get("versioning") == {"status": "", "MFADelete": ""}, "audit_versioning")
+        copied = self.evidence / "private" / "stopped-temp"
+        copied.mkdir(mode=0o700)
+        self.command(["docker", "cp", ids[0] + ":/retained/tmp/.", str(copied)], timeout=30)
+        require(not any(p.is_symlink() or not p.is_dir() for p in copied.rglob("*")), "audit_temp_residue")
+        return dict(asset_ids=asset_ids, purge_job_ids=prepared["purge_job_ids"], domain=domain, relations=relations,
+                    jobs=jobs, fixtures=fixtures, schema_migrations=raw["schema_migrations"], peers=raw["peers"],
+                    objects=[], multipart=[], parts=[], temp_files=[], processes=[], host_container=ids[0],
+                    host_exited=True, writers_stopped=True, listing_complete=True, versioning_disabled=True,
+                    frozen_before_disposal=True)
+
     def run(self, verify, cleanup):
+        started = time.monotonic()
+        receipt = dict(schema_version=3, kind=KIND, independent_pilot_credit=False, outcome="incomplete",
+                       reason="not_completed", stage="initialization", dependency="none", cases=[])
+        children = []
+        try:
+            self.progress("package")
+            archive = self.evidence / "package.tar"
+            self.command(["mix", "hex.build", "--output", str(archive)], timeout=180)
+            archive_identity(archive)
+            root_run = uuid.uuid4().hex
+            case_root = self.evidence / "cases"
+            case_root.mkdir(mode=0o700)
+            for case_id in CASES:
+                child_path = case_root / case_id
+                child_path.mkdir(mode=0o700)
+                child = Runner(child_path)
+                child.case, child.machine, child.full_audit = case_id, self.machine, True
+                child.stage_inputs(shared_archive=archive)
+                children.append(child)
+            self.inputs = {**children[0].inputs, "schema_version": 3, "run_id": root_run,
+                           "scenario": contracts.MATRIX_SCENARIO, "fixture_sha256": contracts.FIXTURE_MATRIX_SHA256,
+                           "case_inputs": {child.case: child.inputs for child in children}}
+            contracts.validate_inputs(self.inputs)
+            write_json(self.evidence / "inputs.json", self.inputs)
+            self.descriptor = dict(schema_version=2, kind=KIND, independent_pilot_credit=False,
+                                   run_id=root_run, evidence=str(self.evidence),
+                                   inputs_sha256=digest((self.evidence / "inputs.json").read_bytes()),
+                                   cases=[dict(case_id=c.case, run_id=c.inputs["run_id"],
+                                               descriptor_sha256=digest((c.evidence / "resources.json").read_bytes())) for c in children])
+            write_json(self.evidence / "resources.json", self.descriptor)
+            receipt["inputs"] = self.inputs
+            for child in children:
+                if not self.machine:
+                    print("CASE " + child.case, flush=True)
+                result = child.run_case(True, False)
+                receipt["cases"].append(dict(case_id=child.case, receipt=result, audit=child.audit))
+            receipt.update(outcome="complete", reason="complete", stage="complete",
+                           elapsed_ms=int((time.monotonic() - started) * 1000), all_hosts_exited=True,
+                           domain_verdict_frozen=True)
+            verify_receipt(self.inputs, receipt)
+        except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
+            receipt.update(outcome="incomplete", reason=str(exc) if isinstance(exc, Refused) else "runner_failed", stage=self.stage)
+            for child in children:
+                try:
+                    if child.descriptor and child.context.exists():
+                        child.stop_host()
+                except (Refused, OSError):
+                    pass
+        finally:
+            write_json(self.evidence / "receipt.json", receipt)
+        # Freeze both successful and failed domain evidence BEFORE disposal.
+        if cleanup and self.descriptor:
+            self.progress("disposal")
+            dispose_matrix(self, Runner)
+        require(receipt["outcome"] == "complete", receipt["reason"])
+        if verify:
+            verify_receipt(read_json(self.evidence / "inputs.json"), read_json(self.evidence / "receipt.json"))
+        return receipt
+
+    def run_legacy(self, verify, cleanup):
         receipt = {"schema_version": 1, "kind": "maintainer-operated-synthetic", "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
         try:
@@ -654,13 +856,13 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         return receipt
 
 
-def emit(operation, outcome, stage, reason, dependency, evidence, machine):
+def emit(operation, outcome, stage, reason, dependency, evidence, machine, case_id=None, legacy=False):
     result = {"kind": KIND, "independent_pilot_credit": False, "operation": operation,
               "outcome": outcome, "stage": stage, "reason": reason, "dependency": dependency}
     if evidence:
         result.update(evidence=str(evidence), inputs=str(evidence / "inputs.json"), receipt=str(evidence / "receipt.json"),
                       descriptor=str(evidence / "resources.json"),
-                      reproduce="python3 scripts/maintainer/built_package_twin.py run --verify --cleanup",
+                      reproduce="python3 scripts/maintainer/built_package_twin.py run" + (" --case " + case_id if case_id else " --legacy" if legacy else "") + " --verify --cleanup",
                       cleanup="python3 scripts/maintainer/built_package_twin.py cleanup --descriptor " + shlex.quote(str(evidence / "resources.json")))
     if machine:
         print(json.dumps(result, sort_keys=True))
@@ -678,13 +880,18 @@ def main():
     subs = parser.add_subparsers(dest="operation", required=True)
     subs.add_parser("check", help="check local Docker/Compose and supported build toolchain")
     run = subs.add_parser("run", help="build once and run the finite synthetic lifecycle")
-    run.add_argument("--case", choices=CASES, help="focused diagnostic case; never a full matrix verdict")
+    modes = run.add_mutually_exclusive_group()
+    modes.add_argument("--case", choices=CASES, help="focused diagnostic case; never a full matrix verdict")
+    modes.add_argument("--legacy", action="store_true", help="run the distinct phase-137 foundation diagnostic")
     run.add_argument("--verify", action="store_true")
     run.add_argument("--cleanup", action="store_true")
     run.add_argument("--evidence", "--evidence-dir", dest="evidence", type=Path, help="new or empty private evidence directory")
     check = subs.add_parser("verify", help="verify retained evidence against independent runner inputs")
     check.add_argument("--inputs", type=Path, required=True)
     check.add_argument("--receipt", type=Path, required=True)
+    modes = check.add_mutually_exclusive_group()
+    modes.add_argument("--case", choices=CASES, help="explicitly verify one focused diagnostic")
+    modes.add_argument("--legacy", action="store_true", help="explicitly verify phase-137 evidence")
     clean = subs.add_parser("cleanup", help="dispose exact run-owned resources after writers stop")
     clean.add_argument("--descriptor", type=Path, required=True)
     for command in subs.choices.values():
@@ -695,13 +902,24 @@ def main():
     try:
         if args.operation == "verify":
             inputs = read_json(args.inputs)
+            receipt = read_json(args.receipt)
+            if args.case:
+                require(inputs.get("schema_version") == receipt.get("schema_version") == 2
+                        and inputs.get("scenario") == receipt.get("case_id") == args.case, "diagnostic_case_required")
+            elif args.legacy:
+                require(inputs.get("schema_version") == receipt.get("schema_version") == 1, "legacy_receipt_required")
+            else:
+                require(inputs.get("schema_version") == receipt.get("schema_version") == 3, "full_matrix_required")
             validate_archive(args.inputs.resolve().parent / "package.tar", inputs)
-            verify_receipt(inputs, read_json(args.receipt))
+            verify_receipt(inputs, receipt)
         elif args.operation == "cleanup":
             descriptor = read_json(args.descriptor)
             evidence = args.descriptor.resolve().parent
             runner = Runner(args.descriptor.resolve().parent, descriptor)
-            dispose(runner)
+            if descriptor.get("schema_version") == 2:
+                dispose_matrix(runner, Runner)
+            else:
+                dispose(runner)
         else:
             evidence = args.evidence if args.operation == "run" else None
             if evidence:
@@ -725,15 +943,17 @@ def main():
                 runner.case = args.case
                 if args.case:
                     runner.run_case(args.verify, args.cleanup)
+                elif args.legacy:
+                    runner.run_legacy(args.verify, args.cleanup)
                 else:
                     runner.run(args.verify, args.cleanup)
-        emit(args.operation, "passed", "complete", "complete", "none", evidence, args.json)
+        emit(args.operation, "passed", "complete", "complete", "none", evidence, args.json, getattr(args, "case", None), getattr(args, "legacy", False))
         return 0
     except (Refused, OSError, ValueError, KeyError, TypeError) as exc:
         reason = str(exc) if isinstance(exc, Refused) else "invalid_or_unavailable_input"
         outcome = "failed" if args.operation == "verify" else "blocked" if args.operation == "check" or reason == "cleanup_active_runtime" else "incomplete"
         stage = runner.stage if runner else "initialization"
-        emit(args.operation, outcome, stage, reason, "docker" if args.operation == "check" else "none", evidence, args.json)
+        emit(args.operation, outcome, stage, reason, "docker" if args.operation == "check" else "none", evidence, args.json, getattr(args, "case", None), getattr(args, "legacy", False))
         return 1
 
 
