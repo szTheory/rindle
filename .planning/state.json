@@ -1,7 +1,7 @@
 {
   "contract": "1.0.0",
   "flavor": "core",
-  "milestone": "v1.26 \u2014 Pre-Adopter Readiness & Quality Consolidation",
+  "milestone": "v1.26 — Pre-Adopter Readiness & Quality Consolidation",
   "phases": [
     {
       "number": "133",
@@ -31,7 +31,7 @@
     {
       "number": "138",
       "name": "Lifecycle Failure and Recovery Matrix",
-      "status": "pending"
+      "status": "planned"
     },
     {
       "number": "139",
@@ -40,9 +40,9 @@
     }
   ],
   "next": {
-    "command": "$gsd-progress",
-    "label": "Route Phase 138 discussion/planning",
-    "reason": "Phase 137 passed: six plans and six TWIN requirements complete; Phase 138 not started. Use the authoritative worktree; auto-advance disabled."
+    "command": "$gsd-execute-phase 138",
+    "label": "Execute Phase 138",
+    "reason": "Six plans in six waves passed independent planning checks. Run now in /Users/jon/projects/rindle/.claude/worktrees/phase136-execution; auto-advance is disabled. No implementation or acceptance credit."
   },
-  "updated_at": "2026-10-22T00:30:11.827196+00:00"
+  "updated_at": "2026-10-22T02:49:32.464Z"
 }

@@ -21,7 +21,7 @@ packaged-host observations and separate semantic verification pass.
 | Quick command | `mix test test/install_smoke/twin_*_test.exs --seed 0` |
 | Full regression | `mix ci` as defined by RUNNING.md |
 | Real acceptance | `python3 scripts/maintainer/built_package_twin.py run --verify --cleanup` with the planned full-matrix mode |
-| Runtime | Measure during execution; fast focused feedback target under 30s excluding first compile; five ordinary AV attempts require a separately bounded longer run |
+| Runtime | Measure during execution; fast focused feedback target under 30s excluding first compile; tiny AV case starts with a finite 600-second deadline for five ordinary attempts and records elapsed time/margin |
 
 Prefix Mix/runner commands with
 `ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 ASDF_NODEJS_VERSION=20.18.1`.
@@ -41,17 +41,34 @@ for real matrix acceptance. No new framework or heavy CI lane is authorized.
 
 ## Per-Requirement Verification Map
 
-The planner expands this table to exact task IDs, wave numbers, threat IDs and
-new test paths after decomposition. Do not mark draft entries green from planning.
+The plan map below names exact task IDs, waves, threats and focused test owners.
+All entries remain pending until execution evidence passes.
 
 | Requirement | Fast behavior/negative controls | Real acceptance oracle | Status |
 |---|---|---|---|
 | RECOV-01 | Existing twin tracer/receipt contracts extended for recreated client, wrong offset and duplicate stimuli | Completed nonfinal PATCH; new client HEAD; same session; final checksum; ready asset and exact keys | pending |
 | RECOV-02 | Existing twin fault and purge tests; missing-object vs denied/unknown absence | Same durable purge job retryable attempt 1, independent source absence, ordinary attempt 2 completes | pending |
 | RECOV-03 | AV failure/discard vs repair and receipt controls | Real five-attempt FFmpeg failure, runtime_status, genuinely enqueued public repair, probe plus full decode | pending |
-| RECOV-04 | Worker regression suite for stale/duplicate/equal/missing/concurrent events, rollback and secret canaries | Actual Mux adapter/local HTTP fixture, signed ingress, ordinary provider queue, exact identities/effects | pending |
+| RECOV-04 | Named stale-error assertion first fails within 138-04 task 1; its final worker regression suite passes for strict older/replay, equal/missing/precision, concurrent handlers, polling fetch/commit, initial linkage, rollback and secret canaries | Actual Mux adapter/local HTTP fixture, signed ingress, ordinary provider queue, exact identities/effects | pending |
 | RECOV-05 | Restart cut/quiescence/identity and replay controls | Promotion paused, available attempt-zero job committed; SIGKILL and new runtime; same job completes | pending |
 | RECOV-06 | Existing cleanup/maintenance contracts plus per-resource inventory and foreign-resource controls | Real multipart part, genuine expiry, post-delete janitor interruption, same-resource reruns, complete pre-disposal audit | pending |
+
+## Plan, Wave and Threat Map
+
+| Requirement | Owning tasks | Wave | Focused executable tests | Real case | Threats |
+|---|---|---:|---|---|---|
+| RECOV-01 | 138-01 tasks 1–2; 138-06 tasks 2–3 | 1, 6 | twin_tracer_contract_test.exs; twin_receipt_test.exs | tus-resume; full matrix | T-138-01, T-138-02, T-138-13 |
+| RECOV-02 | 138-02 tasks 1–2; 138-06 tasks 2–3 | 2, 6 | twin_fault_test.exs; purge_storage_test.exs; twin_receipt_test.exs | purge-absence; full matrix | T-138-03, T-138-04, T-138-13 |
+| RECOV-03 | 138-03 tasks 1–2; 138-06 tasks 2–3 | 3, 6 | twin_fault_test.exs; twin_receipt_test.exs | av-repair; full matrix | T-138-05, T-138-06, T-138-13 |
+| RECOV-04 | 138-04 tasks 1–2; 138-06 tasks 2–3 | 4, 6 | ingest_provider_webhook_test.exs; mux_sync_provider_asset_test.exs; mux_ingest_variant_test.exs; twin_receipt_test.exs | provider-events; full matrix | T-138-07, T-138-08, T-138-09, T-138-13 |
+| RECOV-05 | 138-05 tasks 1–2; 138-06 tasks 2–3 | 5, 6 | twin_tracer_contract_test.exs; twin_receipt_test.exs | promotion-restart; full matrix | T-138-10, T-138-11, T-138-13 |
+| RECOV-06 | 138-06 tasks 1–3 | 6 | twin_cleanup_test.exs; twin_receipt_test.exs; twin_cli_test.exs | interrupted-cleanup; full matrix | T-138-12, T-138-13, T-138-14, T-138-15 |
+
+The source-owned full verifier requires exactly these six case IDs from one
+fresh archive. A focused `run --case ID --verify` exits zero only for a passing
+case-specific verifier and remains diagnostic; it cannot close the matrix.
+The real acceptance command and a separate verify --inputs/--receipt process
+are required after source stabilizes; task-level fast tests are no substitute.
 
 ## Wave 0 Requirements
 

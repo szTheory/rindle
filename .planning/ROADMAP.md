@@ -795,7 +795,25 @@ Plans:
   4. Duplicate and out-of-order provider events plus a host restart between durable stages converge without duplicate provider state, duplicate stimulus, lost work, inconsistent terminal state, or secret-bearing telemetry.
   5. After an interrupted cleanup, an idempotent janitor rerun leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue, and the full matrix emits independently verified receipts.
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+**Wave 1**
+- [ ] 138-01-PLAN.md — Packaged tus client interruption and independently verified exact offset/asset inventory.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 138-02-PLAN.md — Persisted source-delete retry and independently proved authoritative absence.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 138-03-PLAN.md — Real AV five-attempt failure, public diagnosis, supported repair and full decode.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 138-04-PLAN.md — Signed Mux local adapter convergence and bounded provider ordering correction.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 138-05-PLAN.md — Promotion-stage SIGKILL and same-job continuation in a new runtime.
+
+**Wave 6** *(blocked on Waves 1–5 completion)*
+- [ ] 138-06-PLAN.md — Interrupted janitor, complete six-case verifier, residue audit and operator workflow.
 
 ### Phase 139: Exact-Head Readiness Closure
 
@@ -823,8 +841,8 @@ Plans:
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
-| 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
+| 138. Lifecycle Failure and Recovery Matrix | 0/6 | Planned | - |
 | 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-10-21 after Phase 136 completed 15/15 plans and passed 41/41 active must-haves. Numeric CI speed acceptance remains deferred unfinished to SEED-261021-918 with zero credit. Next: `$gsd-discuss-phase 137`.*
+*Last updated: 2026-10-21 after Phase 138 planning: six plans, six waves, thirteen tasks; independent plan check passed. Phase 137 remains complete; RECOV-01..06 remain pending. Numeric CI speed acceptance remains deferred unfinished to SEED-261021-918 with zero credit. Next: `$gsd-execute-phase 138`.*
