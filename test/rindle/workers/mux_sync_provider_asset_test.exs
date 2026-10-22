@@ -8,6 +8,25 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
   alias Rindle.Streaming.Provider.Mux.ClientMock
   alias Rindle.Workers.MuxSyncProviderAsset
 
+  defmodule BeforeTransactionRepo do
+    defdelegate get_by(model, fields), to: Rindle.Repo
+    defdelegate one(query), to: Rindle.Repo
+    defdelegate update(changeset), to: Rindle.Repo
+    defdelegate rollback(reason), to: Rindle.Repo
+
+    def transaction(fun) do
+      send(Process.get(:before_transaction_observer), {:before_sync_transaction, self()})
+
+      receive do
+        :continue_sync -> :ok
+      after
+        5000 -> raise "sync barrier timed out"
+      end
+
+      Rindle.Repo.transaction(fun)
+    end
+  end
+
   setup :set_mox_from_context
   setup :verify_on_exit!
 
@@ -24,7 +43,8 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
       delivery: [signed_url_ttl_seconds: 900]
   end
 
-  setup do
+  setup tags do
+    Process.put(:committed_fixture, tags[:sandbox] == false)
     prev = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
 
     Application.put_env(
@@ -43,7 +63,23 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
   end
 
   defp insert_asset! do
-    %MediaAsset{}
+    id = Ecto.UUID.generate()
+
+    if Process.get(:committed_fixture) do
+      on_exit(fn ->
+        Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+          assert {1, nil} =
+                   Repo.delete_all(
+                     from a in MediaAsset,
+                       where: a.id == ^id and a.profile == ^to_string(TestProfile)
+                   )
+
+          refute Repo.exists?(from a in MediaAsset, where: a.id == ^id)
+        end)
+      end)
+    end
+
+    %MediaAsset{id: id}
     |> MediaAsset.changeset(%{
       state: "staged",
       profile: to_string(TestProfile),
@@ -281,5 +317,158 @@ defmodule Rindle.Workers.MuxSyncProviderAssetTest do
     opts = MuxSyncProviderAsset.__opts__()
     assert Keyword.get(opts, :queue) == :rindle_provider
     assert Keyword.get(opts, :max_attempts) == 3
+  end
+
+  @tag sandbox: false
+  test "fetched ready error 404 and no-change snapshots cannot overwrite a committed webhook" do
+    attach_telemetry([[:rindle, :provider, :sync, :resolved], [:rindle, :provider, :sync, :stuck]])
+
+    responses = [
+      {:ok, %{"status" => "errored", "playback_ids" => []}},
+      {:ok, %{"status" => "ready", "playback_ids" => [%{"id" => "stale-playback"}]}},
+      {:ok, %{"status" => "preparing", "playback_ids" => []}},
+      {:error, "not found", %{status: 404, body: ""}},
+      {:error, :provider_sync_failed}
+    ]
+
+    for response <- responses do
+      row = insert_row("processing", 60, provider_asset_id: "race-#{Ecto.UUID.generate()}")
+
+      response =
+        case response do
+          {:ok, body} -> {:ok, Map.put(body, "id", row.provider_asset_id)}
+          other -> other
+        end
+
+      parent = self()
+
+      expect(ClientMock, :get_asset, fn _ ->
+        send(parent, {:fetched_provider, self()})
+
+        receive do
+          :return_provider -> response
+        after
+          5000 -> raise "provider barrier timed out"
+        end
+      end)
+
+      task =
+        sync_writer(fn ->
+          MuxSyncProviderAsset.perform(%Oban.Job{
+            args: %{"provider_asset_id" => row.provider_asset_id}
+          })
+        end)
+
+      assert_receive {:fetched_provider, worker}, 2000
+      args = webhook_args(row, "video.asset.ready", ["fresh-playback"])
+      assert :ok = Rindle.Workers.IngestProviderWebhook.perform(%Oban.Job{args: args, attempt: 1})
+      # Explicit focused fixture for the real timestamps() second collision.
+      Repo.update_all(from(p in MediaProviderAsset, where: p.id == ^row.id),
+        set: [updated_at: row.updated_at]
+      )
+
+      send(worker, :return_provider)
+      assert :ok = Task.await(task, 5000)
+      current = Repo.get!(MediaProviderAsset, row.id)
+      assert current.updated_at == row.updated_at
+      assert current.state == "ready" and current.playback_ids == ["fresh-playback"]
+      assert current.last_event_id == args["event_id"] and is_nil(current.last_sync_error)
+      refute_receive {:tele, [:rindle, :provider, :sync, :resolved], _, _}, 20
+    end
+  end
+
+  @tag sandbox: false
+  test "an accepted watermark alone invalidates an error snapshot within the same second" do
+    row = insert_row("processing", 60, provider_asset_id: "same-state-#{Ecto.UUID.generate()}")
+    parent = self()
+
+    expect(ClientMock, :get_asset, fn _ ->
+      send(parent, {:fetched_provider, self()})
+
+      receive do
+        :return_provider -> {:error, :provider_sync_failed}
+      after
+        5000 -> raise "provider barrier timed out"
+      end
+    end)
+
+    task =
+      sync_writer(fn ->
+        MuxSyncProviderAsset.perform(%Oban.Job{
+          args: %{"provider_asset_id" => row.provider_asset_id}
+        })
+      end)
+
+    assert_receive {:fetched_provider, worker}, 2000
+    args = webhook_args(row, "provider.future_event", [])
+    assert :ok = Rindle.Workers.IngestProviderWebhook.perform(%Oban.Job{args: args, attempt: 1})
+
+    Repo.update_all(from(p in MediaProviderAsset, where: p.id == ^row.id),
+      set: [updated_at: row.updated_at]
+    )
+
+    send(worker, :return_provider)
+    assert :ok = Task.await(task, 5000)
+    current = Repo.get!(MediaProviderAsset, row.id)
+
+    assert current.state == row.state and current.playback_ids == row.playback_ids and
+             current.updated_at == row.updated_at
+
+    assert current.last_event_id == args["event_id"] and is_nil(current.last_sync_error)
+  end
+
+  @tag sandbox: false
+  test "stuck snapshot is revalidated after a concurrent committed ready webhook" do
+    row = insert_row("processing", 8000, provider_asset_id: "stuck-race-#{Ecto.UUID.generate()}")
+    attach_telemetry([[:rindle, :provider, :sync, :stuck]])
+    parent = self()
+
+    task =
+      sync_writer(fn ->
+        Process.put(:before_transaction_observer, parent)
+        Rindle.Config.put_repo_override(BeforeTransactionRepo)
+
+        MuxSyncProviderAsset.perform(%Oban.Job{
+          args: %{"provider_asset_id" => row.provider_asset_id}
+        })
+      end)
+
+    assert_receive {:before_sync_transaction, worker}, 2000
+    args = webhook_args(row, "video.asset.ready", ["fresh-playback"])
+    assert :ok = Rindle.Workers.IngestProviderWebhook.perform(%Oban.Job{args: args, attempt: 1})
+    send(worker, :continue_sync)
+    assert :ok = Task.await(task, 5000)
+    assert Repo.get!(MediaProviderAsset, row.id).state == "ready"
+    refute_receive {:tele, [:rindle, :provider, :sync, :stuck], _, _}, 20
+  end
+
+  defp webhook_args(row, type, playback) do
+    %{
+      "event_id" => "evt-#{Ecto.UUID.generate()}",
+      "event_type" => type,
+      "provider" => "mux",
+      "event" => %{
+        "provider_asset_id" => row.provider_asset_id,
+        "occurred_at" => "2026-05-06T00:00:02.123456Z",
+        "playback_ids" => playback,
+        "raw" => %{}
+      }
+    }
+  end
+
+  defp sync_writer(fun) do
+    task =
+      Task.async(fn ->
+        :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo, sandbox: false)
+
+        try do
+          fun.()
+        after
+          Ecto.Adapters.SQL.Sandbox.checkin(Repo)
+        end
+      end)
+
+    on_exit(fn -> if Process.alive?(task.pid), do: Process.exit(task.pid, :kill) end)
+    task
   end
 end

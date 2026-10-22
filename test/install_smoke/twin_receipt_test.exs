@@ -254,4 +254,95 @@ defmodule Rindle.TwinReceiptTest do
 
     assert {_, 0} = python(code)
   end
+
+  test "provider evidence binds queued replay, stale events, committed effects and the packaged SDK" do
+    code = """
+    import copy,hashlib
+    from twin_fixture import fixture
+    from twin_receipt import verify_receipt, Refused, AV_SHA256, AV_RECIPE
+    inputs,old=fixture();inputs.update(schema_version=2,scenario='provider-events',fixture_sha256=AV_SHA256)
+    sha=lambda value:hashlib.sha256(value.encode()).hexdigest()
+    asset=old['before']['asset_id'];row='00000000-0000-4000-8000-000000000005'
+    source='elixir-twin-providerprofile/'+asset+'/00000000-0000-4000-8000-000000000004.mp4'
+    variant='Elixir.Twin.ProviderProfile/'+asset+'/web_720p-'+AV_RECIPE+'.mp4'
+    provider_sha=sha('MUX_PROVIDER_CANARY_'+inputs['run_id']);ready_sha=sha('ready-'+inputs['run_id'])
+    initial=dict(row_id=row,asset_id=asset,provider_sha256=provider_sha,state='processing',playback_ids=[],last_event_at=None,event_sha256=None)
+    accepted=dict(initial,state='ready',playback_ids=['twin-playback'],last_event_at='2026-05-06T00:00:02.000001Z',event_sha256=ready_sha)
+    jobs=[]
+    for index,role in enumerate(['promotion','media','create','ready','replay','older_created','older_errored'],1):
+        queue={'promotion':'rindle_promote','media':'rindle_media'}.get(role,'rindle_provider')
+        event={'ready':ready_sha,'replay':ready_sha,'older_created':sha('older-created-'+inputs['run_id']),
+               'older_errored':sha('older-error-'+inputs['run_id'])}.get(role)
+        jobs.append(dict(id=index,role=role,queue=queue,state='completed',attempt=1,event_sha256=event))
+    provider=dict(asset_id=asset,source_key=source,variant_key=variant,provider_row_id=row,provider_sha256=provider_sha,
+      snapshots=[initial]+[copy.deepcopy(accepted) for _ in range(4)],
+      pending=dict(paused=True,running=0,job_id=4,count=1,attempt=0,state='available'),
+      http_statuses=[202,202,202,202,202,400],jobs=jobs,
+      effects=[dict(state_changes=2,processed=0,ready_messages=0)]+
+              [dict(state_changes=3,processed=1,ready_messages=2) for _ in range(4)],
+      create_calls=1,input_path_sha256=sha('/twin-'+inputs['run_id']+'/'+variant),invalid_signatures=1,leaks=0,
+      sdk_version='3.2.2',sdk_origin='/twin/_build/prod/lib/mux/ebin/Elixir.Mux.Video.Assets.beam')
+    receipt=dict(schema_version=2,kind=old['kind'],independent_pilot_credit=False,inputs=copy.deepcopy(inputs),
+      case_id='provider-events',outcome='complete',reason='complete',stage='complete',dependency='none',
+      runtime=old['old_runtime'],isolation=old['isolation'],host_exited=True,provider=provider,
+      object_keys=sorted([source,variant]))
+    assert verify_receipt(inputs,receipt)
+    mutations=[(['provider','asset_id'],row),(['provider','provider_row_id'],asset),
+      (['provider','provider_sha256'],'b'*64),(['provider','source_key'],source+'extra'),
+      (['provider','variant_key'],source),(['provider','input_path_sha256'],'b'*64),
+      (['provider','sdk_version'],'3.2.1'),(['provider','sdk_origin'],'checkout/mux/ebin'),
+      (['provider','snapshots'],provider['snapshots'][:4]),(['provider','snapshots',0,'state'],'ready'),
+      (['provider','snapshots',0,'last_event_at'],'2026-05-06T00:00:01Z'),
+      (['provider','snapshots',1,'row_id'],asset),(['provider','snapshots',1,'asset_id'],row),
+      (['provider','snapshots',2,'provider_sha256'],'b'*64),(['provider','snapshots',2,'state'],'errored'),
+      (['provider','snapshots',3,'playback_ids'],[]),(['provider','snapshots',3,'event_sha256'],'b'*64),
+      (['provider','snapshots',4,'last_event_at'],'2026-05-06T00:00:01.999999Z'),
+      (['provider','pending','paused'],False),(['provider','pending','running'],1),
+      (['provider','pending','job_id'],5),(['provider','pending','count'],2),
+      (['provider','pending','attempt'],1),(['provider','pending','state'],'executing'),
+      (['provider','http_statuses'],[202]*6),(['provider','http_statuses',0],True),
+      (['provider','jobs'],jobs[:-1]),(['provider','jobs',4,'id'],4),
+      (['provider','jobs',5,'role'],'ready'),(['provider','jobs',2,'queue'],'rindle_media'),
+      (['provider','jobs',6,'state'],'available'),(['provider','jobs',6,'attempt'],2),
+      (['provider','jobs',0,'event_sha256'],ready_sha),(['provider','jobs',3,'event_sha256'],None),
+      (['provider','jobs',5,'event_sha256'],sha('older-error-'+inputs['run_id'])),
+      (['provider','effects'],provider['effects'][:4]),(['provider','effects',0,'processed'],1),
+      (['provider','effects',1,'state_changes'],4),(['provider','effects',2,'processed'],2),
+      (['provider','effects',3,'ready_messages'],4),(['provider','effects',4,'ready_messages'],True),
+      (['provider','create_calls'],2),(['provider','invalid_signatures'],0),(['provider','leaks'],1),
+      (['provider','leaks'],False),(['object_keys'],[source]),(['host_exited'],False)]
+    for path,value in mutations:
+        r=copy.deepcopy(receipt);target=r
+        for key in path[:-1]:target=target[key]
+        target[path[-1]]=value
+        try:verify_receipt(inputs,r)
+        except Refused:pass
+        else:raise AssertionError(path)
+    for path in [[],['provider'],['provider','pending'],['provider','snapshots',0],
+                 ['provider','snapshots',4],['provider','jobs',0],['provider','effects',4]]:
+        original=receipt
+        for key in path:original=original[key]
+        for field in original:
+            r=copy.deepcopy(receipt);target=r
+            for key in path:target=target[key]
+            del target[field]
+            try:verify_receipt(inputs,r)
+            except Refused:pass
+            else:raise AssertionError(('missing',path,field))
+        for field in ['raw_body','signature','signed_url','provider_id','job_error','telemetry']:
+            r=copy.deepcopy(receipt);target=r
+            for key in path:target=target[key]
+            target[field]='SECRET_CANARY'
+            try:verify_receipt(inputs,r)
+            except Refused as error:assert 'SECRET_CANARY' not in str(error)
+            else:raise AssertionError(('secret',path,field))
+    wrong_inputs=copy.deepcopy(inputs);wrong_inputs['fixture_sha256']='b'*64
+    r=copy.deepcopy(receipt);r['inputs']=wrong_inputs
+    try:verify_receipt(wrong_inputs,r)
+    except Refused:pass
+    else:raise AssertionError('unbound source fixture')
+    """
+
+    assert {_, 0} = python(code)
+  end
 end

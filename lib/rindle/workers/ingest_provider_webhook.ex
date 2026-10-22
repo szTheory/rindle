@@ -68,6 +68,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   require Logger
 
   alias Phoenix.PubSub
+  import Ecto.Query
   alias Rindle.Domain.{MediaProviderAsset, ProviderAssetFSM}
 
   # attempt -> snooze seconds
@@ -105,41 +106,108 @@ defmodule Rindle.Workers.IngestProviderWebhook do
   def perform(%Oban.Job{args: args} = job) do
     repo = Rindle.Config.repo()
 
-    provider_asset_id = get_in(args, ["event", "provider_asset_id"])
-    event_type = args["event_type"]
+    result = repo.transaction(fn -> accept_locked_event(repo, args) end)
 
-    row =
-      case lookup_row(repo, provider_asset_id) do
-        nil when event_type == "video.upload.asset_created" -> lookup_passthrough_row(repo, args)
-        other -> other
-      end
-
-    case row do
-      nil ->
+    case result do
+      {:ok, :missing} ->
         handle_missing_row(job, args)
 
-      row ->
-        dispatch(repo, row, args)
+      {:ok, {:ignored, row, kind}} ->
+        emit(:ignored, args, %{
+          kind: kind,
+          from_state: row.state,
+          to_state: row.state,
+          profile: row.profile
+        })
+
+        :ok
+
+      {:ok, {:accepted, original, updated, event_type, transitioned, stage, kind}} ->
+        if transitioned, do: emit_state_change(original, updated)
+        if event_type, do: broadcast(updated, event_type)
+
+        emit(stage, args, %{
+          kind: kind,
+          from_state: original.state,
+          to_state: updated.state,
+          profile: updated.profile
+        })
+
+        :ok
+
+      {:ok, other} ->
+        other
+
+      {:error, reason} ->
+        emit(:exception, args, %{kind: :error})
+        {:error, reason}
     end
   rescue
     e ->
-      emit(:exception, args, %{kind: :error, error: Exception.message(e)})
+      emit(:exception, args, %{kind: :error, error: "provider_update_failed"})
       reraise e, __STACKTRACE__
+  end
+
+  defp accept_locked_event(repo, args) do
+    case event_row(repo, args) do
+      nil -> :missing
+      row -> accept_current_event(repo, row, args)
+    end
+  end
+
+  defp event_row(repo, args) do
+    case lookup_row(repo, get_in(args, ["event", "provider_asset_id"])) do
+      nil -> passthrough_event_row(repo, args)
+      row -> row
+    end
+  end
+
+  defp passthrough_event_row(repo, %{"event_type" => "video.upload.asset_created"} = args),
+    do: lookup_passthrough_row(repo, args)
+
+  defp passthrough_event_row(_repo, _args), do: nil
+
+  defp accept_current_event(repo, row, args) do
+    cond do
+      is_binary(args["event_id"]) and args["event_id"] == row.last_event_id ->
+        {:ignored, row, :duplicate}
+
+      older_event?(row, args) ->
+        {:ignored, row, nil}
+
+      true ->
+        dispatch(repo, row, args)
+    end
   end
 
   defp lookup_row(_repo, nil), do: nil
 
   defp lookup_row(repo, provider_asset_id) when is_binary(provider_asset_id) do
-    repo.get_by(MediaProviderAsset, provider_asset_id: provider_asset_id)
+    repo.one(
+      from p in MediaProviderAsset,
+        where: p.provider_asset_id == ^provider_asset_id,
+        lock: "FOR UPDATE"
+    )
   end
 
   defp lookup_passthrough_row(repo, args) do
     case get_in(args, ["event", "raw", "data", "passthrough"]) do
       passthrough when is_binary(passthrough) ->
-        repo.get_by(MediaProviderAsset, provider_name: "mux", mux_passthrough: passthrough)
+        repo.one(
+          from p in MediaProviderAsset,
+            where: p.provider_name == "mux" and p.mux_passthrough == ^passthrough,
+            lock: "FOR UPDATE"
+        )
 
       _ ->
         nil
+    end
+  end
+
+  defp older_event?(row, args) do
+    case {row.last_event_at, parse_datetime(get_in(args, ["event", "occurred_at"]))} do
+      {%DateTime{} = known, %DateTime{} = incoming} -> DateTime.compare(incoming, known) == :lt
+      _ -> false
     end
   end
 
@@ -168,24 +236,16 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     {:cancel, :provider_asset_row_missing}
   end
 
-  # ============================================================
-  # Event dispatch remains explicit because each branch carries different lifecycle effects.
-  # ============================================================
-
+  # Each event keeps its existing FSM and payload semantics. The caller holds
+  # the row lock across freshness, validation, watermark and persistence.
   defp dispatch(repo, row, %{"event_type" => "video.asset.ready"} = args) do
     event = args["event"] || %{}
-    playback_ids = event["playback_ids"] || []
-    occurred_at = parse_datetime(event["occurred_at"])
-    raw = event["raw"] || %{}
 
-    # NB: `playback_ids` (PLURAL) is the only schema field; there is no
-    # singular `playback_id` column.
     attrs = %{
       state: "ready",
-      playback_ids: playback_ids,
-      last_event_at: occurred_at,
+      playback_ids: event["playback_ids"] || [],
       last_sync_error: nil,
-      raw_provider_metadata: Map.get(raw, "data") || %{}
+      raw_provider_metadata: get_in(event, ["raw", "data"]) || %{}
     }
 
     transition_and_broadcast(repo, row, attrs, "ready", :provider_asset_ready, args)
@@ -193,86 +253,37 @@ defmodule Rindle.Workers.IngestProviderWebhook do
 
   defp dispatch(repo, row, %{"event_type" => "video.asset.errored"} = args) do
     event = args["event"] || %{}
-    raw = event["raw"] || %{}
-    last_error = format_error(get_in(raw, ["data", "errors"]))
-    occurred_at = parse_datetime(event["occurred_at"])
 
     attrs = %{
       state: "errored",
-      last_event_at: occurred_at,
-      last_sync_error: last_error,
-      raw_provider_metadata: Map.get(raw, "data") || %{}
+      last_sync_error: format_error(get_in(event, ["raw", "data", "errors"])),
+      raw_provider_metadata: get_in(event, ["raw", "data"]) || %{}
     }
 
     transition_and_broadcast(repo, row, attrs, "errored", :provider_asset_errored, args)
   end
 
   defp dispatch(repo, row, %{"event_type" => "video.asset.deleted"} = args) do
-    event = args["event"] || %{}
-    occurred_at = parse_datetime(event["occurred_at"])
-
-    attrs = %{
-      state: "deleted",
-      last_event_at: occurred_at
-    }
-
-    transition_and_broadcast(repo, row, attrs, "deleted", :provider_asset_deleted, args)
+    transition_and_broadcast(
+      repo,
+      row,
+      %{state: "deleted"},
+      "deleted",
+      :provider_asset_deleted,
+      args
+    )
   end
 
   defp dispatch(repo, row, %{"event_type" => "video.asset.created"} = args) do
-    # FSM `:uploading -> :processing` (Mux says status: "preparing").
-    # NO broadcast — upload linkage is announced by `video.upload.asset_created`.
-    event = args["event"] || %{}
-    occurred_at = parse_datetime(event["occurred_at"])
-
-    attrs = %{
-      state: "processing",
-      last_event_at: occurred_at
-    }
-
-    case ProviderAssetFSM.transition(row.state, "processing", fsm_ctx(row)) do
-      :ok ->
-        case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
-          {:ok, _updated} ->
-            emit(:processed, args, %{
-              kind: nil,
-              from_state: row.state,
-              to_state: "processing"
-            })
-
-            :ok
-
-          {:error, _changeset} = err ->
-            emit(:exception, args, %{
-              kind: :error,
-              from_state: row.state,
-              to_state: "processing"
-            })
-
-            err
-        end
-
-      {:error, {:invalid_transition, from, to}} = fsm_err ->
-        emit(:exception, args, %{
-          kind: :invalid_transition,
-          from_state: from,
-          to_state: to
-        })
-
-        {:cancel, fsm_err}
-    end
+    transition_and_broadcast(repo, row, %{state: "processing"}, "processing", nil, args)
   end
 
   defp dispatch(repo, row, %{"event_type" => "video.upload.asset_created"} = args) do
     event = args["event"] || %{}
-    occurred_at = parse_datetime(event["occurred_at"])
-    raw = event["raw"] || %{}
-    provider_asset_id = event["provider_asset_id"]
 
     attrs = %{
-      provider_asset_id: provider_asset_id,
-      last_event_at: occurred_at,
-      raw_provider_metadata: Map.get(raw, "data") || %{}
+      provider_asset_id: event["provider_asset_id"],
+      raw_provider_metadata: get_in(event, ["raw", "data"]) || %{}
     }
 
     cond do
@@ -287,96 +298,70 @@ defmodule Rindle.Workers.IngestProviderWebhook do
         )
 
       row.state in ["processing", "ready"] ->
-        case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
-          {:ok, updated} ->
-            maybe_broadcast_linked(updated, row, provider_asset_id)
+        linked =
+          is_binary(event["provider_asset_id"]) and
+            row.provider_asset_id != event["provider_asset_id"]
 
-            emit(:processed, args, %{
-              kind: if(row.provider_asset_id == provider_asset_id, do: :duplicate, else: nil),
-              from_state: row.state,
-              to_state: row.state
-            })
-
-            :ok
-
-          {:error, _changeset} = err ->
-            err
-        end
+        event_type = if linked, do: :provider_asset_created
+        kind = if row.provider_asset_id == event["provider_asset_id"], do: :duplicate
+        persist_event(repo, row, attrs, args, event_type, false, :processed, kind)
 
       true ->
-        emit(:exception, args, %{
-          kind: :invalid_transition,
-          from_state: row.state,
-          to_state: "processing"
-        })
-
-        {:cancel, {:error, {:invalid_transition, row.state, "processing"}}}
+        reject_transition(row, "processing", args)
     end
   end
 
   defp dispatch(repo, row, args) do
-    # Unknown event types update last_event_at without an FSM transition or
-    # no broadcast.
-    event = args["event"] || %{}
-    occurred_at = parse_datetime(event["occurred_at"])
-
-    case row |> MediaProviderAsset.changeset(%{last_event_at: occurred_at}) |> repo.update() do
-      {:ok, _} ->
-        emit(:ignored, args, %{
-          kind: :unknown_event,
-          from_state: row.state,
-          to_state: row.state
-        })
-
-        :ok
-
-      {:error, _changeset} = err ->
-        err
-    end
+    persist_event(repo, row, %{}, args, nil, false, :ignored, :unknown_event)
   end
-
-  # ============================================================
-  # Shared transition + broadcast helper.
-  # ============================================================
 
   defp transition_and_broadcast(repo, row, attrs, target_state, event_type, args) do
-    case ProviderAssetFSM.transition(row.state, target_state, fsm_ctx(row)) do
-      :ok ->
-        case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
-          {:ok, updated} ->
-            broadcast(updated, event_type)
-
-            emit(:processed, args, %{
-              kind: nil,
-              from_state: row.state,
-              to_state: target_state
-            })
-
-            :ok
-
-          {:error, _changeset} = err ->
-            emit(:exception, args, %{
-              kind: :error,
-              from_state: row.state,
-              to_state: target_state
-            })
-
-            err
-        end
-
-      {:error, {:invalid_transition, from, to}} = fsm_err ->
-        emit(:exception, args, %{
-          kind: :invalid_transition,
-          from_state: from,
-          to_state: to
-        })
-
-        {:cancel, fsm_err}
+    case ProviderAssetFSM.transition(
+           row.state,
+           target_state,
+           Map.put(fsm_ctx(row), :emit?, false)
+         ) do
+      :ok -> persist_event(repo, row, attrs, args, event_type, true, :processed, nil)
+      {:error, _} -> reject_transition(row, target_state, args)
     end
   end
 
-  defp fsm_ctx(row) do
-    %{profile: row.profile, provider: :mux, asset_id: row.asset_id}
+  defp reject_transition(row, target_state, args) do
+    emit(:exception, args, %{
+      kind: :invalid_transition,
+      from_state: row.state,
+      to_state: target_state
+    })
+
+    {:cancel, {:error, {:invalid_transition, row.state, target_state}}}
+  end
+
+  defp persist_event(repo, row, attrs, args, event_type, transitioned, stage, kind) do
+    incoming = parse_datetime(get_in(args, ["event", "occurred_at"]))
+    # Equal and undated events follow serialized FSM order; a known watermark
+    # survives them. No timestamp/ID total order is invented.
+    watermark = incoming || row.last_event_at
+
+    attrs =
+      Map.merge(attrs, %{
+        last_event_at: watermark,
+        last_event_id: args["event_id"] || row.last_event_id
+      })
+
+    case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
+      {:ok, updated} -> {:accepted, row, updated, event_type, transitioned, stage, kind}
+      {:error, changeset} -> repo.rollback(changeset)
+    end
+  end
+
+  defp fsm_ctx(row), do: %{profile: row.profile, provider: :mux, asset_id: row.asset_id}
+
+  defp emit_state_change(original, updated) do
+    :telemetry.execute(
+      [:rindle, :provider_asset, :state_change],
+      %{system_time: System.system_time()},
+      Map.merge(fsm_ctx(updated), %{from: original.state, to: updated.state})
+    )
   end
 
   # ============================================================
@@ -404,14 +389,6 @@ defmodule Rindle.Workers.IngestProviderWebhook do
     :ok
   end
 
-  defp maybe_broadcast_linked(updated, original, provider_asset_id) do
-    if is_binary(provider_asset_id) and provider_asset_id != original.provider_asset_id do
-      broadcast(updated, :provider_asset_created)
-    else
-      :ok
-    end
-  end
-
   defp pubsub_server do
     Application.get_env(:rindle, :pubsub_server, Rindle.PubSub)
   end
@@ -428,7 +405,7 @@ defmodule Rindle.Workers.IngestProviderWebhook do
         provider: :mux,
         event_type: (args || %{})["event_type"],
         asset_id: MediaProviderAsset.redact_id(provider_asset_id),
-        profile: get_in(args || %{}, ["event", "raw", "data", "profile"])
+        profile: nil
       }
       |> Map.merge(extra)
 
@@ -455,7 +432,20 @@ defmodule Rindle.Workers.IngestProviderWebhook do
 
   defp parse_datetime(string) when is_binary(string) do
     case DateTime.from_iso8601(string) do
-      {:ok, dt, _} -> dt
+      {:ok, dt, _} ->
+        dt
+
+      _ ->
+        case Integer.parse(string) do
+          {seconds, ""} -> parse_datetime(seconds)
+          _ -> nil
+        end
+    end
+  end
+
+  defp parse_datetime(seconds) when is_integer(seconds) do
+    case DateTime.from_unix(seconds) do
+      {:ok, dt} -> dt
       _ -> nil
     end
   end

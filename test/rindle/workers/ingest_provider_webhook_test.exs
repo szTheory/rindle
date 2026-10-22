@@ -1,5 +1,5 @@
 defmodule Rindle.Workers.IngestProviderWebhookTest do
-  use Rindle.DataCase, async: true
+  use Rindle.DataCase, async: false
   use Oban.Testing, repo: Rindle.Repo
 
   alias Phoenix.PubSub
@@ -15,13 +15,36 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
       delivery: [signed_url_ttl_seconds: 900]
   end
 
+  defmodule LockedReadRepo do
+    defdelegate transaction(fun), to: Rindle.Repo
+    defdelegate update(changeset), to: Rindle.Repo
+    defdelegate rollback(reason), to: Rindle.Repo
+
+    def one(query) do
+      row = Rindle.Repo.one(query)
+
+      if parent = Process.get(:locked_read_observer) do
+        [[backend]] = Rindle.Repo.query!("SELECT pg_backend_pid()").rows
+        send(parent, {:row_locked, self(), backend})
+
+        receive do
+          :release_row -> :ok
+        after
+          5000 -> raise "lock barrier timed out"
+        end
+      end
+
+      row
+    end
+  end
+
   @worker_events [
     [:rindle, :provider, :webhook, :processed],
     [:rindle, :provider, :webhook, :ignored],
     [:rindle, :provider, :webhook, :exception]
   ]
 
-  setup do
+  setup ctx do
     handler_id = "ingest-provider-webhook-test-#{System.unique_integer([:positive])}"
     test_pid = self()
 
@@ -37,12 +60,26 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
     on_exit(fn -> :telemetry.detach(handler_id) end)
 
     asset_id = Ecto.UUID.generate()
+
+    if ctx[:sandbox] == false do
+      on_exit(fn ->
+        Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+          assert {1, nil} =
+                   Repo.delete_all(
+                     from a in MediaAsset,
+                       where: a.id == ^asset_id and a.profile == ^to_string(TestProfile)
+                   )
+
+          refute Repo.exists?(from a in MediaAsset, where: a.id == ^asset_id)
+        end)
+      end)
+    end
+
     storage_key = "media/#{asset_id}/source.mp4"
 
     {:ok, asset} =
-      %MediaAsset{}
+      %MediaAsset{id: asset_id}
       |> MediaAsset.changeset(%{
-        id: asset_id,
         state: "ready",
         storage_key: storage_key,
         profile: to_string(TestProfile),
@@ -122,6 +159,29 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
 
   defp last_telemetry(filter_event) do
     drain_telemetry(filter_event, []) |> List.last()
+  end
+
+  test "newer ready followed by older errored cannot regress accepted provider state", ctx do
+    row = insert_provider_row(ctx.asset, "processing")
+
+    ready =
+      event_args(row.provider_asset_id, "video.asset.ready", %{
+        "occurred_at" => "2026-05-06T00:00:02.000001Z",
+        "playback_ids" => ["accepted-playback"]
+      })
+
+    older =
+      event_args(row.provider_asset_id, "video.asset.errored", %{
+        "occurred_at" => "2026-05-06T00:00:01.999999Z"
+      })
+
+    assert :ok = perform_job(IngestProviderWebhook, ready)
+    assert :ok = perform_job(IngestProviderWebhook, older)
+    accepted = Repo.get!(MediaProviderAsset, row.id)
+    assert accepted.state == "ready"
+    assert accepted.playback_ids == ["accepted-playback"]
+    assert accepted.last_event_at == ~U[2026-05-06 00:00:02.000001Z]
+    assert accepted.last_event_id == ready["event_id"]
   end
 
   # ============================================================
@@ -538,5 +598,248 @@ defmodule Rindle.Workers.IngestProviderWebhookTest do
     assert String.starts_with?(metadata.asset_id, "...")
     refute metadata.asset_id =~ raw_id
     assert metadata.asset_id == "...ABCD"
+  end
+
+  test "accepted event replay is effect-free; older created is ignored and a newer error remains valid",
+       ctx do
+    row = insert_provider_row(ctx.asset, "processing")
+    PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{ctx.asset.id}")
+
+    ready =
+      event_args(row.provider_asset_id, "video.asset.ready", %{
+        "occurred_at" => "2026-05-06T00:00:02.000001Z",
+        "playback_ids" => ["pb"]
+      })
+
+    assert :ok = perform_job(IngestProviderWebhook, ready)
+    assert_receive {:rindle_event, :provider_asset_ready, _}
+    assert :ok = perform_job(IngestProviderWebhook, ready)
+
+    assert :ok =
+             perform_job(
+               IngestProviderWebhook,
+               event_args(row.provider_asset_id, "video.asset.created", %{
+                 "occurred_at" => "2026-05-06T00:00:01Z"
+               })
+             )
+
+    assert Repo.get!(MediaProviderAsset, row.id).state == "ready"
+    refute_receive {:rindle_event, _, _}, 20
+
+    newer =
+      event_args(row.provider_asset_id, "video.asset.errored", %{
+        "occurred_at" => "2026-05-06T00:00:02.000002Z"
+      })
+
+    assert :ok = perform_job(IngestProviderWebhook, newer)
+    assert_receive {:rindle_event, :provider_asset_errored, _}
+    updated = Repo.get!(MediaProviderAsset, row.id)
+    assert updated.state == "errored" and updated.last_event_id == newer["event_id"]
+    assert updated.last_event_at == ~U[2026-05-06 00:00:02.000002Z]
+  end
+
+  test "distinct equal and undated events follow the FSM without lowering a known watermark",
+       ctx do
+    row =
+      insert_provider_row(ctx.asset, "ready", %{last_event_at: ~U[2026-05-06 00:00:02.123456Z]})
+
+    equal =
+      event_args(row.provider_asset_id, "video.asset.errored", %{
+        "occurred_at" => "2026-05-06T00:00:02.123456Z"
+      })
+
+    assert :ok = perform_job(IngestProviderWebhook, equal)
+    missing = event_args(row.provider_asset_id, "video.asset.created", %{"occurred_at" => nil})
+    assert :ok = perform_job(IngestProviderWebhook, missing)
+
+    invalid =
+      event_args(row.provider_asset_id, "video.asset.ready", %{
+        "occurred_at" => "not-a-time",
+        "playback_ids" => ["pb"]
+      })
+
+    assert :ok = perform_job(IngestProviderWebhook, invalid)
+    updated = Repo.get!(MediaProviderAsset, row.id)
+    assert updated.state == "ready"
+    assert updated.last_event_at == ~U[2026-05-06 00:00:02.123456Z]
+    assert updated.last_event_id == invalid["event_id"]
+
+    seconds =
+      event_args(row.provider_asset_id, "video.asset.errored", %{"occurred_at" => "1778025603"})
+
+    assert :ok = perform_job(IngestProviderWebhook, seconds)
+
+    assert DateTime.compare(
+             Repo.get!(MediaProviderAsset, row.id).last_event_at,
+             DateTime.from_unix!(1_778_025_603)
+           ) == :eq
+  end
+
+  test "rejected changeset emits no successful FSM or PubSub effects", ctx do
+    row = insert_provider_row(ctx.asset, "processing")
+    parent = self()
+    handler = "rollback-#{Ecto.UUID.generate()}"
+
+    :ok =
+      :telemetry.attach(
+        handler,
+        [:rindle, :provider_asset, :state_change],
+        fn _, _, m, _ ->
+          if m.asset_id == ctx.asset.id, do: send(parent, {:successful_transition, m})
+        end,
+        nil
+      )
+
+    on_exit(fn -> :telemetry.detach(handler) end)
+    PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{ctx.asset.id}")
+
+    args =
+      event_args(row.provider_asset_id, "video.asset.errored", %{
+        "raw" => %{
+          "data" => %{
+            "errors" => %{"type" => "input_error", "messages" => [String.duplicate("x", 5000)]}
+          }
+        }
+      })
+
+    assert {:error, %Ecto.Changeset{}} = perform_job(IngestProviderWebhook, args)
+    assert Repo.get!(MediaProviderAsset, row.id).state == "processing"
+    assert Repo.get!(MediaProviderAsset, row.id).last_event_id == nil
+    refute_receive {:successful_transition, _}, 20
+    refute_receive {:rindle_event, _, _}, 20
+  end
+
+  @tag sandbox: false
+  test "independent concurrent handlers wait on the row and recheck the committed watermark",
+       ctx do
+    row = insert_provider_row(ctx.asset, "processing")
+
+    ready =
+      event_args(row.provider_asset_id, "video.asset.ready", %{
+        "occurred_at" => "2026-05-06T00:00:02.000001Z",
+        "playback_ids" => ["pb"]
+      })
+
+    older =
+      event_args(row.provider_asset_id, "video.asset.errored", %{
+        "occurred_at" => "2026-05-06T00:00:01.999999Z"
+      })
+
+    parent = self()
+
+    first =
+      committed_writer(fn ->
+        Rindle.Config.put_repo_override(LockedReadRepo)
+        Process.put(:locked_read_observer, parent)
+        IngestProviderWebhook.perform(%Oban.Job{args: ready, attempt: 1})
+      end)
+
+    assert_receive {:row_locked, holder, holder_backend}, 2000
+
+    second =
+      committed_writer(fn ->
+        [[backend]] = Repo.query!("SELECT pg_backend_pid()").rows
+        send(parent, {:waiting_backend, backend})
+        IngestProviderWebhook.perform(%Oban.Job{args: older, attempt: 1})
+      end)
+
+    assert_receive {:waiting_backend, waiting_backend}, 2000
+    assert holder_backend != waiting_backend
+    assert_blocked(holder_backend, waiting_backend, System.monotonic_time(:millisecond) + 2000)
+    send(holder, :release_row)
+    assert :ok = Task.await(first, 5000)
+    assert :ok = Task.await(second, 5000)
+    updated = Repo.get!(MediaProviderAsset, row.id)
+    assert updated.state == "ready" and updated.last_event_id == ready["event_id"]
+    assert updated.last_event_at == ~U[2026-05-06 00:00:02.000001Z]
+  end
+
+  @tag sandbox: false
+  test "success telemetry observes independently committed row state", ctx do
+    row = insert_provider_row(ctx.asset, "processing")
+
+    opts =
+      Keyword.take(Repo.config(), [:hostname, :port, :username, :password, :database, :socket_dir])
+
+    observer = start_supervised!({Postgrex, opts})
+    parent = self()
+    handler = "committed-effect-#{Ecto.UUID.generate()}"
+
+    :ok =
+      :telemetry.attach(
+        handler,
+        [:rindle, :provider_asset, :state_change],
+        fn _, _, meta, _ ->
+          if meta.asset_id == ctx.asset.id do
+            %{rows: [[state, event_id]]} =
+              Postgrex.query!(
+                observer,
+                "SELECT state,last_event_id FROM media_provider_assets WHERE id=$1",
+                [Ecto.UUID.dump!(row.id)]
+              )
+
+            send(parent, {:committed_effect, state, event_id})
+          end
+        end,
+        nil
+      )
+
+    on_exit(fn ->
+      :telemetry.detach(handler)
+    end)
+
+    args = event_args(row.provider_asset_id, "video.asset.ready", %{"playback_ids" => ["pb"]})
+    assert :ok = perform_job(IngestProviderWebhook, args)
+    assert_receive {:committed_effect, "ready", event_id}
+    assert event_id == args["event_id"]
+  end
+
+  test "raw provider data never becomes telemetry profile or PubSub data", ctx do
+    row = insert_provider_row(ctx.asset, "processing")
+    canary = "PROVIDER_BODY_SECRET_CANARY"
+    PubSub.subscribe(Rindle.PubSub, "rindle:asset:#{ctx.asset.id}")
+
+    args =
+      event_args(row.provider_asset_id, "video.asset.ready", %{
+        "playback_ids" => ["public-playback"],
+        "raw" => %{"data" => %{"profile" => canary, "credential" => canary}}
+      })
+
+    assert :ok = perform_job(IngestProviderWebhook, args)
+    assert_receive {:tele, [:rindle, :provider, :webhook, :processed], _, meta}
+    assert meta.profile == row.profile
+    refute inspect(meta) =~ canary
+    assert_receive {:rindle_event, :provider_asset_ready, payload}
+    refute inspect(payload) =~ canary
+    refute inspect(payload) =~ row.provider_asset_id
+  end
+
+  defp committed_writer(fun) do
+    task =
+      Task.async(fn ->
+        :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo, sandbox: false)
+
+        try do
+          fun.()
+        after
+          Ecto.Adapters.SQL.Sandbox.checkin(Repo)
+        end
+      end)
+
+    on_exit(fn -> if Process.alive?(task.pid), do: Process.exit(task.pid, :kill) end)
+    task
+  end
+
+  defp assert_blocked(holder, waiting, deadline) do
+    [[blocked]] =
+      Repo.query!("SELECT $1::integer = ANY(pg_blocking_pids($2::integer))", [holder, waiting]).rows
+
+    if not blocked do
+      assert System.monotonic_time(:millisecond) < deadline,
+             "independent handler never waited on the PostgreSQL row lock"
+
+      Process.sleep(10)
+      assert_blocked(holder, waiting, deadline)
+    end
   end
 end

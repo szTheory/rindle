@@ -80,6 +80,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     use Oban.Worker, queue: :rindle_provider, max_attempts: 5
 
     require Logger
+    import Ecto.Query
 
     alias Rindle.Domain.{MediaAsset, MediaProviderAsset, MediaVariant, ProviderAssetFSM}
     alias Rindle.Streaming.Provider.Mux, as: Adapter
@@ -298,6 +299,9 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # walks `errored → processing` (or by deleting the row). The reason
     # tuple carries `last_sync_error` so dashboards can surface why we
     # stopped.
+    defp maybe_skip_already_in_progress(nil, _profile, _args, _start_time),
+      do: {:error, :not_found}
+
     defp maybe_skip_already_in_progress(row, _profile, _args, _start_time) do
       case row.state do
         "pending" ->
@@ -315,18 +319,43 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     end
 
     defp transition_uploading(repo, row, profile, asset) do
-      # B4 fix: ProviderAssetFSM.transition/3 third arg is a MAP, not keyword list.
-      with :ok <-
-             ProviderAssetFSM.transition(row.state, "uploading", %{
-               profile: profile,
-               provider: :mux,
-               asset_id: asset.id
-             }),
-           {:ok, _} <-
-             row
-             |> MediaProviderAsset.changeset(%{state: "uploading"})
-             |> repo.update() do
-        :ok
+      result =
+        repo.transaction(fn ->
+          current =
+            repo.one(from p in MediaProviderAsset, where: p.id == ^row.id, lock: "FOR UPDATE")
+
+          case maybe_skip_already_in_progress(current, profile, %{}, nil) do
+            {:cont, current} ->
+              with :ok <-
+                     ProviderAssetFSM.transition(current.state, "uploading", %{
+                       profile: profile,
+                       provider: :mux,
+                       asset_id: asset.id,
+                       emit?: false
+                     }) do
+                case current
+                     |> MediaProviderAsset.changeset(%{state: "uploading"})
+                     |> repo.update() do
+                  {:ok, updated} -> {:transitioned, current, updated}
+                  {:error, reason} -> repo.rollback(reason)
+                end
+              end
+
+            halted ->
+              halted
+          end
+        end)
+
+      case result do
+        {:ok, {:transitioned, original, updated}} ->
+          emit_state_change(original, updated, profile)
+          :ok
+
+        {:ok, other} ->
+          other
+
+        {:error, reason} ->
+          {:error, reason}
       end
     end
 
@@ -358,35 +387,89 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
           {:cancel, {:stale_source, :recipe_changed}}
 
         true ->
+          link_provider_processing(repo, args, mux_response, profile_mod)
+      end
+    end
+
+    defp link_provider_processing(repo, args, response, profile) do
+      result =
+        repo.transaction(fn ->
           row =
-            repo.get_by!(MediaProviderAsset,
-              asset_id: args["asset_id"],
-              profile: args["profile"],
-              provider_name: "mux"
+            repo.one!(
+              from p in MediaProviderAsset,
+                where:
+                  p.asset_id == ^args["asset_id"] and p.profile == ^args["profile"] and
+                    p.provider_name == "mux",
+                lock: "FOR UPDATE"
             )
 
-          # B1 fix: write the PLURAL array verbatim.
-          attrs = %{
-            provider_asset_id: mux_response.provider_asset_id,
-            playback_ids: mux_response.playback_ids,
-            state: "processing",
-            raw_provider_metadata: %{}
-          }
+          link_current_provider(repo, row, response, profile)
+        end)
 
-          # B4 fix: third arg is a MAP.
-          with :ok <-
-                 ProviderAssetFSM.transition(row.state, "processing", %{
-                   profile: profile_mod,
-                   provider: :mux,
-                   asset_id: args["asset_id"]
-                 }),
-               {:ok, persisted} <-
-                 row
-                 |> MediaProviderAsset.changeset(attrs)
-                 |> repo.update() do
-            {:ok, persisted}
-          end
+      case result do
+        {:ok, {:preserved, row}} ->
+          {:ok, row}
+
+        {:ok, {:transitioned, original, updated}} ->
+          emit_state_change(original, updated, profile)
+          {:ok, updated}
+
+        {:ok, other} ->
+          other
+
+        {:error, reason} ->
+          {:error, reason}
       end
+    end
+
+    defp link_current_provider(repo, row, response, profile) do
+      cond do
+        row.provider_asset_id == response.provider_asset_id and
+            row.state in ["processing", "ready", "errored", "deleted"] ->
+          # A webhook advanced this same provider while create was in flight.
+          {:preserved, row}
+
+        row.state == "uploading" and row.provider_asset_id in [nil, response.provider_asset_id] ->
+          persist_linked_provider(repo, row, response, profile)
+
+        true ->
+          {:error, {:invalid_transition, row.state, "processing"}}
+      end
+    end
+
+    defp persist_linked_provider(repo, row, response, profile) do
+      attrs = %{
+        provider_asset_id: response.provider_asset_id,
+        playback_ids: response.playback_ids,
+        state: "processing"
+      }
+
+      with :ok <-
+             ProviderAssetFSM.transition(row.state, "processing", %{
+               profile: profile,
+               provider: :mux,
+               asset_id: row.asset_id,
+               emit?: false
+             }) do
+        case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
+          {:ok, updated} -> {:transitioned, row, updated}
+          {:error, reason} -> repo.rollback(reason)
+        end
+      end
+    end
+
+    defp emit_state_change(original, updated, profile) do
+      :telemetry.execute(
+        [:rindle, :provider_asset, :state_change],
+        %{system_time: System.system_time()},
+        %{
+          profile: profile,
+          provider: :mux,
+          asset_id: updated.asset_id,
+          from: original.state,
+          to: updated.state
+        }
+      )
     end
 
     # BL-01 compensating delete: best-effort idempotent cleanup of the Mux

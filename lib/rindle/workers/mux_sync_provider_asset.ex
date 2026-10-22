@@ -66,6 +66,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     use Oban.Worker, queue: :rindle_provider, max_attempts: 3
 
     alias Rindle.Domain.{MediaProviderAsset, ProviderAssetFSM}
+    import Ecto.Query
 
     @default_stuck_threshold_seconds 7200
 
@@ -114,123 +115,158 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
       DateTime.diff(DateTime.utc_now(), DateTime.from_naive!(ts, "Etc/UTC"), :millisecond)
     end
 
-    defp mark_stuck(repo, row) do
-      reason = "stuck in :#{row.state} past threshold"
-      profile_atom = String.to_existing_atom(row.profile)
+    defp mark_stuck(repo, snapshot) do
+      with_current_snapshot(repo, snapshot, fn row ->
+        change_state(
+          repo,
+          row,
+          "errored",
+          %{last_sync_error: "stuck in :#{row.state} past threshold"},
+          :stuck
+        )
+      end)
+    end
 
-      # B4 fix: third arg is a MAP, not a keyword list (provider_asset_fsm.ex:28).
-      with :ok <-
-             ProviderAssetFSM.transition(row.state, "errored", %{
-               profile: profile_atom,
-               provider: :mux,
-               asset_id: row.asset_id
-             }),
-           {:ok, updated} <-
-             row
-             |> MediaProviderAsset.changeset(%{state: "errored", last_sync_error: reason})
-             |> repo.update() do
-        emit_sync_event(:stuck, updated, profile_atom)
-        :ok
+    defp sync_with_provider(repo, snapshot) do
+      # Keep network I/O outside the lock. The response belongs to this exact
+      # snapshot, not whichever row happens to exist when the request finishes.
+      response = Rindle.Streaming.Provider.Mux.get_asset(snapshot.provider_asset_id)
+
+      with_current_snapshot(repo, snapshot, fn row ->
+        case response do
+          {:ok, %{state: live_state, playback_ids: pids, raw: _raw}} ->
+            apply_state_transition(repo, row, live_state, pids)
+
+          {:error, :not_found} ->
+            change_state(
+              repo,
+              row,
+              "errored",
+              %{last_sync_error: "mux asset not found"},
+              :resolved
+            )
+
+          {:error, reason} ->
+            case row
+                 |> MediaProviderAsset.changeset(%{
+                   last_sync_error: inspect(reason) |> String.slice(0, 4096)
+                 })
+                 |> repo.update() do
+              {:ok, _} -> {:remote_error, reason}
+              {:error, changeset} -> repo.rollback(changeset)
+            end
+        end
+      end)
+    end
+
+    defp apply_state_transition(repo, row, live_state, playback_ids) do
+      if live_state == row.state do
+        {:sync, :resolved, row, row, true}
+      else
+        if live_state in Map.get(ProviderAssetFSM.allowed_transitions(), row.state, []) do
+          change_state(repo, row, live_state, %{playback_ids: playback_ids}, :resolved)
+        else
+          change_state(
+            repo,
+            row,
+            "errored",
+            %{last_sync_error: "live state #{live_state} not reachable from #{row.state}"},
+            :resolved
+          )
+        end
       end
     end
 
-    # ============================================================
-    # Per-row sync against live Mux state
-    # ============================================================
+    defp change_state(repo, row, state, attrs, stage) do
+      context = %{
+        profile: String.to_existing_atom(row.profile),
+        provider: :mux,
+        asset_id: row.asset_id,
+        emit?: false
+      }
 
-    defp sync_with_provider(repo, row) do
-      adapter = Rindle.Streaming.Provider.Mux
+      with :ok <- ProviderAssetFSM.transition(row.state, state, context) do
+        case row
+             |> MediaProviderAsset.changeset(Map.put(attrs, :state, state))
+             |> repo.update() do
+          {:ok, updated} -> {:sync, stage, row, updated, false}
+          {:error, changeset} -> repo.rollback(changeset)
+        end
+      end
+    end
 
-      case adapter.get_asset(row.provider_asset_id) do
-        {:ok, %{state: live_state, playback_ids: pids, raw: _raw}} ->
-          apply_state_transition(repo, row, live_state, pids)
+    defp with_current_snapshot(repo, snapshot, fun) do
+      result =
+        repo.transaction(fn ->
+          current =
+            repo.one(
+              from p in MediaProviderAsset, where: p.id == ^snapshot.id, lock: "FOR UPDATE"
+            )
 
-        {:error, :not_found} ->
-          # Mux deleted the asset; transition to :errored.
-          profile_atom = String.to_existing_atom(row.profile)
+          if current && snapshot_identity(current) == snapshot_identity(snapshot),
+            do: fun.(current),
+            else: :stale
+        end)
 
-          reconcile_to_errored(repo, row, profile_atom, "mux asset not found")
+      case result do
+        {:ok, {:sync, stage, original, updated, no_change}} ->
+          profile = String.to_existing_atom(updated.profile)
+
+          if original.state != updated.state do
+            :telemetry.execute(
+              [:rindle, :provider_asset, :state_change],
+              %{system_time: System.system_time()},
+              %{
+                profile: profile,
+                provider: :mux,
+                asset_id: updated.asset_id,
+                from: original.state,
+                to: updated.state
+              }
+            )
+          end
+
+          emit_sync_event(stage, updated, profile, no_change: no_change)
+          :ok
+
+        {:ok, :stale} ->
+          :ok
+
+        {:ok, {:remote_error, reason}} ->
+          {:error, reason}
+
+        {:ok, other} ->
+          other
 
         {:error, reason} ->
-          error_str = inspect(reason) |> String.slice(0, 4096)
-
-          row
-          |> MediaProviderAsset.changeset(%{last_sync_error: error_str})
-          |> repo.update()
-
           {:error, reason}
       end
     end
 
-    defp reconcile_to_errored(repo, row, profile_atom, reason) do
-      with :ok <-
-             ProviderAssetFSM.transition(row.state, "errored", %{
-               profile: profile_atom,
-               provider: :mux,
-               asset_id: row.asset_id
-             }),
-           {:ok, updated} <-
-             row
-             |> MediaProviderAsset.changeset(%{
-               state: "errored",
-               last_sync_error: reason
-             })
-             |> repo.update() do
-        emit_sync_event(:resolved, updated, profile_atom)
-        :ok
-      end
-    end
-
-    # B1 fix: persist `playback_ids` (PLURAL ARRAY) — schema field is
-    # `field :playback_ids, {:array, :string}`. Write the list verbatim.
-    defp apply_state_transition(repo, row, live_state, playback_ids) do
-      profile_atom = String.to_existing_atom(row.profile)
-
-      if live_state == row.state do
-        # No transition needed; just emit :resolved with current state.
-        emit_sync_event(:resolved, row, profile_atom, no_change: true)
-        :ok
-      else
-        # Always persist the live PLURAL playback_ids list. The adapter
-        # contract (`get_asset/1`) guarantees `playback_ids` is a list
-        # (never nil) — `extract_playback_id_strings/1` returns [] on
-        # missing or malformed payloads.
-        attrs = %{
-          state: live_state,
-          playback_ids: playback_ids
-        }
-
-        case ProviderAssetFSM.transition(row.state, live_state, %{
-               profile: profile_atom,
-               provider: :mux,
-               asset_id: row.asset_id
-             }) do
-          :ok ->
-            case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
-              {:ok, updated} ->
-                emit_sync_event(:resolved, updated, profile_atom)
-                :ok
-
-              {:error, _} = err ->
-                err
-            end
-
-          {:error, {:invalid_transition, from, to}} ->
-            reconcile_to_errored(
-              repo,
-              row,
-              profile_atom,
-              "live state #{to} not reachable from #{from}"
-            )
-        end
-      end
+    defp snapshot_identity(row) do
+      # updated_at has second precision; an accepted webhook within that second
+      # is still a different snapshot, including when its timestamp is absent.
+      Map.take(row, [
+        :id,
+        :asset_id,
+        :profile,
+        :provider_name,
+        :provider_asset_id,
+        :updated_at,
+        :state,
+        :playback_ids,
+        :last_event_at,
+        :last_event_id,
+        :last_sync_error,
+        :raw_provider_metadata
+      ])
     end
 
     # ============================================================
     # Telemetry — security invariant 14 redaction at every emit.
     # ============================================================
 
-    defp emit_sync_event(stage, row, profile, opts \\ []) do
+    defp emit_sync_event(stage, row, profile, opts) do
       :telemetry.execute(
         [:rindle, :provider, :sync, stage],
         %{system_time: System.system_time()},
