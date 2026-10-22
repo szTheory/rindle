@@ -326,20 +326,7 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
 
           case maybe_skip_already_in_progress(current, profile, %{}, nil) do
             {:cont, current} ->
-              with :ok <-
-                     ProviderAssetFSM.transition(current.state, "uploading", %{
-                       profile: profile,
-                       provider: :mux,
-                       asset_id: asset.id,
-                       emit?: false
-                     }) do
-                case current
-                     |> MediaProviderAsset.changeset(%{state: "uploading"})
-                     |> repo.update() do
-                  {:ok, updated} -> {:transitioned, current, updated}
-                  {:error, reason} -> repo.rollback(reason)
-                end
-              end
+              persist_uploading(repo, current, profile, asset)
 
             halted ->
               halted
@@ -362,6 +349,21 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
     # B1 fix: persist `playback_ids` (PLURAL ARRAY), not singular `playback_id`.
     # The schema stores `playback_ids` as an array of strings.
     #
+    defp persist_uploading(repo, current, profile, asset) do
+      with :ok <-
+             ProviderAssetFSM.transition(current.state, "uploading", %{
+               profile: profile,
+               provider: :mux,
+               asset_id: asset.id,
+               emit?: false
+             }) do
+        case current |> MediaProviderAsset.changeset(%{state: "uploading"}) |> repo.update() do
+          {:ok, updated} -> {:transitioned, current, updated}
+          {:error, reason} -> repo.rollback(reason)
+        end
+      end
+    end
+
     # BL-01 fix: when the post-create freshness re-check rejects the promotion,
     # the Mux asset was already created (and is billed). We MUST best-effort
     # delete it before returning `{:cancel, _}` to avoid a billing/lifecycle

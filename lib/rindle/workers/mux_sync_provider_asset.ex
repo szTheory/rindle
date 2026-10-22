@@ -147,16 +147,18 @@ if Code.ensure_loaded?(Mux.Video.Assets) do
             )
 
           {:error, reason} ->
-            case row
-                 |> MediaProviderAsset.changeset(%{
-                   last_sync_error: inspect(reason) |> String.slice(0, 4096)
-                 })
-                 |> repo.update() do
-              {:ok, _} -> {:remote_error, reason}
-              {:error, changeset} -> repo.rollback(changeset)
-            end
+            persist_remote_error(repo, row, reason)
         end
       end)
+    end
+
+    defp persist_remote_error(repo, row, reason) do
+      attrs = %{last_sync_error: inspect(reason) |> String.slice(0, 4096)}
+
+      case row |> MediaProviderAsset.changeset(attrs) |> repo.update() do
+        {:ok, _} -> {:remote_error, reason}
+        {:error, changeset} -> repo.rollback(changeset)
+      end
     end
 
     defp apply_state_transition(repo, row, live_state, playback_ids) do
