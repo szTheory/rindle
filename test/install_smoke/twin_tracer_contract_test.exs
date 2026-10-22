@@ -31,6 +31,17 @@ defmodule Rindle.TwinTracerContractTest do
     refute Twin.Tracer.barrier?(%{queue | running: [42]}, job)
   end
 
+  test "promotion cut requires an available untouched job and a quiescent queue" do
+    queue = %{paused: true, running: []}
+    job = %{state: "available", attempt: 0}
+    assert Twin.Tracer.promotion_barrier?(queue, job)
+    refute Twin.Tracer.promotion_barrier?(queue, %{job | state: "executing"})
+    refute Twin.Tracer.promotion_barrier?(queue, %{job | state: "retryable", attempt: 1})
+    refute Twin.Tracer.promotion_barrier?(queue, %{job | attempt: 1})
+    refute Twin.Tracer.promotion_barrier?(%{queue | running: [42]}, job)
+    refute Twin.Tracer.promotion_barrier?(%{queue | paused: false}, job)
+  end
+
   test "duplicate stimulus cannot verify as one lifecycle" do
     code = """
     import sys

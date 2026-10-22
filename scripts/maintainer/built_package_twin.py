@@ -212,7 +212,7 @@ class Runner:
         value = json.loads(text)
         if value.get("outcome") == "incomplete":
             code = value.get("reason", "scenario_failed")
-            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av", "provider") for suffix in ("_match", "_failed")}
+            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av", "provider", "promotion") for suffix in ("_match", "_failed")}
             require(code in allowed, "host_reason_invalid")
             raise Refused("host_" + code)
         return value
@@ -485,6 +485,35 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         self.stop_host()
         return dict(provider=provider, object_keys=objects)
 
+    def promotion_restart(self, runtime, isolation):
+        started = time.monotonic()
+        before = self.rpc("promotion-begin", {})
+        request = {k: before[k] for k in ("session_id", "asset_id", "job_id")}
+        cut = self.rpc("promotion-cut", request)
+        require(cut == before, "promotion_cut_changed")
+        old_ids = self.compose("ps", "--quiet", "host").split()
+        require(len(old_ids) == 1, "host_identity_unknown")
+        old = old_ids[0]
+        self.compose("kill", "--signal", "SIGKILL", "host")
+        observed = json.loads(self.command(["docker", "inspect", old]))[0]["State"]
+        require(observed["Status"] == "exited" and observed["Running"] is False
+                and observed["ExitCode"] == 137, "promotion_old_alive")
+        self.progress("restart")
+        self.compose("up", "-d", "--force-recreate", "host")
+        new_runtime = self.health()
+        validate_runtime(new_runtime, self.inputs)
+        require(new_runtime["boot_id"] != runtime["boot_id"], "restart_runtime_reused")
+        require(self.runtime_isolation() == isolation, "restart_isolation")
+        result = self.rpc("promotion-finish", request)
+        objects = self.object_keys()
+        new = self.stop_host()
+        elapsed = int((time.monotonic() - started) * 1000)
+        require(elapsed < 180_000, "promotion_deadline")
+        restart = dict(before=before, cut=cut, **result, old_runtime=runtime, new_runtime=new_runtime,
+                       old_container=old, new_container=new, signal="SIGKILL", exit_code=137,
+                       old_exited=True, elapsed_ms=elapsed, deadline_ms=180_000)
+        return dict(restart=restart, object_keys=objects)
+
     def run_case(self, verify, cleanup):
         receipt = {"schema_version": 2, "kind": KIND, "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
@@ -516,6 +545,9 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                 payload = self.purge_absence()
             elif self.case == "provider-events":
                 payload = self.provider_events()
+            elif self.case == "promotion-restart":
+                payload = self.promotion_restart(runtime, isolation)
+                runtime = payload["restart"]["new_runtime"]
             elif self.case == "av-repair":
                 receipt["failure"] = self.av_failure()
                 before = receipt["failure"]["before"]

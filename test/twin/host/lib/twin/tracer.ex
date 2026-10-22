@@ -199,6 +199,114 @@ defmodule Twin.Tracer do
     end
   end
 
+  defp scenario("promotion-begin", %{}) do
+    Process.put(:twin_stage, "promotion")
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'promotion-upload','one-upload',1) ON CONFLICT DO NOTHING",
+        [run_id()]
+      )
+
+    :ok = Oban.pause_queue(queue: :rindle_promote)
+
+    wait(fn ->
+      q = Oban.check_queue(queue: :rindle_promote)
+      q.paused and q.running == []
+    end)
+
+    {:ok, session} = Rindle.initiate_upload(Twin.Profile, filename: "twin.png")
+    {:ok, %{presigned: signed}} = Rindle.Upload.Broker.sign_url(session.id)
+
+    png =
+      Base.decode64!(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7cRHQGAAAAAElFTkSuQmCC"
+      )
+
+    {:ok, {{_, status, _}, _, _}} =
+      :httpc.request(
+        :put,
+        {String.to_charlist(signed.url), [], ~c"image/png", png},
+        [timeout: 10_000],
+        []
+      )
+
+    true = status in 200..299
+    {:ok, %{asset: asset}} = Rindle.verify_completion(session.id)
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'promotion-completion',$2,1)",
+        [run_id(), session.id]
+      )
+
+    [job] = Repo.all(Oban.Job)
+    true = job.queue == "rindle_promote"
+    promotion_cut(session.id, asset.id, job.id)
+  end
+
+  defp scenario("promotion-cut", %{"session_id" => session, "asset_id" => asset, "job_id" => job}) do
+    Process.put(:twin_stage, "promotion")
+    promotion_cut(session, asset, job)
+  end
+
+  defp scenario("promotion-finish", %{
+         "session_id" => session_id,
+         "asset_id" => asset_id,
+         "job_id" => job_id
+       }) do
+    Process.put(:twin_stage, "promotion")
+    :ok = Oban.resume_queue(queue: :rindle_promote)
+
+    [variant] =
+      wait(fn ->
+        case Rindle.ready_variants_for(asset_id) do
+          [v] -> [v]
+          _ -> false
+        end
+      end)
+
+    for queue <- [:rindle_promote, :rindle_process] do
+      :ok = Oban.pause_queue(queue: queue)
+
+      wait(fn ->
+        q = Oban.check_queue(queue: queue)
+        q.paused and q.running == []
+      end)
+    end
+
+    asset = Repo.get!(MediaAsset, asset_id)
+    session = Repo.get!(Rindle.Domain.MediaUploadSession, session_id)
+    job = Repo.get!(Oban.Job, job_id)
+    %{state: "completed", attempt: 1, args: %{"asset_id" => ^asset_id}} = job
+    %{state: "ready"} = asset
+    %{state: "completed", asset_id: ^asset_id} = session
+    target = "/retained/promotion-source.png"
+    {:ok, ^target} = Rindle.download(Twin.Profile, asset.storage_key, target)
+    checksum = hash(File.read!(target))
+    File.rm!(target)
+    jobs = Repo.all(from j in Oban.Job, order_by: j.id)
+
+    %{
+      "after" => %{
+        "session_id" => session.id,
+        "asset_id" => asset.id,
+        "source_key" => asset.storage_key,
+        "job_id" => job.id,
+        "attempt" => job.attempt,
+        "state" => job.state,
+        "asset_state" => asset.state,
+        "session_state" => session.state,
+        "upload_stimuli" => promotion_count("promotion-upload"),
+        "completion_stimuli" => promotion_count("promotion-completion"),
+        "boot_id" => health()["boot_id"],
+        "checksum_sha256" => checksum,
+        "variant_key" => variant.storage_key
+      },
+      "jobs" => Enum.map(jobs, &Map.take(&1, [:id, :queue, :state, :attempt]))
+    }
+  end
+
   defp scenario("provider-begin", %{}) do
     Process.put(:twin_stage, "provider")
     provider_observers()
@@ -817,6 +925,44 @@ defmodule Twin.Tracer do
 
   defp scenario(_, _), do: %{"outcome" => "incomplete", "reason" => "operation_refused"}
 
+  defp promotion_count(operation) do
+    [[1]] =
+      Repo.query!("SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation=$2", [
+        run_id(),
+        operation
+      ]).rows
+
+    1
+  end
+
+  defp promotion_cut(session_id, asset_id, job_id) do
+    session = Repo.get!(Rindle.Domain.MediaUploadSession, session_id)
+    asset = Repo.get!(MediaAsset, asset_id)
+    job = Repo.get!(Oban.Job, job_id)
+    q = Oban.check_queue(queue: :rindle_promote)
+    true = promotion_barrier?(q, job)
+    %{state: "available", attempt: 0, args: %{"asset_id" => ^asset_id}} = job
+    %{state: "validating"} = asset
+    %{state: "completed", asset_id: ^asset_id} = session
+    true = Repo.aggregate(Oban.Job, :count) == 1
+
+    %{
+      "session_id" => session.id,
+      "asset_id" => asset.id,
+      "source_key" => asset.storage_key,
+      "job_id" => job.id,
+      "attempt" => job.attempt,
+      "state" => job.state,
+      "asset_state" => asset.state,
+      "session_state" => session.state,
+      "paused" => q.paused,
+      "running" => length(q.running),
+      "upload_stimuli" => promotion_count("promotion-upload"),
+      "completion_stimuli" => promotion_count("promotion-completion"),
+      "boot_id" => health()["boot_id"]
+    }
+  end
+
   defp pause_provider do
     :ok = Oban.pause_queue(queue: :rindle_provider)
 
@@ -848,6 +994,11 @@ defmodule Twin.Tracer do
       "ready_messages" => provider_count("provider-ready")
     }
   end
+
+  def promotion_barrier?(%{paused: true, running: []}, %{state: "available", attempt: 0}),
+    do: true
+
+  def promotion_barrier?(_, _), do: false
 
   def barrier?(%{paused: true, running: []}, %{state: "retryable", attempt: 1, errors: [_ | _]}),
     do: true
