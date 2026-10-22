@@ -6,7 +6,7 @@ defmodule Rindle.TwinPackageBoundaryTest do
     import sys, io, tarfile, tempfile
     from pathlib import Path
     sys.path.insert(0, 'scripts/maintainer')
-    from built_package_twin import extract_tar, validate_package_files, validate_host_dependency, Refused, LIMIT
+    from built_package_twin import extract_tar, validate_package_files, validate_host_dependency, validate_host_inputs, HOST_FILES, Refused, LIMIT
     import gzip
     def refused(f):
         try: f()
@@ -14,6 +14,14 @@ defmodule Rindle.TwinPackageBoundaryTest do
         raise AssertionError('contamination accepted')
     with tempfile.TemporaryDirectory() as d:
         refused(lambda:extract_tar(gzip.compress(b"x"*(16*LIMIT+1)),Path(d),compressed=True))
+    with tempfile.TemporaryDirectory() as d:
+        root=Path(d)
+        for name in HOST_FILES:
+            p=root/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('fixture')
+        validate_host_inputs(root)
+        for name in ['lib/untracked_secret.env','lib/Elixir.Rindle.beam']:
+            p=root/name;p.write_text('foreign')
+            refused(lambda:validate_host_inputs(root));p.unlink()
     for name,kind in [('../escape',tarfile.REGTYPE),('/absolute',tarfile.REGTYPE),('link',tarfile.SYMTYPE),('device',tarfile.CHRTYPE)]:
         b=io.BytesIO()
         with tarfile.open(fileobj=b,mode='w') as t:
@@ -37,11 +45,14 @@ defmodule Rindle.TwinPackageBoundaryTest do
     code = """
     import sys,copy
     sys.path.insert(0, 'scripts/maintainer')
-    from built_package_twin import validate_mounts, validate_runtime, Refused
+    from built_package_twin import validate_mounts, validate_runtime, validate_build_args, Refused
     def refused(f):
         try:f()
         except Refused:return
         raise AssertionError('invalid capability accepted')
+    validate_build_args({'TWIN_BUILD_RUN':'run-a'},'run-a')
+    for args in [{},{'TWIN_BUILD_RUN':'foreign'},{'TWIN_BUILD_RUN':'run-a','MIX_BUILD_PATH':'/foreign'}]:
+        refused(lambda:validate_build_args(args,'run-a'))
     good=[{'type':'volume','source':'retained','target':'/retained'}]
     validate_mounts(good)
     for target in ['/checkout','/home/user','/var/run/docker.sock']:

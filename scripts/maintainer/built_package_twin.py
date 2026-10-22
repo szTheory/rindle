@@ -93,6 +93,18 @@ def validate_package_files(root):
     require((Path(root) / "mix.exs").is_file(), "package_project_missing")
 
 
+HOST_FILES = {"mix.exs", "mix.lock", "config/config.exs", "config/runtime.exs",
+              "lib/twin/application.ex", "lib/twin/repo.ex", "lib/twin/web.ex",
+              "lib/twin/storage.ex", "lib/twin/tracer.ex",
+              "priv/repo/migrations/20261021000000_install_twin.exs"}
+
+
+def validate_host_inputs(host):
+    validate_package_files(host)
+    actual = {p.relative_to(host).as_posix() for p in Path(host).rglob("*") if p.is_file()}
+    require(actual == HOST_FILES, "host_input_set")
+
+
 def validate_host_dependency(source):
     require(len(re.findall(r"\{:rindle\s*,", source)) == 1 and
             re.search(r'\{:rindle,\s*path:\s*"\.\./package"\}', source), "host_dependency")
@@ -100,6 +112,10 @@ def validate_host_dependency(source):
 
 def validate_mounts(mounts):
     require(mounts == [{"type": "volume", "source": "retained", "target": "/retained"}], "unexpected_mount")
+
+
+def validate_build_args(args, run_id):
+    require(args == {"TWIN_BUILD_RUN": run_id}, "fresh_compile_identity")
 
 
 def validate_runtime(health, inputs):
@@ -153,7 +169,7 @@ class Runner:
         target = logs / ("command-%03d-%s.txt" % (self.sequence, uuid.uuid4().hex[:12]))
         # Exclusive bounded private capture; raw output never reaches parent console.
         with open(target, "xb", opener=lambda p, f: os.open(p, f, 0o600)) as output:
-            proc = subprocess.Popen(argv, cwd=cwd or ROOT, env={**{k: v for k, v in os.environ.items() if k not in {"MIX_PATH", "MIX_EXS", "MIX_BUILD_PATH", "ERL_LIBS"}}, **TOOLCHAIN},
+            proc = subprocess.Popen(argv, cwd=cwd or ROOT, env={**{k: v for k, v in os.environ.items() if not k.startswith("TWIN_") and k not in {"MIX_PATH", "MIX_EXS", "MIX_BUILD_PATH", "ERL_LIBS"}}, **TOOLCHAIN},
                                     stdout=output, stderr=subprocess.STDOUT, start_new_session=True)
             deadline = time.monotonic() + timeout
             try:
@@ -212,6 +228,7 @@ class Runner:
         self.context.mkdir()
         (self.context / "host").mkdir()
         host = ROOT / "test/twin/host"
+        validate_host_inputs(host)
         for file in sorted(host.rglob("*")):
             require(not file.is_symlink(), "host_symlink")
             if file.is_file():
@@ -269,19 +286,24 @@ class Runner:
         validate_descriptor(self)
 
     def validate_stage(self):
+        validate_descriptor(self)
         require({p.name for p in self.context.iterdir()} == {"host", "package", "Dockerfile", "compose.yml"}, "stage_inputs")
         validate_archive(self.evidence / "package.tar", self.inputs)
         validate_package_files(self.context / "package")
+        validate_host_inputs(self.context / "host")
         require(tree_hash(self.context / "package") == self.inputs["package_tree_sha256"], "staged_package_changed")
         require(tree_hash(self.context / "host") == self.inputs["host_sha256"], "staged_host_changed")
         require(digest((self.context / "Dockerfile").read_bytes() + (self.context / "compose.yml").read_bytes()) == self.inputs["build_sha256"], "staged_build_changed")
         config = json.loads(self.compose("config", "--format", "json"))
         require(set(config["services"]) == {"host", "postgres", "minio"}, "compose_services")
         service = config["services"]["host"]
+        require(service["image"] == self.descriptor["image"], "compose_image_identity")
+        require(service["environment"]["TWIN_RUN_ID"] == self.inputs["run_id"] and service["environment"]["TWIN_DATABASE"] == self.descriptor["database"] and service["environment"]["TWIN_BUCKET"] == self.descriptor["bucket"], "compose_resource_identity")
         mounts = [{k: m[k] for k in ("type", "source", "target")} for m in service["volumes"]]
         validate_mounts(mounts)
         require(service["build"]["context"] == str(self.context) and service["build"]["dockerfile"] == "Dockerfile", "compose_context")
         require(not service["build"].get("additional_contexts"), "compose_extra_context")
+        validate_build_args(service["build"].get("args"), self.inputs["run_id"])
         for value in config["services"].values():
             require(not value.get("ports") and not value.get("privileged") and not value.get("pid") and not value.get("network_mode"), "compose_isolation")
             require(all(m["type"] == "volume" for m in value.get("volumes", [])), "compose_bind_mount")

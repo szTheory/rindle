@@ -23,7 +23,11 @@ services:
       timeout: 3s
       retries: 30
   host:
-    build: {context: ., dockerfile: Dockerfile}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TWIN_BUILD_RUN: ${TWIN_RUN_ID:?}
     image: ${TWIN_PROJECT:?}:local
     environment:
       TWIN_RUN_ID: ${TWIN_RUN_ID:?}

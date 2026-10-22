@@ -90,6 +90,9 @@ defmodule Rindle.TwinReceiptTest do
     capture=io.StringIO()
     with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(capture), contextlib.redirect_stderr(capture):
         runner=Runner(d)
+        import os
+        os.environ['TWIN_PROJECT']='FOREIGN_PROJECT_CANARY'
+        assert runner.command([sys.executable,'-c',"import os;print(os.environ.get('TWIN_PROJECT'))"]).strip()=='None'
         runner.command([sys.executable,'-c','print('+repr('|'.join(canaries))+')'])
         runner.progress('services')
     assert all(c not in capture.getvalue() for c in canaries)
