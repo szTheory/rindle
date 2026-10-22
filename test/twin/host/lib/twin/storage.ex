@@ -37,29 +37,32 @@ defmodule Twin.StorageFault do
         [run]
       ).rows
 
-    if expected == [[key]] do
-      # Conditional update commits before delegate I/O; a concurrent loser reads 1.
-      result =
-        Twin.Repo.query!(
-          "UPDATE twin_fault_counters SET claims = 1 WHERE run_id=$1 AND operation='delete' AND source_key=$2 AND claims=0 RETURNING claims",
-          [run, key]
-        )
+    case expected do
+      [[^key]] -> delete_selected(run, key, opts)
+      _ -> Rindle.Storage.S3.delete(key, opts)
+    end
+  end
 
-      case result.num_rows do
-        1 ->
-          {:error, :twin_source_delete_once}
+  defp delete_selected(run, key, opts) do
+    # Commit the atomic claim before delegating any network I/O.
+    result =
+      Twin.Repo.query!(
+        "UPDATE twin_fault_counters SET claims = 1 WHERE run_id=$1 AND operation='delete' AND source_key=$2 AND claims=0 RETURNING claims",
+        [run, key]
+      )
 
-        0 ->
-          case Twin.Repo.query!(
-                 "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='delete' AND source_key=$2",
-                 [run, key]
-               ).rows do
-            [[1]] -> Rindle.Storage.S3.delete(key, opts)
-            _ -> {:error, :twin_fixture_missing}
-          end
-      end
-    else
-      Rindle.Storage.S3.delete(key, opts)
+    if result.num_rows == 1,
+      do: {:error, :twin_source_delete_once},
+      else: delegate_claimed(run, key, opts)
+  end
+
+  defp delegate_claimed(run, key, opts) do
+    case Twin.Repo.query!(
+           "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='delete' AND source_key=$2",
+           [run, key]
+         ).rows do
+      [[1]] -> Rindle.Storage.S3.delete(key, opts)
+      _ -> {:error, :twin_fixture_missing}
     end
   end
 end

@@ -165,11 +165,12 @@ defmodule Rindle.MixProject do
         "guides/background_processing.md",
         "guides/operations.md",
         "guides/troubleshooting.md",
-        "guides/release_publish.md"
+        "guides/release_publish.md",
+        "guides/built_package_twin.md"
       ],
       groups_for_extras: [
-        Guides: ~r/guides\/(?!release_publish).*\.md$/,
-        Maintainer: ~r/guides\/release_publish\.md$/
+        Guides: ~r/guides\/(?!release_publish|built_package_twin).*\.md$/,
+        Maintainer: ~r/guides\/(?:release_publish|built_package_twin)\.md$/
       ],
       groups_for_modules: [
         Facade: [

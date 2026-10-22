@@ -1,5 +1,5 @@
 defmodule Rindle.TwinCliTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   @root Path.expand("../..", __DIR__)
   @script "scripts/maintainer/built_package_twin.py"
   test "single entrypoint documents explicit authorities and all four operations" do
