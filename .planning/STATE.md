@@ -29,7 +29,7 @@ The primary checkout retains separate historical work; preserve it.
 ## Current Position
 
 Phase 139 executes inline at the user's request. Do not dispatch executors for this run.
-Plans 00–03 are verified and committed; 4/8 plans complete across five waves.
+Plans 00–03 are verified and committed; 4/8 plans complete across six waves.
 Plan 04 is active: complete current inbox, private security, Hex and disposition evidence.
 
 Doctor's configured-host ledger correction passed 66 focused tests and the unchanged
