@@ -212,7 +212,7 @@ class Runner:
         value = json.loads(text)
         if value.get("outcome") == "incomplete":
             code = value.get("reason", "scenario_failed")
-            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av") for suffix in ("_match", "_failed")}
+            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av", "provider") for suffix in ("_match", "_failed")}
             require(code in allowed, "host_reason_invalid")
             raise Refused("host_" + code)
         return value
@@ -272,7 +272,7 @@ class Runner:
                        "lock_sha256": digest((self.context / "host/mix.lock").read_bytes()),
                        "config_sha256": tree_hash(self.context / "host/config"),
                        "contract_sha256": digest(b"".join((ROOT / "scripts/maintainer" / name).read_bytes() for name in ("built_package_twin.py", "twin_receipt.py", "twin_cleanup.py") if (ROOT / "scripts/maintainer" / name).exists())),
-                       "fixture_sha256": digest(__import__("base64").b64decode(AV_BASE64)) if self.case == "av-repair" else digest(__import__("base64").b64decode(re.search(r'Base.decode64!\(\s*"([A-Za-z0-9+/=]+)"', (self.context / "host/lib/twin/tracer.ex").read_text()).group(1))),
+                       "fixture_sha256": digest(__import__("base64").b64decode(AV_BASE64)) if self.case in {"av-repair", "provider-events"} else digest(__import__("base64").b64decode(re.search(r'Base.decode64!\(\s*"([A-Za-z0-9+/=]+)"', (self.context / "host/lib/twin/tracer.ex").read_text()).group(1))),
                        "build_sha256": digest((self.context / "Dockerfile").read_bytes() + (self.context / "compose.yml").read_bytes()),
                        "toolchain": {"elixir": "1.17.3", "otp": "27.3.4.15", "oban": "2.21.1", "phoenix": "1.8.12"}}
         write_json(self.evidence / "inputs.json", self.inputs)
@@ -458,6 +458,33 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
             time.sleep(1)
         raise Refused("av_deadline")
 
+    def provider_events(self):
+        self.compose("exec", "-T", "host", "sh", "-c",
+                     'umask 077; printf "%s" "$1" | base64 -d > /retained/av-input.mp4', "provider-fixture", AV_BASE64)
+        first = self.rpc("provider-begin", {})
+        snapshots, effects, statuses = [first["snapshot"]], [first["effects"]], []
+        ready = dict(label="ready", event_type="video.asset.ready", created_at="2026-05-06T00:00:02.000001Z", invalid=False)
+        for _ in range(2):
+            statuses.append(self.rpc("provider-deliver", ready)["status"])
+        pending = self.rpc("provider-pending", {})
+        for completed, event in enumerate([None, ready,
+                dict(label="older-created", event_type="video.asset.created", created_at="2026-05-06T00:00:01.999999Z", invalid=False),
+                dict(label="older-error", event_type="video.asset.errored", created_at="2026-05-06T00:00:01.999999Z", invalid=False)], 1):
+            if event:
+                statuses.append(self.rpc("provider-deliver", event)["status"])
+            observation = self.rpc("provider-advance", dict(completed=completed, ready=True))
+            snapshots.append(observation["snapshot"])
+            effects.append(observation["effects"])
+        statuses.append(self.rpc("provider-deliver", {**ready, "invalid": True})["status"])
+        provider = self.rpc("provider-finish", {})
+        provider.update(snapshots=snapshots, effects=effects, pending=pending, http_statuses=statuses)
+        self.export_canaries()
+        logs = self.compose("logs", "--no-color", "--tail", "200", "host")
+        require("MUX_PROVIDER_CANARY_" not in logs and "BODY_CANARY" not in logs, "provider_export_canary")
+        objects = self.object_keys()
+        self.stop_host()
+        return dict(provider=provider, object_keys=objects)
+
     def run_case(self, verify, cleanup):
         receipt = {"schema_version": 2, "kind": KIND, "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
@@ -487,6 +514,8 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                 payload = dict(clients=clients, result=result, object_keys=keys)
             elif self.case == "purge-absence":
                 payload = self.purge_absence()
+            elif self.case == "provider-events":
+                payload = self.provider_events()
             elif self.case == "av-repair":
                 receipt["failure"] = self.av_failure()
                 before = receipt["failure"]["before"]

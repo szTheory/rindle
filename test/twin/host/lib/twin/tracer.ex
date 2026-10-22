@@ -48,6 +48,321 @@ defmodule Twin.Tracer do
     {:reply, result, state}
   end
 
+  # The fixture is local HTTP, reached only by the shipped adapter/SDK. Its
+  # counters use a separate connection rather than calling this GenServer.
+  def fixture_create(conn) do
+    true =
+      Plug.Conn.get_req_header(conn, "authorization") ==
+        ["Basic " <> Base.encode64("twin-local-token:twin-local-secret")]
+
+    %{
+      "inputs" => [%{"url" => url}],
+      "playback_policies" => ["signed"],
+      "mp4_support" => "standard",
+      "max_resolution_tier" => "1080p"
+    } = conn.body_params
+
+    [variant] = Repo.all(Rindle.Domain.MediaVariant)
+    uri = URI.parse(url)
+    true = uri.host == "minio"
+    true = uri.path == "/" <> System.fetch_env!("TWIN_BUCKET") <> "/" <> variant.storage_key
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "UPDATE twin_fault_counters SET claims=claims+1,source_key=$2 WHERE run_id=$1 AND operation='provider-create'",
+        [run_id(), hash(uri.path)]
+      )
+
+    %{"data" => %{"id" => provider_id(), "status" => "preparing", "playback_ids" => []}}
+  end
+
+  def fixture_delete(conn, id) do
+    true = id == provider_id()
+
+    true =
+      Plug.Conn.get_req_header(conn, "authorization") ==
+        ["Basic " <> Base.encode64("twin-local-token:twin-local-secret")]
+
+    count_provider("provider-delete")
+    :ok
+  end
+
+  defp provider_id, do: "MUX_PROVIDER_CANARY_" <> run_id()
+  defp hash(nil), do: nil
+  defp hash(value), do: :crypto.hash(:sha256, value) |> Base.encode16(case: :lower)
+
+  defp count_provider(operation) do
+    %{num_rows: 1} =
+      Repo.query!(
+        "UPDATE twin_fault_counters SET claims=claims+1 WHERE run_id=$1 AND operation=$2",
+        [run_id(), operation]
+      )
+
+    :ok
+  end
+
+  defp provider_count(operation) do
+    [[count]] =
+      Repo.query!(
+        "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation=$2",
+        [run_id(), operation]
+      ).rows
+
+    count
+  end
+
+  defp provider_leak?(value) do
+    encoded = inspect(value, limit: :infinity, printable_limit: :infinity)
+
+    Enum.any?(
+      [provider_id(), System.fetch_env!("TWIN_SECRET"), "BODY_CANARY"],
+      &String.contains?(encoded, &1)
+    )
+  end
+
+  defp provider_observers do
+    for op <-
+          ~w(provider-create provider-delete provider-state provider-processed provider-ready provider-leak provider-invalid) do
+      %{num_rows: 1} =
+        Repo.query!(
+          "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,$2,'local-mux',0)",
+          [run_id(), op]
+        )
+    end
+
+    handler = {__MODULE__, run_id()}
+
+    events =
+      [[:rindle, :provider_asset, :state_change]] ++
+        Enum.map(
+          [:processed, :ignored, :exception, :verified, :rejected],
+          &[:rindle, :provider, :webhook, &1]
+        ) ++
+        Enum.map([:start, :stop, :exception], &[:rindle, :provider, :ingest, &1]) ++
+        Enum.map([:secret_used, :rejected], &[:rindle, :provider, :mux, :webhook_attempt, &1])
+
+    :ok =
+      :telemetry.attach_many(
+        handler,
+        events,
+        fn event, _measurements, meta, _config ->
+          if provider_leak?(meta), do: count_provider("provider-leak")
+
+          case event do
+            [:rindle, :provider_asset, :state_change] -> count_provider("provider-state")
+            [:rindle, :provider, :webhook, :processed] -> count_provider("provider-processed")
+            [:rindle, :provider, :webhook, :rejected] -> count_provider("provider-invalid")
+            _ -> :ok
+          end
+        end,
+        nil
+      )
+
+    :persistent_term.put({Twin, :provider_handler}, handler)
+  end
+
+  defp provider_messages(asset_id) do
+    parent = self()
+
+    observer =
+      spawn_link(fn ->
+        :ok = Phoenix.PubSub.subscribe(Rindle.PubSub, "rindle:provider_asset:" <> asset_id)
+        :ok = Phoenix.PubSub.subscribe(Rindle.PubSub, "rindle:asset:" <> asset_id)
+        send(parent, :provider_observer_ready)
+        provider_message_loop()
+      end)
+
+    receive do
+      :provider_observer_ready -> :persistent_term.put({Twin, :provider_observer}, observer)
+    after
+      5000 -> raise "observer_timeout"
+    end
+  end
+
+  defp provider_message_loop do
+    receive do
+      {:rindle_event, :provider_asset_ready, payload} ->
+        if provider_leak?(payload), do: count_provider("provider-leak")
+        count_provider("provider-ready")
+        provider_message_loop()
+
+      {:rindle_event, type, _}
+      when type in [:provider_asset_created, :provider_asset_errored, :provider_asset_deleted] ->
+        count_provider("provider-leak")
+        provider_message_loop()
+
+      {:rindle_event, _, _} ->
+        provider_message_loop()
+
+      {:stop, parent} ->
+        send(parent, :provider_observer_stopped)
+    end
+  end
+
+  defp scenario("provider-begin", %{}) do
+    Process.put(:twin_stage, "provider")
+    provider_observers()
+    :ok = Oban.pause_queue(queue: :rindle_promote)
+
+    wait(fn ->
+      q = Oban.check_queue(queue: :rindle_promote)
+      q.paused and q.running == []
+    end)
+
+    {:ok, session} = Rindle.initiate_upload(Twin.ProviderProfile, filename: "twin.mp4")
+    {:ok, %{presigned: signed}} = Rindle.Upload.Broker.sign_url(session.id)
+
+    {:ok, {{_, status, _}, _, _}} =
+      :httpc.request(
+        :put,
+        {String.to_charlist(signed.url), [], ~c"video/mp4", File.read!("/retained/av-input.mp4")},
+        [timeout: 10_000],
+        []
+      )
+
+    true = status in 200..299
+    {:ok, %{asset: asset}} = Rindle.verify_completion(session.id)
+    provider_messages(asset.id)
+    :ok = Oban.resume_queue(queue: :rindle_promote)
+
+    wait(fn ->
+      case Repo.all(Rindle.Domain.MediaProviderAsset) do
+        [%{state: "processing"}] -> true
+        _ -> false
+      end
+    end)
+
+    pause_provider()
+    %{"snapshot" => provider_snapshot(), "effects" => provider_effects()}
+  end
+
+  defp scenario("provider-deliver", %{
+         "label" => label,
+         "event_type" => type,
+         "created_at" => at,
+         "invalid" => invalid
+       }) do
+    Process.put(:twin_stage, "provider")
+    true = label in ["ready", "older-created", "older-error"]
+    true = type in ["video.asset.ready", "video.asset.created", "video.asset.errored"]
+
+    raw =
+      Jason.encode!(%{
+        "id" => label <> "-" <> run_id(),
+        "type" => type,
+        "created_at" => at,
+        "data" => %{
+          "id" => provider_id(),
+          "status" => if(type == "video.asset.ready", do: "ready", else: "errored"),
+          "playback_ids" => [%{"id" => "twin-playback"}],
+          "profile" => "BODY_CANARY"
+        }
+      })
+
+    timestamp = Integer.to_string(System.system_time(:second))
+
+    signature =
+      :crypto.mac(:hmac, :sha256, "twin-local-webhook-secret", timestamp <> "." <> raw)
+      |> Base.encode16(case: :lower)
+
+    signature = if invalid, do: String.duplicate("0", 64), else: signature
+
+    {:ok, {{_, status, _}, _, _}} =
+      :httpc.request(
+        :post,
+        {~c"http://localhost:4100/webhooks/mux",
+         [{~c"mux-signature", String.to_charlist("t=" <> timestamp <> ",v1=" <> signature)}],
+         ~c"application/json", raw},
+        [timeout: 10_000],
+        []
+      )
+
+    %{"status" => status}
+  end
+
+  defp scenario("provider-pending", %{}) do
+    Process.put(:twin_stage, "provider")
+    [job] = Repo.all(from j in Oban.Job, where: not is_nil(fragment("?->>'event_id'", j.args)))
+    q = Oban.check_queue(queue: :rindle_provider)
+
+    %{
+      "paused" => q.paused,
+      "running" => length(q.running),
+      "job_id" => job.id,
+      "count" => 1,
+      "attempt" => job.attempt,
+      "state" => job.state
+    }
+  end
+
+  defp scenario("provider-advance", %{"completed" => expected, "ready" => ready}) do
+    Process.put(:twin_stage, "provider")
+    :ok = Oban.resume_queue(queue: :rindle_provider)
+
+    wait(fn ->
+      Repo.aggregate(
+        from(j in Oban.Job,
+          where: not is_nil(fragment("?->>'event_id'", j.args)) and j.state == "completed"
+        ),
+        :count
+      ) == expected
+    end)
+
+    pause_provider()
+    if ready, do: wait(fn -> provider_count("provider-ready") == 2 end)
+    %{"snapshot" => provider_snapshot(), "effects" => provider_effects()}
+  end
+
+  defp scenario("provider-finish", %{}) do
+    Process.put(:twin_stage, "provider")
+    asset = Repo.one!(MediaAsset)
+    [variant] = Rindle.ready_variants_for(asset.id)
+    [row] = Repo.all(Rindle.Domain.MediaProviderAsset)
+    jobs = Repo.all(from j in Oban.Job, order_by: j.id)
+    [promotion, media, create | webhooks] = jobs
+
+    true =
+      promotion.queue == "rindle_promote" and media.queue == "rindle_media" and
+        create.queue == "rindle_provider"
+
+    true = Enum.all?(jobs, &(&1.state == "completed" and &1.attempt == 1))
+    true = length(webhooks) == 4
+    roles = ~w(promotion media create ready replay older_created older_errored)
+
+    projected =
+      Enum.zip_with(jobs, roles, fn j, role ->
+        %{
+          "id" => j.id,
+          "role" => role,
+          "queue" => j.queue,
+          "state" => j.state,
+          "attempt" => j.attempt,
+          "event_sha256" => hash(j.args["event_id"])
+        }
+      end)
+
+    [[path_hash]] =
+      Repo.query!(
+        "SELECT source_key FROM twin_fault_counters WHERE run_id=$1 AND operation='provider-create'",
+        [run_id()]
+      ).rows
+
+    %{
+      "asset_id" => asset.id,
+      "source_key" => asset.storage_key,
+      "variant_key" => variant.storage_key,
+      "provider_row_id" => row.id,
+      "provider_sha256" => hash(row.provider_asset_id),
+      "jobs" => projected,
+      "create_calls" => provider_count("provider-create"),
+      "input_path_sha256" => path_hash,
+      "invalid_signatures" => provider_count("provider-invalid"),
+      "leaks" => provider_count("provider-leak"),
+      "sdk_version" => to_string(Application.spec(:mux, :vsn)),
+      "sdk_origin" => to_string(:code.which(Mux.Video.Assets))
+    }
+  end
+
   defp scenario("tus-start", %{}) do
     Process.put(:twin_stage, "tus")
 
@@ -216,7 +531,7 @@ defmodule Twin.Tracer do
   defp scenario("av-repair", %{"job_id" => old_id, "asset_id" => asset_id}) do
     Process.put(:twin_stage, "av")
     old = Repo.get!(Oban.Job, old_id)
-    true = old.state == "discarded" and old.attempt == 5 and old.args["asset_id"] == asset_id
+    %{state: "discarded", attempt: 5, args: %{"asset_id" => ^asset_id}} = old
     [variant] = Repo.all(from v in Rindle.Domain.MediaVariant, where: v.asset_id == ^asset_id)
     true = variant.state == "failed"
 
@@ -228,8 +543,7 @@ defmodule Twin.Tracer do
 
     {:ok, report} = Rindle.requeue_variants(asset_id, variant_names: [:web_720p])
 
-    true =
-      report.selected == 1 and report.enqueued == 1 and report.skipped == 0 and report.errors == 0
+    %{selected: 1, enqueued: 1, skipped: 0, errors: 0} = report
 
     [new_job] = Repo.all(from j in Oban.Job, where: j.queue == "rindle_media" and j.id != ^old_id)
     true = new_job.args["asset_id"] == asset_id and new_job.args["variant_name"] == "web_720p"
@@ -246,7 +560,8 @@ defmodule Twin.Tracer do
       end)
 
     [ready] = Rindle.ready_variants_for(asset_id)
-    true = ready.id == variant.id and ready.name == "web_720p" and is_nil(ready.error_reason)
+    %{name: "web_720p", error_reason: nil} = ready
+    true = ready.id == variant.id
     asset = Repo.get!(MediaAsset, asset_id)
     true = asset.state == "ready"
     {:ok, _} = Rindle.download(Twin.AVProfile, asset.storage_key, "/retained/av-source-check.mp4")
@@ -502,6 +817,38 @@ defmodule Twin.Tracer do
 
   defp scenario(_, _), do: %{"outcome" => "incomplete", "reason" => "operation_refused"}
 
+  defp pause_provider do
+    :ok = Oban.pause_queue(queue: :rindle_provider)
+
+    wait(fn ->
+      q = Oban.check_queue(queue: :rindle_provider)
+      q.paused and q.running == []
+    end)
+  end
+
+  defp provider_snapshot do
+    [row] = Repo.all(Rindle.Domain.MediaProviderAsset)
+
+    %{
+      "row_id" => row.id,
+      "asset_id" => row.asset_id,
+      "provider_sha256" => hash(row.provider_asset_id),
+      "state" => row.state,
+      "playback_ids" => row.playback_ids,
+      "last_event_at" =>
+        if(row.last_event_at, do: DateTime.to_iso8601(row.last_event_at), else: nil),
+      "event_sha256" => hash(row.last_event_id)
+    }
+  end
+
+  defp provider_effects do
+    %{
+      "state_changes" => provider_count("provider-state"),
+      "processed" => provider_count("provider-processed"),
+      "ready_messages" => provider_count("provider-ready")
+    }
+  end
+
   def barrier?(%{paused: true, running: []}, %{state: "retryable", attempt: 1, errors: [_ | _]}),
     do: true
 
@@ -531,4 +878,20 @@ defmodule Twin.Tracer do
         poll(fun, deadline)
     end
   end
+end
+
+defmodule Twin.ProviderProfile do
+  use Rindle.Profile,
+    storage: Twin.StorageFault,
+    variants: [web_720p: [kind: :video, preset: :web_720p]],
+    allow_mime: ["video/mp4"],
+    max_bytes: 1_048_576,
+    delivery: [
+      streaming: [
+        provider: Rindle.Streaming.Provider.Mux,
+        playback_policy: :signed,
+        ingest_mode: :server_push,
+        source_variant: :web_720p
+      ]
+    ]
 end

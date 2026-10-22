@@ -17,7 +17,8 @@ defmodule Twin.MixProject do
       {:phoenix, "== 1.8.12"},
       {:bandit, "~> 1.0"},
       {:req, "~> 0.6"},
-      {:oban, "== 2.21.1"}
+      {:oban, "== 2.21.1"},
+      {:mux, "== 3.2.2"}
     ]
   end
 end
