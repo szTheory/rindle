@@ -1110,6 +1110,7 @@ defmodule Twin.Tracer do
     current_ids = Repo.all(from a in MediaAsset, order_by: a.id, select: a.id)
     true = audit_scope?(case_id, asset_ids, current_ids)
     audit_pause_queues()
+    audit_peer_owner()
     if case_id == "provider-events", do: audit_provider_cleanup(asset_ids)
 
     for id <- current_ids do
@@ -1228,6 +1229,17 @@ defmodule Twin.Tracer do
 
   defp audit_uuid?(id) when is_binary(id), do: Ecto.UUID.cast(id) == {:ok, id}
   defp audit_uuid?(_), do: false
+
+  defp audit_peer_owner do
+    config = Oban.config()
+    expected = [[inspect(config.name), config.node]]
+
+    # A killed host leaves its ordinary peer lease behind until election.
+    # Wait for normal takeover before shutdown; never delete the peer row here.
+    wait(fn ->
+      Repo.query!("SELECT name,node FROM public.oban_peers ORDER BY name").rows == expected
+    end)
+  end
 
   defp audit_pause_queues do
     for queue <- [
