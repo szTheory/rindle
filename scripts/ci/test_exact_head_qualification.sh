@@ -6,6 +6,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 - "$root" <<'PY'
 import gzip, importlib.util, io, json, os, pathlib, shutil, subprocess, sys, tarfile, tempfile, unittest
 from unittest.mock import patch
 root = pathlib.Path(sys.argv[1])
+sys.path.insert(0,str(root/'scripts/maintainer'))
 spec = importlib.util.spec_from_file_location('readiness', root/'scripts/maintainer/exact_head_readiness.py')
 r = importlib.util.module_from_spec(spec); spec.loader.exec_module(r)
 
@@ -88,6 +89,24 @@ class QualificationTest(unittest.TestCase):
         self.assertIn(b'supported fixture gate',(q.portable/receipt['command']['output']['path']).read_bytes())
         self.assertFalse(q.workspace.exists())
         self.assertEqual(self.git('status','--porcelain'),b'')
+    def test_disposal_has_hard_240_second_ceiling_even_with_collection_time_remaining(self):
+        q=self.controller('crash');original=q.cleanup;observed=[]
+        def bounded_cleanup():
+            observed.append(q.deadline-r.time.monotonic())
+            return original()
+        q.cleanup=bounded_cleanup;self.assertEqual(q.run(),1)
+        self.assertGreater(observed[0],235);self.assertLessEqual(observed[0],240)
+    def test_sigterm_stops_inner_owned_child_before_observed_disposal(self):
+        q=self.controller();children=[];real_popen=subprocess.Popen
+        def track(*args,**kwargs):
+            child=real_popen(*args,**kwargs);children.append(child);return child
+        payload='import os, signal, time; os.kill(os.getppid(), signal.SIGTERM); time.sleep(30)'
+        q.gate=lambda _id,_argv:q.checked([sys.executable,'-c',payload])
+        with patch('readiness_process.subprocess.Popen',side_effect=track):self.assertEqual(q.run(),1)
+        attempt=r.read_json(q.output/'attempt.json');self.assertEqual(attempt['reason'],'qualification_interrupted')
+        self.assertEqual(attempt['cleanup']['state'],'observed')
+        owned=[child for child in children if payload in child.args]
+        self.assertEqual(len(owned),1);self.assertIsNotNone(owned[0].poll())
     def test_changed_main_never_clones_or_runs(self):
         q=self.controller('main'); self.assertEqual(q.run(),1)
         self.assertEqual(r.read_json(q.output/'attempt.json')['reason'],'main_changed')

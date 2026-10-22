@@ -16,6 +16,8 @@ import sys
 import tempfile
 import time
 
+from readiness_process import popen_owned, stop_owned
+
 ROOT = Path(__file__).resolve().parents[2]
 POLICY_FILE = 'scripts/maintainer/validate_exact_head_readiness.exs'
 PREFLIGHT = '.planning/phases/139-exact-head-readiness-closure/139-preflight.sh'
@@ -265,21 +267,25 @@ class Qualification:
         raw_path = self.private / ('command-%04d.txt' % self.sequence)
         started, stamp = time.monotonic(), now()
         timed_out = False
-        with open(raw_path, 'xb', opener=lambda p, f: os.open(p, f, 0o600)) as raw:
-            child = subprocess.Popen(argv, cwd=cwd or self.workspace or self.root,
-                                     env=env or self.env, stdout=raw, stderr=subprocess.STDOUT,
-                                     start_new_session=True)
-            while child.poll() is None:
-                if time.monotonic() - started >= remaining or raw.tell() > OUTPUT_LIMIT:
-                    timed_out = True
-                    os.killpg(child.pid, signal.SIGTERM)
-                    try:
-                        child.wait(timeout=2)
-                    except subprocess.TimeoutExpired:
-                        os.killpg(child.pid, signal.SIGKILL)
-                        child.wait()
-                    break
-                time.sleep(0.025)
+        child = None
+        try:
+            with open(raw_path, 'xb', opener=lambda p, f: os.open(p, f, 0o600)) as raw:
+                child = popen_owned(argv, cwd=cwd or self.workspace or self.root,
+                                         env=env or self.env, stdout=raw, stderr=subprocess.STDOUT)
+                while child.poll() is None:
+                    if time.monotonic() - started >= remaining or raw.tell() > OUTPUT_LIMIT:
+                        timed_out = True
+                        os.killpg(child.pid, signal.SIGTERM)
+                        try:
+                            child.wait(timeout=2)
+                        except subprocess.TimeoutExpired:
+                            os.killpg(child.pid, signal.SIGKILL)
+                            child.wait()
+                        break
+                    time.sleep(0.025)
+        except BaseException:
+            stop_owned(child, 2)
+            raise
         require(raw_path.stat().st_size <= OUTPUT_LIMIT, 'command_output_limit')
         data = raw_path.read_bytes()
         output = self.portable / 'logs' / raw_path.name
@@ -606,6 +612,18 @@ class Qualification:
 
     def run(self):
         self.reserve()
+        handlers = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+        def interrupt(_sig, _frame):
+            raise NotReady('qualification_interrupted')
+        for sig in handlers:
+            signal.signal(sig, interrupt)
+        try:
+            return self.run_reserved()
+        finally:
+            for sig, handler in handlers.items():
+                signal.signal(sig, handler)
+
+    def run_reserved(self):
         reason = None
         try:
             require(self.remote_main() == self.subject, 'main_changed')
@@ -622,7 +640,7 @@ class Qualification:
             reason = str(exc) if isinstance(exc, NotReady) else 'qualification_unavailable'
         finally:
             # Collection expiry never consumes the separate bounded disposal budget.
-            self.deadline=max(self.deadline,time.monotonic()+240)
+            self.deadline=time.monotonic()+240
             try:
                 self.cleanup_result = self.cleanup()
             except Exception:
@@ -633,6 +651,7 @@ class Qualification:
             print('not_ready: ' + reason, file=sys.stderr)
             return 1
         try:
+            self.deadline=time.monotonic()+45
             require(self.remote_main() == self.subject, 'main_changed')
             return self.finalize()
         except (NotReady, OSError, ValueError, KeyError, TypeError) as exc:

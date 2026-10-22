@@ -91,6 +91,18 @@ IO.puts(Jason.encode!(%{base: base}))
     def test_main_changed_after_validator_cannot_publish_candidate(self):
         self.config['main_sequence']=[sha,sha,'b'*40];owner=self.reject('main_changed')
         self.assertFalse((owner.portable/'manifest.json').exists())
+    def test_changed_source_query_policy_cannot_reuse_equal_facts(self):
+        value=c.read_json(self.fixture/'data/runs-close.json');value['sources']['ci-main']['source']['query']='different query policy'
+        path=self.fixture/'data/changed-query.json';c.write_new(path,value);self.config['runs_after']='data/changed-query.json'
+        self.reject('mutable_source_changed')
+    def test_malformed_cleanup_attempt_is_a_nonpassing_terminal(self):
+        self.save();owner=c.Closure(repo,self.tmp/'cleanup-crash',fixture=self.fixture)
+        def broken_collect(_position):
+            owner.mode='execution';owner.local_output=owner.private/'local-qualification';owner.local_output.mkdir()
+            (owner.local_output/'attempt.json').write_text('not-json')
+            raise c.NotReady('local_qualification_failed')
+        with patch.object(owner,'collect',side_effect=broken_collect):self.assertEqual(owner.run(),1)
+        self.assertEqual(c.read_json(owner.output/'verdict.json')['reason'],'cleanup_failed')
     def test_one_valid_newer_ci_source_defeats_stale_candidate(self):
         self.mutate_source('runs','ci-main',lambda n:n.update(run_id=11,latest_run_id=11));self.reject('mutable_source_changed')
     def test_missing_mutable_source(self):
@@ -126,6 +138,13 @@ IO.puts(Jason.encode!(%{base: base}))
         path=self.fixture/'data/missing-scheduled.json';c.write_new(path,value);self.config['runs_before']='data/missing-scheduled.json'
         code,value,owner=self.close();self.assertEqual(code,1);self.assertEqual(value['reason'],'scheduled_run_missing')
         self.assertIn('scheduled Nightly',value['next_observation']);self.assertFalse((owner.portable/'manifest.json').exists())
+    def test_owned_child_has_unblocked_termination_signal(self):
+        child=c.popen_owned([sys.executable,'-c','import signal; print("blocked" if signal.SIGTERM in signal.pthread_sigmask(signal.SIG_BLOCK, []) else "unblocked",flush=True); signal.pause()'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        try:
+            self.assertEqual(child.stdout.readline().strip(),b'unblocked')
+            c.stop_owned(child,.2);self.assertEqual(child.returncode,-signal.SIGTERM)
+        finally:
+            if child.poll() is None:os.killpg(child.pid,signal.SIGKILL);child.wait()
     def test_real_collection_deadline_persists_not_ready(self):
         self.save();owner=c.Closure(repo,self.tmp/'deadline',fixture=self.fixture,deadline=.01)
         self.assertEqual(owner.run(),1);value=c.read_json(owner.output/'verdict.json')

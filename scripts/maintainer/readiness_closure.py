@@ -14,6 +14,7 @@ import time
 
 from exact_head_readiness import ROOT, POLICY_FILE, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new, atomic
 from readiness_github import GitHub, json_bytes
+from readiness_process import popen_owned, stop_owned
 
 MAX_OBJECT = 256_000_000
 MAX_GRAPH = 512_000_000
@@ -43,7 +44,7 @@ def semantic(packet):
     value=copy.deepcopy(packet['source']['normalized'])
     if 'sources' in value:
         for source in value['sources'].values():source.pop('observation_interval',None)
-    return value
+    return {'normalized':value,'query':packet['source'].get('query'),'policy':packet['source'].get('policy')}
 
 
 class Closure:
@@ -53,12 +54,12 @@ class Closure:
         self.deadline=time.monotonic()+deadline;self.sequence=0;self.subject=None;self.local_output=None
         self.run_id=secrets.token_hex(16);self.started=now();self.proposed=None;self.objects={};self.index=None
         self.env={**os.environ,**TOOLCHAIN_ENV,'ERL_FLAGS':'+S 4:4','PYTHONDONTWRITEBYTECODE':'1'}
-        self.main_index=0;self.stage='reserve'
+        self.main_index=0;self.stage='reserve';self.reserved=False
 
     def reserve(self):
         require(re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',self.repo),'repository_identity')
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
-        self.output.mkdir(mode=0o700,parents=True)
+        self.output.mkdir(mode=0o700,parents=True);self.reserved=True
         self.private=self.output/'restricted';self.portable=self.output/'portable'
         self.private.mkdir(mode=0o700);self.portable.mkdir(mode=0o700)
         initial={'schema_version':1,'verdict':'not_ready','reason':'collecting','repository':self.repo,
@@ -87,18 +88,16 @@ class Closure:
         require(end>time.monotonic(),'closure_deadline')
         with open(log,'xb',opener=lambda p,f:os.open(p,f,0o600)) as out:
             try:
-                child=subprocess.Popen(argv,cwd=cwd,env=env or self.env,stdout=out,stderr=subprocess.STDOUT,start_new_session=True)
+                child=popen_owned(argv,cwd=cwd,env=env or self.env,stdout=out,stderr=subprocess.STDOUT)
                 while child.poll() is None:
                     if time.monotonic()>=end or out.tell()>32*1024*1024:
-                        os.killpg(child.pid,signal.SIGTERM)
-                        try:child.wait(timeout=5)
-                        except subprocess.TimeoutExpired:os.killpg(child.pid,signal.SIGKILL);child.wait()
+                        stop_owned(child,270 if 'qualify' in argv else 5)
                         raise NotReady('closure_command_timeout')
                     time.sleep(.03)
                 require(out.tell()<=32*1024*1024,'closure_output_limit')
                 return child.returncode,log.read_bytes()
             except BaseException as exc:
-                if 'child' in locals() and child.poll() is None:os.killpg(child.pid,signal.SIGKILL);child.wait()
+                if 'child' in locals():stop_owned(child,270 if 'qualify' in argv else 5)
                 if isinstance(exc,OSError):raise NotReady('closure_command_unavailable') from exc
                 raise
 
@@ -171,7 +170,8 @@ class Closure:
 
     def verify_packet(self,packet,root,id):
         source=packet.get('source',{});normalized=source.get('normalized',{})
-        require(source.get('complete') is True and source.get('authenticated') is True and source.get('policy')==self.policy['policy'],'source_unavailable')
+        require(source.get('complete') is True and source.get('authenticated') is True and source.get('policy')==self.policy['policy'] and
+            type(source.get('pages')) is int and source['pages']>0 and isinstance(source.get('query'),str) and source['query'],'source_unavailable')
         require(normalized.get('repository')==self.repo and normalized.get('subject_sha')==self.subject,'source_subject')
         observations=source.get('observations');require(isinstance(observations,list) and len(observations)==2,'source_observations')
         require(observations[0]['path']!=observations[1]['path'],'source_observations')
@@ -192,8 +192,14 @@ class Closure:
             path=output/'portable/sources.json'
         value=read_json(path)
         require(value.get('repository')==self.repo and value.get('subject_sha')==self.subject and value.get('evidence_mode')==self.mode,'source_subject_or_mode')
+        if value.get('verdict')=='not_ready':raise NotReady(self.public_reason(value.get('reason')))
         expected={'ci-main','nightly-scheduled','protection'} if kind=='runs' else {'remote-inventory'}
         require(set(value.get('sources',{}))==expected,'source_registry_incomplete')
+        if kind=='runs' and self.mode=='execution':
+            timing=value.get('numeric_speed',{})
+            require(timing.get('state')=='deferred_unfinished' and timing.get('acceptance_credit') is False,'timing_deferral_drift')
+            history=refs(timing);require(len(history)==2,'timing_history_unavailable')
+            value['sources']['ci-main']['references']+=history
         for id,packet in value['sources'].items():self.verify_packet(packet,path.parent,id)
         return {id:(packet,path.parent) for id,packet in value['sources'].items()}
 
@@ -274,27 +280,35 @@ class Closure:
         return reference(self.output,path)
 
     def retry_cleanup(self):
-        if self.index or self.local_output is None:return {'state':'not_needed'}
+        if self.mode=='fixture' or self.local_output is None:return {'state':'not_needed'}
         path=self.local_output/'attempt.json'
         if not path.is_file():return {'state':'unavailable','reason':'qualification_attempt_missing'}
-        original=read_json(path)
-        if original.get('cleanup',{}).get('state')=='observed':return {'state':'observed'}
         try:
+            original_bytes=path.read_bytes();original=read_json(path)
+            if original.get('cleanup',{}).get('state')=='observed':return {'state':'observed'}
             code,_=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'cleanup','--output',str(self.local_output)],270,cleanup=True)
-            return {'state':'observed' if code==0 else 'failed','original_attempt_unchanged':path.read_bytes()==canonical(original)+b'\n'}
-        except (NotReady,OSError):return {'state':'failed'}
+            return {'state':'observed' if code==0 else 'failed','original_attempt_unchanged':path.read_bytes()==original_bytes}
+        except Exception as exc:
+            write_new(self.private/'cleanup-failure.json',{'exception_type':type(exc).__name__,'diagnostic':str(exc)})
+            return {'state':'failed'}
+
+    @staticmethod
+    def public_reason(reason):
+        return reason if isinstance(reason,str) and re.fullmatch(r'[a-z][a-z0-9_]{0,80}',reason) and reason not in ('ready','candidate_ready','current_ready') else 'upstream_not_ready'
 
     def run(self):
-        self.reserve();handlers={sig:signal.getsignal(sig) for sig in (signal.SIGINT,signal.SIGTERM)}
+        handlers={sig:signal.getsignal(sig) for sig in (signal.SIGINT,signal.SIGTERM)}
         def interrupt(_sig,_frame):raise NotReady('closure_interrupted')
-        for sig in handlers:signal.signal(sig,interrupt)
         result={'schema_version':1,'verdict':'not_ready','repository':self.repo,'subject_sha':None,'evidence_mode':self.mode,
-            'requirements_credit':False,'acceptance_scope':'candidate_only','run_id':self.run_id,'initial_attempt':reference(self.output,self.output/'initial-attempt.json')}
+            'requirements_credit':False,'acceptance_scope':'candidate_only','run_id':self.run_id}
         try:
+            self.reserve()
+            result['initial_attempt']=reference(self.output,self.output/'initial-attempt.json')
+            for sig in handlers:signal.signal(sig,interrupt)
             self.stage='metadata';self.metadata()
             self.stage='main';main=self.remote_main()
             if self.original:
-                original_bytes=self.original.read_bytes();manifest=read_json(self.original);self.subject=manifest.get('subject_sha')
+                manifest=read_json(self.original);original_bytes=self.original.read_bytes();self.subject=manifest.get('subject_sha')
                 require(manifest.get('repository')==self.repo and manifest.get('evidence_mode')==self.mode,'manifest_subject_or_mode')
                 require(main==self.subject,'main_changed');self.verify_root();self.copy_manifest_graph(self.original.parent,manifest)
                 write_new(self.portable/'manifest.json',original_bytes)
@@ -323,17 +337,20 @@ class Closure:
                 self.proposed=self.portable/'manifest.proposed.json';write_new(self.proposed,manifest)
                 validation=self.validate(self.proposed);final=self.portable/'manifest.json'
             require(self.remote_main()==self.subject,'main_changed');self.verify_root()
-            os.replace(self.proposed,final);self.proposed=None
             if self.original:
                 require(self.original.read_bytes()==original_bytes and (self.portable/'manifest.json').read_bytes()==original_bytes,'manifest_bytes_changed')
+                self.copy_manifest_graph(self.original.parent,manifest)
+            os.replace(self.proposed,final);self.proposed=None
             result.update(verdict='candidate_ready',reason='validated_refresh' if self.original else 'validated_candidate',validation=validation,
                 manifest=reference(self.output,self.portable/'manifest.json'),observation_interval=interval,
                 policy=self.policy['policy'],validator_sha256=self.tool_sha)
             if self.original:result['refresh_envelope']=reference(self.output,final)
             code=0
-        except (NotReady,OSError,ValueError,KeyError,TypeError,IndexError) as exc:
-            reason=str(exc) if isinstance(exc,NotReady) else 'closure_unavailable'
-            result.update(reason=reason,stage=self.stage,subject_sha=self.subject,cleanup=self.retry_cleanup())
+        except Exception as exc:
+            if not self.reserved:raise
+            reason=self.public_reason(str(exc)) if isinstance(exc,NotReady) else 'closure_unavailable'
+            write_new(self.private/'failure.json',{'exception_type':type(exc).__name__,'diagnostic':str(exc),'stage':self.stage})
+            result.update(reason=reason,failure_reason=reason,stage=self.stage,subject_sha=self.subject,cleanup=self.retry_cleanup())
             if self.proposed and self.proposed.is_file():self.proposed.unlink()
             if result['cleanup'].get('state')=='failed':result['reason']='cleanup_failed'
             result['repair_command']=['bash','scripts/maintainer/exact_head_readiness.sh','refresh' if self.original else 'close','--repo',self.repo,'--output','NEW_EXTERNAL_DIRECTORY']

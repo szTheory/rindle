@@ -25,7 +25,7 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/artifact_ledger.json scripts/maintainer/refactor_contract.sh
     scripts/maintainer/exact_head_readiness.py scripts/maintainer/qualify_generated_consumer.exs
     scripts/maintainer/readiness_workflow.exs scripts/maintainer/readiness_github.py
-    scripts/maintainer/collect_readiness_runs.py scripts/maintainer/collect_readiness_remote.py scripts/maintainer/readiness_closure.py
+    scripts/maintainer/collect_readiness_runs.py scripts/maintainer/collect_readiness_remote.py scripts/maintainer/readiness_closure.py scripts/maintainer/readiness_process.py
     .release-please-manifest.json
     scripts/maintainer/readiness_hex_audit.exs scripts/maintainer/validate_inbox_ledger.sh
     examples/adoption_demo/mix.lock
