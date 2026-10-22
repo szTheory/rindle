@@ -21,7 +21,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 from twin_cleanup import dispose, validate_descriptor
-from twin_receipt import SCENARIO, KIND, PNG, CASES, validate_tus_clients, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic, MAX_BYTES
+from twin_receipt import SCENARIO, KIND, PNG, AV_BASE64, CASES, validate_tus_clients, Refused, require, verify_receipt, barrier_ok, decode, safe_diagnostic, MAX_BYTES
 
 TOOLCHAIN = {"ASDF_ERLANG_VERSION": "27.3.4.15", "ASDF_ELIXIR_VERSION": "1.17.3-otp-27", "ASDF_NODEJS_VERSION": "20.18.1"}
 LIMIT = 4 * 1024 * 1024
@@ -212,7 +212,7 @@ class Runner:
         value = json.loads(text)
         if value.get("outcome") == "incomplete":
             code = value.get("reason", "scenario_failed")
-            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus") for suffix in ("_match", "_failed")}
+            allowed = {name + suffix for name in ("scenario", "stimulus", "upload_initiate", "upload_sign", "upload_put", "upload_verify", "variant_ready", "asset_read", "attach", "detach", "job_retry", "pause", "barrier", "tus", "av") for suffix in ("_match", "_failed")}
             require(code in allowed, "host_reason_invalid")
             raise Refused("host_" + code)
         return value
@@ -272,7 +272,7 @@ class Runner:
                        "lock_sha256": digest((self.context / "host/mix.lock").read_bytes()),
                        "config_sha256": tree_hash(self.context / "host/config"),
                        "contract_sha256": digest(b"".join((ROOT / "scripts/maintainer" / name).read_bytes() for name in ("built_package_twin.py", "twin_receipt.py", "twin_cleanup.py") if (ROOT / "scripts/maintainer" / name).exists())),
-                       "fixture_sha256": digest(__import__("base64").b64decode(re.search(r'Base.decode64!\(\s*"([A-Za-z0-9+/=]+)"', (self.context / "host/lib/twin/tracer.ex").read_text()).group(1))),
+                       "fixture_sha256": digest(__import__("base64").b64decode(AV_BASE64)) if self.case == "av-repair" else digest(__import__("base64").b64decode(re.search(r'Base.decode64!\(\s*"([A-Za-z0-9+/=]+)"', (self.context / "host/lib/twin/tracer.ex").read_text()).group(1))),
                        "build_sha256": digest((self.context / "Dockerfile").read_bytes() + (self.context / "compose.yml").read_bytes()),
                        "toolchain": {"elixir": "1.17.3", "otp": "27.3.4.15", "oban": "2.21.1", "phoenix": "1.8.12"}}
         write_json(self.evidence / "inputs.json", self.inputs)
@@ -434,6 +434,30 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
         require(not objects and all(v == int(k == "rindle_migration_versions") for k,v in inventory["domain"].items()), "purge_residue")
         return {"before": before, "absence": absence, "after": after, "inventory": inventory}
 
+    def av_failure(self):
+        self.compose("exec", "-T", "host", "sh", "-c",
+                     'umask 077; printf "%s" "$1" | base64 -d > /retained/av-input.mp4', "av-fixture", AV_BASE64)
+        self.compose("exec", "-T", "host", "ffmpeg", "-v", "error", "-xerror", "-i", "/retained/av-input.mp4", "-map", "0:v:0", "-map", "0:a:0", "-f", "null", "-")
+        started = time.monotonic()
+        before = self.rpc("av-begin", {})
+        trail = []
+        while time.monotonic() - started < 600:
+            status = self.rpc("av-status", {"job_id": before["job_id"], "asset_id": before["asset_id"]})
+            observation = {k: status[k] for k in ("job_id", "attempt", "state", "error_attempts", "fault_downloads")}
+            if not trail or trail[-1] != observation:
+                trail.append(observation)
+            if status["state"] == "discarded":
+                require(status["attempt"] == status["fault_downloads"] == 5 and sorted(status["error_attempts"]) == [1,2,3,4,5]
+                        and status["variant_state"] == "failed" and status["diagnostic"] == "failed_work"
+                        and status["processor_reason"] == "unsupported_codec", "av_failure_unproven")
+                elapsed = int((time.monotonic() - started) * 1000)
+                require(elapsed < 600_000, "av_deadline")
+                return {"before": before, "failed": status, "attempts": trail, "elapsed_ms": elapsed,
+                        "deadline_ms": 600_000, "remaining_ms": 600_000 - elapsed, "input_decoded": True}
+            require(status["state"] not in {"completed", "cancelled"} and status["attempt"] <= 5, "av_failure_unproven")
+            time.sleep(1)
+        raise Refused("av_deadline")
+
     def run_case(self, verify, cleanup):
         receipt = {"schema_version": 2, "kind": KIND, "independent_pilot_credit": False,
                    "outcome": "incomplete", "reason": "not_completed", "stage": "initialization", "dependency": "none"}
@@ -463,6 +487,9 @@ printf '{"pid":%s,"head_status":%s,"head_offset":%s,"head_cache":"%s","wrong_sta
                 payload = dict(clients=clients, result=result, object_keys=keys)
             elif self.case == "purge-absence":
                 payload = self.purge_absence()
+            elif self.case == "av-repair":
+                receipt["failure"] = self.av_failure()
+                raise Refused("repair_pending")
             else:
                 raise Refused("case_not_implemented")
             self.validate_stage()

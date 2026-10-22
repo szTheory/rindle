@@ -2,6 +2,12 @@ Code.require_file("../twin/host/lib/twin/repo.ex", __DIR__)
 Code.require_file("../twin/host/lib/twin/storage.ex", __DIR__)
 
 defmodule Rindle.TwinFaultTest.Request do
+  def request(%ExAws.S3.Download{} = operation, config) do
+    File.write!(operation.dest, "valid-downloaded-bytes")
+    send(config[:test_pid], {:downloaded, operation.path, operation.dest})
+    {:ok, :done}
+  end
+
   def request(operation, config) do
     send(config[:test_pid], {:delegated, operation.path, config[:sentinel]})
     {:ok, %{key: operation.path}}
@@ -138,6 +144,61 @@ defmodule Rindle.TwinFaultTest do
     """
 
     assert {_, 0} = System.cmd("python3", ["-B", "-c", code], cd: @root, stderr_to_stdout: true)
+  end
+
+  @tag :tmp_dir
+  test "AV fault delegates first, selects exact source and temp shape, counts concurrent faults and restores",
+       %{run_id: run, tmp_dir: dir} do
+    old_tmp = Application.get_env(:rindle, :tmp_dir)
+    Application.put_env(:rindle, :tmp_dir, dir)
+
+    on_exit(fn ->
+      if old_tmp,
+        do: Application.put_env(:rindle, :tmp_dir, old_tmp),
+        else: Application.delete_env(:rindle, :tmp_dir)
+    end)
+
+    Twin.Repo.query!(
+      "INSERT INTO twin_fault_counters VALUES ($1,'av-enabled','source.mp4',1),($1,'av-download','source.mp4',0)",
+      [run]
+    )
+
+    worker_path = fn -> Path.join([dir, "Rindle.tmp", Ecto.UUID.generate(), "source.mp4"]) end
+    opts = [bucket: "fixture", aws_config: [test_pid: self()]]
+    paths = for _ <- 1..2, do: worker_path.()
+
+    tasks =
+      for path <- paths,
+          do: Task.async(fn -> Twin.StorageFault.download("source.mp4", path, opts) end)
+
+    for {task, path} <- Enum.zip(tasks, paths) do
+      assert {:ok, ^path} = Task.await(task)
+      assert File.read!(path) == "twin-malformed-av-input"
+      assert_receive {:downloaded, "source.mp4", ^path}
+    end
+
+    assert %{rows: [[2]]} =
+             Twin.Repo.query!(
+               "SELECT claims FROM twin_fault_counters WHERE operation='av-download'"
+             )
+
+    for {key, path} <- [
+          {"other.mp4", worker_path.()},
+          {"source.mp4", Path.join(dir, "source.mp4")}
+        ] do
+      assert {:ok, ^path} = Twin.StorageFault.download(key, path, opts)
+      assert File.read!(path) == "valid-downloaded-bytes"
+    end
+
+    Twin.Repo.query!("UPDATE twin_fault_counters SET claims=0 WHERE operation='av-enabled'")
+    path = worker_path.()
+    assert {:ok, ^path} = Twin.StorageFault.download("source.mp4", path, opts)
+    assert File.read!(path) == "valid-downloaded-bytes"
+
+    assert %{rows: [[2]]} =
+             Twin.Repo.query!(
+               "SELECT claims FROM twin_fault_counters WHERE operation='av-download'"
+             )
   end
 
   defp allowed?(source) do

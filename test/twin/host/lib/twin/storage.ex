@@ -5,7 +5,32 @@ defmodule Twin.StorageFault do
   @impl true
   defdelegate store(key, source, opts), to: Rindle.Storage.S3
   @impl true
-  defdelegate download(key, destination, opts), to: Rindle.Storage.S3
+  def download(key, destination, opts) do
+    with {:ok, _} = result <- Rindle.Storage.S3.download(key, destination, opts) do
+      root = Path.join(Application.get_env(:rindle, :tmp_dir, System.tmp_dir!()), "Rindle.tmp")
+      parent = Path.dirname(destination)
+
+      selected_temp =
+        Path.dirname(parent) == root and Path.basename(destination) == "source.mp4" and
+          Regex.match?(
+            ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+            Path.basename(parent)
+          )
+
+      if selected_temp do
+        claim =
+          Twin.Repo.query!(
+            "UPDATE twin_fault_counters SET claims=claims+1 WHERE run_id=$1 AND operation='av-download' AND source_key=$2 AND EXISTS (SELECT 1 FROM twin_fault_counters WHERE run_id=$1 AND operation='av-enabled' AND source_key=$2 AND claims=1) RETURNING claims",
+            [System.fetch_env!("TWIN_RUN_ID"), key]
+          )
+
+        if claim.num_rows == 1, do: File.write!(destination, "twin-malformed-av-input")
+      end
+
+      result
+    end
+  end
+
   @impl true
   defdelegate url(key, opts), to: Rindle.Storage.S3
   @impl true
@@ -72,5 +97,13 @@ defmodule Twin.Profile do
     storage: Twin.StorageFault,
     variants: [thumb: [mode: :fit, width: 64, height: 64]],
     allow_mime: ["image/png"],
+    max_bytes: 1_048_576
+end
+
+defmodule Twin.AVProfile do
+  use Rindle.Profile,
+    storage: Twin.StorageFault,
+    variants: [web_720p: [kind: :video, preset: :web_720p]],
+    allow_mime: ["video/mp4"],
     max_bytes: 1_048_576
 end

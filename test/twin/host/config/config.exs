@@ -1,6 +1,10 @@
 import Config
 config :twin, ecto_repos: [Twin.Repo]
-config :rindle, repo: Twin.Repo, profiles: [Twin.Profile], tmp_dir: "/retained/tmp"
+
+config :rindle,
+  repo: Twin.Repo,
+  profiles: [Twin.Profile, Twin.AVProfile],
+  tmp_dir: "/retained/tmp"
 
 config :twin, Oban,
   repo: Twin.Repo,
@@ -23,3 +27,6 @@ config :phoenix, :json_library, Jason
 config :ex_aws, http_client: ExAws.Request.Req
 # No request logger, body logger, SQL parameter logger or raw telemetry exporter.
 config :logger, level: :emergency
+
+# Docker provides the disposable host boundary; its cgroup filesystem is read-only.
+config :rindle, Rindle.AV.Subprocess, use_cgroups: false

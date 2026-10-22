@@ -104,6 +104,115 @@ defmodule Twin.Tracer do
     }
   end
 
+  defp scenario("av-begin", %{}) do
+    Process.put(:twin_stage, "av")
+
+    %{num_rows: 1} =
+      Repo.query!(
+        "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'av-stimulus','one-upload',1) ON CONFLICT DO NOTHING",
+        [run_id()]
+      )
+
+    :ok = Oban.pause_queue(queue: :rindle_media)
+
+    wait(fn ->
+      q = Oban.check_queue(queue: :rindle_media)
+      q.paused and q.running == []
+    end)
+
+    {:ok, session} = Rindle.initiate_upload(Twin.AVProfile, filename: "twin.mp4")
+    {:ok, %{presigned: signed}} = Rindle.Upload.Broker.sign_url(session.id)
+
+    {:ok, {{_, status, _}, _, _}} =
+      :httpc.request(
+        :put,
+        {String.to_charlist(signed.url), [], ~c"video/mp4", File.read!("/retained/av-input.mp4")},
+        [timeout: 10_000],
+        []
+      )
+
+    true = status in 200..299
+    {:ok, %{asset: asset}} = Rindle.verify_completion(session.id)
+
+    job =
+      wait(fn ->
+        case Repo.all(from j in Oban.Job, where: j.queue == "rindle_media") do
+          [%{state: "available", attempt: 0} = j] -> j
+          [] -> false
+          _ -> raise "unexpected_job"
+        end
+      end)
+
+    [variant] = Repo.all(from v in Rindle.Domain.MediaVariant, where: v.asset_id == ^asset.id)
+    fresh = Repo.get!(MediaAsset, asset.id)
+    true = fresh.kind == "video" and fresh.has_video_track and fresh.has_audio_track
+    true = fresh.duration_ms > 0
+
+    %{num_rows: 2} =
+      Repo.query!(
+        "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'av-enabled',$2,1),($1,'av-download',$2,0)",
+        [run_id(), fresh.storage_key]
+      )
+
+    :ok = Oban.resume_queue(queue: :rindle_media)
+
+    %{
+      "asset_id" => asset.id,
+      "session_id" => session.id,
+      "source_key" => fresh.storage_key,
+      "job_id" => job.id,
+      "variant_id" => variant.id,
+      "variant_name" => variant.name,
+      "recipe_digest" => variant.recipe_digest,
+      "max_attempts" => job.max_attempts,
+      "source_video" => true,
+      "source_audio" => true,
+      "source_duration_ms" => fresh.duration_ms,
+      "upload_stimuli" => 1,
+      "boot_id" => health()["boot_id"]
+    }
+  end
+
+  defp scenario("av-status", %{"job_id" => id, "asset_id" => asset_id}) do
+    Process.put(:twin_stage, "av")
+    job = Repo.get!(Oban.Job, id)
+    true = job.args["asset_id"] == asset_id
+    [variant] = Repo.all(from v in Rindle.Domain.MediaVariant, where: v.asset_id == ^asset_id)
+
+    [[claims]] =
+      Repo.query!(
+        "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='av-download'",
+        [run_id()]
+      ).rows
+
+    diagnostic =
+      if job.state == "discarded" do
+        {:ok, report} = Rindle.runtime_status(profile: to_string(Twin.AVProfile))
+        [finding] = Enum.filter(report.variants.findings, &(&1.class == :failed_work))
+        true = finding.count == 1
+
+        true =
+          Enum.any?(finding.samples, &(&1.asset_id == asset_id and &1.variant_id == variant.id))
+
+        "failed_work"
+      else
+        "pending"
+      end
+
+    %{
+      "job_id" => job.id,
+      "attempt" => job.attempt,
+      "state" => job.state,
+      "error_attempts" => Enum.map(job.errors, & &1["attempt"]),
+      "variant_id" => variant.id,
+      "variant_state" => variant.state,
+      "diagnostic" => diagnostic,
+      "fault_downloads" => claims,
+      "processor_reason" =>
+        if(variant.error_reason == ":unsupported_codec", do: "unsupported_codec", else: "pending")
+    }
+  end
+
   defp scenario("begin", %{}) do
     Process.put(:twin_stage, "stimulus")
     # Exclusive durable stimulus claim. A second request cannot upload/detach again.
