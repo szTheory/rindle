@@ -23,6 +23,8 @@ class Fixture(r.Qualification):
             raise r.NotReady('dirty_checkout')
     def prepare(self):
         self.policy = {'commands': {'format': ['python3','-c','print("supported fixture gate")']}}
+    def gates(self):
+        return super().gates()
     def gate(self, id, argv):
         if self.fail == 'crash':
             raise OSError('fixture crash')
@@ -80,6 +82,13 @@ class QualificationTest(unittest.TestCase):
         with self.assertRaises(r.NotReady): q.run()
         q=self.controller(); q.run()
         with self.assertRaises(r.NotReady): self.controller().run()
+    def test_full_registry_cannot_be_satisfied_by_one_green_command(self):
+        q=self.controller(); q.run()
+        value=r.read_json(q.output/'attempt.json')
+        self.assertEqual(value.get('local_qualification'),'complete')
+        self.assertEqual(set(value['proofs']), set(q.policy['commands']))
+        self.assertEqual(len(value['proofs']),18)
+
     def test_real_subprocess_deadline_is_terminal(self):
         q=self.controller(); q.reserve()
         q.deadline=__import__('time').monotonic()+0.1
