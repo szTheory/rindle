@@ -1,16 +1,15 @@
 ---
 phase: "138"
 slug: "lifecycle-failure-and-recovery-matrix"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-21"
 ---
 
 # Phase 138 — Validation Strategy
 
-Planning contract only. All RECOV requirements remain pending until executable
-packaged-host observations and separate semantic verification pass.
+Validated against all six plan summaries, focused regressions, the complete real packaged-host matrix and a separate semantic verifier. Requirement closure remains owned by the phase-goal verifier.
 
 ## Test Infrastructure
 
@@ -20,7 +19,7 @@ packaged-host observations and separate semantic verification pass.
 | Config | `test/test_helper.exs`, `config/test.exs`, existing twin host |
 | Quick command | `mix test test/install_smoke/twin_*_test.exs --seed 0` |
 | Full regression | `mix ci` as defined by RUNNING.md |
-| Real acceptance | `python3 scripts/maintainer/built_package_twin.py run --verify --cleanup` with the planned full-matrix mode |
+| Real acceptance | `python3 scripts/maintainer/built_package_twin.py run --verify --cleanup` with the complete six-case mode |
 | Runtime | Measure during execution; fast focused feedback target under 30s excluding first compile; tiny AV case starts with a finite 600-second deadline for five ordinary attempts and records elapsed time/margin |
 
 Prefix Mix/runner commands with
@@ -42,16 +41,16 @@ for real matrix acceptance. No new framework or heavy CI lane is authorized.
 ## Per-Requirement Verification Map
 
 The plan map below names exact task IDs, waves, threats and focused test owners.
-All entries remain pending until execution evidence passes.
+All entries below have passing executable evidence.
 
 | Requirement | Fast behavior/negative controls | Real acceptance oracle | Status |
 |---|---|---|---|
-| RECOV-01 | Existing twin tracer/receipt contracts extended for recreated client, wrong offset and duplicate stimuli | Completed nonfinal PATCH; new client HEAD; same session; final checksum; ready asset and exact keys | pending |
-| RECOV-02 | Existing twin fault and purge tests; missing-object vs denied/unknown absence | Same durable purge job retryable attempt 1, independent source absence, ordinary attempt 2 completes | pending |
-| RECOV-03 | AV failure/discard vs repair and receipt controls | Real five-attempt FFmpeg failure, runtime_status, genuinely enqueued public repair, probe plus full decode | pending |
-| RECOV-04 | Named stale-error assertion first fails within 138-04 task 1; its final worker regression suite passes for strict older/replay, equal/missing/precision, concurrent handlers, polling fetch/commit, initial linkage, rollback and secret canaries | Actual Mux adapter/local HTTP fixture, signed ingress, ordinary provider queue, exact identities/effects | pending |
-| RECOV-05 | Restart cut/quiescence/identity and replay controls | Promotion paused, available attempt-zero job committed; SIGKILL and new runtime; same job completes | pending |
-| RECOV-06 | Existing cleanup/maintenance contracts plus per-resource inventory and foreign-resource controls | Real multipart part, genuine expiry, post-delete janitor interruption, same-resource reruns, complete pre-disposal audit | pending |
+| RECOV-01 | Existing twin tracer/receipt contracts extended for recreated client, wrong offset and duplicate stimuli | Completed nonfinal PATCH; new client HEAD; same session; final checksum; ready asset and exact keys | pass |
+| RECOV-02 | Existing twin fault and purge tests; missing-object vs denied/unknown absence | Same durable purge job retryable attempt 1, independent source absence, ordinary attempt 2 completes | pass |
+| RECOV-03 | AV failure/discard vs repair and receipt controls | Real five-attempt FFmpeg failure, runtime_status, genuinely enqueued public repair, probe plus full decode | pass |
+| RECOV-04 | Named stale-error assertion first fails within 138-04 task 1; its final worker regression suite passes for strict older/replay, equal/missing/precision, concurrent handlers, polling fetch/commit, initial linkage, rollback and secret canaries | Actual Mux adapter/local HTTP fixture, signed ingress, ordinary provider queue, exact identities/effects | pass |
+| RECOV-05 | Restart cut/quiescence/identity and replay controls | Promotion paused, available attempt-zero job committed; SIGKILL and new runtime; same job completes | pass |
+| RECOV-06 | Existing cleanup/maintenance contracts plus per-resource inventory and foreign-resource controls | Real multipart part, genuine expiry, post-delete janitor interruption, same-resource reruns, complete pre-disposal audit | pass |
 
 ## Plan, Wave and Threat Map
 
@@ -89,13 +88,32 @@ collectors. A human approval may authorize an external action; it supplies no ac
 
 ## Validation Sign-Off
 
-- [ ] Exact task/wave/threat map reconciled to final plans.
-- [ ] Every task has an automated command and observable `fails_when` signal.
-- [ ] No three consecutive tasks lack fast automated feedback.
-- [ ] New verification files have explicit creation ownership.
-- [ ] Full six-case run and separate retained-input verifier pass at current source.
-- [ ] All residue classes audited before disposal; repeated cleanup preserves foreign state.
-- [ ] Relevant RUNNING.md checks pass; measured timings retained without CI speed credit.
-- [ ] Nyquist audit determines `nyquist_compliant`; planning does not set it true.
+- [x] Exact task/wave/threat map reconciled to final plans.
+- [x] Every task has an automated command and observable `fails_when` signal.
+- [x] No three consecutive tasks lack fast automated feedback.
+- [x] New verification files have explicit creation ownership.
+- [x] Full six-case run and separate retained-input verifier pass at current source.
+- [x] All residue classes audited before disposal; repeated cleanup preserves foreign state.
+- [x] Relevant RUNNING.md checks pass; measured timings retained without CI speed credit.
+- [x] Nyquist audit determines `nyquist_compliant`; planning does not set it true.
 
-**Approval:** pending executable validation.
+**Approval:** verified 2026-10-22; zero coverage gaps and zero manual-only acceptance items.
+
+## Execution Evidence
+
+- Subject: c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc. All six PLAN task/verify blocks and SUMMARY evidence reconciled; 13/13 tasks have automated verification and observable failure signals.
+- Full package run: `/private/tmp/rindle-138-matrix-verified`; six exact case IDs, one archive, distinct run identities, six complete stopped-writer audits, frozen verdict and successful owned disposal.
+- Independent retained-input/archive verifier passed in a separate process; repeated root cleanup passed without changing acceptance.
+- Full local verdict time: 342727 ms, excluding disposal. This does not satisfy the deferred CI-speed target.
+- Final `mix ci`: exit 0; 3 doctests, 1748 tests, 0 failures, 87 excluded, 4 skipped; all required quality/generated-style sentinels. Log: `/private/tmp/rindle-138-mix-ci-final.txt`.
+- Fast focused suites and public surface, quality-policy, residue and CI-topology checks are documented in the six summaries; final CI includes their current versions.
+- No missing tests: existing twin fixture controls cover omission, swap, unknown inventory, sensitive output, foreign resources and active-runtime cleanup refusal. Real interruption, retries, SDK ingress and maintenance effects are additionally required by the package matrix; unit green alone grants no matrix credit.
+- The validated requirement map classifies RECOV-01..06 as COVERED, with no PARTIAL or MISSING entries. No Nyquist gap-generation agent is needed under the no-gaps branch of the workflow.
+
+## Validation Audit 2026-10-22
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
