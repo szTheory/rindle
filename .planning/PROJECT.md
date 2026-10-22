@@ -54,7 +54,9 @@ release or deferred CI-speed credit.
 
 **Phase 139 implementation progress (2026-10-22):** Plan 00 corrects public Doctor to inspect
 the host-owned migration ledger and reject unavailable inspection and invalid version markers.
-Focused regression and unchanged quality policies pass. Final exact-main readiness remains open.
+Focused regression and unchanged quality policies pass. Plans 01/02 implement the finite
+receipt validator and isolated eighteen-gate qualifier with observed owned cleanup; their
+fixture and upstream regression checks pass. Final exact-main readiness remains open.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not

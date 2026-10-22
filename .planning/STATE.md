@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
-stopped_at: Phase 139 Plans 00 and 01 verified; executing Plan 02 inline
-last_updated: "2026-10-22T17:28:54.691Z"
-state_head: 47945252d418c132ff49662ef4dffbc432ae4080
+stopped_at: Phase 139 Plans 00–02 verified; executing Plan 03 inline
+last_updated: "2026-10-22T19:55:48.921539+00:00"
+state_head: 90857a94164950646a30848b37e46fe9c28bdeda
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 233
-  completed_plans: 227
+  completed_plans: 228
 last_activity: 2026-10-22
 current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
-current_plan: 139-02
-last_activity_desc: "Doctor and evidence validator verified; Plan 02 isolated qualification active inline. All READY requirements remain pending."
+current_plan: 139-03
+last_activity_desc: "Three plans verified; Plan 03 CI/Nightly/protection collector active inline. All READY requirements remain pending."
 ---
 
 ## Project Reference
@@ -28,35 +28,29 @@ The primary checkout retains separate historical work; preserve it.
 
 ## Current Position
 
-Phase 138 is complete: six plans, thirteen tasks, 20/20 must-haves and RECOV-01..06
-verified automatically. Coverage has zero gaps, all 16 planned security threats are
-closed, independent standard-depth review found zero issues across 26 files, and
-the verification owner reports passed with a current covered-input fingerprint.
-Progress: 6/7 phases complete (86%); 225/225 currently planned plans complete.
-Phase 139 now has eight plans across five waves, reconciled to the delivered upstream
-contracts and independently checked with zero findings. Its execution preflight passes
-with current Phase 138 covered-input identity and separate retained-matrix verification;
-missing evidence and dirty upstream evidence are rejected. The plan includes Doctor's
-versioned-host migration-ledger correction and final readiness evidence. Numeric CI
-speed remains deferred unfinished to SEED-261021-918 with zero acceptance credit.
+Phase 139 executes inline at the user's request. Do not dispatch executors for this run.
+Plans 00, 01 and 02 are verified and committed; 3/8 plans complete across five waves.
+Plan 03 is active: full CI/scheduled Nightly attempts and effective protection.
 
-Current implementation evidence subject: c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc.
-Full six-case matrix: /private/tmp/rindle-138-matrix-verified. One fresh archive,
-six distinct runs, six complete pre-disposal audits, separate verifier and repeated
-owned cleanup passed. Local verdict runtime 342727 ms, excluding disposal.
-Final mix ci: 3 doctests, 1748 tests, zero failures, 87 excluded, 4 skipped.
-Prior-phase regression gate: 372 tests, zero failures, 17 excluded across 32 files.
-Later commits record planning/verification only. No Doctor, independent-adopter,
-readiness, release or deferred numeric CI-speed credit is granted by Phase 138.
+Doctor's configured-host ledger correction passed 66 focused tests and the unchanged
+quality policy. The offline validator passed 57 fixtures; the isolated qualifier passed
+23 fixtures plus 112 upstream tests and 31 residue-scanner tests. The real CLI refused
+unmerged subject `359e2946` with `not_ready/main_changed` before creating a clone.
+No full live closing qualification or READY acceptance has run. READY-01–05 remain open.
+
+Phase 138 remains the completed predecessor: six plans, 20/20 must-haves, RECOV-01..06,
+and retained matrix subject `c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc` at
+`/private/tmp/rindle-138-matrix-verified`. Its separate verifier passed at execution entry.
+This is historical prerequisite evidence, not current-main readiness.
 
 ## Next GSD Command
 
-Execution is active inline in this session. Plans 00 and 01 are complete; Plan 02 is active.
-Resume with `$gsd-execute-phase 139` in
-`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution` if interrupted.
-Two of eight plans are complete. Final READY acceptance requires actual post-merge
-exact-main qualification, complete CI and scheduled Nightly, refreshed remote sources
-and verified durable retained bytes. No READY requirement has been closed.
+Execution is active inline. If interrupted, resume `$gsd-execute-phase 139` now in
+`/Users/jon/projects/rindle/.claude/worktrees/phase136-execution`, starting Plan 03.
+Do not replay completed plans or consumed Phase 133 authorizations. Preserve the primary
+checkout's historical work. Plan 06 still owns CI fixture-runtime/preflight portability
+integration; Plan 07 requires all intended changes merged, current CI and a real scheduled
+Nightly, complete remote visibility, and verified durable retained bytes.
 
 ## Decisions and Verification Debt
 
@@ -91,5 +85,5 @@ and verified durable retained bytes. No READY requirement has been closed.
 ## Session
 
 Last session: 2026-10-22T15:44:53.867594+00:00
-Stopped at: Phase 139 prerequisites verified; eight checked plans ready to execute
+Stopped at: Phase 139 Plans 00–02 verified; Plan 03 active inline
 Resume file: None
