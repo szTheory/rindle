@@ -1,6 +1,16 @@
+unless Code.ensure_loaded?(Rindle.ReadinessWorkflow),
+  do: Code.require_file("readiness_workflow.exs", __DIR__)
+
 defmodule Rindle.ExactHeadReadiness do
   @moduledoc false
   @policy "rindle-exact-head-v1"
+  @workflow_helper_sha :crypto.hash(
+                         :sha256,
+                         File.read!(Path.join(__DIR__, "readiness_workflow.exs"))
+                       )
+                       |> Base.encode16(case: :lower)
+  @ci_guard "0fd9484418302825a2120a13d9c38d71e22f4621c40e0c0f7ed72d5074b1ba27"
+  @release_guard "324c0c57e801b1e09e304a89008c9dfd92699951a75ff1e82b6dfb636a45d322"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
   @inputs ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
@@ -9,6 +19,8 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/credo_complexity_baseline.json scripts/maintainer/phase136_evidence_contract.json
     scripts/maintainer/artifact_ledger.json scripts/maintainer/refactor_contract.sh
     scripts/maintainer/exact_head_readiness.py scripts/maintainer/qualify_generated_consumer.exs
+    scripts/maintainer/readiness_workflow.exs scripts/maintainer/readiness_github.py
+    scripts/maintainer/collect_readiness_runs.py
     scripts/ci/run_nightly_dialyzer.sh scripts/maintainer/verify_contributor_bootstrap.sh
     scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/built_package_twin.py
     scripts/maintainer/twin_receipt.py scripts/maintainer/twin_cleanup.py
@@ -174,6 +186,12 @@ defmodule Rindle.ExactHeadReadiness do
       "committed policy input inventory differs"
     )
 
+    ensure!(
+      m["input_identity"]["scripts/maintainer/readiness_workflow.exs"] == @workflow_helper_sha,
+      "tool_identity",
+      "topology evaluator differs"
+    )
+
     validate_refs!(m["input_files"], c)
 
     ensure!(
@@ -273,7 +291,7 @@ defmodule Rindle.ExactHeadReadiness do
     )
 
     validate_refs!(r["references"], c)
-    if id in @local, do: validate_command!(r, c), else: validate_source!(r, c)
+    if id in @local, do: validate_command!(r, c), else: validate_source!(r, c, m)
   end
 
   defp validate_command!(r, c) do
@@ -350,7 +368,7 @@ defmodule Rindle.ExactHeadReadiness do
 
   defp absolute_argument?(path), do: is_binary(path) and Path.type(path) == :absolute
 
-  defp validate_source!(r, c) do
+  defp validate_source!(r, c, m) do
     s = r["source"]
 
     ensure!(
@@ -412,16 +430,99 @@ defmodule Rindle.ExactHeadReadiness do
       )
     end)
 
+    if r["id"] == "nightly-scheduled" do
+      nref = n["incident_artifact"]
+
+      ensure!(
+        nref in r["references"] and nref["sha256"] == n["incident_artifact_sha256"],
+        "incident_identity",
+        "archive reference absent"
+      )
+
+      case :zip.extract(object!(nref, c), [:memory]) do
+        {:ok, [{~c"nightly-incident-verdict.json", bytes}]} ->
+          ensure!(decode!(bytes) == n["incident"], "incident_identity", "archive verdict differs")
+
+        _ ->
+          throw({:invalid, "incident_identity", "archive shape differs"})
+      end
+    end
+
     case r["id"] do
-      "ci-main" -> validate_run!(n, "CI", "push", "ci.yml")
-      "nightly-scheduled" -> validate_run!(n, "Nightly", "schedule", "nightly.yml")
-      "protection" -> validate_protection!(n)
-      "remote-inventory" -> validate_inventory!(n)
-      "adoption-parity" -> validate_adoption!(n["adoption"])
+      "ci-main" ->
+        validate_workflow_guards!(
+          object!(m["input_files"][".github/workflows/ci.yml"], c),
+          object!(m["input_files"][".github/workflows/release.yml"], c)
+        )
+
+        validate_run!(
+          n,
+          "CI",
+          "push",
+          "ci.yml",
+          object!(m["input_files"][".github/workflows/ci.yml"], c)
+        )
+
+      "nightly-scheduled" ->
+        validate_run!(
+          n,
+          "Nightly",
+          "schedule",
+          "nightly.yml",
+          object!(m["input_files"][".github/workflows/nightly.yml"], c)
+        )
+
+      "protection" ->
+        validate_protection!(n)
+
+      "remote-inventory" ->
+        validate_inventory!(n)
+
+      "adoption-parity" ->
+        validate_adoption!(n["adoption"])
     end
   end
 
-  defp validate_run!(r, name, event, workflow) do
+  defp validate_workflow_guards!(ci, release) do
+    ensure!(
+      Rindle.ReadinessWorkflow.guard_identity(ci) == @ci_guard and
+        sha256(release) == @release_guard,
+      "workflow_policy_drift",
+      "approved fork-safe CI or exact-SHA release behavior changed"
+    )
+  end
+
+  def validate_remote(id, normalized, inputs) do
+    validate_workflow_guards!(
+      inputs[".github/workflows/ci.yml"],
+      inputs[".github/workflows/release.yml"]
+    )
+
+    case id do
+      "ci-main" ->
+        validate_run!(normalized, "CI", "push", "ci.yml", inputs[".github/workflows/ci.yml"])
+
+      "nightly-scheduled" ->
+        validate_run!(
+          normalized,
+          "Nightly",
+          "schedule",
+          "nightly.yml",
+          inputs[".github/workflows/nightly.yml"]
+        )
+
+      "protection" ->
+        validate_protection!(normalized)
+    end
+
+    %{"ok" => true}
+  rescue
+    _ -> %{"ok" => false, "reason" => "malformed_remote_contract"}
+  catch
+    {:invalid, id, _detail} -> %{"ok" => false, "reason" => id}
+  end
+
+  defp validate_run!(r, name, event, workflow, yaml) do
     ensure!(
       r["workflow"] == workflow and r["name"] == name and r["event"] == event and
         r["branch"] == "main",
@@ -442,7 +543,25 @@ defmodule Rindle.ExactHeadReadiness do
       "latest complete attempt not successful"
     )
 
-    expected = r["expected_jobs"]
+    topology =
+      case Rindle.ReadinessWorkflow.derive(yaml, %{
+             "repository" => r["repository"],
+             "event" => event,
+             "branch" => "main"
+           }) do
+        {:ok, value} -> value
+        _ -> throw({:invalid, "unknown_topology", "committed topology unavailable"})
+      end
+
+    expected = Enum.map(topology["jobs"], & &1["name"])
+
+    ensure!(
+      topology["name"] == name and r["expected_jobs"] == expected and
+        r["topology_sha256"] == topology["workflow_sha256"],
+      "unknown_topology",
+      "unbound topology"
+    )
+
     jobs = r["jobs"]
 
     ensure!(
@@ -465,16 +584,79 @@ defmodule Rindle.ExactHeadReadiness do
 
     Enum.each(jobs, fn j ->
       ensure!(
-        positive?(j["id"]) and j["state"] == "completed" and j["conclusion"] == "success",
+        positive?(j["id"]) and j["state"] == "completed" and
+          j["conclusion"] ==
+            if(Enum.find(topology["jobs"], &(&1["name"] == j["name"]))["applicable"],
+              do: "success",
+              else: "skipped"
+            ),
         "job_outcome",
         "required job did not succeed"
       )
     end)
 
+    if event == "schedule", do: validate_incident!(r, topology)
+
     ensure!(
       sha?(r["topology_sha256"]) and r["topology_resolved"] === true,
       "unknown_topology",
       "committed topology not resolved"
+    )
+  end
+
+  defp validate_incident!(r, topology) do
+    incident = r["incident"]
+
+    ensure!(
+      is_map(incident) and incident["schema"] == "rindle-nightly-incident-verdict-v1" and
+        incident["repository"] == r["repository"] and incident["sha"] == r["subject_sha"] and
+        incident["workflow_name"] == "Nightly" and incident["event"] == "schedule" and
+        incident["ref"] == "refs/heads/main" and incident["run_id"] == r["run_id"] and
+        incident["run_attempt"] == r["attempt"],
+      "incident_identity",
+      "wrong scheduled verdict identity"
+    )
+
+    verdict = incident["verdict"]
+    ids = ~w(compat-matrix dialyzer gcs-soak package-consumer-gcs-live)
+
+    ensure!(
+      verdict["verdict"] == "green" and verdict["errors"] == [] and
+        Enum.sort(Enum.map(verdict["jobs"], & &1["name"])) == Enum.sort(ids),
+      "incident_policy",
+      "strict verdict inventory"
+    )
+
+    Enum.each(verdict["jobs"], fn j ->
+      optional = j["name"] in ~w(gcs-soak package-consumer-gcs-live)
+
+      allowed =
+        if j["applicable"] === true do
+          j["execution"] == "passed" and j["reason"] == "" and j["status"] == "passed" and
+            j["result"] == "success"
+        else
+          optional and j["applicable"] === false and j["execution"] == "not-run" and
+            j["reason"] == "required-secrets-unavailable" and j["status"] == "not-run" and
+            j["result"] == "success"
+        end
+
+      rule = if optional, do: "upstream-repository-and-required-secrets", else: "always"
+      descriptors = Enum.filter(topology["jobs"], &(&1["job_id"] == j["name"]))
+
+      ensure!(
+        allowed and j["applicability_rule"] == rule and j["errors"] == [] and descriptors != [] and
+          Enum.all?(descriptors, fn d ->
+            Enum.any?(r["jobs"], &(&1["name"] == d["name"] and &1["conclusion"] == j["result"]))
+          end),
+        "incident_policy",
+        "invalid applicability or unbound result"
+      )
+    end)
+
+    ensure!(
+      sha?(r["incident_artifact_sha256"]) and positive?(r["incident_artifact_id"]),
+      "incident_identity",
+      "artifact identity missing"
     )
   end
 
@@ -493,7 +675,8 @@ defmodule Rindle.ExactHeadReadiness do
     )
 
     ensure!(
-      p["enforced"] === true and p["bypass_actors"] == [],
+      p["enforced"] === true and p["strict"] === true and p["classic_admin_enforced"] === false and
+        p["bypass_actors"] == [] and p["active_rulesets"] == [],
       "protection_drift",
       "unexpected enforcement/bypass"
     )

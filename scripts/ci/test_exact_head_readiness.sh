@@ -41,7 +41,7 @@ defmodule ReadinessFixture do
   def fixture do
     root = Path.join(System.fetch_env!("RINDLE_READINESS_TEST_ROOT"), "case-#{System.unique_integer([:positive])}")
     File.mkdir_p!(root)
-    input_files = Map.new(V.input_paths(), &{&1, put(root, "inputs/#{&1}", "fixture committed input #{&1}")})
+    input_files = Map.new(V.input_paths(), &{&1, put(root, "inputs/#{&1}", if(&1 in [".github/workflows/ci.yml", ".github/workflows/nightly.yml", ".github/workflows/release.yml", "scripts/maintainer/readiness_workflow.exs"], do: File.read!(&1), else: "fixture committed input #{&1}"))})
     package_files = Map.new(~w(package_tar_sha256 package_metadata_sha256 package_tree_sha256), &{&1, put(root, "package/#{&1}", "fixture bytes #{&1}")})
     manifest = %{
       "schema_version" => 1, "repository" => "szTheory/rindle", "subject_sha" => String.duplicate("a", 40),
@@ -58,8 +58,15 @@ defmodule ReadinessFixture do
       receipt = Map.merge(receipt, %{"schema_version" => 1, "id" => id, "state" => "complete", "outcome" => "passed", "applicability" => "required", "references" => []})
       receipt = if id in V.mutable_proofs() do
         n = normalized(id, manifest)
+        n = if id == "nightly-scheduled" do
+          {:ok, {_name, zip}} = :zip.create(~c"incident.zip", [{~c"nightly-incident-verdict.json", Jason.encode!(n["incident"])}], [:memory])
+          archive = put(root, "artifacts/incident.zip", zip)
+          n |> Map.put("incident_artifact", archive) |> Map.put("incident_artifact_sha256", archive["sha256"])
+        else
+          n
+        end
         observations = Enum.map(["before", "after"], &put(root, "observations/#{id}-#{&1}.json", n))
-        Map.merge(receipt, %{"references" => observations, "source" => %{
+        Map.merge(receipt, %{"references" => observations ++ if(id == "nightly-scheduled", do: [n["incident_artifact"]], else: []), "source" => %{
           "complete" => true, "authenticated" => true, "query" => "fixture/#{id}", "pages" => 1, "observation_interval" => interval(),
           "before_sha256" => hd(observations)["sha256"], "after_sha256" => List.last(observations)["sha256"],
           "observations" => observations, "policy" => V.policy(), "normalized" => n}})
@@ -79,7 +86,7 @@ defmodule ReadinessFixture do
     specific = case id do
       "ci-main" -> run("CI", "push", "ci.yml")
       "nightly-scheduled" -> run("Nightly", "schedule", "nightly.yml")
-      "protection" -> %{"classic_visible" => true, "rulesets_visible" => true, "organization_visible" => true, "enforced" => true, "bypass_actors" => [], "effective_checks" => [%{"context" => "CI Summary", "app_id" => 15368}]}
+      "protection" -> %{"classic_visible" => true, "rulesets_visible" => true, "organization_visible" => true, "enforced" => true, "strict" => true, "classic_admin_enforced" => false, "active_rulesets" => [], "bypass_actors" => [], "effective_checks" => [%{"context" => "CI Summary", "app_id" => 15368}]}
       "adoption-parity" -> %{"adoption" => adoption()}
       "remote-inventory" -> %{"sources" => Map.new(~w(issues pulls checks statuses advisories dependabot hex protection absent), fn source ->
         {source, %{"complete" => true, "authorized" => true, "reconciled" => true, "changed" => false, "count" => 0, "identity_sha256" => V.sha256("fixture inventory"), "database_sha256" => V.sha256("fixture Hex database")}}
@@ -89,10 +96,22 @@ defmodule ReadinessFixture do
   end
 
   def run(name, event, workflow) do
-    %{"name" => name, "event" => event, "workflow" => workflow, "branch" => "main", "run_id" => 10,
+    {:ok, topology} = Rindle.ReadinessWorkflow.derive(File.read!(".github/workflows/#{workflow}"), %{"repository" => "szTheory/rindle", "event" => event, "branch" => "main"})
+    value = %{"name" => name, "event" => event, "workflow" => workflow, "branch" => "main", "run_id" => 10,
       "attempt" => 2, "latest_run_id" => 10, "rechecked_attempt" => 2, "state" => "completed", "conclusion" => "success",
-      "expected_jobs" => ["Required (1.17, 27)", "Main only"], "topology_sha256" => V.sha256("committed workflow"), "topology_resolved" => true,
-      "jobs" => [%{"id" => 100, "name" => "Required (1.17, 27)", "state" => "completed", "conclusion" => "success"}, %{"id" => 101, "name" => "Main only", "state" => "completed", "conclusion" => "success"}]}
+      "expected_jobs" => Enum.map(topology["jobs"], & &1["name"]), "topology_sha256" => topology["workflow_sha256"], "topology_resolved" => true,
+      "jobs" => Enum.with_index(topology["jobs"], 100) |> Enum.map(fn {j,id} -> %{"id" => id, "name" => j["name"], "state" => "completed", "conclusion" => if(j["applicable"], do: "success", else: "skipped")} end)}
+    if event == "schedule" do
+      Map.merge(value, %{"incident_artifact_id" => 300, "incident_artifact_sha256" => V.sha256("fixture artifact"),
+        "incident" => %{"schema" => "rindle-nightly-incident-verdict-v1", "repository" => "szTheory/rindle", "sha" => String.duplicate("a",40),
+          "workflow_name" => "Nightly", "event" => "schedule", "ref" => "refs/heads/main", "run_id" => 10, "run_attempt" => 2,
+          "verdict" => %{"verdict" => "green", "errors" => [], "jobs" => Enum.map(~w(compat-matrix dialyzer gcs-soak package-consumer-gcs-live), fn id ->
+            %{"name" => id, "result" => "success", "applicable" => true, "execution" => "passed", "reason" => "", "errors" => [], "status" => "passed",
+              "applicability_rule" => if(id in ~w(gcs-soak package-consumer-gcs-live), do: "upstream-repository-and-required-secrets", else: "always")}
+          end)}}})
+    else
+      value
+    end
   end
 
   def context(root, manifest, envelope \\ nil) do
@@ -119,7 +138,7 @@ defmodule ReadinessFixture do
       observations = Enum.map(["before", "after"], &put(root, "mutated/#{id}-#{&1}.json", n))
       source = r["source"] |> Map.put("normalized", n) |> Map.put("observations", observations)
         |> Map.put("before_sha256", hd(observations)["sha256"]) |> Map.put("after_sha256", List.last(observations)["sha256"])
-      r |> Map.put("source", source) |> Map.put("references", observations)
+      r |> Map.put("source", source) |> Map.put("references", observations ++ if(id == "nightly-scheduled", do: [n["incident_artifact"]], else: []))
     end)
   end
 
