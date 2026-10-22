@@ -6,7 +6,7 @@ tags: [synthetic, cli, docs, regression]
 requires: [137-02, 137-03, 137-04, 137-05]
 provides: [documented operator CLI, phase-wide executable acceptance]
 affects: [138, 139]
-actuals: {tokens: 10000, tasks: 2, commits: 4}
+actuals: {tokens: 10000, tasks: 2, commits: 5}
 key-files:
   created: [guides/built_package_twin.md, test/install_smoke/twin_cli_test.exs]
   modified: [scripts/maintainer/built_package_twin.py, RUNNING.md, mix.exs, test/twin/host/lib/twin/storage.ex]
@@ -30,16 +30,22 @@ the Maintainer section and its RUNNING link resolves in generated HTML.
 3. `4a894ae2`: review fix — digest before parsing; bounded archive expansion/member count.
 4. `34e2ce4f`: regression fixes — flattened adapter branching, serial CLI fixture tests,
    and ExDoc inclusion/link under Maintainer.
+5. `4e41e644`: isolation review fix — unique-run compile cache key, exact host-file
+   allowlist, generated image/resource identities and parent TWIN environment filtering.
 
 ## Verification
 
-- Frozen implementation subject: `34e2ce4f3588f7691f9fb311ca6f9fae93fcfba1`.
+- Full-suite subject before isolation-only review fixes: `34e2ce4f3588f7691f9fb311ca6f9fae93fcfba1`.
 - Canonical full default suite: **1717 tests, 3 doctests, 0 failures, 87 excluded,
   4 skipped**, 253.1 seconds. Output: `/private/tmp/rindle-137-stable-full-tests.txt`.
 - Focused twin + named CI/public-surface regression command: 60 tests, 0 failures.
-- Real final run: `/private/tmp/rindle-twin-137-stable-umor3huw`; run, separate explicit-inputs verifier and
+- Real final run: `/private/tmp/rindle-twin-137-accepted-9hf_wi4o`; run, separate explicit-inputs verifier and
   repeated stopped-host cleanup each exit 0. Observed local run duration:
-  **53.979 seconds**. This single local observation grants no CI speed credit.
+  **55.63 seconds**. This single local observation grants no CI speed credit.
+- Final acceptance subject: `4e41e644`; native build output confirms the Rindle
+  compile step executed and was not cached. Current focused twin/async/CI/public
+  surface checks: 63 tests, 0 failures. Library source is unchanged by the final
+  isolation controls; the complete default suite is the broader regression above.
 - Format, reviewed Credo quality/complexity, artifact ledger, automation-first and
   diff checks passed. Docs build exit 0; new guide link verified. Existing unrelated
   ExDoc reference warnings remain, with no new warning-clean claim.

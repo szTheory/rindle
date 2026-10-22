@@ -1,9 +1,9 @@
 ---
 phase: "137"
 slug: "built-package-twin-foundation"
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-21"
 ---
 
@@ -15,7 +15,7 @@ Existing ExUnit, Jason, shell probes and Docker Compose; no new dependency.
 Config: mix.exs, test/test_helper.exs and the new external host's ordinary config.
 Quick planning check: `./scripts/maintainer/automation_first_contract.sh`.
 Execution quick/full commands and test paths are finalized with the plans below.
-Runtime estimates are unmeasured; measure the first real run.
+Final explicit real run observed 55.63 seconds locally. No CI timing credit.
 
 ## Sampling Rate
 
@@ -30,7 +30,7 @@ Every stage uses a finite deadline; no watch loops or rerun-until-green.
 
 ## Per-Task Verification Map
 
-Every command below is planned, not yet executed. New targets are created by the
+Every command below has executed successfully; current focused checks cover 63 tests, and the broader default suite passed 1717 tests plus 3 doctests. New targets are created by the
 named task before its verify command runs. A nonzero exit, zero tests, or the
 task's named negative control going green is failure; no manual response closes
 a TWIN requirement.
@@ -91,12 +91,34 @@ authorization, if later needed, cannot close a TWIN requirement.
 
 ## Validation Sign-Off
 
-- [ ] Every task has a runnable automated command and stated failure direction
-- [ ] No three consecutive tasks lack an automated verification
-- [ ] Every new command target has an owning creation task
-- [ ] Real package/Oban/restart/cleanup tracer and separate verifier with retained inputs and receipt are required for acceptance; default `mix test` does not require Docker
-- [ ] No watch-mode commands or invented timing evidence
-- [ ] All checks pass during execution before Nyquist compliance is claimed
+- [x] Every task has a runnable automated command and stated failure direction
+- [x] No three consecutive tasks lack an automated verification
+- [x] Every new command target has an owning creation task
+- [x] Real package/Oban/restart/cleanup tracer and separate verifier with retained inputs and receipt are required for acceptance; default `mix test` does not require Docker
+- [x] No watch-mode commands or invented timing evidence
+- [x] All checks pass during execution before Nyquist compliance is claimed
 
-Approval: pending automated execution. The planning contract and source audit do
-not count as implementation or requirement evidence.
+Approval: executable acceptance passed. Final retained run: `/private/tmp/rindle-twin-137-accepted-9hf_wi4o`.
+Run, separate explicit-inputs verify and repeated cleanup each exited 0. The native
+compile step was observed uncached. Real running/paused cleanup refusals preserved
+all owned storage before successful stopped-host disposal. Source/receipt/cleanup
+mutation controls passed; no human response closed any requirement.
+
+## Execution Notes
+
+All twelve task checks have passing executable evidence in the six summaries.
+The versioned-host Doctor diagnostic found a legacy-ledger false failure; Plan 02
+was narrowly rescoped after repeated blocking, and that defect remains a normal
+pending todo. Direct catalog/version/image/storage checks are required and passed.
+No Doctor pass, independent pilot, AV execution, numeric CI speed or readiness credit.
+Five spec-less assumptions remain explicitly scoped as in Plan 04; no invented
+acceptance was counted. The two source prohibitions are now exercised by strict
+receipt/synthetic-label and privacy-canary tests.
+
+## Validation Audit 2026-10-22
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
