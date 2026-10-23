@@ -178,11 +178,12 @@ For maintainer inbox validation, derive collector arguments as separate lines
 (no `eval`; paths may contain spaces), then collect and validate:
 
 ```bash
+export INBOX_LEDGER=/path/to/maintainer-inbox-ledger.json
 inbox_args=()
-bash scripts/maintainer/validate_inbox_ledger.sh --print-collector-args --ledger .planning/INBOX-LEDGER.json > /tmp/rindle-inbox-args
+bash scripts/maintainer/validate_inbox_ledger.sh --print-collector-args --ledger "$INBOX_LEDGER" > /tmp/rindle-inbox-args
 while IFS= read -r arg; do inbox_args+=("$arg"); done < /tmp/rindle-inbox-args
 bash scripts/maintainer/collect_inbox.sh --out /tmp/rindle-inbox.json "${inbox_args[@]}"
-bash scripts/maintainer/validate_inbox_ledger.sh --ledger .planning/INBOX-LEDGER.json --inventory /tmp/rindle-inbox.json
+bash scripts/maintainer/validate_inbox_ledger.sh --ledger "$INBOX_LEDGER" --inventory /tmp/rindle-inbox.json
 ```
 
 Merged PR filenames and merge SHAs come from GitHub. `--landing-ledger` supplies
