@@ -533,11 +533,35 @@ else
 fi
 
 fx_new adv_depsaudit
-mixfx deps_audit 1 "$(printf '%s\n' 'Name: plug' '1 vulnerabilities found')"
+mixfx deps_audit 1 "$(printf '%s\n' 'Name: plug' 'Title: error: secret disclosure in malformed calls' '1 vulnerabilities found')"
 out="${ROOT_TMP}/adv_depsaudit.json"
 run_collector "${out}"
 assert "deps.audit findings recorded as second opinion" \
   jq -e '.advisories.sources.deps_audit.status=="findings"' "${out}"
+
+fx_new adv_depsaudit_refresh_error
+mixfx deps_audit 0 "$(printf '\033[31merror: cannot open .git/FETCH_HEAD: Operation not permitted\033[0m\nNo vulnerabilities found.\n')"
+out="${ROOT_TMP}/adv_depsaudit_refresh_error.json"
+run_collector "${out}"
+assert "deps.audit successful exit cannot hide a Git refresh error" \
+  jq -e '.advisories.sources.deps_audit.status=="unreadable"' "${out}"
+no_mutations "deps.audit refresh error"
+
+fx_new adv_depsaudit_early_error
+mixfx deps_audit 0 "$(printf 'fatal: unable to access advisory database\n'; for i in $(seq 1 25); do printf 'audit output %s\n' "${i}"; done; printf 'No vulnerabilities found.\n')"
+out="${ROOT_TMP}/adv_depsaudit_early_error.json"
+run_collector "${out}"
+assert "deps.audit error detection reads complete output before the diagnostic tail" \
+  jq -e '.advisories.sources.deps_audit.status=="unreadable" and (.advisories.sources.deps_audit.output_tail|contains("fatal:")|not)' "${out}"
+no_mutations "deps.audit early error"
+
+fx_new adv_depsaudit_error_and_findings
+mixfx deps_audit 1 "$(printf '%s\n' 'fatal: unable to fetch advisory database' '1 vulnerabilities found')"
+out="${ROOT_TMP}/adv_depsaudit_error_and_findings.json"
+run_collector "${out}"
+assert "deps.audit refresh failure stays unreadable alongside cached findings" \
+  jq -e '.advisories.sources.deps_audit.status=="unreadable"' "${out}"
+no_mutations "deps.audit error with findings"
 
 # GitHub-side sources.
 fx_new gh_disabled

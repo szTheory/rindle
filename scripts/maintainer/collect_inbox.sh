@@ -432,8 +432,13 @@ fi
 # deps.audit is a second opinion only (it disagreed with hex.audit in research).
 da_rc=0
 (cd "${ROOT}" && mix deps.audit) >"${WORK}/deps-audit.out" 2>&1 || da_rc=$?
-sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/deps-audit.out" | tail -n 20 >"${WORK}/deps-audit.tail"
-if [ "${da_rc}" -eq 0 ]; then
+sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/deps-audit.out" >"${WORK}/deps-audit.plain"
+tail -n 20 "${WORK}/deps-audit.plain" >"${WORK}/deps-audit.tail"
+# mix_audit ignores its internal Git refresh exit code. Inspect the complete
+# output so a cached result cannot hide an early refresh/command error.
+if grep -qiE '^[[:space:]]*(fatal|error):' "${WORK}/deps-audit.plain"; then
+  da_status=unreadable
+elif [ "${da_rc}" -eq 0 ]; then
   da_status=clean
 elif grep -qi 'vulnerabilit' "${WORK}/deps-audit.tail"; then
   da_status=findings
