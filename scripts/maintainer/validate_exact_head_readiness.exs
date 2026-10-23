@@ -19,7 +19,7 @@ defmodule Rindle.ExactHeadReadiness do
                          File.read!(Path.join(__DIR__, "land_release_train_baseline.py"))
                        )
                        |> Base.encode16(case: :lower)
-  @ci_guard "0fd9484418302825a2120a13d9c38d71e22f4621c40e0c0f7ed72d5074b1ba27"
+  @ci_guard "2bfc60b5225d0fa4901277e13e7a0b556772b58983cd3175cd460ef43de7ddad"
   @release_guard "17aa21ffe9229374a043c6900992f6d00e8b2ba2d594e008888c0800163031bf"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)

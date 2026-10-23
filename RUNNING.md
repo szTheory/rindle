@@ -195,6 +195,11 @@ CI Script Tests.
 
 ### Release train
 
+CI compiles Vix against the runner's installed `libvips-dev` using its supported
+`PLATFORM_PROVIDED_LIBVIPS` mode. This avoids precompiled-asset redirects exceeding
+the Erlang HTTP client's header limit. Dependency versions and test gates remain
+the same; cold generated-consumer proof exercises the native build.
+
 After public verification, the baseline ledger update opens an ordinary PR with
 CI enabled and requests squash auto-merge for its exact head. The release job
 observes the configured required GitHub Actions checks and actual merged state

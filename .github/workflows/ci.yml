@@ -30,6 +30,9 @@ concurrency:
 
 env:
   MIX_ENV: test
+  # Use the supported system-libvips build path. GitHub asset redirects can
+  # exceed httpc's response-header bound; every native lane installs libvips-dev.
+  VIX_COMPILATION_MODE: PLATFORM_PROVIDED_LIBVIPS
 
 permissions:
   contents: read
@@ -496,6 +499,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Install libvips for native dependency compilation
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+
       - name: Install dependencies
         run: mix deps.get
 
@@ -861,7 +867,8 @@ jobs:
     # Fast, merge-blocking ExUnit lane for examples/adoption_demo: brand mark +
     # wordmark, admin-console mount, lifecycle-state display, and README
     # walkthrough parity (automated). Storage-free — rows are
-    # direct-inserted, so no MinIO/FFmpeg/libvips is needed. Postgres only.
+    # direct-inserted, so no storage service is needed. System libvips is a
+    # native compilation prerequisite; the HomeLive runtime doctor needs FFmpeg.
     # Complements the heavier browser proof in the `Adoption Demo E2E` lane.
     needs: [quality, optional-dependencies]
     env:
@@ -910,6 +917,9 @@ jobs:
       # johnvansickle download action used elsewhere.
       - name: Install FFmpeg
         run: bash scripts/ci/install_apt_packages.sh ffmpeg
+
+      - name: Install libvips for native dependency compilation
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Run adoption demo ExUnit suite
         working-directory: examples/adoption_demo
