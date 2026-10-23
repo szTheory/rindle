@@ -174,6 +174,16 @@ defmodule ReadinessPolicyTest do
     end
   end
 
+  test "extracted baseline landing source is a required byte-bound policy input" do
+    {root, m} = F.fixture()
+    path = "scripts/maintainer/land_release_train_baseline.py"
+    assert path in V.input_paths()
+    assert m["input_identity"][path] == V.sha256(File.read!(path))
+    m = put_in(m, ["input_identity", path], String.duplicate("0", 64))
+    assert [%{"id" => "tool_identity", "detail" => "baseline landing evaluator differs"}] =
+      V.validate_contract(m, F.context(root, m))["reasons"]
+  end
+
   test "CLI rejects duplicate JSON keys before choosing any claimed state" do
     {root, m} = F.fixture()
     bytes = Jason.encode!(m)

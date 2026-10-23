@@ -14,8 +14,13 @@ defmodule Rindle.ExactHeadReadiness do
                        |> Base.encode16(case: :lower)
   @hex_helper_sha :crypto.hash(:sha256, File.read!(Path.join(__DIR__, "readiness_hex_audit.exs")))
                   |> Base.encode16(case: :lower)
+  @baseline_helper_sha :crypto.hash(
+                         :sha256,
+                         File.read!(Path.join(__DIR__, "land_release_train_baseline.py"))
+                       )
+                       |> Base.encode16(case: :lower)
   @ci_guard "0fd9484418302825a2120a13d9c38d71e22f4621c40e0c0f7ed72d5074b1ba27"
-  @release_guard "324c0c57e801b1e09e304a89008c9dfd92699951a75ff1e82b6dfb636a45d322"
+  @release_guard "deeb00f59d5f55a6140af71c0a5c5ff78196925e5324bcab2966c153fef7f4a1"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
   @inputs ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
@@ -25,6 +30,7 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/artifact_ledger.json scripts/maintainer/refactor_contract.sh
     scripts/maintainer/exact_head_readiness.py scripts/maintainer/qualify_generated_consumer.exs
     scripts/maintainer/readiness_workflow.exs scripts/maintainer/readiness_github.py
+    scripts/maintainer/land_release_train_baseline.py
     scripts/maintainer/collect_readiness_runs.py scripts/maintainer/collect_readiness_remote.py scripts/maintainer/readiness_closure.py scripts/maintainer/readiness_process.py
     .release-please-manifest.json release-please-config.json
     .github/workflows/readiness-retention.yml
@@ -209,6 +215,13 @@ defmodule Rindle.ExactHeadReadiness do
       m["input_identity"]["scripts/maintainer/readiness_hex_audit.exs"] == @hex_helper_sha,
       "tool_identity",
       "Hex evaluator differs"
+    )
+
+    ensure!(
+      m["input_identity"]["scripts/maintainer/land_release_train_baseline.py"] ==
+        @baseline_helper_sha,
+      "tool_identity",
+      "baseline landing evaluator differs"
     )
 
     validate_refs!(m["input_files"], c)
