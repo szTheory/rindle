@@ -93,7 +93,7 @@ san_of() { printf '%s' "$1" | tr -c 'A-Za-z0-9' '_'; }
 put_run() {
   local sha="$1" id="$2" status="$3" conclusion="$4"
   jq -n --arg sha "${sha}" --argjson id "${id}" --arg st "${status}" --arg co "${conclusion}" \
-    '{workflow_runs:[{id:$id, head_sha:$sha, event:"push", status:$st,
+    '{workflow_runs:[{id:$id, head_sha:$sha, event:"push", head_branch:"main", path:".github/workflows/ci.yml", repository:{full_name:"szTheory/rindle"}, status:$st,
        conclusion:(if $co == "" then null else $co end)}]}' \
     >"${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${sha}&event=push&per_page=5").json"
 }
@@ -329,11 +329,47 @@ if [ "${RC}" = 0 ] && jq -e '.verdict == "pass"' "${TMP}/out/evidence.json" >/de
 else
   record "--out writes the evidence file atomically" false "rc=${RC}"
 fi
-if [ -z "$(ls -A "${TMP}/out" | grep -v '^evidence.json$' || true)" ]; then
+if [ "$(find "${TMP}/out" -type f | wc -l | tr -d ' ')" = 1 ]; then
   record "--out leaves no temp files" true
 else
   record "--out leaves no temp files" false "$(ls -A "${TMP}/out")"
 fi
+
+# Replacement CI is allowed only across actual planning-only history.
+git checkout -q --detach "${SHA_ECTO}"
+mkdir -p .planning
+echo bookkeeping >.planning/STATE.md
+git add .planning && git commit -qm docs
+SHA_DOCS="$(git rev-parse HEAD)"
+put_run "${SHA_DOCS}" 3001 completed success
+put_jobs 3001
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_DOCS}"
+assert_rc "planning-only descendant accepted" 0
+assert_jq "descendant preserves original merge and explicit equivalence" '.sha != .evidence_sha and .run.head_sha == .evidence_sha and .equivalence.policy == "planning-only-descendant-v1" and .equivalence.changed_files == [".planning/STATE.md"]'
+no_mutations "descendant evidence"
+run --sha "${SHA_DOCS}" --evidence-sha "${SHA_ECTO}"
+assert_rc "reversed descendant range rejected" 1
+run --sha "${SHA_ECTO}" --evidence-sha "${SHA_WORKFLOW}"
+assert_rc "unrelated descendant range rejected" 1
+for file in mix.lock mix.exs lib/rindle.ex .github/workflows/ci.yml .planning/tools/check.py .planning/config.json; do
+  git checkout -q --detach "${SHA_DOCS}"
+  mkdir -p "$(dirname "${file}")"
+  echo change >>"${file}"
+  git add -A && git commit -qm changed
+  SHA_CHANGED="$(git rev-parse HEAD)"
+  run --sha "${SHA_ECTO}" --evidence-sha "${SHA_CHANGED}"
+  assert_rc "descendant changing ${file} rejected" 1
+  git revert --no-edit "${SHA_CHANGED}" >/dev/null 2>&1
+  run --sha "${SHA_ECTO}" --evidence-sha "$(git rev-parse HEAD)"
+  assert_rc "reverted ${file} still rejected" 1
+done
+for field in 'head_sha="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' 'event="workflow_dispatch"' 'head_branch="other"' 'repository.full_name="foreign/repo"' 'path=".github/workflows/other.yml"'; do
+  put_run "${SHA_ECTO}" 1008 completed success
+  file="${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${SHA_ECTO}&event=push&per_page=5").json"
+  jq ".workflow_runs[0].${field}" "${file}" >"${TMP}/run.new" && mv "${TMP}/run.new" "${file}"
+  run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql
+  assert_rc "foreign CI identity rejected: ${field}" 1
+done
 
 # --- 9. tripwire self-test -----------------------------------------------------
 for probe in "api -X POST x" "api --method=PUT x" "api -f a=b x" "api -XDELETE x" "pr merge 1" "run rerun 1"; do

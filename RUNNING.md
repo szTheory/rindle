@@ -174,6 +174,30 @@ Dialyzer remains an owned, gating Nightly signal, outside the PR-local alias and
 path. Push-main/full-verification-only lanes likewise remain outside `mix ci`; the release
 workflow still relies on the complete `ci.yml` run for the exact release SHA.
 
+For maintainer inbox validation, derive collector arguments as separate lines
+(no `eval`; paths may contain spaces), then collect and validate:
+
+```bash
+inbox_args=()
+bash scripts/maintainer/validate_inbox_ledger.sh --print-collector-args --ledger .planning/INBOX-LEDGER.json > /tmp/rindle-inbox-args
+while IFS= read -r arg; do inbox_args+=("$arg"); done < /tmp/rindle-inbox-args
+bash scripts/maintainer/collect_inbox.sh --out /tmp/rindle-inbox.json "${inbox_args[@]}"
+bash scripts/maintainer/validate_inbox_ledger.sh --ledger .planning/INBOX-LEDGER.json --inventory /tmp/rindle-inbox.json
+```
+
+Merged PR filenames and merge SHAs come from GitHub. `--landing-ledger` supplies
+hints for fresh attribution/CI collection through `dep_landing_evidence.sh`; missing
+landings for changed locks reject. Keep full local Git history for these checks.
+A landing may name `evidence_sha` only for a verified descendant changing planning
+prose or `INBOX-LEDGER.json` in every intervening commit. Executable planning tools,
+config, source, manifests, locks, workflows and code changes later reverted reject.
+Keep the original failed CI receipt when using descendant evidence. Queued/running
+main CI jobs appear in `unfinished_jobs`, separately from `failed_jobs`.
+
+The three cheap behavior harnesses are `bash scripts/ci/test_collect_inbox.sh`,
+`bash scripts/ci/test_validate_inbox_ledger.sh` and
+`bash scripts/ci/test_dep_landing_evidence.sh` (no network or Elixir required).
+
 ### Repository craft gates
 
 These commands are the supported way to check repository craft locally. The test suite runs
