@@ -338,7 +338,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
        } do
     workflows = ci <> nightly <> release
 
-    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 19
+    assert count(workflows, "bash scripts/ci/install_apt_packages.sh") == 21
     refute workflows =~ "apt-get install -y libvips-dev"
     refute workflows =~ "apt-get install -y ffmpeg"
     assert workflows =~ "install_apt_packages.sh ffmpeg"
