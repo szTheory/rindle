@@ -5,6 +5,21 @@
 set -euo pipefail
 
 readonly apt_config=/etc/apt/apt.conf.d/99rindle-ci-network
+readonly apt_mirrors="${RINDLE_APT_MIRRORS_FILE:-/etc/apt/apt-mirrors.txt}"
+
+# Hosted runners randomly choose between their configured Ubuntu mirrors unless
+# priority is explicit. Prefer the official HTTPS archive over the Azure mirror
+# that can make steady progress too slowly to trigger the network timeout.
+# Keep the runner's other mirrors available as fallbacks; signatures stay intact.
+if [ -f "$apt_mirrors" ] &&
+   grep -Eq '^https?://(azure\.archive|archive)\.ubuntu\.com/ubuntu/?([[:space:]]|$)' "$apt_mirrors"; then
+  mirror_list="$(cat "$apt_mirrors")"
+  {
+    printf 'https://archive.ubuntu.com/ubuntu\tpriority:1\n'
+    printf '%s\n' "$mirror_list" |
+      awk '$1 !~ /^https?:\/\/archive\.ubuntu\.com\/ubuntu\/?$/'
+  } | sudo tee "$apt_mirrors" >/dev/null
+fi
 
 printf '%s\n' \
   'Acquire::Retries "2";' \

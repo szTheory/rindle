@@ -351,3 +351,46 @@ the generated site. The existing generated-release-doc assertion, formatting,
 automation-first contract and diff whitespace check pass. The build still emits
 existing unrelated documentation-reference warnings; this is not a zero-warning
 claim. Required checks must pass again on the new PR head. No READY credit.
+
+
+## Persistent prerequisite failures reconciled on 2026-10-23
+
+CI 39887885433 on 624a4155 passed the repaired Proof lane. One bounded failed-job
+retry (attempt 2) passed Package Consumer in 6m30s, but the adoption smoke job again
+exhausted both bounded FFmpeg downloads from the Azure Ubuntu mirror. No further
+unchanged retry was dispatched. The apt helper now gives the official HTTPS Ubuntu
+archive explicit priority while preserving runner fallback mirrors, package signature
+verification, cached-index fast installation, two attempts and all timeout values.
+APT's documented mirror transport chooses randomly without priority metadata; see
+https://manpages.debian.org/bookworm/apt/apt-transport-mirror.1.en.html.
+
+Scheduled Nightly 39919175401 passed all test lanes, Summary and verdict persistence,
+but its incident lifecycle repeatedly classified an absent open target as an uncertain
+mutation until the five-minute job cancelled. Read-only issue events show #131 was
+closed by szTheory on 2026-10-20, without the lifecycle recovery marker. Replay now
+tracks the incident owning its authenticated opening marker, enforces ownership for
+later markers, and appends historical recovery evidence to that same closed issue
+when a later authenticated green verdict exists. It does not reopen the issue. A
+still-red manual closure conflict fails before any mutation instead of retrying.
+The close path uses an explicit comment for an already closed target because the
+GitHub CLI returns success before applying --comment in that state; primary source:
+https://github.com/cli/cli/blob/trunk/pkg/cmd/issue/close/close.go. Existing immutable
+verdict authentication, checkpoint checks, ordering and duplicate-marker refusals remain.
+
+The old manager failed all six added manual-closure/ownership/idempotence cases
+(48 passed, 6 failed). The repaired manager passed all 54 cases. Focused canonical
+CI cache/apt and Nightly policy owner checks passed 30 tests, zero failures, using
+an isolated owned database; all owned services were removed. All six process-group
+regressions passed. Shell syntax, ShellCheck and diff checks passed. Logs:
+/private/tmp/rindle139-nightly-replay-diagnostic/before-tests.log,
+/private/tmp/rindle139-nightly-repair-tests.log,
+/private/tmp/rindle139-proof-95edefd1/test.log and
+/private/tmp/rindle139-script-groups-owner.log.
+
+A read-only local replay against downloaded live artifacts stopped before any
+simulated mutation at the pre-existing checkpoint issue-digest guard; it grants no
+live repair credit. Actual scheduled runner execution remains required. No source
+was retried as acceptance, no new dependency was added, and READY-01–05 remain open.
+PR #163 auto-merge was temporarily disabled to include these fixes and will be
+restored only after the tested repair is pushed; its existing final-head CI approval
+remains applicable. The accepted historical timing deferral retains zero credit.

@@ -353,6 +353,31 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
   end
 
   @tag :tmp_dir
+  test "apt helper gives the official archive explicit priority and preserves fallbacks", %{
+    tmp_dir: tmp_dir
+  } do
+    mirrors_path = Path.join(tmp_dir, "apt-mirrors.txt")
+
+    File.write!(mirrors_path, """
+    http://azure.archive.ubuntu.com/ubuntu priority:2
+    https://archive.ubuntu.com/ubuntu
+    """)
+
+    env = %{"RINDLE_APT_MIRRORS_FILE" => mirrors_path}
+    assert run_apt_helper(tmp_dir, ["--configure-only"], env).status == 0
+    configured = File.read!(mirrors_path)
+    assert configured =~ "https://archive.ubuntu.com/ubuntu\tpriority:1\n"
+    assert configured =~ "http://azure.archive.ubuntu.com/ubuntu priority:2"
+    assert length(Regex.scan(~r{https://archive\.ubuntu\.com/ubuntu}, configured)) == 1
+    assert run_apt_helper(tmp_dir, ["--configure-only"], env).status == 0
+    assert File.read!(mirrors_path) == configured
+
+    File.write!(mirrors_path, "https://deb.debian.org/debian\n")
+    assert run_apt_helper(tmp_dir, ["--configure-only"], env).status == 0
+    assert File.read!(mirrors_path) == "https://deb.debian.org/debian\n"
+  end
+
+  @tag :tmp_dir
   test "apt helper installs from cached indexes without refreshing them", %{tmp_dir: tmp_dir} do
     result = run_apt_helper(tmp_dir, ["libvips-dev", "ffmpeg"])
 
@@ -466,6 +491,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
           Map.merge(
             %{
               "PATH" => shim_dir <> ":" <> System.get_env("PATH"),
+              "RINDLE_APT_MIRRORS_FILE" => Path.join(run_root, "absent-mirrors.txt"),
               "RINDLE_APT_LOG" => log_path,
               "RINDLE_APT_FIRST_INSTALL_FAILURE" => first_failure_path
             },
@@ -482,7 +508,11 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     File.write!(Path.join(shim_dir, "sudo"), """
     #!/usr/bin/env bash
     if [ "$1" = "tee" ]; then
-      cat >/dev/null
+      if [ "$2" = "${RINDLE_APT_MIRRORS_FILE}" ]; then
+        cat >"$2"
+      else
+        cat >/dev/null
+      fi
       exit 0
     fi
     exec "$@"

@@ -652,6 +652,69 @@ skipped_attempt_case() {
   rm -rf "${temp}"
 }
 
+manual_closed_case() {
+  local setup="$1" temp output got=0 attempts=0 expected=2 number=88
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  jq -cn '[{number:88,title:"Nightly CI failure",state:"CLOSED",
+    body:"Evidence marker: nightly-mutation:open:101:1",comments:[]}]' >"${temp}/state/issues.json"
+  case "${setup}" in
+    checkpoint)
+      write_event "${temp}/state/events/nightly-incident-verdict-101-1.json" 101 1 green
+      jq '.[0].body = "Legacy incident"' "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      install_checkpoint "${temp}" 101 1
+      jq '. + [{number:89,title:"Nightly CI failure",state:"CLOSED",
+        body:"Evidence marker: nightly-mutation:open:102:1",comments:[]}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      expected=1; number=89
+      ;;
+    red) write_event "${temp}/state/events/nightly-incident-verdict-103-1.json" 103 1 red "${sha_b}" ;;
+    wrong-owner)
+      jq '. + [{number:89,title:"Nightly CI failure",state:"CLOSED",body:"unrelated incident",
+        comments:[{body:"Evidence marker: nightly-mutation:update:102:1"}]}]' \
+        "${temp}/state/issues.json" >"${temp}/state/issues.next"
+      mv "${temp}/state/issues.next" "${temp}/state/issues.json"
+      ;;
+  esac
+  run_manager "${temp}" "${output}" || got=$?
+  [ ! -f "${temp}/state/mutation_attempts" ] || attempts="$(<"${temp}/state/mutation_attempts")"
+  case "${setup}" in
+    red|wrong-owner)
+      if [ "${got}" -ne 0 ] && [ "${attempts}" -eq 0 ] &&
+         ! grep -q 'mutation outcome uncertain' "${output}"; then
+        record "manual closure ${setup} fails before mutation or retry" true ""
+      else
+        record "manual closure ${setup} fails before mutation or retry" false "exit=${got} attempts=${attempts}; $(<"${output}")"
+      fi
+      ;;
+    *)
+      if [ "${got}" -eq 0 ] && [ "${attempts}" -eq "${expected}" ] &&
+         jq -e --argjson number "${number}" '.issue_number == $number and .issue_state == "CLOSED" and .last_run_id == 103' \
+           "${temp}/state/checkpoint-output.json" >/dev/null &&
+         ! grep -Eq '^issue (create|close|reopen) ' "${temp}/calls"; then
+        record "manual closure ${setup} records recovery on its original closed incident" true ""
+      else
+        record "manual closure ${setup} records recovery on its original closed incident" false "exit=${got} attempts=${attempts}; $(<"${output}")"
+      fi
+      rm -f "${temp}/state/mutation_attempts"
+      got=0
+      run_manager "${temp}" "${output}" || got=$?
+      if [ "${got}" -eq 0 ] && [ ! -f "${temp}/state/mutation_attempts" ]; then
+        record "manual closure ${setup} recovery is mutation-idempotent" true ""
+      else
+        record "manual closure ${setup} recovery is mutation-idempotent" false "exit=${got}; $(<"${output}")"
+      fi
+      ;;
+  esac
+  rm -rf "${temp}"
+}
+
+manual_closed_case history
+manual_closed_case checkpoint
+manual_closed_case red
+manual_closed_case wrong-owner
 three_overlap_case
 green_no_incident_case
 delayed_artifact_case

@@ -4,18 +4,18 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
 stopped_at: Phase 139 Plans 00–06 verified; Plan 07 awaits authorized PR 163 merge and live prerequisites
-last_updated: "2026-10-23T00:35:52.104549+00:00"
+last_updated: "2026-10-23T15:42:00Z"
 state_head: 9ebf92ad
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 233
   completed_plans: 232
-last_activity: 2026-10-22
+last_activity: 2026-10-23
 current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
 current_plan: 139-07
-last_activity_desc: "7/8 plans complete; CI attempt 2 timed out in package authority. PGPORT fixed and unchanged rebuild assertions separated for mutation coverage; local live suite passed in 222 seconds. Exact pushed CI and merged-main acceptance remain pending."
+last_activity_desc: "7/8 plans complete; Proof and Package Consumer passed on 624a4155. Repeated Azure FFmpeg download failures and manually closed Nightly incident replay are repaired locally; final-head CI and merged-main acceptance remain pending."
 ---
 
 ## Project Reference
@@ -75,6 +75,18 @@ Both Quality cells and all other applicable gating jobs then passed; Proof alone
 failed three docs links. Those links are repaired, the new maintainer guide is
 rendered by ExDoc, and actual generated HTML targets/anchor are verified locally.
 
+CI 39887885433 attempt 1 passed Proof; attempt 2 passed Package Consumer but failed
+FFmpeg installation again on the slow Azure mirror. Do not repeat that unchanged
+retry. The apt helper now explicitly prioritizes the official HTTPS Ubuntu archive
+while retaining fallback mirrors and every existing timeout. Scheduled Nightly
+39919175401 passed its test lanes but cancelled in incident replay: #131 was closed
+manually before its authenticated history caught up. Replay now binds mutations to
+their original incident, records later green recovery on a closed issue without
+reopening it, and refuses a still-red closure conflict before mutation/retry.
+54 incident fixtures, 30 CI owner tests and six process-group tests pass locally.
+These are implementation checks only. Final pushed CI and a new exact-main scheduled
+Nightly remain required; no terminal acceptance has run.
+
 Live prerequisites: green PR checks and approved merge; successful newest scheduled Nightly
 on the accepted main; landing the pinned retained dispositions for PRs 144–146; authorized
 complete live private-source visibility using the provisioned READINESS_READ_TOKEN
@@ -124,6 +136,6 @@ Protection and release settings are unchanged; no terminal acceptance has run.
 
 ## Session
 
-Last session: 2026-10-22T15:44:53.867594+00:00
-Stopped at: Phase 139 Plans 00–05 verified; Plan 06 active inline
+Last session: 2026-10-23T15:42:00Z
+Stopped at: Phase 139 Plans 00–06 complete; prerequisite repairs inline before Plan 07
 Resume file: None
