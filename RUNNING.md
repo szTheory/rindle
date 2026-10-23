@@ -198,7 +198,10 @@ CI Script Tests.
 CI compiles Vix against the runner's installed `libvips-dev` using its supported
 `PLATFORM_PROVIDED_LIBVIPS` mode. This avoids precompiled-asset redirects exceeding
 the Erlang HTTP client's header limit. Dependency versions and test gates remain
-the same; cold generated-consumer proof exercises the native build.
+the same. Native lanes install CMake for HTML-parser source fallback before
+compilation. The isolated package rebuild selects its supported native mode from
+the authenticated subject's CI file and keeps other caller environment stripped;
+cold generated-consumer proof exercises the native build.
 
 After public verification, the baseline ledger update opens an ordinary PR with
 CI enabled and requests squash auto-merge for its exact head. The release job

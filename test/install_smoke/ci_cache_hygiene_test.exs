@@ -352,6 +352,45 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     assert ci =~ "timeout --kill-after=15s 300s npx playwright install --with-deps chromium"
   end
 
+  test "native CI lanes declare the SDK before direct Mix builds" do
+    ci = YamlElixir.read_from_file!(@ci_path)
+    assert ci["env"]["VIX_COMPILATION_MODE"] == "PLATFORM_PROVIDED_LIBVIPS"
+
+    native_jobs =
+      Enum.filter(ci["jobs"], fn {_id, job} ->
+        Enum.any?(job["steps"] || [], &(&1["uses"] == "./.github/actions/setup-elixir"))
+      end)
+
+    assert native_jobs != []
+
+    for {id, job} <- native_jobs do
+      steps = job["steps"]
+
+      sdk =
+        Enum.find_index(
+          steps,
+          &(&1["run"] == "bash scripts/ci/install_apt_packages.sh libvips-dev cmake")
+        )
+
+      assert is_integer(sdk), "#{id} must declare its native SDK"
+
+      build =
+        Enum.find_index(steps, fn step ->
+          String.contains?(step["run"] || "", [
+            "mix compile",
+            "mix test",
+            "mix coveralls",
+            "mix doctor",
+            "mix hex.build",
+            "mix hex.publish",
+            "mix ecto."
+          ])
+        end)
+
+      if build, do: assert(sdk < build, "#{id} must install its SDK before compilation")
+    end
+  end
+
   @tag :tmp_dir
   test "apt helper gives the official archive explicit priority and preserves fallbacks", %{
     tmp_dir: tmp_dir

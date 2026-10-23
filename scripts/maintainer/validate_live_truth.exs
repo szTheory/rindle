@@ -653,6 +653,7 @@ defmodule Rindle.ValidateLiveTruth do
       mix = absolute_executable!("mix")
       elixir = absolute_executable!("elixir")
       erl = absolute_executable!("erl")
+      native_environment = package_native_environment!(git, repository_root, subject_sha)
 
       assert_package_inputs_match_subject!(git, repository_root, subject_sha)
 
@@ -669,7 +670,7 @@ defmodule Rindle.ValidateLiveTruth do
             "--output",
             package_root
           ],
-          private_package_env("dev", package_root, mix, git, elixir, erl)
+          private_package_env("dev", package_root, mix, git, elixir, erl, native_environment)
         )
 
       assert!(
@@ -733,7 +734,16 @@ defmodule Rindle.ValidateLiveTruth do
             "-e",
             helper_script
           ],
-          private_package_env("test", package_root, mix, git, elixir, erl, true) ++
+          private_package_env(
+            "test",
+            package_root,
+            mix,
+            git,
+            elixir,
+            erl,
+            native_environment,
+            true
+          ) ++
             [{"RINDLE_INSTALL_SMOKE_PACKAGE_ROOT", package_root}]
         )
 
@@ -888,6 +898,18 @@ defmodule Rindle.ValidateLiveTruth do
     )
   end
 
+  defp package_native_environment!(git, repository_root, subject_sha) do
+    workflow =
+      subject_helper_source!(git, repository_root, subject_sha, ".github/workflows/ci.yml")
+      |> YamlElixir.read_from_string!()
+
+    case get_in(workflow, ["env", "VIX_COMPILATION_MODE"]) do
+      nil -> []
+      "PLATFORM_PROVIDED_LIBVIPS" -> [{"VIX_COMPILATION_MODE", "PLATFORM_PROVIDED_LIBVIPS"}]
+      _ -> raise ArgumentError, "unsupported subject native compilation mode"
+    end
+  end
+
   defp private_package_env(
          mix_env,
          _package_root,
@@ -895,6 +917,7 @@ defmodule Rindle.ValidateLiveTruth do
          git,
          elixir,
          erl,
+         native_environment,
          include_test_services \\ false
        ) do
     keys = ~w(HOME MIX_HOME HEX_HOME)
@@ -914,17 +937,30 @@ defmodule Rindle.ValidateLiveTruth do
         end
       end)
 
+    native_paths =
+      if native_environment == [] do
+        []
+      else
+        Enum.map(["pkg-config", "cmake"], fn name ->
+          executable = System.find_executable("/usr/bin/#{name}") || absolute_executable!(name)
+          Path.dirname(executable)
+        end)
+      end
+
     path =
-      [
-        Path.dirname(erl),
-        Path.dirname(elixir),
-        Path.dirname(mix),
-        Path.dirname(git),
-        "/usr/bin",
-        "/bin",
-        "/usr/sbin",
-        "/sbin"
-      ]
+      ([
+         Path.dirname(erl),
+         Path.dirname(elixir),
+         Path.dirname(mix),
+         Path.dirname(git)
+       ] ++
+         native_paths ++
+         [
+           "/usr/bin",
+           "/bin",
+           "/usr/sbin",
+           "/sbin"
+         ])
       |> Enum.uniq()
       |> Enum.join(":")
 
@@ -932,6 +968,7 @@ defmodule Rindle.ValidateLiveTruth do
 
     unset ++
       inherited ++
+      native_environment ++
       [
         {"PATH", path},
         {"MIX_ENV", mix_env},
