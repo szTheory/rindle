@@ -107,6 +107,22 @@
       "reason": "This fixture lists the check-run names the landing evidence script consumes."
     },
     {
+      "path": "scripts/ci/test_land_release_train_baseline.py",
+      "class": "planning-path",
+      "text": "'files':[{'path':'.planning/RELEASE-TRAIN.md','additions':1,'deletions':1}],",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Fake GitHub PR file payload matching real gh JSON; tests reject additional paths."
+    },
+    {
+      "path": "scripts/ci/test_land_release_train_baseline.py",
+      "class": "planning-path",
+      "text": "LEDGER = \".planning/RELEASE-TRAIN.md\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Offline behavioral fixture for the exact permitted release ledger path."
+    },
+    {
       "path": "scripts/ci/test_readiness_acceptance.sh",
       "class": "phase-ref",
       "text": "path=self.tmp/'.planning';path.mkdir();(path/'REQUIREMENTS.md').write_text('| READY-05 | Phase 139 | Complete |\\n')",

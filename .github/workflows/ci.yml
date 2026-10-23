@@ -30,6 +30,9 @@ concurrency:
 
 env:
   MIX_ENV: test
+  # Use the supported system-libvips build path. GitHub asset redirects can
+  # exceed httpc's response-header bound; every native lane installs libvips-dev.
+  VIX_COMPILATION_MODE: PLATFORM_PROVIDED_LIBVIPS
 
 permissions:
   contents: read
@@ -111,7 +114,7 @@ jobs:
           install-deps: "false"
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install FFmpeg
         # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
@@ -311,7 +314,7 @@ jobs:
           install-deps: "false"
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install dependencies without optional packages
         run: MIX_ENV=test mix deps.get --no-optional-deps
@@ -395,7 +398,7 @@ jobs:
         uses: ./.github/actions/setup-minio
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       # Additive, observational: schedulers_online + bounded compile profile.
       - name: Surface compile profile + schedulers
@@ -496,6 +499,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Install libvips for native dependency compilation
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
+
       - name: Install dependencies
         run: mix deps.get
 
@@ -565,6 +571,9 @@ jobs:
           mix-env: test
           install-deps: "false"
 
+      - name: Install libvips for the generated image consumer
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
+
       - name: Install dependencies
         run: mix deps.get
 
@@ -576,9 +585,6 @@ jobs:
 
       - name: Run adopter docs link hygiene gate
         run: bash scripts/maintainer/check_docs_links.sh
-
-      - name: Install libvips for the generated image consumer
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
 
       - name: Set up MinIO for the package authority proof
         uses: ./.github/actions/setup-minio
@@ -665,7 +671,7 @@ jobs:
           install-deps: "false"
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       # Additive, observational: surface cache hit/miss in the run summary.
       - name: Summarize cache hit/miss
@@ -818,7 +824,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install dependencies
         run: mix deps.get
@@ -861,7 +867,8 @@ jobs:
     # Fast, merge-blocking ExUnit lane for examples/adoption_demo: brand mark +
     # wordmark, admin-console mount, lifecycle-state display, and README
     # walkthrough parity (automated). Storage-free — rows are
-    # direct-inserted, so no MinIO/FFmpeg/libvips is needed. Postgres only.
+    # direct-inserted, so no storage service is needed. System libvips is a
+    # native compilation prerequisite; the HomeLive runtime doctor needs FFmpeg.
     # Complements the heavier browser proof in the `Adoption Demo E2E` lane.
     needs: [quality, optional-dependencies]
     env:
@@ -910,6 +917,9 @@ jobs:
       # johnvansickle download action used elsewhere.
       - name: Install FFmpeg
         run: bash scripts/ci/install_apt_packages.sh ffmpeg
+
+      - name: Install libvips for native dependency compilation
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Run adoption demo ExUnit suite
         working-directory: examples/adoption_demo
@@ -1023,7 +1033,7 @@ jobs:
         run: bash scripts/ci/install_apt_packages.sh ffmpeg
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install root dependencies
         run: mix deps.get
@@ -1136,7 +1146,7 @@ jobs:
         run: bash scripts/ci/install_apt_packages.sh ffmpeg
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install root dependencies
         run: mix deps.get
@@ -1217,7 +1227,7 @@ jobs:
           install-deps: "false"
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install FFmpeg
         # Reliable static ffmpeg >= 6, replacing FedericoCarboni/setup-ffmpeg@v3
@@ -1303,7 +1313,7 @@ jobs:
           otp-version: "27"
 
       - name: Install libvips
-        run: bash scripts/ci/install_apt_packages.sh libvips-dev
+        run: bash scripts/ci/install_apt_packages.sh libvips-dev cmake
 
       - name: Install dependencies
         run: mix deps.get
@@ -1508,6 +1518,7 @@ jobs:
           bash scripts/ci/test_nightly_summary_gate.sh
           bash scripts/ci/test_nightly_incident.sh
           bash scripts/ci/test_setup_branch_protection.sh
+          python3 scripts/ci/test_land_release_train_baseline.py
           bash scripts/ci/test_collect_inbox.sh
           bash scripts/ci/test_validate_inbox_ledger.sh
           bash scripts/ci/test_dep_landing_evidence.sh

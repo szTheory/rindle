@@ -195,6 +195,24 @@ CI Script Tests.
 
 ### Release train
 
+CI compiles Vix against the runner's installed `libvips-dev` using its supported
+`PLATFORM_PROVIDED_LIBVIPS` mode. This avoids precompiled-asset redirects exceeding
+the Erlang HTTP client's header limit. Dependency versions and test gates remain
+the same. Native lanes install CMake for HTML-parser source fallback before
+compilation. The isolated package rebuild selects its supported native mode from
+the authenticated subject's CI file and keeps other caller environment stripped;
+cold generated-consumer proof exercises the native build.
+
+After public verification, the baseline ledger update opens an ordinary PR with
+CI enabled and requests squash auto-merge for its exact head. The release job
+observes the configured required GitHub Actions checks and actual merged state
+for up to 45 minutes. A queued request, failed check, changed head or timeout
+does not confirm landing. Inspect the linked PR on failure; auto-merge may still
+be pending. CI observation uses the job token's read-only Checks permission;
+PR operations retain their existing selected credential. No administrator merge
+bypass is used. The offline behavior harness
+is `python3 scripts/ci/test_land_release_train_baseline.py`.
+
 [`.github/workflows/release.yml`](.github/workflows/release.yml) `gate-ci-green` waits for
 `ci.yml` on the release SHA to finish with conclusion `success`. When the latest run is
 not green, or the wait times out, publish **fails closed** — there is no bypass path.

@@ -131,22 +131,6 @@
       "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
     },
     {
-      "path": ".github/workflows/release.yml",
-      "class": "planning-path",
-      "text": "git add .planning/RELEASE-TRAIN.md",
-      "count": 1,
-      "reason_class": "policy",
-      "reason": "The release workflow updates the maintained release-train ledger."
-    },
-    {
-      "path": ".github/workflows/release.yml",
-      "class": "planning-path",
-      "text": "if git diff --quiet -- .planning/RELEASE-TRAIN.md; then",
-      "count": 1,
-      "reason_class": "policy",
-      "reason": "The release workflow updates the maintained release-train ledger."
-    },
-    {
       "path": "scripts/gsd_cleanup.sh",
       "class": "planning-path",
       "text": "echo ' - Milestone is complete. Run `$gsd-cleanup` to archive completed milestone phase directories out of .planning/phases/.'",
@@ -425,6 +409,14 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "Exact historical deferral and qualification receipt identities; the original numeric-speed outcome stays blocked and receives no readiness credit."
+    },
+    {
+      "path": "scripts/maintainer/land_release_train_baseline.py",
+      "class": "planning-path",
+      "text": "LEDGER = \".planning/RELEASE-TRAIN.md\"",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Exact operational release ledger path; the landing owner rejects changes to every other path."
     },
     {
       "path": "scripts/maintainer/phase136_evidence.py",

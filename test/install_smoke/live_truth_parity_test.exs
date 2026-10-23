@@ -927,6 +927,13 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
 
     helper_path = Path.join(caller_root, "test/install_smoke/support/generated_app_helper.ex")
     File.write!(helper_path, "raise \"untrusted caller helper was executed\"\n")
+    caller_ci = Path.join(caller_root, ".github/workflows/ci.yml")
+
+    File.write!(
+      caller_ci,
+      String.replace(File.read!(caller_ci), "PLATFORM_PROVIDED_LIBVIPS", "UNTRUSTED_NATIVE_MODE")
+    )
+
     fixture_context = Map.put(evidence_context, :repository_root, caller_root)
     fixture_model = Rindle.ValidateLiveTruth.derive!(caller_root, [])
 
