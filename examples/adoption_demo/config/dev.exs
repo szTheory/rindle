@@ -51,15 +51,29 @@ config :adoption_demo, AdoptionDemoWeb.Endpoint,
 # different ports.
 
 # Reload browser tabs when matching files change.
+# OTP 28 needs exported patterns in application files; older Elixir versions
+# do not accept the export option. Probe support without changing the patterns.
+live_reload_regex_options =
+  case Regex.compile("", "E") do
+    {:ok, _regex} -> "E"
+    {:error, _reason} -> ""
+  end
+
 config :adoption_demo, AdoptionDemoWeb.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
       # Static assets, except user uploads
-      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
+      Regex.compile!(
+        ~S"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
+        live_reload_regex_options
+      ),
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/adoption_demo_web/router\.ex$",
-      ~r"lib/adoption_demo_web/(controllers|live|components)/.*\.(ex|heex)$"
+      Regex.compile!(~S"lib/adoption_demo_web/router\.ex$", live_reload_regex_options),
+      Regex.compile!(
+        ~S"lib/adoption_demo_web/(controllers|live|components)/.*\.(ex|heex)$",
+        live_reload_regex_options
+      )
     ]
   ]
 
