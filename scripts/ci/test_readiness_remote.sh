@@ -38,6 +38,35 @@ landing_jobs=['Quality (stable)','ADMIN-06 Optional Dependencies (stable)','Cont
  'Package Consumer Proof Matrix + Release Preflight','Adopter','Adoption Demo Unit','Adoption Demo E2E Smoke','Cohort Demo Smoke',
  'Adoption Demo E2E','Package Consumer Full Matrix + Release Preflight (stable)']
 
+# Memoize deterministic parser/helper transformations across fixture cases, as
+# the workflow-policy parser above already does. Every authenticated API read and
+# every validator invocation still runs twice. Changed run/job/lock bytes produce
+# a different key; the changed-jobs regression below prevents stale green reuse.
+# The actual-CLI subprocess test is unpatched and exercises the full real path.
+original_command=c.RemoteCollector.command
+pure_commands={}
+def fixture_command(self,argv,cwd,env,budget):
+    normalized=None;output=None
+    if len(argv)==5 and argv[0]=='elixir' and argv[2]=='--inventory':
+        normalized=[argv[0],pathlib.Path(argv[1]).read_bytes().hex(),argv[2],pathlib.Path(argv[3]).read_bytes().hex()]
+        output=pathlib.Path(argv[4])
+    elif len(argv)>2 and argv[:2]==['bash',str(root/'scripts/maintainer/dep_landing_evidence.sh')] and '--run-file' in argv:
+        normalized=list(argv);normalized[1]=pathlib.Path(argv[1]).read_bytes().hex()
+        for flag in ('--run-file','--jobs-file'):
+            position=argv.index(flag)+1;normalized[position]=pathlib.Path(argv[position]).read_bytes().hex()
+        position=argv.index('--out')+1;output=pathlib.Path(argv[position]);normalized[position]='OUTPUT'
+        normalized += [env.get('GIT_DIR'),env.get('GIT_WORK_TREE')]
+    if normalized is None:return original_command(self,argv,cwd,env,budget)
+    key=c.canonical(normalized)
+    if key in pure_commands:
+        code,raw=pure_commands[key]
+        c.write_new(output,raw)
+        return code
+    code=original_command(self,argv,cwd,env,budget)
+    if output.is_file():pure_commands[key]=(code,output.read_bytes())
+    return code
+c.RemoteCollector.command=fixture_command
+
 class Remote(unittest.TestCase):
     def setUp(self):
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-remote-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
