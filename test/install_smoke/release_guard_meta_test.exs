@@ -194,6 +194,27 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
     assert label_reconcile =~ "label reconciliation did not persist"
   end
 
+  test "baseline landing keeps public verification and ordinary protected PR CI", %{
+    release: release,
+    ci: ci
+  } do
+    [_, baseline] = String.split(release, "\n  update-release-train-baseline:\n", parts: 2)
+    assert baseline =~ "needs: [gate-ci-green, publish, public_verify]"
+    assert baseline =~ "needs.public_verify.result == 'success'"
+    assert baseline =~ "BASELINE_BASE_SHA: ${{ steps.baseline_source.outputs.sha }}"
+    assert baseline =~ "python3 scripts/maintainer/land_release_train_baseline.py"
+    assert ci =~ "python3 scripts/ci/test_land_release_train_baseline.py"
+    refute baseline =~ "[skip ci]"
+    refute baseline =~ "--admin"
+
+    {repair, _} = :binary.match(baseline, "reconcile_release_please_label.sh")
+    {setup, _} = :binary.match(baseline, "name: Set up Elixir")
+    {freeze, _} = :binary.match(baseline, "id: baseline_source")
+    {rewrite, _} = :binary.match(baseline, "update_release_train_baseline.sh")
+    assert repair < setup
+    assert freeze < rewrite
+  end
+
   # ------------------------------------------------------------------
   # Neither guard sneaks onto the sole required CI path.
   # ------------------------------------------------------------------

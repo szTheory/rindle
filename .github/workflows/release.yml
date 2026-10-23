@@ -591,6 +591,10 @@ jobs:
           RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}
         run: bash scripts/maintainer/reconcile_release_please_label.sh
 
+      - name: Freeze baseline checkout source
+        id: baseline_source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Set up Elixir
         uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
@@ -608,34 +612,11 @@ jobs:
           PUBLIC_VERIFY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: bash scripts/maintainer/update_release_train_baseline.sh "$VERSION"
 
-      - name: Commit and merge baseline update
+      - name: Land baseline through required CI
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.publish.outputs.release_version }}
-        run: |
-          set -euo pipefail
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if git diff --quiet -- .planning/RELEASE-TRAIN.md; then
-            echo "RELEASE-TRAIN.md already up to date."
-            exit 0
-          fi
-
-          branch="chore/release-train-baseline-${VERSION}"
-
-          git checkout -b "$branch"
-          git add .planning/RELEASE-TRAIN.md
-          git commit -m "chore(release): record ${VERSION} baseline in RELEASE-TRAIN.md [skip ci]"
-          git push -u origin "$branch"
-
-          pr_url="$(
-            gh pr create \
-              --base main \
-              --head "$branch" \
-              --title "chore(release): record ${VERSION} baseline in RELEASE-TRAIN.md" \
-              --body "Automated RELEASE-TRAIN.md baseline update after public_verify for ${VERSION}."
-          )"
-
-          gh pr merge "$pr_url" --squash --delete-branch --admin
+          BASELINE_BASE_SHA: ${{ steps.baseline_source.outputs.sha }}
+          RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}
+        run: python3 scripts/maintainer/land_release_train_baseline.py
