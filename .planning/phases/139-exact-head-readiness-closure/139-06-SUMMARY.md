@@ -75,6 +75,24 @@ status: complete
 
 # Producer retention and terminal claim enforcement
 
+## Package-proof transport repair
+
+CI run 39879109098 attempt 2 passed the retried optional-dependency install but
+Proof reached its existing 15-minute job limit in the package-authority suite.
+An isolated traced reproduction first exposed a separate generated-consumer
+transport defect: database creation honored `PGPORT`, while the generated Repo
+omitted it for migrations. The generated test config now binds the same explicit
+port. A real Phoenix-template regression failed with `nil` instead of 61234,
+then passed after the fix (41 tests, zero failures, 40 excluded).
+Logs: `/private/tmp/rindle139-proof-2be3514f/test.log` (red) and
+`/private/tmp/rindle139-proof-69928ac3/test.log` (green). Both runs disposed only
+their unique PostgreSQL/MinIO containers. The full package proof and final-main
+acceptance remain pending; this transport repair grants no readiness credit.
+After formatting, the full offline live-truth owner suite passed: 41 tests,
+zero failures, one live MinIO case excluded, in 30.2 seconds. Blocking Credo,
+the live residue scan (693 files, 273 hits, 240 exact allowances), and the
+automation-first contract also passed.
+
 `prepare` validates the candidate graph, includes only referenced portable objects and exact
 manifest bytes, scans for private-source canaries/known credentials, and writes a deterministic
 bounded USTAR/gzip archive. A separate sidecar binds repository, main SHA, workflow, run,

@@ -519,6 +519,45 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   end
 
   @tag :package_authority
+  test "generated consumer config keeps database creation and migration on PGPORT" do
+    root = temporary_fixture_root!("rindle-generated-transport")
+    app_root = Path.join(root, "transport_fixture")
+    Rindle.InstallSmoke.GeneratedApp.Workspace.generate_phoenix_app!(root, app_root)
+
+    Rindle.InstallSmoke.GeneratedApp.Patcher.patch!(
+      app_root,
+      "transport_fixture",
+      "TransportFixture",
+      @repo_root,
+      nil,
+      :image,
+      "rindle",
+      "~> 2.21",
+      false
+    )
+
+    previous = System.get_env("PGPORT")
+
+    on_exit(fn ->
+      if previous, do: System.put_env("PGPORT", previous), else: System.delete_env("PGPORT")
+    end)
+
+    System.put_env("PGPORT", "61234")
+    previous_db = System.get_env("RINDLE_INSTALL_SMOKE_DB")
+
+    on_exit(fn ->
+      if previous_db,
+        do: System.put_env("RINDLE_INSTALL_SMOKE_DB", previous_db),
+        else: System.delete_env("RINDLE_INSTALL_SMOKE_DB")
+    end)
+
+    System.put_env("RINDLE_INSTALL_SMOKE_DB", "transport_fixture_test")
+
+    config = Config.Reader.read!(Path.join(app_root, "config/test.exs"))
+    assert config[:transport_fixture][TransportFixture.Repo][:port] == 61234
+  end
+
+  @tag :package_authority
   test "package authority exposes the canonical producer and verifier interfaces" do
     assert function_exported?(
              Rindle.InstallSmoke.GeneratedAppHelper,
