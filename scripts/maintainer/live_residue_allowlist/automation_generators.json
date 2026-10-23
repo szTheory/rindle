@@ -67,12 +67,44 @@
       "reason": "Exact source fixture for historical/current claim rejection and authoritative input binding; no runtime readiness credit."
     },
     {
+      "path": "scripts/ci/test_collect_inbox.sh",
+      "class": "requirement-id",
+      "text": "JOBS='[\"Quality (stable)\",\"ADMIN-06 Optional Dependencies (stable)\",\"Contract\",\"Proof\",\"Integration\",\"CI Script Tests\",\"Package Consumer Proof Matrix + Release Preflight\",\"Adopter\",\"Adoption Demo Unit\",\"Adoption Demo E2E Smoke\",\"Cohort Demo Smoke\",\"Adoption Demo E2E\",\"Package Consumer Full Matrix + Release Preflight (stable)\"]'",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
+    },
+    {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
       "count": 1,
       "reason_class": "contract",
       "reason": "exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require"
+    },
+    {
+      "path": "scripts/ci/test_dep_landing_evidence.sh",
+      "class": "planning-path",
+      "text": "assert_jq \"descendant preserves original merge and explicit equivalence\" '.sha != .evidence_sha and .run.head_sha == .evidence_sha and .equivalence.policy == \"planning-only-descendant-v1\" and .equivalence.changed_files == [\".planning/STATE.md\"]'",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
+    },
+    {
+      "path": "scripts/ci/test_dep_landing_evidence.sh",
+      "class": "planning-path",
+      "text": "echo bookkeeping >.planning/STATE.md",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
+    },
+    {
+      "path": "scripts/ci/test_dep_landing_evidence.sh",
+      "class": "planning-path",
+      "text": "for file in mix.lock mix.exs lib/rindle.ex .github/workflows/ci.yml .planning/tools/check.py .planning/config.json; do",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
     },
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
@@ -131,6 +163,14 @@
       "reason": "Real Git subject-inventory regression asserts exact tracked context, summary and all eight plan names; these are executable acceptance inputs."
     },
     {
+      "path": "scripts/ci/test_readiness_remote.sh",
+      "class": "requirement-id",
+      "text": "landing_jobs=['Quality (stable)','ADMIN-06 Optional Dependencies (stable)','Contract','Proof','Integration','CI Script Tests',",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
+    },
+    {
       "path": "scripts/ci/test_readiness_runs.sh",
       "class": "planning-path",
       "text": "(root/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json').read_bytes())",
@@ -181,10 +221,26 @@
     {
       "path": "scripts/ci/test_validate_inbox_ledger.sh",
       "class": "phase-ref",
+      "text": "MI='.prs[0] as $p | .prs=[] | .terminal += [($p + {kind:\"pr\",state:\"closed\",merged:true,merge_sha:\"2222222222222222222222222222222222222222\",changed_files:[\"mix.lock\"],landing_evidence:[{schema:\"rindle-dep-landing-v1\",sha:\"2222222222222222222222222222222222222222\",evidence_sha:\"2222222222222222222222222222222222222222\",lock:\"mix.lock\",group:\"ecto_sql\",attributable:true,mix_exs_changed:false,verdict:\"pass\",lock_delta:[{package:\"ecto\",from:\"3.13.6\",to:\"3.14.2\"}],run:{id:100,head_sha:\"2222222222222222222222222222222222222222\",event:\"push\",status:\"completed\"},gates:{supported_toolchain:\"pass\",public_contract:\"pass\",package_consumer:\"pass\",twin:\"not-applicable: twin not built (Phase 137)\"}}]})]'",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
+    },
+    {
+      "path": "scripts/ci/test_validate_inbox_ledger.sh",
+      "class": "phase-ref",
       "text": "TWIN='not-applicable: twin not built (Phase 137)'",
       "count": 1,
       "reason_class": "contract",
       "reason": "exact twin-gate literal the inbox ledger records and validate_inbox_ledger.sh / dep_landing_evidence.sh require"
+    },
+    {
+      "path": "scripts/ci/test_validate_inbox_ledger.sh",
+      "class": "planning-path",
+      "text": "DI=\"$MI | .terminal[1].landing_evidence[0] |= (.evidence_sha=\\\"3333333333333333333333333333333333333333\\\" | .run.head_sha=.evidence_sha | .equivalence={policy:\\\"planning-only-descendant-v1\\\",merge_sha:.sha,evidence_sha:.evidence_sha,changed_files:[\\\".planning/STATE.md\\\"]})\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
     },
     {
       "path": "scripts/ci/test_verify_nightly_run.sh",

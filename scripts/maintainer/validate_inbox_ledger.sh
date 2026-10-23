@@ -79,6 +79,7 @@ if [ "${PRINT_ARGS}" = true ]; then
     [ (trigs[]) | select(type == "object" and .type == "hex_version_gte") | .package ]
       | map(select(type == "string")) | unique | .[] | "--hex-package\n\(.)"
   ' "${LEDGER}"
+  printf '%s\n' --landing-ledger "${LEDGER}"
   exit 0
 fi
 
@@ -207,8 +208,10 @@ def landerrs:
       (if ($l.group | nestr) then empty else R("landing"; "\($lb): group is required") end),
       (if (($l.group_packages | type) == "array" and ($l.group_packages | map(nestr) | all)) then empty
        else R("landing"; "\($lb): group_packages must be an array of package names") end),
-      (if ($l.lock | nestr) then empty else R("landing"; "\($lb): lock is required") end),
+      (if ($l.lock | IN("mix.lock", "examples/adoption_demo/mix.lock")) then empty else R("landing"; "\($lb): lock must be a supported mix.lock path") end),
       (if ($l.merge_sha | hex40) then empty else R("landing"; "\($lb): merge_sha must be 40-hex") end),
+      (if ($l | has("evidence_sha")) and (($l.evidence_sha | hex40) | not)
+       then R("landing"; "\($lb): evidence_sha must be 40-hex") else empty end),
       (if ($l.ci_run_id | posint) then empty else R("landing"; "\($lb): ci_run_id must be a positive integer") end),
       (if ($l.baseline_run_id | posint) then empty else R("landing"; "\($lb): baseline_run_id must be a positive integer") end),
       (if ($l.subject | nestr) then empty else R("landing"; "\($lb): subject is required") end),
@@ -272,6 +275,45 @@ def live($I; $now; $maxage):
                then R("terminal mismatch"; "\($k) ledger terminal differs from inventory (state \($t.state), merged \($t.merged | tojson))")
                else empty end)
           end),
+
+      # A merged lock-changing PR needs one machine-checked landing per lock.
+      # changed_files is collected from GitHub even when the ledger omits a hint.
+      ($items[] | select(.kind == "pr" and .terminal.merged == true) | . as $it
+       | (($I.terminal | arr | map(select(.kind == "pr" and .number == $it.number)) | .[0]) // {}) as $t
+       | if ($t.changed_files | type) != "array" or (($t.merge_sha | hex40) | not)
+         then R("landing source"; "pr \($it.number): missing authoritative changed_files or merge_sha")
+         else
+           (($t.changed_files | map(select(. == "mix.lock" or . == "examples/adoption_demo/mix.lock")))
+            + [$L.landings[] | select(.number == $it.number) | .lock] | unique)[] as $lock
+           | [$L.landings[] | select(.number == $it.number and .lock == $lock)] as $ls
+           | if ($ls | length) != 1 then R("landing required"; "pr \($it.number): exactly one landing required for \($lock)")
+             else $ls[0] as $l
+               | [$t.landing_evidence[]? | select(.lock == $lock)] as $es
+               | if ($es | length) != 1 then R("landing evidence"; "pr \($it.number): exactly one fresh evidence record required for \($lock)")
+                 else $es[0] as $e
+                   | if $l.merge_sha != $t.merge_sha or $e.sha != $t.merge_sha
+                       or $e.schema != "rindle-dep-landing-v1" or $e.verdict != "pass"
+                       or $e.attributable != true or $e.mix_exs_changed != false
+                       or $l.group != $e.group
+                       or (($it | has("risk_group")) and ($l.group != $it.risk_group or ($l.group_packages|sort) != ($it.group_packages|sort)))
+                       or ($l.lock_delta | sort_by(.package)) != ($e.lock_delta | sort_by(.package))
+                       or $l.gates != $e.gates or $l.ci_run_id != $e.run.id
+                       or $e.run.head_sha != ($l.evidence_sha // $l.merge_sha)
+                       or $e.evidence_sha != ($l.evidence_sha // $l.merge_sha)
+                       or $e.run.event != "push" or $e.run.status != "completed"
+                       or (($e.lock_delta | map(.package)) - $l.group_packages | length) != 0
+                     then R("landing mismatch"; "pr \($it.number): landing differs from freshly collected attribution/CI")
+                     elif ($l.evidence_sha // $l.merge_sha) != $l.merge_sha and
+                       ($e.equivalence.policy != "planning-only-descendant-v1"
+                        or $e.equivalence.merge_sha != $l.merge_sha
+                        or $e.equivalence.evidence_sha != $l.evidence_sha
+                        or ($e.equivalence.changed_files|type) != "array"
+                        or ($e.equivalence.changed_files|all(.[]; test("^\\.planning/([^/]+/)*[^/]+\\.md$|^\\.planning/INBOX-LEDGER\\.json$"))|not))
+                     then R("landing equivalence"; "pr \($it.number): descendant lacks verified planning-only history")
+                     else empty end
+                 end
+             end
+         end),
 
       # open PR items: head binding, mergeability, attribution
       ($items[] | select(.kind == "pr" and (has("terminal") | not)) | . as $it

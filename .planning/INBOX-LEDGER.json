@@ -501,7 +501,7 @@
         "mint",
         "req"
       ],
-      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 is a regression by dep_landing_evidence.sh: the package-consumer legs failed at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), which skipped the built-package proof, and Proof was cancelled, so no landings[] record; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
+      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 is a regression by dep_landing_evidence.sh: the package-consumer legs failed at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), which skipped the built-package proof, and Proof was cancelled, so its own run provides no passing landing credit; the explicit landings[] record now uses freshly verified planning-only descendant evidence; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
       "terminal": {
         "merged": true,
         "state": "closed",
@@ -701,6 +701,57 @@
     }
   ],
   "landings": [
+    {
+      "number": 122,
+      "group": "req",
+      "group_packages": [
+        "decimal",
+        "finch",
+        "hpax",
+        "mint",
+        "req"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "da637439f7d2cfdab9f3c62f7a05eb174fe96bb5",
+      "evidence_sha": "dc75ab831e519d4bd07517e59e9e92ab98183bc0",
+      "ci_run_id": 38828155392,
+      "original_ci_run_id": 38809962966,
+      "baseline_run_id": 38806584139,
+      "subject": "build(deps): bump req from 0.7.3 to 0.7.5 (#122)",
+      "lock_delta": [
+        {
+          "from": "3.1.1",
+          "package": "decimal",
+          "to": "3.2.0"
+        },
+        {
+          "from": "0.23.0",
+          "package": "finch",
+          "to": "0.24.0"
+        },
+        {
+          "from": "1.0.4",
+          "package": "hpax",
+          "to": "1.1.0"
+        },
+        {
+          "from": "1.9.3",
+          "package": "mint",
+          "to": "1.11.0"
+        },
+        {
+          "from": "0.7.3",
+          "package": "req",
+          "to": "0.7.5"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
     {
       "number": 123,
       "group": "image",

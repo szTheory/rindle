@@ -4,7 +4,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$root"
 export PYTHONDONTWRITEBYTECODE=1
 python3 - "$root" <<'PY'
-import base64,copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,hashlib,functools,time
+import atexit,base64,copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,hashlib,functools,time
 from unittest.mock import patch
 from types import SimpleNamespace
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
@@ -20,6 +20,52 @@ ledger=json.loads((root/c.LEDGER).read_bytes())
 # Each adversarial scenario supplies its own open PRs; never import live PR heads
 # into a synthetic API map that intentionally starts with no open pulls.
 ledger['items']=[item for item in ledger['items'] if item['kind']!='pr' or 'terminal' in item]
+
+# Controlled merged dependency landing exercises the real validator/helper
+# without importing historical live PRs or requiring deep CI checkout history.
+landing=copy.deepcopy(next(r for r in ledger['landings'] if r['number']==105))
+ledger['items']=[r for r in ledger['items'] if r['kind']!='pr' or r['number']==105]
+ledger['landings']=[landing]
+git_root=pathlib.Path(tempfile.mkdtemp(prefix='rindle-remote-landing-'));atexit.register(shutil.rmtree,git_root)
+def git(*args):return subprocess.check_output(['git','-C',str(git_root),*args],stderr=subprocess.DEVNULL).decode().strip()
+git('init','-q');git('config','user.name','Test');git('config','user.email','test@example.invalid');git('config','commit.gpgsign','false')
+(git_root/'mix.exs').write_text('defmodule M do end\n')
+def fixture_lock(key):return '%{\n'+''.join('  "'+r['package']+'": {:hex, :'+r['package']+', "'+r[key]+'", [], [], "hexpm", "a"},\n' for r in landing['lock_delta'])+'}\n'
+(git_root/'mix.lock').write_text(fixture_lock('from'));git('add','-A');git('commit','-qm','base')
+(git_root/'mix.lock').write_text(fixture_lock('to'));git('add','-A');git('commit','-qm','landing')
+landing['merge_sha']=git('rev-parse','HEAD');os.environ['GIT_DIR']=str(git_root/'.git');os.environ['GIT_WORK_TREE']=str(git_root)
+landing_jobs=['Quality (stable)','ADMIN-06 Optional Dependencies (stable)','Contract','Proof','Integration','CI Script Tests',
+ 'Package Consumer Proof Matrix + Release Preflight','Adopter','Adoption Demo Unit','Adoption Demo E2E Smoke','Cohort Demo Smoke',
+ 'Adoption Demo E2E','Package Consumer Full Matrix + Release Preflight (stable)']
+
+# Memoize deterministic parser/helper transformations across fixture cases, as
+# the workflow-policy parser above already does. Every authenticated API read and
+# every validator invocation still runs twice. Changed run/job/lock bytes produce
+# a different key; the changed-jobs regression below prevents stale green reuse.
+# The actual-CLI subprocess test is unpatched and exercises the full real path.
+original_command=c.RemoteCollector.command
+pure_commands={}
+def fixture_command(self,argv,cwd,env,budget):
+    normalized=None;output=None
+    if len(argv)==5 and argv[0]=='elixir' and argv[2]=='--inventory':
+        normalized=[argv[0],pathlib.Path(argv[1]).read_bytes().hex(),argv[2],pathlib.Path(argv[3]).read_bytes().hex()]
+        output=pathlib.Path(argv[4])
+    elif len(argv)>2 and argv[:2]==['bash',str(root/'scripts/maintainer/dep_landing_evidence.sh')] and '--run-file' in argv:
+        normalized=list(argv);normalized[1]=pathlib.Path(argv[1]).read_bytes().hex()
+        for flag in ('--run-file','--jobs-file'):
+            position=argv.index(flag)+1;normalized[position]=pathlib.Path(argv[position]).read_bytes().hex()
+        position=argv.index('--out')+1;output=pathlib.Path(argv[position]);normalized[position]='OUTPUT'
+        normalized += [env.get('GIT_DIR'),env.get('GIT_WORK_TREE')]
+    if normalized is None:return original_command(self,argv,cwd,env,budget)
+    key=c.canonical(normalized)
+    if key in pure_commands:
+        code,raw=pure_commands[key]
+        c.write_new(output,raw)
+        return code
+    code=original_command(self,argv,cwd,env,budget)
+    if output.is_file():pure_commands[key]=(code,output.read_bytes())
+    return code
+c.RemoteCollector.command=fixture_command
 
 class Remote(unittest.TestCase):
     def setUp(self):
@@ -38,8 +84,15 @@ class Remote(unittest.TestCase):
             if terminal:
                 self.put(prefix+'issues/'+str(number),value)
                 if record['kind']=='pr':self.put(prefix+'pulls/'+str(number),{'number':number,'state':'closed','merged':terminal['merged'],
-                    'base':{'repo':{'full_name':repo}}})
+                    'base':{'repo':{'full_name':repo}},'merge_commit_sha':landing['merge_sha']})
             else:issues.append(value)
+        self.put(prefix+'pulls/105/files?per_page=100',[{'filename':'mix.lock'}])
+        self.landing_run_path=prefix+'actions/workflows/ci.yml/runs?head_sha='+landing['merge_sha']+'&event=push&per_page=5'
+        self.put(self.landing_run_path,{'workflow_runs':[{'id':landing['ci_run_id'],'head_sha':landing['merge_sha'],
+            'event':'push','head_branch':'main','repository':{'full_name':repo},'path':'.github/workflows/ci.yml',
+            'status':'completed','conclusion':'success'}]})
+        self.landing_jobs_path=prefix+'actions/runs/'+str(landing['ci_run_id'])+'/jobs?per_page=100'
+        self.put(self.landing_jobs_path,{'total_count':len(landing_jobs),'jobs':[{'id':i+1,'name':name,'conclusion':'success'} for i,name in enumerate(landing_jobs)]})
         self.put(prefix+'issues?state=open&per_page=100',issues)
         self.issue_path=prefix+'issues?state=open&per_page=100'
         self.put(prefix+'pulls?state=open&per_page=100',[])
@@ -142,6 +195,20 @@ class Remote(unittest.TestCase):
         record=next(r for r in ledger['items'] if r['kind']=='pr' and 'terminal' in r)
         self.body(prefix+'pulls/'+str(record['number']))['merged']=not record['terminal']['merged']
         code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'ledger_reconciliation_failed')
+    def test_merged_lock_landing_cannot_be_deleted(self):
+        raw=copy.deepcopy(ledger);raw['landings']=[]
+        self.subject_file(c.LEDGER,c.canonical(raw));self.full_reject('ledger_reconciliation_failed')
+    def test_merged_lock_landing_uses_actual_terminal_merge(self):
+        self.body(prefix+'pulls/105')['merge_commit_sha']='b'*40
+        code,value,_=self.collect(full=True);self.assertEqual(code,1)
+        self.assertIn(value['reason'],('fixture_response_missing','landing_evidence_unavailable','ledger_reconciliation_failed'))
+    def test_changed_landing_ci_between_observations_rejects(self):
+        self.responses[self.landing_jobs_path].append(copy.deepcopy(self.responses[self.landing_jobs_path][0]))
+        self.responses[self.landing_jobs_path][1]['body']['jobs'][0]['conclusion']='failure'
+        self.full_reject('ledger_reconciliation_failed')
+    def test_foreign_landing_ci_is_not_accepted(self):
+        self.body(self.landing_run_path)['workflow_runs'][0]['repository']['full_name']='foreign/repo'
+        self.full_reject('landing_evidence_unavailable')
     def test_unpublished_advisory_404_cannot_be_empty(self):
         self.put(prefix+'security-advisories?state=draft&per_page=100',{},404)
         code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_unavailable')
