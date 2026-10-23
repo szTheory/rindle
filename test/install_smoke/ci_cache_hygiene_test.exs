@@ -359,15 +359,17 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     mirrors_path = Path.join(tmp_dir, "apt-mirrors.txt")
 
     File.write!(mirrors_path, """
-    http://azure.archive.ubuntu.com/ubuntu priority:2
-    https://archive.ubuntu.com/ubuntu
+    http://azure.archive.ubuntu.com/ubuntu/\tpriority:1
+    https://archive.ubuntu.com/ubuntu/\tpriority:2
+    https://security.ubuntu.com/ubuntu/\tpriority:3
     """)
 
     env = %{"RINDLE_APT_MIRRORS_FILE" => mirrors_path}
     assert run_apt_helper(tmp_dir, ["--configure-only"], env).status == 0
     configured = File.read!(mirrors_path)
-    assert configured =~ "https://archive.ubuntu.com/ubuntu\tpriority:1\n"
-    assert configured =~ "http://azure.archive.ubuntu.com/ubuntu priority:2"
+    assert configured =~ "https://archive.ubuntu.com/ubuntu\tpriority:0\n"
+    assert configured =~ "http://azure.archive.ubuntu.com/ubuntu/\tpriority:1"
+    assert configured =~ "https://security.ubuntu.com/ubuntu/\tpriority:3"
     assert length(Regex.scan(~r{https://archive\.ubuntu\.com/ubuntu}, configured)) == 1
     assert run_apt_helper(tmp_dir, ["--configure-only"], env).status == 0
     assert File.read!(mirrors_path) == configured

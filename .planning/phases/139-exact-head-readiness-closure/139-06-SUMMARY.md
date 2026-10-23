@@ -394,3 +394,11 @@ was retried as acceptance, no new dependency was added, and READY-01–05 remain
 PR #163 auto-merge was temporarily disabled to include these fixes and will be
 restored only after the tested repair is pushed; its existing final-head CI approval
 remains applicable. The accepted historical timing deferral retains zero credit.
+
+The official runner-image source was checked before merge:
+https://github.com/actions/runner-images/blob/main/images/ubuntu/scripts/build/configure-apt-sources.sh.
+It sets Azure priority 1, archive priority 2 and security priority 3. The initial
+repair used archive priority 1 and could therefore tie Azure. It was corrected to
+priority 0, and the owner fixture now uses the runner's exact three-entry layout,
+including trailing slashes and priorities. This intentionally supersedes f9de501f's
+mirror priority; final-head CI must run on the correction before authorized merge.
