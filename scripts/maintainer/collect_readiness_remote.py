@@ -102,6 +102,26 @@ class RemoteCollector:
                 'updated_at':value['updated_at'],'state':'open'})
         return result,pull_numbers
 
+    def landing_evidence(self,number,merge_sha):
+        result=[]
+        for index,record in enumerate(r for r in self.ledger['landings'] if r['number']==number):
+            evidence_sha=record.get('evidence_sha',merge_sha)
+            run_data,_=self.api.get(self.api.path('actions/workflows/ci.yml/runs?head_sha='+evidence_sha+'&event=push&per_page=5'))
+            runs=run_data.get('workflow_runs')
+            require(isinstance(runs,list) and runs and type(runs[0].get('id')) is int,'landing_ci_unavailable')
+            jobs=self.api.pages('actions/runs/'+str(runs[0]['id'])+'/jobs?per_page=100','jobs')
+            directory=self.private/f'landing-{self.observation}-{number}-{index}';directory.mkdir(mode=0o700)
+            write_new(directory/'runs.json',run_data);write_new(directory/'jobs.json',jobs)
+            args=['bash',str(ROOT/'scripts/maintainer/dep_landing_evidence.sh'),'--repo',self.repo,
+                '--sha',merge_sha,'--group',record['group'],'--packages',','.join(record['group_packages']),
+                '--lock',record['lock'],'--run-file',str(directory/'runs.json'),'--jobs-file',str(directory/'jobs.json'),
+                '--out',str(directory/'evidence.json')]
+            if 'evidence_sha' in record:args+=['--evidence-sha',evidence_sha]
+            code=self.command(args,ROOT,dict(os.environ),30)
+            require(code in (0,1,3) and (directory/'evidence.json').is_file(),'landing_evidence_unavailable')
+            result.append(read_json(directory/'evidence.json'))
+        return result
+
     def absent(self,issues,prs):
         open_keys={('issue',i['number']) for i in issues}|{('pr',p['number']) for p in prs}
         numbers={i['number'] for i in self.ledger['items'] if (i['kind'],i['number']) not in open_keys}
@@ -113,13 +133,20 @@ class RemoteCollector:
             value,_=self.api.get(self.api.path('issues/'+str(number)))
             require(value.get('number')==number and value.get('state') in ('open','closed') and
                 value.get('repository_url')=='https://api.github.com/repos/'+self.repo,'absent_item_unavailable')
-            kind='pr' if 'pull_request' in value else 'issue';merged=False
+            kind='pr' if 'pull_request' in value else 'issue';merged=False;extra={}
             if kind=='pr':
                 pull,_=self.api.get(self.api.path('pulls/'+str(number)))
                 require(pull.get('number')==number and pull.get('base',{}).get('repo',{}).get('full_name')==self.repo and
                         type(pull.get('merged')) is bool and pull.get('state')==value['state'],'absent_pr_unavailable')
                 merged=pull['merged']
-            result.append({'kind':kind,'number':number,'state':value['state'],'state_reason':value.get('state_reason'),'merged':merged})
+                if merged and self.only is None:
+                    merge_sha=pull.get('merge_commit_sha')
+                    require(isinstance(merge_sha,str) and re.fullmatch(r'[0-9a-f]{40}',merge_sha),'absent_pr_unavailable')
+                    files=self.api.pages('pulls/'+str(number)+'/files?per_page=100')
+                    require(len(files)<3000 and all(isinstance(f.get('filename'),str) for f in files),'pull_files_incomplete')
+                    extra={'merge_sha':merge_sha,'changed_files':[f['filename'] for f in files],
+                           'landing_evidence':self.landing_evidence(number,merge_sha)}
+            result.append({'kind':kind,'number':number,'state':value['state'],'state_reason':value.get('state_reason'),'merged':merged,**extra})
         return result
 
     def command(self,argv,cwd,env,budget):
