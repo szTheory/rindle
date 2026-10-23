@@ -2,6 +2,14 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.11](https://github.com/szTheory/rindle/compare/rindle-v0.4.10...rindle-v0.4.11) (2026-10-23)
+
+
+### Bug Fixes
+
+* **demo:** support portable reload regex config across runtimes ([#168](https://github.com/szTheory/rindle/issues/168)) ([1b69990](https://github.com/szTheory/rindle/commit/1b6999014da57ddbba612d95995e469c60ab43b8))
+* patch token secret disclosure and restore demo advisory audit ([#166](https://github.com/szTheory/rindle/issues/166)) ([e128269](https://github.com/szTheory/rindle/commit/e128269c26fcbc0b1b7fa5da69e51316fcd02aef))
+
 ## [0.4.10](https://github.com/szTheory/rindle/compare/rindle-v0.4.9...rindle-v0.4.10) (2026-10-16)
 
 
