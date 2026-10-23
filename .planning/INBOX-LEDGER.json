@@ -573,10 +573,15 @@
       }
     },
     {
-      "disposition": "retain",
+      "disposition": "close",
       "kind": "issue",
       "number": 131,
-      "rationale": "Nightly incident for scheduled run 38868181351 on f5ae9442 (Compat 1.18 warnings-as-errors + fresh-PLT Dialyzer on test/support/strict_conn_adapter.ex from #124); fix in #133; the incident lifecycle closes it on the next green scheduled Nightly"
+      "rationale": "GitHub records this historical scheduled incident closed by szTheory on 2026-10-20T15:40:31Z (state_reason completed). Refreshed from authenticated source state; this records issue disposition only and grants no automated Nightly or readiness credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": false,
+        "state_reason": "completed"
+      }
     },
     {
       "disposition": "close",
@@ -680,24 +685,24 @@
     },
     {
       "disposition": "retain",
-      "head_sha": "a98c2c4d5603b7e35f6ee9c158abe436913ec819",
+      "head_sha": "78339960e94d6f4bffb736965434a3039edda6e5",
       "kind": "pr",
       "number": 144,
-      "rationale": "Dependency maintenance owns the phoenix_live_view 1.2.12 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+      "rationale": "Retain this separate dependency-maintenance candidate, observed 2026-10-23: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Current source dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; this disposition grants no package or readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "cefcb0afa4b29bdc263be8906198e7f79ebe1c6e",
+      "head_sha": "7614ddb4a52d1963c99d291f7cd898b9c6e1437c",
       "kind": "pr",
       "number": 145,
-      "rationale": "Dependency maintenance owns the oban 2.24.2 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+      "rationale": "Retain this separate dependency-maintenance candidate, observed 2026-10-23: build(deps): bump oban from 2.21.1 to 2.24.2. Current source dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; this disposition grants no package or readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "0de8150f65553bd639938b50c77fa44dcaeb803f",
+      "head_sha": "234283f2be8cc976ab2a4336660716b1e5ca98ba",
       "kind": "pr",
       "number": 146,
-      "rationale": "Dependency maintenance owns the muontrap 1.8.0 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+      "rationale": "Retain this separate dependency-maintenance candidate, observed 2026-10-23: build(deps): bump muontrap from 1.7.0 to 1.8.0. Current source dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; this disposition grants no package or readiness credit."
     }
   ],
   "landings": [
