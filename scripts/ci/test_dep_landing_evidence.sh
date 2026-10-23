@@ -371,6 +371,25 @@ for field in 'head_sha="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' 'event="workf
   assert_rc "foreign CI identity rejected: ${field}" 1
 done
 
+# Retained bounded-collector responses use the same identity/attribution gate,
+# without another transport or fixture network escape.
+put_run "${SHA_ECTO}" 1008 completed success
+put_jobs 1008
+cp "${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${SHA_ECTO}&event=push&per_page=5").json" "${TMP}/input-run.json"
+jq '.jobs' "${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/runs/1008/jobs?per_page=100").json" >"${TMP}/input-jobs.json"
+reads_before="$(wc -l <"${FAKE_DIR}/gh.log")"
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --run-file "${TMP}/input-run.json" --jobs-file "${TMP}/input-jobs.json"
+assert_rc "retained GET inputs share the attribution/CI gate" 0
+assert_jq "retained inputs preserve exact run identity" '.run.id == 1008 and .attributable == true and .verdict == "pass"'
+record "retained inputs perform no additional GitHub calls" "$([ "$(wc -l <"${FAKE_DIR}/gh.log")" = "$reads_before" ] && echo true || echo false)"
+run --sha "${SHA_ECTO}" --run-file "${TMP}/input-run.json"
+assert_rc "unpaired retained inputs reject" 64
+run --sha "${SHA_ECTO}" --run-file "${TMP}/input-run.json" --jobs-file "${TMP}/input-jobs.json" --baseline-sha "${BASELINE}"
+assert_rc "retained inputs cannot shadow baseline transport" 64
+echo '{}' >"${TMP}/input-jobs.json"
+run --sha "${SHA_ECTO}" --run-file "${TMP}/input-run.json" --jobs-file "${TMP}/input-jobs.json"
+assert_rc "malformed retained jobs reject" 1
+
 # --- 9. tripwire self-test -----------------------------------------------------
 for probe in "api -X POST x" "api --method=PUT x" "api -f a=b x" "api -XDELETE x" "pr merge 1" "run rerun 1"; do
   : >"${FAKE_DIR}/mutations"

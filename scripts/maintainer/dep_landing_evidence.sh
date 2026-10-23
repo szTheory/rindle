@@ -37,12 +37,15 @@ PACKAGES=""
 LOCK="mix.lock"
 BASELINE_SHA=""
 EVIDENCE_SHA=""
+RUN_FILE=""
+JOBS_FILE=""
 OUT=""
 
 usage() {
   cat >&2 <<'USAGE'
 usage: dep_landing_evidence.sh --sha SHA [--group NAME --packages a,b,...] [--lock PATH]
                                [--baseline-sha SHA] [--evidence-sha SHA] [--repo OWNER/NAME] [--out FILE]
+                               [--run-file FILE --jobs-file FILE]
 USAGE
   exit 64
 }
@@ -53,6 +56,8 @@ while [ "$#" -gt 0 ]; do
     --group) [ "$#" -ge 2 ] || usage; GROUP="$2"; shift 2 ;;
     --packages) [ "$#" -ge 2 ] || usage; PACKAGES="$2"; shift 2 ;;
     --lock) [ "$#" -ge 2 ] || usage; LOCK="$2"; shift 2 ;;
+    --run-file) [ "$#" -ge 2 ] || usage; RUN_FILE="$2"; shift 2 ;;
+    --jobs-file) [ "$#" -ge 2 ] || usage; JOBS_FILE="$2"; shift 2 ;;
     --evidence-sha) [ "$#" -ge 2 ] || usage; EVIDENCE_SHA="$2"; shift 2 ;;
     --baseline-sha) [ "$#" -ge 2 ] || usage; BASELINE_SHA="$2"; shift 2 ;;
     --repo) [ "$#" -ge 2 ] || usage; REPO="$2"; shift 2 ;;
@@ -61,6 +66,12 @@ while [ "$#" -gt 0 ]; do
     *) echo "dep_landing_evidence: unknown argument: $1" >&2; usage ;;
   esac
 done
+
+# A bounded authenticated collector may pass retained GET responses to avoid a
+# second credential transport. Data inputs never confer acceptance authority.
+if [ -n "${RUN_FILE}" ] || [ -n "${JOBS_FILE}" ]; then
+  [ -f "${RUN_FILE}" ] && [ -f "${JOBS_FILE}" ] && [ -z "${BASELINE_SHA}" ] || usage
+fi
 
 die() { echo "dep_landing_evidence: $*" >&2; exit 1; }
 
@@ -101,14 +112,16 @@ check_path() {
 
 gh_get() {
   check_path "$1"
-  gh api -H "${ACCEPT}" "$1"
+  if [ -n "${RUN_FILE}" ]; then cat "${RUN_FILE}"
+  else gh api -H "${ACCEPT}" "$1"; fi
 }
 
 # gh_jobs RUN_ID: every job of a run as one flat JSON array.
 gh_jobs() {
   local p="repos/${REPO}/actions/runs/$1/jobs?per_page=100"
   check_path "${p}"
-  gh api -H "${ACCEPT}" --paginate --slurp "${p}" | jq -S '[.[].jobs[]]'
+  if [ -n "${JOBS_FILE}" ]; then jq -e 'type == "array"' "${JOBS_FILE}" >/dev/null || die "malformed jobs input"; cat "${JOBS_FILE}"
+  else gh api -H "${ACCEPT}" --paginate --slurp "${p}" | jq -S '[.[].jobs[]]'; fi
 }
 
 # --- attribution (group mode) ------------------------------------------------
