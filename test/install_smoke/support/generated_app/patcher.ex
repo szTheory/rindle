@@ -97,7 +97,8 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
     File.write!(path, updated)
   end
 
-  defp patch_test_config!(root, app_name, profile_mode, compile_prefix, mux_use_real_api?) do
+  @doc false
+  def patch_test_config!(root, app_name, profile_mode, compile_prefix, mux_use_real_api?) do
     path = Path.join(root, "config/test.exs")
 
     base_updated =

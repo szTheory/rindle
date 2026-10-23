@@ -522,17 +522,22 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
   test "generated consumer config keeps database creation and migration on PGPORT" do
     root = temporary_fixture_root!("rindle-generated-transport")
     app_root = Path.join(root, "transport_fixture")
-    Rindle.InstallSmoke.GeneratedApp.Workspace.generate_phoenix_app!(root, app_root)
 
-    Rindle.InstallSmoke.GeneratedApp.Patcher.patch!(
+    write_fixture_file!(app_root, "config/test.exs", ~S"""
+    import Config
+    config :transport_fixture, TransportFixture.Repo,
+      username: "postgres",
+      password: "postgres",
+      hostname: "localhost",
+      database: "transport_fixture_test#{System.get_env("MIX_TEST_PARTITION")}",
+      pool: Ecto.Adapters.SQL.Sandbox
+    """)
+
+    Rindle.InstallSmoke.GeneratedApp.Patcher.patch_test_config!(
       app_root,
       "transport_fixture",
-      "TransportFixture",
-      @repo_root,
-      nil,
       :image,
       "rindle",
-      "~> 2.21",
       false
     )
 
@@ -949,13 +954,6 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       {&Map.put(&1, :package_sha256, String.duplicate("0", 64)), "package digest mismatch"},
       {&Map.put(&1, :unpacked_tree_sha256, String.duplicate("0", 64)),
        "unpacked package content mismatch"},
-      {&Map.put(&1, :generated_app_tree_sha256, String.duplicate("0", 64)),
-       "generated app tree digest mismatch"},
-      {&Map.put(&1, :dependency_lock_sha256, String.duplicate("0", 64)),
-       "dependency lock digest mismatch"},
-      {&put_in(&1, [:dependency_source, :type], "git"), "dependency source mismatch"},
-      {&put_in(&1, [:commands, "compile"], ["mix", "compile", "--force"]),
-       "package command argv mismatch"},
       {&put_in(&1, [:results, "compile", "exit_code"], 1), "package command failed: compile"}
     ]
 
@@ -983,6 +981,47 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
                %{type: :package, receipt: receipt, evidence_context: evidence_context},
                %{type: :package, receipt: receipt, evidence_context: hostile_context}
              ])
+  end
+
+  @tag :package_authority
+  test "rebuilt package comparison rejects tree, lock, source, argv and lifecycle mutations" do
+    receipt = package_evidence_fixture!().receipt
+    trusted = %{receipt: receipt, lifecycle_proved: true}
+
+    assert :ok =
+             Rindle.ValidateLiveTruth.assert_package_rebuild_matches!(
+               receipt,
+               trusted,
+               @current_version
+             )
+
+    mutations = [
+      {&Map.put(&1, :generated_app_tree_sha256, String.duplicate("0", 64)),
+       "generated app tree digest mismatch"},
+      {&Map.put(&1, :dependency_lock_sha256, String.duplicate("0", 64)),
+       "dependency lock digest mismatch"},
+      {&put_in(&1, [:dependency_source, :type], "git"), "dependency source mismatch"},
+      {&put_in(&1, [:commands, "compile"], ["mix", "compile", "--force"]),
+       "package command argv mismatch"}
+    ]
+
+    for {mutation, message} <- mutations do
+      assert_raise ArgumentError, ~r/#{Regex.escape(message)}/, fn ->
+        Rindle.ValidateLiveTruth.assert_package_rebuild_matches!(
+          mutation.(receipt),
+          trusted,
+          @current_version
+        )
+      end
+    end
+
+    assert_raise ArgumentError, ~r/package command failed: smoke_lifecycle/, fn ->
+      Rindle.ValidateLiveTruth.assert_package_rebuild_matches!(
+        receipt,
+        %{trusted | lifecycle_proved: false},
+        @current_version
+      )
+    end
   end
 
   @tag :package_authority

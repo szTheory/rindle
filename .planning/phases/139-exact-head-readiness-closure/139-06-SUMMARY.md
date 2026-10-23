@@ -93,6 +93,27 @@ zero failures, one live MinIO case excluded, in 30.2 seconds. Blocking Credo,
 the live residue scan (693 files, 273 hits, 240 exact allowances), and the
 automation-first contract also passed.
 
+The traced port-corrected baseline completed all package-authority tests in
+437.2 seconds (41 tests, zero failures, 16 excluded); the live case alone took
+400.1 seconds. Four post-rebuild mutations each reran an independent generated
+consumer. The verifier now delegates its unchanged post-rebuild byte/source/
+argv/lifecycle assertions to a pure comparison seam. The mutation tests call
+that same seam; it returns no normalized authority. Public verification still
+rebuilds the committed package/helper and real lifecycle before normalizing,
+and both hostile-helper and hostile-context live checks remain in place.
+No cache, caller-proof bypass, dependency, workflow, or timeout change was added.
+
+The revised live suite completed in 222.3 seconds (42 tests, zero failures,
+16 excluded), retaining every rejection and adding a failed-lifecycle mutation.
+Logs: `/private/tmp/rindle139-proof-f9937835/test.log` (baseline) and
+`/private/tmp/rindle139-proof-914e79df/test.log` (revised live suite).
+The final transport unit fixture invokes the actual config patcher without a
+generator installation: its offline owner suite passed 42 tests, zero failures,
+one live case excluded (`/private/tmp/rindle139-proof-af43ba9b/test.log`).
+`mix quality_signals` passed with 97 contract tests and unchanged baselines.
+These are local repair measurements, not the deferred CI speed requirement or
+final-main acceptance; GitHub must still verify the exact pushed source.
+
 `prepare` validates the candidate graph, includes only referenced portable objects and exact
 manifest bytes, scans for private-source canaries/known credentials, and writes a deterministic
 bounded USTAR/gzip archive. A separate sidecar binds repository, main SHA, workflow, run,
