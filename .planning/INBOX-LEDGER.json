@@ -306,6 +306,32 @@
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
       "status": "resolved"
+    },
+    {
+      "fix_version": "2.2.1",
+      "id": "EEF-CVE-2026-105963",
+      "locked": "2.2.0",
+      "package": "plug_crypto",
+      "path": [
+        "plug",
+        "plug_crypto"
+      ],
+      "reachability": "runtime",
+      "scope": "root",
+      "status": "resolved"
+    },
+    {
+      "fix_version": "2.2.1",
+      "id": "EEF-CVE-2026-105963",
+      "locked": "2.2.0",
+      "package": "plug_crypto",
+      "path": [
+        "phoenix",
+        "plug_crypto"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -685,24 +711,72 @@
     },
     {
       "disposition": "retain",
-      "head_sha": "78339960e94d6f4bffb736965434a3039edda6e5",
+      "head_sha": "7f0958cc5287c02353df19848fde60b81c9891e7",
       "kind": "pr",
       "number": 144,
-      "rationale": "Retain this separate dependency-maintenance candidate, observed 2026-10-23: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Current source dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; this disposition grants no package or readiness credit."
+      "rationale": "Retain separate dependency candidate, observed at final ledger reconciliation: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Current dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; no readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "7614ddb4a52d1963c99d291f7cd898b9c6e1437c",
+      "head_sha": "276c6777978c116fa71bf0508fe21e2234938eec",
       "kind": "pr",
       "number": 145,
-      "rationale": "Retain this separate dependency-maintenance candidate, observed 2026-10-23: build(deps): bump oban from 2.21.1 to 2.24.2. Current source dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; this disposition grants no package or readiness credit."
+      "rationale": "Retain separate dependency candidate, observed at final ledger reconciliation: build(deps): bump oban from 2.21.1 to 2.24.2. Current dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; no readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "234283f2be8cc976ab2a4336660716b1e5ca98ba",
+      "head_sha": "9b55cc696b7a31a4fd3153ce066931c5c1ab063d",
       "kind": "pr",
       "number": 146,
-      "rationale": "Retain this separate dependency-maintenance candidate, observed 2026-10-23: build(deps): bump muontrap from 1.7.0 to 1.8.0. Current source dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; this disposition grants no package or readiness credit."
+      "rationale": "Retain separate dependency candidate, observed at final ledger reconciliation: build(deps): bump muontrap from 1.7.0 to 1.8.0. Current dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; no readiness credit."
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 166,
+      "rationale": "Focused upstream plug_crypto 2.2.1 fix for EEF-CVE-2026-105963, plus demo config audit-enablement. Required exact-head PR CI passed; original main Cohort regression is preserved and bounded config repair #168 supplies wholly green descendant CI with unchanged package, locks, manifests and gates. Both lock repair receipts are explicitly recorded. No general dependency sweep or READY credit.",
+      "risk_group": "security-plug-crypto",
+      "group_packages": [
+        "plug_crypto"
+      ],
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 168,
+      "rationale": "Cross-runtime dev config serialization repair; real compiler roundtrip, exact-head PR CI and actual repaired main gates passed. Restores Cohort without changing dependency locks, manifests, library code or CI. Original #166 regression remains explicit in both repair receipts.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 165,
+      "disposition": "merge",
+      "rationale": "Normal-CI baseline PR landing owner and native CI bootstrap; exact-head required PR CI40027457205 passed; merged a92f9f37. Historical main Script Tests deadline failure remains explicit; final reconciliation supplies its fixture-runtime repair. No scheduled readiness credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 167,
+      "disposition": "merge",
+      "rationale": "Release Please normal patch0.4.11; temporary Cohort regression hold removed only after actual repaired main40037539740 passed. Existing guarded automerge40040374013 merged e91a5626 after full PR CI40037579733. Exact-ref publish40040402099 is in progress; no public verification or baseline success is inferred from merge.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [
@@ -1005,6 +1079,118 @@
           "from": "1.5.0",
           "package": "thousand_island",
           "to": "1.6.0"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 166,
+      "group": "security-plug-crypto",
+      "group_packages": [
+        "plug_crypto"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+      "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+      "ci_run_id": 40037539740,
+      "original_ci_run_id": 40033089993,
+      "recovery": {
+        "policy": "demo-config-repair-v1",
+        "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+        "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+        "changed_files": [
+          "examples/adoption_demo/config/dev.exs",
+          "test/install_smoke/demo_dev_config_test.exs"
+        ],
+        "original": {
+          "run": {
+            "conclusion": "failure",
+            "event": "push",
+            "head_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+            "id": 40033089993,
+            "status": "completed"
+          },
+          "verdict": "regression",
+          "gates": {
+            "package_consumer": "fail",
+            "public_contract": "pass",
+            "supported_toolchain": "pass",
+            "twin": "not-applicable: twin not built (Phase 137)"
+          },
+          "failed_jobs": [
+            "Cohort Demo Smoke"
+          ],
+          "cohort_conclusion": "failure"
+        }
+      },
+      "baseline_run_id": 40030211340,
+      "subject": "fix: patch token secret disclosure and restore demo advisory audit (#166)",
+      "lock_delta": [
+        {
+          "from": "2.2.0",
+          "package": "plug_crypto",
+          "to": "2.2.1"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 166,
+      "group": "security-plug-crypto",
+      "group_packages": [
+        "plug_crypto"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+      "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+      "ci_run_id": 40037539740,
+      "original_ci_run_id": 40033089993,
+      "recovery": {
+        "policy": "demo-config-repair-v1",
+        "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+        "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+        "changed_files": [
+          "examples/adoption_demo/config/dev.exs",
+          "test/install_smoke/demo_dev_config_test.exs"
+        ],
+        "original": {
+          "run": {
+            "conclusion": "failure",
+            "event": "push",
+            "head_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+            "id": 40033089993,
+            "status": "completed"
+          },
+          "verdict": "regression",
+          "gates": {
+            "package_consumer": "fail",
+            "public_contract": "pass",
+            "supported_toolchain": "pass",
+            "twin": "not-applicable: twin not built (Phase 137)"
+          },
+          "failed_jobs": [
+            "Cohort Demo Smoke"
+          ],
+          "cohort_conclusion": "failure"
+        }
+      },
+      "baseline_run_id": 40030211340,
+      "subject": "fix: patch token secret disclosure and restore demo advisory audit (#166)",
+      "lock_delta": [
+        {
+          "from": "2.2.0",
+          "package": "plug_crypto",
+          "to": "2.2.1"
         }
       ],
       "gates": {

@@ -44,7 +44,8 @@ green main CI
   → gate-ci-green (ci.yml must succeed on that SHA)
   → publish (Hex + GitHub release)
   → public_verify (Hex index + scripts/public_smoke.sh)
-  → update-release-train-baseline commit to main [skip ci]
+  → update-release-train-baseline opens a narrowly scoped PR
+  → exact-head required CI passes; guarded squash auto-merge to main
 ```
 
 Branch protection is re-asserted by `.github/workflows/branch-protection-apply.yml` when
@@ -55,7 +56,7 @@ Branch protection is re-asserted by `.github/workflows/branch-protection-apply.y
 | Secret | Required | Role |
 |--------|----------|------|
 | `HEX_API_KEY` | Yes (release environment) | Hex.pm publish in `release.yml` |
-| `RELEASE_PLEASE_TOKEN` | Optional | Automerge, baseline push, and dispatch if `GITHUB_TOKEN` recursion blocks |
+| `RELEASE_PLEASE_TOKEN` | Optional | Automerge, baseline PR creation/merge, and dispatch if `GITHUB_TOKEN` recursion blocks |
 | `BRANCH_PROTECTION_PAT` | Optional | Fine-grained PAT with **Administration: read/write** for `branch-protection-apply.yml` |
 
 Without `BRANCH_PROTECTION_PAT`, run `bash scripts/setup_branch_protection.sh main` locally once
