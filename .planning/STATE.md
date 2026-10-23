@@ -4,7 +4,7 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
 stopped_at: Phase 139 Plans 00–06 verified; Plan 07 awaits authorized PR 163 merge and live prerequisites
-last_updated: "2026-10-22T22:33:28.155444+00:00"
+last_updated: "2026-10-23T00:35:52.104549+00:00"
 state_head: 9ebf92ad
 progress:
   total_phases: 7
@@ -15,7 +15,7 @@ last_activity: 2026-10-22
 current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
 current_plan: 139-07
-last_activity_desc: "Seven plans verified; Plan 07 needs merged main, authorized security reads, scheduled proof and durable storage. All READY requirements remain pending."
+last_activity_desc: "7/8 plans complete; setup ready. PR 163 Proof docs-link repair verified locally; new final-head CI and merged-main/scheduled acceptance remain pending."
 ---
 
 ## Project Reference
@@ -71,6 +71,9 @@ ask again. Approval is saved privately at `/Users/jon/Library/Application Suppor
 readiness/pr-163-merge-authorization.json`. The three-group CI harness passed on GitHub. Its Quality legs exposed two old
 step-label assertions plus one adopter-doc copy guard; focused owner checks now
 pass 101 tests after preserving every required command and the five-minute limit.
+Both Quality cells and all other applicable gating jobs then passed; Proof alone
+failed three docs links. Those links are repaired, the new maintainer guide is
+rendered by ExDoc, and actual generated HTML targets/anchor are verified locally.
 
 Live prerequisites: green PR checks and approved merge; successful newest scheduled Nightly
 on the accepted main; landing the pinned retained dispositions for PRs 144–146; authorized

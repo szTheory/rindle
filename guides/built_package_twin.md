@@ -135,5 +135,5 @@ mix test test/install_smoke/twin_*_test.exs --seed 0
 These fast checks use existing test lanes and never start Docker. They cover
 committed PostgreSQL counters, receipt mutations, privacy canaries, CLI authority
 and safe cleanup. A fresh full run and separate retained-evidence verifier remain
-required acceptance. Follow [RUNNING.md](../RUNNING.md) for the relevant public
+required acceptance. Follow [Running](running.html) for the relevant public
 surface, quality and full-suite gates.

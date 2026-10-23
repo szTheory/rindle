@@ -293,3 +293,22 @@ After the ledger correction, 72 ledger, 53 remote and 21 acceptance fixtures pas
 live residue scan reports 693 files/273 hits/240 reviewed entries with zero violations,
 and the artifact ledger covers 3314 files/46 classes. These are implementation and
 setup checks only, with no terminal READY credit.
+
+
+## Proof docs-link repair from live progress check
+
+CI run 39874185827 passed both Quality cells, all script fixtures, Integration,
+Contract, package-consumer, Adopter, adoption smoke/unit and brandbook. Proof's
+adopter docs link hygiene gate rejected three GitHub-only Markdown link patterns.
+The local gate reproduced the same three failures. RUNNING now links the two
+maintainer guides by their generated HTML names; the twin and readiness guides
+link back to running.html. The readiness guide is included in ExDoc extras and
+the existing Maintainer group, so the new target actually exists. No runtime,
+required-check identity, CI timeout or release-authority change was made.
+
+After repair, check_docs_links.sh passes. A real mix docs build exits zero, and
+HTML parsing confirms all four cross-links and the readiness anchor resolve in
+the generated site. The existing generated-release-doc assertion, formatting,
+automation-first contract and diff whitespace check pass. The build still emits
+existing unrelated documentation-reference warnings; this is not a zero-warning
+claim. Required checks must pass again on the new PR head. No READY credit.

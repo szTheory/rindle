@@ -361,7 +361,7 @@ ordering/replay, promotion across host death and interrupted maintenance cleanup
 diagnostics; default verification requires all six cases. Explicit `--legacy`
 preserves the earlier image/purge scenario and its narrower evidence.
 
-See [Built-package twin](guides/built_package_twin.md) for prerequisites, retained
+See [Built-package twin](built_package_twin.html) for prerequisites, retained
 private inputs/archive/receipts, JSON results and exact descriptor cleanup.
 Cleanup refuses active hosts and foreign resources and can be repeated after
 disposal. Historical twin receipts exclude Doctor; exact-head readiness separately
@@ -396,7 +396,7 @@ READY credit. The controller restricts files to 0600 and directories to 0700.
 On a maintainer Mac, the recommended parent is
 `$HOME/Library/Application Support/Rindle/readiness`; use a distinct child for each
 attempt and include the folder in an encrypted backup. See
-[storage and credential decisions](guides/readiness_evidence.md) for the tradeoffs
+[storage and credential decisions](readiness_evidence.html) for the tradeoffs
 and exact producer token permissions. Creating the folder does not configure a backup.
 
 ```bash

@@ -4,7 +4,7 @@ Readiness evidence is a saved proof of what passed for one exact source commit
 during one recorded interval: test receipts, CI and scheduled Nightly identities,
 security inventory coverage, package identity, checksums and the terminal verdict.
 It does not grant readiness to later commits or authorize a release. The commands
-and acceptance rules are in [RUNNING.md](../RUNNING.md#maintainer-exact-head-readiness-evidence).
+and acceptance rules are in [Running](running.html#maintainer-exact-head-readiness-evidence).
 
 ## Recommended storage
 
