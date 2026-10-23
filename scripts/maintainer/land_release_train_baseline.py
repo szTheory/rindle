@@ -27,9 +27,9 @@ def require(condition, message):
         raise LandingError(message)
 
 
-def command(*args):
+def command(*args, env=None):
     try:
-        result = subprocess.run(args, capture_output=True, text=True, timeout=COMMAND_TIMEOUT)
+        result = subprocess.run(args, capture_output=True, text=True, timeout=COMMAND_TIMEOUT, env=env)
     except (OSError, subprocess.TimeoutExpired) as error:
         raise LandingError("command unavailable or timed out: " + " ".join(args[:2])) from error
     # Do not print arbitrary process output: it can contain credential diagnostics.
@@ -37,9 +37,13 @@ def command(*args):
     return result.stdout.rstrip("\n")
 
 
-def gh_json(*args):
+def gh_json(*args, checks_reader=False):
+    env = None
+    if checks_reader:
+        require(bool(os.environ.get("BASELINE_CHECKS_TOKEN")), "baseline Checks read job token missing")
+        env = {**os.environ, "GH_TOKEN": os.environ["BASELINE_CHECKS_TOKEN"]}
     try:
-        return json.loads(command("gh", *args))
+        return json.loads(command("gh", *args, env=env))
     except json.JSONDecodeError as error:
         raise LandingError("GitHub returned invalid JSON") from error
 
@@ -61,7 +65,7 @@ def pull(repo, number, branch, head):
 
 def checks_green(repo, head, contexts):
     pages = gh_json("api", "--paginate", "--slurp",
-                    "repos/{}/commits/{}/check-runs?per_page=100".format(repo, head))
+                    "repos/{}/commits/{}/check-runs?per_page=100".format(repo, head), checks_reader=True)
     require(isinstance(pages, list) and bool(pages), "invalid check-run pages")
     runs = []
     for page in pages:
@@ -108,6 +112,7 @@ def land(repo, version, base, release_sha, wait_seconds=WAIT_SECONDS, poll_secon
     require(Path(LEDGER).read_text(encoding="utf-8").count(
         "- Latest released version: `" + version + "` (Hex.pm,") == 1,
         "baseline version does not match the frozen release version")
+    require(bool(os.environ.get("BASELINE_CHECKS_TOKEN")), "baseline Checks read job token missing")
     policy = gh_json("api", "repos/" + repo)
     require(policy.get("allow_auto_merge") is True, "normal auto-merge unavailable; no bypass permitted")
     main = gh_json("api", "repos/" + repo + "/commits/main")

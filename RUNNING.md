@@ -200,7 +200,9 @@ CI enabled and requests squash auto-merge for its exact head. The release job
 observes the configured required GitHub Actions checks and actual merged state
 for up to 45 minutes. A queued request, failed check, changed head or timeout
 does not confirm landing. Inspect the linked PR on failure; auto-merge may still
-be pending. No administrator merge bypass is used. The offline behavior harness
+be pending. CI observation uses the job token's read-only Checks permission;
+PR operations retain their existing selected credential. No administrator merge
+bypass is used. The offline behavior harness
 is `python3 scripts/ci/test_land_release_train_baseline.py`.
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) `gate-ci-green` waits for

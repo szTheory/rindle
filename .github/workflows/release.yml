@@ -571,6 +571,7 @@ jobs:
     if: ${{ needs.publish.result == 'success' && needs.public_verify.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
+      checks: read
       contents: write
       issues: write
       pull-requests: write
@@ -615,6 +616,7 @@ jobs:
       - name: Land baseline through required CI
         env:
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          BASELINE_CHECKS_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.publish.outputs.release_version }}
           BASELINE_BASE_SHA: ${{ steps.baseline_source.outputs.sha }}

@@ -202,6 +202,8 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
     assert baseline =~ "needs: [gate-ci-green, publish, public_verify]"
     assert baseline =~ "needs.public_verify.result == 'success'"
     assert baseline =~ "BASELINE_BASE_SHA: ${{ steps.baseline_source.outputs.sha }}"
+    assert baseline =~ "checks: read"
+    assert baseline =~ "BASELINE_CHECKS_TOKEN: ${{ github.token }}"
     assert baseline =~ "python3 scripts/maintainer/land_release_train_baseline.py"
     assert ci =~ "python3 scripts/ci/test_land_release_train_baseline.py"
     refute baseline =~ "[skip ci]"

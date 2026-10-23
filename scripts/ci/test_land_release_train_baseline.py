@@ -21,6 +21,7 @@ import json, os, pathlib, subprocess, sys
 args=sys.argv[1:]
 root=pathlib.Path(os.environ['FIXTURE_STATE'])
 mode=os.environ.get('FIXTURE_MODE','success')
+assert os.environ.get('GH_TOKEN') == ('fixture-ci-reader' if args[:3]==['api','--paginate','--slurp'] else 'fixture-pr-writer')
 with (root/'calls.jsonl').open('a') as out: out.write(json.dumps(args)+'\n')
 def count(name):
     p=root/name
@@ -132,6 +133,7 @@ class LandingTest(unittest.TestCase):
         # Fixtures never inherit a real credential or Git commit hook/template.
         for key in ("GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN"):
             self.env.pop(key, None)
+        self.env.update(GH_TOKEN="fixture-pr-writer", BASELINE_CHECKS_TOKEN="fixture-ci-reader")
         self.env["GIT_CONFIG_GLOBAL"] = os.devnull
         self.env["GIT_CONFIG_NOSYSTEM"] = "1"
 
@@ -231,6 +233,11 @@ class LandingTest(unittest.TestCase):
         self.git("remote", "set-url", "origin", str(self.root / "missing"))
         self.run_owner(message="command failed: git push")
         self.assertFalse(any(c[:2] == ["pr", "create"] for c in self.calls()))
+
+    def test_missing_checks_reader_rejects_before_any_write(self):
+        self.env.pop("BASELINE_CHECKS_TOKEN")
+        self.run_owner(message="Checks read job token missing")
+        self.assertEqual(self.calls(), [])
 
     def test_all_configured_contexts_are_required(self):
         path = self.repo / "config/ci_required_checks.json"
