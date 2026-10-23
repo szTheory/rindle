@@ -484,7 +484,7 @@ inventory() {
 derive_intent() {
   local inventory_file="$1" intent_file="$2"
   local marker_file="${workspace}/markers" open_count logical_open missing=false
-  local first_run first_attempt
+  local first_run first_attempt logical_issue="" pending_issue="" pending_state=""
   jq -r '[.[] | .body, .comments[].body] | .[] | scan("nightly-mutation:(?:open|update|close):[1-9][0-9]{0,19}:[1-9][0-9]{0,9}")' \
     "${inventory_file}" | sort >"${marker_file}"
   open_count="$(jq '[.[] | select(.state == "OPEN")] | length' "${inventory_file}")"
@@ -498,13 +498,23 @@ derive_intent() {
         map(select(.run > $run or (.run == $run and .attempt > $attempt))) |
         all(.[]; . as $marker | $events[0] | any(.[]; .run_id == $marker.run and .run_attempt == $marker.attempt))
       ' "${marker_file}" >/dev/null || fail "post-checkpoint mutation marker has no authenticated verdict event"
-    if [ "${checkpoint_issue_state}" = OPEN ]; then logical_open=true; fi
+    if [ "${checkpoint_issue_state}" = OPEN ]; then
+      logical_open=true
+      logical_issue="${checkpoint_issue_number}"
+    fi
   elif [ "$(jq length "${events_file}")" -gt 0 ]; then
     first_run="$(jq -r '.[0].run_id' "${events_file}")"
     first_attempt="$(jq -r '.[0].run_attempt' "${events_file}")"
     if { [ ! -s "${marker_file}" ] && [ "${open_count}" -eq 1 ]; } ||
        grep -Eq "^nightly-mutation:(update|close):${first_run}:${first_attempt}$" "${marker_file}"; then
       logical_open=true
+      logical_issue="$(jq -r '[.[] | select(.state == "OPEN")][0].number // empty' "${inventory_file}")"
+      if [ -z "${logical_issue}" ]; then
+        logical_issue="$(jq -r --arg update "nightly-mutation:update:${first_run}:${first_attempt}" \
+          --arg close "nightly-mutation:close:${first_run}:${first_attempt}" \
+          '.[] | select([.body, .comments[].body | scan("nightly-mutation:(?:open|update|close):[1-9][0-9]{0,19}:[1-9][0-9]{0,9}")] |
+            index($update) != null or index($close) != null) | .number' "${inventory_file}")"
+      fi
     fi
   fi
   printf 'null\n' >"${intent_file}"
@@ -531,16 +541,45 @@ derive_intent() {
     if grep -Fqx "${marker}" "${marker_file}"; then
       [ "${same_event_count}" -eq 1 ] || fail "event owns an unexpected mutation marker"
       [ "${missing}" = false ] || fail "incident history applies a later event before an earlier event"
+      local owner
+      owner="$(jq -r --arg marker "${marker}" \
+        '.[] | select([.body, .comments[].body | scan("nightly-mutation:(?:open|update|close):[1-9][0-9]{0,19}:[1-9][0-9]{0,9}")] |
+          index($marker) != null) | .number' "${inventory_file}")"
+      if [ "${action}" = open ]; then
+        logical_issue="${owner}"
+      else
+        [ "${owner}" = "${logical_issue}" ] || fail "mutation marker belongs to a different incident"
+      fi
     else
       [ "${same_event_count}" -eq 0 ] || fail "event owns the wrong mutation marker"
       if [ "${missing}" = false ]; then
+        if [ "${action}" != open ]; then
+          [[ "${logical_issue}" =~ ^[1-9][0-9]*$ ]] || fail "authenticated incident target is absent"
+          pending_issue="${logical_issue}"
+          pending_state="$(jq -r --argjson number "${pending_issue}" \
+            '.[] | select(.number == $number) | .state' "${inventory_file}")"
+          [[ "${pending_state}" = OPEN || "${pending_state}" = CLOSED ]] || fail "authenticated incident target is absent"
+        fi
         jq -cn --arg action "${action}" --arg marker "${marker}" --argjson event "${event}" \
-          --argjson open "${open_count}" '{action:$action,marker:$marker,event:$event,open_count:$open}' >"${intent_file}"
+          --argjson open "${open_count}" --arg issue "${pending_issue}" --arg state "${pending_state}" \
+          '{action:$action,marker:$marker,event:$event,open_count:$open,issue_number:$issue,issue_state:$state}' >"${intent_file}"
         missing=true
       fi
     fi
-    case "${action}" in open|update) logical_open=true ;; close) logical_open=false ;; esac
+    case "${action}" in
+      open) logical_open=true; [ "${missing}" = false ] || logical_issue="" ;;
+      update) logical_open=true ;;
+      close) logical_open=false; logical_issue="" ;;
+    esac
   done < <(jq -c '.[]' "${events_file}")
+
+  # An operator can close an issue before replay catches up. Historical updates
+  # may still be appended when a later green event closes that same incident.
+  # A still-red incident requires explicit reconciliation, never a retry loop.
+  if [ "${pending_state}" = CLOSED ] && [ "${logical_open}" = true ] &&
+     [ "${logical_issue}" = "${pending_issue}" ]; then
+    fail "incident closed outside authenticated history while its latest verdict is red"
+  fi
 
   if [ "${missing}" = false ]; then
     if { [ "${logical_open}" = true ] && [ "${open_count}" -ne 1 ]; } ||
@@ -629,7 +668,7 @@ mutate() {
   local intent_file="$1" inventory_file="$2" body_file="$3"
   local action issue_number
   action="$(jq -r .action "${intent_file}")"
-  issue_number="$(jq -r '[.[] | select(.state == "OPEN")][0].number // empty' "${inventory_file}")"
+  issue_number="$(jq -r .issue_number "${intent_file}")"
   case "${action}" in
     open)
       [ "$(jq -r .open_count "${intent_file}")" -eq 0 ] || return 1
@@ -643,8 +682,15 @@ mutate() {
       ;;
     close)
       [[ "${issue_number}" =~ ^[1-9][0-9]*$ ]] || return 1
-      ${GH_CLI:-gh} issue close "${issue_number}" --repo "${GH_REPO}" \
-        --comment "$(<"${body_file}")" >/dev/null
+      # gh issue close returns success without adding --comment to an already
+      # closed issue. Record the authenticated recovery without reopening it.
+      if [ "$(jq -r .issue_state "${intent_file}")" = CLOSED ]; then
+        ${GH_CLI:-gh} issue comment "${issue_number}" --repo "${GH_REPO}" \
+          --body-file "${body_file}" >/dev/null
+      else
+        ${GH_CLI:-gh} issue close "${issue_number}" --repo "${GH_REPO}" \
+          --comment "$(<"${body_file}")" >/dev/null
+      fi
       ;;
     *) fail "invalid mutation intent" ;;
   esac

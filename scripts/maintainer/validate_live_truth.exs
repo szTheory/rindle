@@ -435,6 +435,29 @@ defmodule Rindle.ValidateLiveTruth do
     _diagnostic_results = verify_command_results!(receipt["results"])
 
     trusted = rebuild_package_authority!(repository_root, subject_sha, receipt)
+    assert_package_rebuild_matches!(receipt, trusted, expected_package_version)
+
+    %{
+      schema_version: @package_receipt_schema,
+      evidence_type: "maintainer-operated-package-consumer",
+      subject_sha: receipt["subject_sha"],
+      lifecycle_proved: true,
+      authorizes_independent_adoption: false,
+      authorizes_1_0: false
+    }
+  rescue
+    Jason.DecodeError -> raise ArgumentError, "malformed command result receipt"
+  end
+
+  def verify_package_evidence!(_receipt, _context),
+    do: raise(ArgumentError, "package proof is not a canonical generated consumer receipt")
+
+  # Pure comparison seam. Only verify_package_evidence!/2 obtains the trusted
+  # rebuild and returns normalized authority; this assertion grants no authority.
+  @doc false
+  def assert_package_rebuild_matches!(receipt, trusted, expected_package_version) do
+    receipt = stringify_keys!(receipt, "package receipt")
+    trusted = stringify_keys!(trusted, "package rebuild")
     package = trusted["receipt"]
 
     assert!(package["package_name"] == "rindle", "package name mismatch")
@@ -479,22 +502,8 @@ defmodule Rindle.ValidateLiveTruth do
 
     assert!(trusted["lifecycle_proved"] == true, "package command failed: smoke_lifecycle")
 
-    lifecycle_proved = true
-
-    %{
-      schema_version: @package_receipt_schema,
-      evidence_type: "maintainer-operated-package-consumer",
-      subject_sha: receipt["subject_sha"],
-      lifecycle_proved: lifecycle_proved,
-      authorizes_independent_adoption: false,
-      authorizes_1_0: false
-    }
-  rescue
-    Jason.DecodeError -> raise ArgumentError, "malformed command result receipt"
+    :ok
   end
-
-  def verify_package_evidence!(_receipt, _context),
-    do: raise(ArgumentError, "package proof is not a canonical generated consumer receipt")
 
   def verify_independent_adopter_evidence!(receipt, context)
       when is_map(receipt) and is_map(context) do

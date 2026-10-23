@@ -176,6 +176,26 @@ defmodule Rindle.Workers.PurgeStorageTest do
     assert Rindle.Repo.get(MediaVariant, variant.id)
   end
 
+  test "denial and unknown storage failures never count as authoritative absence" do
+    for reason <- [:eacces, :access_denied, :unknown] do
+      {asset, variant} = insert_asset_with_variant("denied-#{reason}")
+
+      expect(Rindle.StorageMock, :delete, fn key, _opts ->
+        assert key == variant.storage_key
+        {:error, reason}
+      end)
+
+      assert {:error, ^reason} =
+               perform_job(PurgeStorage, %{
+                 "asset_id" => asset.id,
+                 "profile" => to_string(TestProfile)
+               })
+
+      assert Rindle.Repo.get(MediaAsset, asset.id)
+      assert Rindle.Repo.get(MediaVariant, variant.id)
+    end
+  end
+
   defp insert_asset_with_variant(suffix) do
     asset =
       %MediaAsset{}

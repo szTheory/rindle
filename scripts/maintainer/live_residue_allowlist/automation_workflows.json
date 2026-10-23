@@ -36,6 +36,14 @@
     },
     {
       "path": ".github/workflows/ci.yml",
+      "class": "milestone-ref",
+      "text": "uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Existing reviewed SHA-pinned BEAM action version comment for the readiness parser/producer runtime; no CI topology or release-authority change."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
       "class": "planning-path",
       "text": "! grep -A3 \"parent-death subprocess\" .planning/PROJECT.md | grep -q \"Rambo on macOS\"",
       "count": 1,
@@ -53,7 +61,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "planning-path",
-      "text": "grep -q \"MuonTrap is the sole subprocess runner on every platform\" .planning/PROJECT.md",
+      "text": "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json",
       "count": 1,
       "reason_class": "policy",
       "reason": "This CI step reads a maintained planning document or ledger as its input."
@@ -61,7 +69,7 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "planning-path",
-      "text": "run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json",
+      "text": "grep -q \"MuonTrap is the sole subprocess runner on every platform\" .planning/PROJECT.md",
       "count": 1,
       "reason_class": "policy",
       "reason": "This CI step reads a maintained planning document or ledger as its input."
@@ -105,6 +113,14 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Dependabot-maintained version comment on a SHA-pinned action; the tag text tracks the pinned release and is rewritten by Dependabot, never by hand."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "class": "milestone-ref",
+      "text": "- uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Existing reviewed SHA-pinned BEAM action version comment for the readiness parser/producer runtime; no CI topology or release-authority change."
     },
     {
       "path": ".github/workflows/release.yml",
@@ -291,6 +307,38 @@
       "reason": "Exclusion pattern: maintainer planning files are outside the adopter-docs link check."
     },
     {
+      "path": "scripts/maintainer/collect_readiness_remote.py",
+      "class": "phase-ref",
+      "text": "verdict['next_action']='Phase 134 disposition owner: reconcile the current ledger against restricted collected evidence, then collect again'",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+    },
+    {
+      "path": "scripts/maintainer/collect_readiness_remote.py",
+      "class": "planning-path",
+      "text": "LEDGER = '.planning/INBOX-LEDGER.json'",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+    },
+    {
+      "path": "scripts/maintainer/collect_readiness_runs.py",
+      "class": "planning-path",
+      "text": "'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
+      "path": "scripts/maintainer/collect_readiness_runs.py",
+      "class": "planning-path",
+      "text": "paths += ['.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json',",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
+    },
+    {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
       "class": "phase-ref",
       "text": "TWIN_LITERAL=\"not-applicable: twin not built (Phase 137)\"",
@@ -345,6 +393,38 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "PREFLIGHT = '.planning/phases/139-exact-head-readiness-closure/139-preflight.sh'",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Executable predecessor-verification owner required before isolated qualification; this is an invoked contract path, not historical narration."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "argv = argv + ['--ledger', '.planning/INBOX-LEDGER.json', '--offline']",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "historical = self.workspace/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json'",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical deferral and qualification receipt identities; the original numeric-speed outcome stays blocked and receives no readiness credit."
+    },
+    {
+      "path": "scripts/maintainer/exact_head_readiness.py",
+      "class": "planning-path",
+      "text": "path = self.workspace / '.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json'",
+      "count": 1,
+      "reason_class": "immutable-receipt",
+      "reason": "Exact historical deferral and qualification receipt identities; the original numeric-speed outcome stays blocked and receives no readiness credit."
     },
     {
       "path": "scripts/maintainer/phase136_evidence.py",
@@ -481,6 +561,46 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "Exact command or contract filename scopes evidence to its source-bound owner and preserves historical receipt interfaces."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "phase-ref",
+      "text": "if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\\s*complete\\s*$|.*\\|\\s*(?:139|Phase 139)[^\\n]*\\|\\s*Complete\\s*\\||.*Phase 139:\\s*Complete\\b)',text):",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "planning-path",
+      "text": "PHASE='.planning/phases/139-exact-head-readiness-closure'",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "planning-path",
+      "text": "paths=[root/'.planning/REQUIREMENTS.md',root/'.planning/ROADMAP.md',root/'.planning/STATE.md',",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "spec-ref",
+      "text": "if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\\s*complete\\s*$|.*\\|\\s*(?:139|Phase 139)[^\\n]*\\|\\s*Complete\\s*\\||.*Phase 139:\\s*Complete\\b)',text):",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_adoption.py",
+      "class": "planning-path",
+      "text": "INPUTS = ('.planning/REQUIREMENTS.md','.planning/PROJECT.md','mix.exs',",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
     },
     {
       "path": "scripts/maintainer/repo_hygiene_check.sh",
@@ -633,6 +753,62 @@
       "count": 1,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "phase-ref",
+      "text": "scripts/maintainer/credo_complexity_baseline.json scripts/maintainer/phase136_evidence_contract.json",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Exact upstream coverage/toolchain receipt contract included in the closing subject input fingerprint; changing the path changes acceptance inputs."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": ".planning/phases/139-exact-head-readiness-closure/139-preflight.sh",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "i[\"ledger_sha256\"] == m[\"input_identity\"][\".planning/INBOX-LEDGER.json\"],",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Current remote reconciliation binds the maintained disposition ledger and points failures to its existing owner; the fixture uses that same exact source contract."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "{\"inbox-ledger\", [\"--ledger\", \".planning/INBOX-LEDGER.json\", \"--inventory\", path]} ->",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "{\"inbox-ledger\", [\"--ledger\", \".planning/INBOX-LEDGER.json\", \"--offline\"]} ->",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Authoritative disposition ledger path and accepted validator arguments; qualification and current remote reconciliation consume this exact committed policy."
+    },
+    {
+      "path": "scripts/maintainer/validate_exact_head_readiness.exs",
+      "class": "planning-path",
+      "text": "~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
     },
     {
       "path": "scripts/maintainer/validate_inbox_ledger.sh",

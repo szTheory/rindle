@@ -317,7 +317,7 @@
     {
       "path": "test/install_smoke/nightly_policy_test.exs",
       "class": "planning-path",
-      "text": "\"bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json\"",
+      "text": "\"bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json\",",
       "count": 1,
       "reason_class": "policy",
       "reason": "Asserts the CI step command that reads the maintained inbox ledger; the literal mirrors ci.yml and the validator input path."

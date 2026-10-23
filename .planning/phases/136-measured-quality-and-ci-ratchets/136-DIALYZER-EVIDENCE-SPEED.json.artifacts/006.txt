@@ -1,0 +1,53 @@
+nightly-dialyzer mode=fresh action=build-plt
+Finding suitable PLTs
+Checking PLT...
+[:asn1, :bypass, :color, :compiler, :cowboy, :cowboy_telemetry, :cowlib, :crypto, :db_connection, :decimal, :ecto, :ecto_sql, :eex, :elixir, :ex_aws, :ex_aws_s3, :ex_machina, :ex_marcel, :ex_unit, :finch, :gcs_signed_url, :goth, :hpax, :image, :inets, :jason, :jose, :junit_formatter, :kernel, :lazy_html, :logger, :mime, :mint, :mix, :mox, :muontrap, :mux, :nimble_options, :nimble_ownership, :nimble_pool, :oban, :phoenix, :phoenix_html, :phoenix_live_view, :phoenix_pubsub, :phoenix_template, :plug, :plug_cowboy, :plug_crypto, :postgrex, ...]
+Looking up modules in dialyzer.plt
+Looking up modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Looking up modules in dialyxir_erlang-27.3.4.15.plt
+Finding applications for dialyxir_erlang-27.3.4.15.plt
+Finding modules for dialyxir_erlang-27.3.4.15.plt
+Creating dialyxir_erlang-27.3.4.15.plt
+Looking up modules in dialyxir_erlang-27.3.4.15.plt
+Removing 3 modules from dialyxir_erlang-27.3.4.15.plt
+Checking 19 modules in dialyxir_erlang-27.3.4.15.plt
+Adding 196 modules to dialyxir_erlang-27.3.4.15.plt
+done in 0m7.59s
+Finding applications for dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Finding modules for dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Copying dialyxir_erlang-27.3.4.15.plt to dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Looking up modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Checking 215 modules in dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+Adding 258 modules to dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt
+done in 0m6.18s
+Finding applications for dialyzer.plt
+Finding modules for dialyzer.plt
+Copying dialyxir_erlang-27.3.4.15_elixir-1.17.3.plt to dialyzer.plt
+Looking up modules in dialyzer.plt
+Checking 473 modules in dialyzer.plt
+Adding 1951 modules to dialyzer.plt
+done in 0m35.23s
+ignore_warnings: .dialyzer_ignore.exs
+
+nightly-dialyzer mode=fresh attempt=1 action=analyze
+Finding suitable PLTs
+Checking PLT...
+[:asn1, :bypass, :color, :compiler, :cowboy, :cowboy_telemetry, :cowlib, :crypto, :db_connection, :decimal, :ecto, :ecto_sql, :eex, :elixir, :ex_aws, :ex_aws_s3, :ex_machina, :ex_marcel, :ex_unit, :finch, :gcs_signed_url, :goth, :hpax, :image, :inets, :jason, :jose, :junit_formatter, :kernel, :lazy_html, :logger, :mime, :mint, :mix, :mox, :muontrap, :mux, :nimble_options, :nimble_ownership, :nimble_pool, :oban, :phoenix, :phoenix_html, :phoenix_live_view, :phoenix_pubsub, :phoenix_template, :plug, :plug_cowboy, :plug_crypto, :postgrex, ...]
+PLT is up to date!
+ignore_warnings: .dialyzer_ignore.exs
+
+Starting Dialyzer
+[
+  check_plt: false,
+  init_plt: ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/priv/plts/dialyzer.plt",
+  files: [~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Domain.MediaProcessingRun.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Domain.MediaAttachment.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Ops.UploadMaintenance.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.StorageMock.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Ops.VariantMaintenance.beam",
+   ...],
+  warnings: [:unknown]
+]
+Total errors: 39, Skipped: 39, Unnecessary Skips: 0
+done in 0m2.67s
+done (passed successfully)

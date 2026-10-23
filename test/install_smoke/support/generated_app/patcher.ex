@@ -97,7 +97,8 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
     File.write!(path, updated)
   end
 
-  defp patch_test_config!(root, app_name, profile_mode, compile_prefix, mux_use_real_api?) do
+  @doc false
+  def patch_test_config!(root, app_name, profile_mode, compile_prefix, mux_use_real_api?) do
     path = Path.join(root, "config/test.exs")
 
     base_updated =
@@ -110,7 +111,7 @@ defmodule Rindle.InstallSmoke.GeneratedApp.Patcher do
       |> String.replace(~r/password: "postgres"/, "password: System.get_env(\"PGPASSWORD\")")
       |> String.replace(
         ~r/hostname: "localhost"/,
-        "hostname: System.get_env(\"PGHOST\") || \"localhost\""
+        "hostname: System.get_env(\"PGHOST\") || \"localhost\",\n  port: String.to_integer(System.get_env(\"PGPORT\") || \"5432\")"
       )
       |> String.replace(
         ~r/database: "#{app_name}_test#\{System.get_env\("MIX_TEST_PARTITION"\)\}"/,

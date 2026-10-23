@@ -35,31 +35,31 @@ completion credit.
 
 ### Measured Quality and CI
 
-- [ ] **MAINT-04**: The reviewed complexity baseline cannot grow; each removal has behavior-preservation evidence, while retained findings keep stable identity and a removal trigger.
-- [ ] **TYPE-03**: Dialyzer suppressions are removal-only, narrowly identity-matched, and validated on the supported toolchain without substitution or broader ignores.
-- [ ] **COV-06**: A fresh canonical coverage run preserves or raises the exact accepted floor, while changed risk branches receive behavioral rather than percentage-driven tests.
-- [ ] **TEST-08**: Issue #42's finite async-isolation experiment completes or remains open with a reproducible failure, explicit uncertainty, and evidence-based next trigger.
-- [ ] **CI-15**: Workflow semantics, caches, downloads, images, and process-heavy jobs are structurally validated, immutable or checksum-verified where practical, and bounded by justified timeouts.
+- [x] **MAINT-04**: The reviewed complexity baseline cannot grow; each removal has behavior-preservation evidence, while retained findings keep stable identity and a removal trigger.
+- [x] **TYPE-03**: Dialyzer suppressions are removal-only, narrowly identity-matched, and validated on the supported toolchain without substitution or broader ignores.
+- [x] **COV-06**: A fresh canonical coverage run preserves or raises the exact accepted floor, while changed risk branches receive behavioral rather than percentage-driven tests.
+- [x] **TEST-08**: Issue #42's finite async-isolation experiment completes or remains open with a reproducible failure, explicit uncertainty, and evidence-based next trigger.
+- [x] **CI-15**: Workflow semantics, caches, downloads, images, and process-heavy jobs are structurally validated, immutable or checksum-verified where practical, and bounded by justified timeouts.
 - [ ] **CI-16**: CI changes preserve `ci.yml`, workflow `CI`, the sole `CI Summary` required context, exact-SHA release gating, fork safety, and exact-head proof. The original exact-ten <=480-second median/<=600-second p95 PR envelope is deferred unfinished to SEED-261021-918 by the 2026-10-21 user decision; no speed acceptance credit.
-- [ ] **DX-05**: A contributor can bootstrap a clean supported environment and select the correct focused or full verification command without reverse-engineering workflow YAML.
+- [x] **DX-05**: A contributor can bootstrap a clean supported environment and select the correct focused or full verification command without reverse-engineering workflow YAML.
 
 ### Synthetic Adopter Twin
 
-- [ ] **TWIN-01**: Every twin artifact identifies itself as maintainer-operated synthetic evidence and explicitly states that it does not satisfy the independent-adopter requirement.
-- [ ] **TWIN-02**: The twin consumes a freshly built external Hex artifact and fails if it falls back to repository paths, private modules, source introspection, or prebuilt local BEAM output.
-- [ ] **TWIN-03**: The twin uses adopter-owned Repo, Oban, migrations, PostgreSQL, MinIO, and media runtimes through supported contracts.
-- [ ] **TWIN-04**: Deterministic failures enter only through documented storage, processor, provider, HTTP, tus, or webhook boundaries; no twin-only production API is added.
-- [ ] **TWIN-05**: Real retry claims use persisted database-backed Oban execution, and restart claims terminate and resume a separately supervised runtime without duplicate stimulus.
-- [ ] **TWIN-06**: Every scenario emits a redacted, versioned receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue.
+- [x] **TWIN-01**: Every twin artifact identifies itself as maintainer-operated synthetic evidence and explicitly states that it does not satisfy the independent-adopter requirement.
+- [x] **TWIN-02**: The twin consumes a freshly built external Hex artifact and fails if it falls back to repository paths, private modules, source introspection, or prebuilt local BEAM output.
+- [x] **TWIN-03**: The twin uses adopter-owned Repo, Oban, migrations, PostgreSQL, MinIO, and media runtimes through supported contracts.
+- [x] **TWIN-04**: Deterministic failures enter only through documented storage, processor, provider, HTTP, tus, or webhook boundaries; no twin-only production API is added.
+- [x] **TWIN-05**: Real retry claims use persisted database-backed Oban execution, and restart claims terminate and resume a separately supervised runtime without duplicate stimulus.
+- [x] **TWIN-06**: Every scenario emits a redacted, versioned receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue.
 
 ### Failure and Recovery Matrix
 
-- [ ] **RECOV-01**: An interrupted tus upload resumes from committed offset after client recreation and converges to exactly one ready asset and object.
-- [ ] **RECOV-02**: A transient storage-delete failure preserves durable state, produces an Oban retry, succeeds later, and treats authoritative absence idempotently.
-- [ ] **RECOV-03**: A real AV processing failure becomes visible through supported diagnostics and recovers through the supported repair path.
-- [ ] **RECOV-04**: Duplicate and out-of-order provider events converge idempotently without duplicate provider state or secret-bearing telemetry.
-- [ ] **RECOV-05**: Host restart between durable lifecycle stages resumes without duplicate stimulus, lost work, or inconsistent terminal state.
-- [ ] **RECOV-06**: Interrupted cleanup followed by an idempotent janitor run leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue.
+- [x] **RECOV-01**: An interrupted tus upload resumes from committed offset after client recreation and converges to exactly one ready asset and object.
+- [x] **RECOV-02**: A transient storage-delete failure preserves durable state, produces an Oban retry, succeeds later, and treats authoritative absence idempotently.
+- [x] **RECOV-03**: A real AV processing failure becomes visible through supported diagnostics and recovers through the supported repair path.
+- [x] **RECOV-04**: Duplicate and out-of-order provider events converge idempotently without duplicate provider state or secret-bearing telemetry.
+- [x] **RECOV-05**: Host restart between durable lifecycle stages resumes without duplicate stimulus, lost work, or inconsistent terminal state.
+- [x] **RECOV-06**: Interrupted cleanup followed by an idempotent janitor run leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue.
 
 ### Exact-Head Closure
 
@@ -117,25 +117,25 @@ completion credit.
 | CRAFT-05 | Phase 135 | Complete |
 | CRAFT-06 | Phase 135 | Complete |
 | HYGIENE-03 | Phase 135 | Complete |
-| MAINT-04 | Phase 136 | Pending |
-| TYPE-03 | Phase 136 | Pending |
-| COV-06 | Phase 136 | Pending |
-| TEST-08 | Phase 136 | Pending |
-| CI-15 | Phase 136 | Pending |
-| CI-16 | Phase 136 / SEED-261021-918 | Pending; numeric speed target deferred unfinished |
-| DX-05 | Phase 136 | Pending |
-| TWIN-01 | Phase 137 | Pending |
-| TWIN-02 | Phase 137 | Pending |
-| TWIN-03 | Phase 137 | Pending |
-| TWIN-04 | Phase 137 | Pending |
-| TWIN-05 | Phase 137 | Pending |
-| TWIN-06 | Phase 137 | Pending |
-| RECOV-01 | Phase 138 | Pending |
-| RECOV-02 | Phase 138 | Pending |
-| RECOV-03 | Phase 138 | Pending |
-| RECOV-04 | Phase 138 | Pending |
-| RECOV-05 | Phase 138 | Pending |
-| RECOV-06 | Phase 138 | Pending |
+| MAINT-04 | Phase 136 | Complete |
+| TYPE-03 | Phase 136 | Complete |
+| COV-06 | Phase 136 | Complete |
+| TEST-08 | Phase 136 | Complete |
+| CI-15 | Phase 136 | Complete |
+| CI-16 | Phase 136 / SEED-261021-918 | Active scope verified; numeric speed target deferred unfinished (zero credit) |
+| DX-05 | Phase 136 | Complete |
+| TWIN-01 | Phase 137 | Complete |
+| TWIN-02 | Phase 137 | Complete |
+| TWIN-03 | Phase 137 | Complete |
+| TWIN-04 | Phase 137 | Complete |
+| TWIN-05 | Phase 137 | Complete |
+| TWIN-06 | Phase 137 | Complete |
+| RECOV-01 | Phase 138 | Complete |
+| RECOV-02 | Phase 138 | Complete |
+| RECOV-03 | Phase 138 | Complete |
+| RECOV-04 | Phase 138 | Complete |
+| RECOV-05 | Phase 138 | Complete |
+| RECOV-06 | Phase 138 | Complete |
 | READY-01 | Phase 139 | Pending |
 | READY-02 | Phase 139 | Pending |
 | READY-03 | Phase 139 | Pending |

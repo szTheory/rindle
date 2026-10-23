@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "job_id": "136-07-final-measurements",
+  "plan_id": "136-07",
+  "phase": "136",
+  "backend": "local-subprocess",
+  "submit_command": "python3 .planning/phases/136-measured-quality-and-ci-ratchets/136-closeout-pipeline.py",
+  "status": "completed-unverified",
+  "expected_artifacts": [
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-SPEED.json",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-SPEED.json",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-SPEED.json",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT-SPEED.json",
+    ".planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json"
+  ],
+  "verification_command": "bash scripts/maintainer/verify_phase136_qualification.sh verify --subject-file .planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-SPEED.json --manifest .planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json",
+  "resume_command": "$gsd-execute-phase 136",
+  "submitted_at": "2026-10-21T16:57:12.134622+00:00",
+  "terminal_details": {
+    "reconciled_at": "2026-10-21T19:29:12.746044+00:00",
+    "verification_exit_status": 0,
+    "evidence_verified": true,
+    "qualification_outcome": "blocked",
+    "blocked_authority": "timing",
+    "deferral": "SEED-261021-918",
+    "summary": ".planning/phases/136-measured-quality-and-ci-ratchets/136-07-SUMMARY.md"
+  }
+}

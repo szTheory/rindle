@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-21T16:27:10.940283+00:00",
+  "pr": 162,
+  "pr_url": "https://github.com/szTheory/rindle/pull/162",
+  "state": "MERGED",
+  "method": "SQUASH",
+  "subject_sha": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
+  "merge_sha": "a046e5be585618d4dfc8f559870e4585b1abb06a",
+  "merged_at": "2026-10-21T15:15:57Z",
+  "pr_ci": {
+    "run_id": 39620867248,
+    "conclusion": "success",
+    "proof_duration_seconds": 705,
+    "nightly_harness_duration_seconds": 126,
+    "ci_summary": "success"
+  },
+  "main_ci": {
+    "run_id": 39624064249,
+    "head_sha": "a046e5be585618d4dfc8f559870e4585b1abb06a",
+    "conclusion": "success",
+    "proof_duration_seconds": 848,
+    "ci_summary": "success"
+  },
+  "numeric_speed_acceptance": "deferred_unfinished; no exact-ten timing acceptance credit",
+  "deferral": "136-SPEED-DEFERRAL.json",
+  "phase_complete": false
+}

@@ -137,6 +137,50 @@
         "bash scripts/maintainer/validate_readability_trace.sh --base origin/main --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
       ],
       "summary": "Split Upload-Checksum parsing into parse_checksum_value/1 and decode_checksum/2 and Upload-Metadata decoding into put_metadata_pair/2 and put_decoded_metadata/3; every error atom, status and header unchanged."
+    },
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.CyclomaticComplexity",
+        "file": "lib/rindle/workers/ingest_provider_webhook.ex",
+        "observed_metric": 10,
+        "trigger": "dispatch"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/workers/ingest_provider_webhook.ex"
+      ],
+      "id": "provider-webhook-serialized-persistence",
+      "intent": "failure-semantics",
+      "pr": null,
+      "proof": [
+        "mix test test/rindle/workers/ingest_provider_webhook_test.exs test/rindle/workers/mux_sync_provider_asset_test.exs test/rindle/workers/mux_ingest_variant_test.exs --seed 0",
+        "mix credo_quality",
+        "bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Serialize provider decisions against current committed rows and isolate persistence helpers; preserve FSM, watermark, replay, race and postcommit effect behavior with real database regressions."
+    },
+    {
+      "anchor": {
+        "check": "Credo.Check.Refactor.Nesting",
+        "file": "lib/rindle/workers/mux_sync_provider_asset.ex",
+        "observed_metric": 3,
+        "trigger": "case"
+      },
+      "candidate_id": "quality-maintainability-curated-complexity",
+      "detector": "credo-quality",
+      "files": [
+        "lib/rindle/workers/mux_sync_provider_asset.ex"
+      ],
+      "id": "provider-sync-serialized-persistence",
+      "intent": "failure-semantics",
+      "pr": null,
+      "proof": [
+        "mix test test/rindle/workers/ingest_provider_webhook_test.exs test/rindle/workers/mux_sync_provider_asset_test.exs test/rindle/workers/mux_ingest_variant_test.exs --seed 0",
+        "mix credo_quality",
+        "bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json"
+      ],
+      "summary": "Serialize provider decisions against current committed rows and isolate persistence helpers; preserve FSM, watermark, replay, race and postcommit effect behavior with real database regressions."
     }
   ],
   "schema": "rindle-readability-changes-v1"

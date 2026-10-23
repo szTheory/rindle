@@ -1,7 +1,9 @@
 ---
 phase: 114-oss-trust-governance
 verified: 2026-07-01T01:18:47Z
-status: complete
+status: passed
+legacy_status: complete
+status_migration: schema-only-no-reverification
 next_action: "None - GitHub Private Vulnerability Reporting was enabled and UAT confirmed the Report a vulnerability path renders."
 next_command: ""
 score: "9/9 must-haves verified"
@@ -132,3 +134,11 @@ No codebase gaps found. All in-repo governance, package metadata, release workfl
 
 _Verified: 2026-07-01T01:18:47Z_
 _Verifier: the agent (gsd-verifier)_
+
+## Schema migration (2026-10-21)
+
+The current GSD status vocabulary is applied to the recorded historical outcome.
+Original status: `complete`; normalized status: `passed`. Dates, scores, original
+body, acceptance evidence and fingerprints remain unchanged. This is not fresh
+verification or new requirement credit. The byte-identical original is retained
+in `.planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.22-phases--114-oss-trust-governance.txt`.

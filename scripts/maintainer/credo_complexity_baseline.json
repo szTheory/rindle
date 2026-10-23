@@ -8,7 +8,6 @@
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/ops/runtime_status/collector.ex","trigger":"classify_variant","observed_metric":12,"count":1,"owner":"Runtime status classification","removal_trigger":"observed_metric <= 9"},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/streaming/provider/mux.ex","trigger":"create_asset_with_retry_hint","observed_metric":10,"count":1,"owner":"streaming-provider maintenance","removal_trigger":"observed_metric <= 9"},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/upload/broker.ex","trigger":"concatenate_tus_sessions","observed_metric":11,"count":1,"owner":"Upload concatenation orchestration","removal_trigger":"observed_metric <= 9"},
-    {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"lib/rindle/workers/ingest_provider_webhook.ex","trigger":"dispatch","observed_metric":10,"count":1,"owner":"provider-worker maintenance","removal_trigger":"observed_metric <= 9"},
     {"check":"Credo.Check.Refactor.CyclomaticComplexity","file":"test/install_smoke/support/generated_app_helper.ex","trigger":"prove_package_install!","observed_metric":20,"count":1,"owner":"Generated-app consumer proof","removal_trigger":"observed_metric <= 9"},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/admin/live/actions_live.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Admin-maintenance maintenance","removal_trigger":"observed_metric <= 2"},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/live_view.ex","trigger":"case","observed_metric":3,"count":1,"owner":"LiveView maintenance","removal_trigger":"observed_metric <= 2"},
@@ -20,7 +19,6 @@
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/storage/s3.ex","trigger":"fn","observed_metric":4,"count":1,"owner":"storage-adapter maintenance","removal_trigger":"observed_metric <= 2"},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/streaming.ex","trigger":"case","observed_metric":4,"count":1,"owner":"streaming maintenance","removal_trigger":"observed_metric <= 2"},
     {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/streaming/provider/mux.ex","trigger":"with","observed_metric":4,"count":1,"owner":"streaming-provider maintenance","removal_trigger":"observed_metric <= 2"},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/broker.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Upload broker orchestration","removal_trigger":"observed_metric <= 2"},
-    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/workers/mux_sync_provider_asset.ex","trigger":"case","observed_metric":3,"count":1,"owner":"provider-worker maintenance","removal_trigger":"observed_metric <= 2"}
+    {"check":"Credo.Check.Refactor.Nesting","file":"lib/rindle/upload/broker.ex","trigger":"case","observed_metric":3,"count":1,"owner":"Upload broker orchestration","removal_trigger":"observed_metric <= 2"}
   ]
 }

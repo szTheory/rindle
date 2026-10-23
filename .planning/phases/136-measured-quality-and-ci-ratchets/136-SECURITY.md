@@ -3,17 +3,17 @@ phase: "136"
 slug: "measured-quality-and-ci-ratchets"
 status: verified
 threats_open: 0
-threats_total: 20
+threats_total: 22
 asvs_level: 1
 register_authored_at_plan_time: true
 method: inline-L1-mitigation-audit
-source_sha: 4fdd3fba5ef5bc73be52473bc72de03fe56926d4
+source_sha: e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9
 created: "2026-10-20"
 ---
 
 # Phase136 — Security
 
-The configured L1 audit verifies the20unique declared threats, deduplicating the repeated supply-chain row. Every required mitigation is present and has a named executable owner; the prior supported canonical and the replacement focused65test regression provide behavior evidence; replacement measurement acceptance remains pending. This is an inline source/behavior-evidence audit, not an independent reviewer. No new risk is accepted by this audit and no measured requirement is closed by it.
+The configured L1 audit verifies the22 unique declared threats, including the supply-chain row. Every required mitigation is present and has a named executable owner; final-source quality and measurement receipts provide behavior evidence, and Plan15's focused39-test and full104-test suites verify its new CI controls. Numeric timing acceptance remains deferred unfinished. This is an inline source/behavior-evidence audit, not an independent reviewer. No new risk is accepted by this audit and no measured requirement is closed by it.
 
 ## Trust Boundaries
 
@@ -47,6 +47,8 @@ The configured L1 audit verifies the20unique declared threats, deduplicating the
 | T-136-17 | Repudiation | verify_phase136_qualification.sh | high | mitigate | `scripts/maintainer/phase136_evidence.py`; executable proof `test/install_smoke/phase136_qualification_test.exs` (green current canonical/focused suites). | closed |
 | T-136-18 | Repudiation | final measurement receipts | medium | mitigate | `scripts/maintainer/phase136_evidence.py`; executable proof `test/install_smoke/phase136_measure_test.exs` (green current canonical/focused suites). | closed |
 | T-136-19 | Tampering | subject pin and coverage receipt | high | mitigate | `scripts/maintainer/phase136_evidence.py`; executable proof `test/install_smoke/coverage_floor_policy_test.exs` (green current canonical/focused suites). | closed |
+| T-136-20 | Denial of service | Proof harness concurrency | medium | mitigate | `.github/workflows/ci.yml` keeps a fixed four-child bound and the existing timeout; parsed-YAML overlap assertion in `test/install_smoke/quality_signal_policy_test.exs`; Plan15 focused39/0 and full104/0 suites plus green PR/main Proof. | closed |
+| T-136-21 | Tampering | Required CI result | high | mitigate | `.github/workflows/ci.yml` waits for every child and propagates any failure; parsed-YAML tests exercise each failing-child position in `test/install_smoke/quality_signal_policy_test.exs`; Plan15 focused39/0 and full104/0 suites plus green CI Summary. | closed |
 | T-136-SC | Tampering | package installs | high | mitigate | Existing locked dependencies/tooling rehydrated; no manifest/lock/runtime-file change; pinned consumed FFmpeg/mc/OCI inputs audited. | closed |
 
 ## Supplemental Gap Controls
@@ -59,7 +61,7 @@ No newly accepted risks. Disposable Postgres16-alpine patch tracking is the exis
 
 ## Limits
 
-Closing a mitigation means the control exists and its behavioral verification is present. Final bootstrap/async receipts and live exact-ten PR timing remain separate acceptance authorities; missing live evidence cannot receive green credit. No PR publication or trigger-label mutation occurred.
+Closing a mitigation means the control exists and its behavioral verification is present. Final bootstrap/async receipts and live exact-ten PR timing remain separate acceptance authorities; missing live evidence cannot receive green credit. No PR publication or trigger-label mutation occurred during this audit.
 
 ## Security Audit Trail
 
@@ -69,7 +71,7 @@ Closing a mitigation means the control exists and its behavioral verification is
 
 ## Sign-Off
 
-- [x] All20threats have a disposition and verified mitigation.
+- [x] All22threats have a disposition and verified mitigation.
 - [x] No new accepted risk or weakened source/runtime/provenance check.
 - [x] threats_open:0 at the configured high threshold; all declared threats are closed.
 - [x] status:verified records this source audit, without phase qualification credit.
@@ -80,4 +82,16 @@ The replacement source preserves all twenty declared threat mitigations. Legacy 
 
 ## Parallel harness delta (2026-10-21)
 
-Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; T-136-09 and T-136-10 retain executable mitigation. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.
+Inline self-review of the three-file repair confirms a fixed four-child bound, isolated fixtures, wait-all behavior and fail-any propagation. The parsed workflow body passes 39 focused policy/topology tests, including an overlap barrier and each of four failure positions. Actual harness execution passed sequentially in 94.292 seconds and concurrently in 66.352 seconds. The job timeout, required context, permissions, dependencies and assertion set are unchanged. No new security finding; Plan15 threats T-136-20 and T-136-21 have executable mitigation. The distinct original Plan05 threats T-136-09 and T-136-10 retain their existing mitigations. Numeric timing acceptance is explicitly deferred unfinished under 136-SPEED-DEFERRAL.json; this audit provides no speed acceptance credit.
+
+## Threat identity repair (2026-10-21)
+
+Plan15 originally reused Plan05 identifiers. Its two distinct threats are now T-136-20 and T-136-21, following the previous highest ID19. The register contains22 unique threats including SC, all closed; the original20-threat audit remains historical. The current audit source is final subject e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9. No source or acceptance claim changed.
+
+## Security Audit 2026-10-21
+
+| Metric | Count |
+|---|---|
+| Threats found | 22 |
+| Closed | 22 |
+| Open | 0 |

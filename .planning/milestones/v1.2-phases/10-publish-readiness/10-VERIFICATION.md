@@ -1,7 +1,9 @@
 ---
 phase: 10-publish-readiness
 verified: 2026-04-28T20:05:32Z
-status: verified
+status: passed
+legacy_status: verified
+status_migration: schema-only-no-reverification
 score: 6/6 must-haves verified
 overrides_applied: 0
 automation_replaced_human_uat: true
@@ -104,3 +106,11 @@ No code, wiring, or remaining human-UAT gaps were found for the Phase 10 must-ha
 
 _Verified: 2026-04-28T20:05:32Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Schema migration (2026-10-21)
+
+The current GSD status vocabulary is applied to the recorded historical outcome.
+Original status: `verified`; normalized status: `passed`. Dates, scores, original
+body, acceptance evidence and fingerprints remain unchanged. This is not fresh
+verification or new requirement credit. The byte-identical original is retained
+in `.planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.2-phases--10-publish-readiness.txt`.

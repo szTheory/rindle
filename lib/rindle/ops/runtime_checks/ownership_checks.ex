@@ -3,6 +3,24 @@ defmodule Rindle.Ops.RuntimeChecks.OwnershipChecks do
 
   alias Rindle.Ops.OwnershipSnapshot
 
+  @legacy_versions [
+    20_260_424_155_129,
+    20_260_424_205_942,
+    20_260_425_090_000,
+    20_260_425_090_100,
+    20_260_425_090_150,
+    20_260_425_090_200,
+    20_260_425_090_300,
+    20_260_428_110_000,
+    20_260_502_120_000,
+    20_260_506_120_000,
+    20_260_507_160_000,
+    20_260_522_120_000,
+    20_260_524_120_000,
+    20_260_527_065_924,
+    20_260_527_120_000
+  ]
+
   @base_queues [:rindle_maintenance, :rindle_process, :rindle_promote, :rindle_purge]
 
   @doc false
@@ -139,7 +157,7 @@ defmodule Rindle.Ops.RuntimeChecks.OwnershipChecks do
         )
 
       rindle_schema_ready?(rindle_schema_catalog, schema_context) and
-          no_pending_migration_statuses?(statuses) ->
+        all_unresolved_legacy?(statuses) and no_pending_migration_statuses?(statuses) ->
         warn_result(
           "doctor.migrations.unresolved",
           :migrations,
@@ -233,14 +251,29 @@ defmodule Rindle.Ops.RuntimeChecks.OwnershipChecks do
 
   defp all_legacy_statuses_pending?(statuses) do
     Enum.all?(statuses, fn
-      {:down, version, _name} when version > 0 -> true
+      {:down, version, _name} when version in @legacy_versions -> true
       _other -> false
     end)
   end
 
+  @doc false
+  def applied_legacy_history?(statuses) do
+    Enum.any?(statuses, fn
+      {:up, version, _name} when version in @legacy_versions -> true
+      _other -> false
+    end)
+  end
+
+  defp all_unresolved_legacy?(statuses) do
+    Enum.all?(statuses, fn
+      {:up, version, "** FILE NOT FOUND **"} -> version in @legacy_versions
+      _other -> true
+    end)
+  end
+
   defp no_pending_migration_statuses?(statuses) do
-    not Enum.any?(statuses, fn
-      {:down, version, _name} when version > 0 -> true
+    Enum.all?(statuses, fn
+      {:up, _version, _name} -> true
       _other -> false
     end)
   end

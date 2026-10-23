@@ -22,13 +22,13 @@ defmodule Rindle.Domain.ProviderAssetFSM do
   `[:rindle, :provider_asset, :state_change]` telemetry on success; logs a
   `Logger.warning` and returns an `{:error, {:invalid_transition, from, to}}`
   tuple on rejection. Caller owns the changeset apply / persistence step;
-  this function is a pure validator (no DB writes).
+  this function performs no DB writes. Transactional writers pass `emit?: false`
+  and emit the same state-change event only after persistence commits.
   """
   @spec transition(state(), state(), map()) :: :ok | transition_error()
   def transition(current_state, target_state, context \\ %{}) do
     if target_state in Map.get(@allowed_transitions, current_state, []) do
-      :ok
-      |> tap(fn _ ->
+      if Map.get(context, :emit?, true) do
         :telemetry.execute(
           [:rindle, :provider_asset, :state_change],
           %{system_time: System.system_time()},
@@ -40,7 +40,9 @@ defmodule Rindle.Domain.ProviderAssetFSM do
             to: target_state
           }
         )
-      end)
+      end
+
+      :ok
     else
       log_transition_failure(current_state, target_state, context)
       {:error, {:invalid_transition, current_state, target_state}}

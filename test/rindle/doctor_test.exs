@@ -37,6 +37,106 @@ defmodule Rindle.DoctorTest do
     20_260_527_120_000
   ]
 
+  defmodule VersionedHostRepo do
+    use Ecto.Repo, otp_app: :rindle, adapter: Ecto.Adapters.Postgres
+  end
+
+  describe "real versioned host ledger" do
+    setup do
+      priv = "priv/rindle-doctor-#{System.unique_integer([:positive])}"
+      path = Application.app_dir(:rindle, priv)
+      migrations = Path.join(path, "migrations")
+      File.mkdir_p!(migrations)
+
+      File.cp!(
+        "test/twin/host/priv/repo/migrations/20261021000000_install_twin.exs",
+        Path.join(migrations, "20261021000000_install_twin.exs")
+      )
+
+      config =
+        Rindle.Repo.config()
+        |> Keyword.put(:priv, priv)
+        |> Keyword.put(:migration_source, "doctor_host_migrations")
+        |> Keyword.put(:pool, Ecto.Adapters.SQL.Sandbox)
+        |> Keyword.put(:pool_size, 2)
+
+      previous = Application.get_env(:rindle, VersionedHostRepo)
+      Application.put_env(:rindle, VersionedHostRepo, config)
+
+      on_exit(fn ->
+        if previous,
+          do: Application.put_env(:rindle, VersionedHostRepo, previous),
+          else: Application.delete_env(:rindle, VersionedHostRepo)
+      end)
+
+      start_supervised!(VersionedHostRepo)
+      :ok = Ecto.Adapters.SQL.Sandbox.checkout(VersionedHostRepo)
+      Rindle.Config.put_repo_override(VersionedHostRepo)
+
+      VersionedHostRepo.query!(
+        "CREATE TABLE doctor_host_migrations (version bigint PRIMARY KEY, inserted_at timestamp)"
+      )
+
+      VersionedHostRepo.query!(
+        "INSERT INTO doctor_host_migrations (version) VALUES (20261021000000)"
+      )
+
+      on_exit(fn -> File.rm_rf!(path) end)
+      on_exit(fn -> Rindle.Config.delete_repo_override() end)
+      :ok
+    end
+
+    test "completed host wrapper and real catalog pass without package legacy history" do
+      report = real_host_report()
+      assert report.success?, inspect(report.checks)
+      assert check_status(report, "doctor.migrations.pending") == :ok
+      assert check_status(report, "doctor.migrations.unresolved") == :ok
+      assert check_status(report, "doctor.rindle_schema.ready") == :ok
+      assert check_status(report, "doctor.oban_jobs.ready") == :ok
+    end
+
+    test "down host wrapper fails even when the Rindle catalog is ready" do
+      VersionedHostRepo.query!("DELETE FROM doctor_host_migrations")
+      report = real_host_report()
+      assert check_status(report, "doctor.migrations.pending") == :error
+      refute report.success?
+    end
+
+    test "missing host migration directory is inspection failure" do
+      report = real_host_report(migrations_path: "/missing/rindle-doctor-migrations")
+      assert check_status(report, "doctor.migrations.pending") == :error
+      refute report.success?
+    end
+
+    test "unknown applied wrapper stays unresolved despite a ready catalog" do
+      VersionedHostRepo.query!("UPDATE doctor_host_migrations SET version = 20261022000000")
+      report = real_host_report()
+      assert check_status(report, "doctor.migrations.unresolved") == :error
+      refute report.success?
+    end
+
+    test "absent marker table is not legacy credit for a versioned wrapper" do
+      VersionedHostRepo.query!("DROP TABLE public.rindle_migration_versions")
+      report = real_host_report()
+      assert check_status(report, "doctor.rindle_schema.ready") == :error
+      refute report.success?
+    end
+
+    test "invalid marker version fails with an applied wrapper" do
+      VersionedHostRepo.query!("UPDATE public.rindle_migration_versions SET version = 99")
+      report = real_host_report()
+      assert check_status(report, "doctor.rindle_schema.ready") == :error
+      refute report.success?
+    end
+
+    test "missing version marker fails despite a completed host ledger" do
+      VersionedHostRepo.query!("DELETE FROM public.rindle_migration_versions")
+      report = real_host_report()
+      assert check_status(report, "doctor.rindle_schema.ready") == :error
+      refute report.success?
+    end
+  end
+
   describe "run_checks/2 success output" do
     test "prints success message when ffmpeg is valid" do
       output =
@@ -392,6 +492,34 @@ defmodule Rindle.DoctorTest do
       end
     end
   end
+
+  defp real_host_report(opts \\ []) do
+    capture_io(fn ->
+      assert Rindle.Config.repo() == VersionedHostRepo
+
+      report =
+        Doctor.run_checks(
+          [],
+          Keyword.merge(
+            [
+              exit_on_failure?: false,
+              probe: fn -> :ok end,
+              env: %{},
+              profiles: [],
+              oban_config: Keyword.put(healthy_oban_config(), :repo, VersionedHostRepo)
+            ],
+            opts
+          )
+        )
+
+      send(self(), {:host_report, report})
+    end)
+
+    assert_received {:host_report, report}
+    report
+  end
+
+  defp check_status(report, id), do: Enum.find(report.checks, &(&1.id == id)).status
 
   defp run_doctor_checks(args, opts) do
     Doctor.run_checks(

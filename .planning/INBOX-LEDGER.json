@@ -677,6 +677,27 @@
         "state": "closed",
         "state_reason": null
       }
+    },
+    {
+      "disposition": "retain",
+      "head_sha": "a98c2c4d5603b7e35f6ee9c158abe436913ec819",
+      "kind": "pr",
+      "number": 144,
+      "rationale": "Dependency maintenance owns the phoenix_live_view 1.2.12 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+    },
+    {
+      "disposition": "retain",
+      "head_sha": "cefcb0afa4b29bdc263be8906198e7f79ebe1c6e",
+      "kind": "pr",
+      "number": 145,
+      "rationale": "Dependency maintenance owns the oban 2.24.2 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+    },
+    {
+      "disposition": "retain",
+      "head_sha": "0de8150f65553bd639938b50c77fa44dcaeb803f",
+      "kind": "pr",
+      "number": 146,
+      "rationale": "Dependency maintenance owns the muontrap 1.8.0 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
     }
   ],
   "landings": [
@@ -940,10 +961,5 @@
   ],
   "repo": "szTheory/rindle",
   "schema": "rindle-inbox-ledger-v1",
-  "sources": {
-    "dependabot_alerts": {
-      "rationale": "GitHub dependency graph does not parse mix.lock, so enabling Dependabot alerts adds no Hex coverage by itself; mix hex.audit (root and demo) is the advisory source and the enable action is offered in Plan 06",
-      "status": "source_disabled"
-    }
-  }
+  "sources": {}
 }

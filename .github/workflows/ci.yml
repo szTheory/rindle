@@ -1484,40 +1484,41 @@ jobs:
     name: CI Script Tests
     timeout-minutes: 5
     runs-on: ubuntu-22.04
-    # Unit tests for the CI gate scripts themselves (pure bash + jq, no project
-    # toolchain). Pins the CI Summary skip-as-pass logic (the fork "pending forever"
+    # CI gate scripts and parser-only readiness fixtures run in two bounded groups.
+    # Both groups must pass. Pins the CI Summary skip-as-pass logic (the fork "pending forever"
     # fix) so it is merge-blocking. Gated transitively via ci-summary's needs:, not
     # as its own required context — CI Summary stays the single required check.
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: CI Summary gate logic
-        run: bash scripts/ci/test_ci_summary_gate.sh
-      - name: Nightly Summary gate logic
-        run: bash scripts/ci/test_nightly_summary_gate.sh
-      - name: Nightly incident lifecycle
-        run: bash scripts/ci/test_nightly_incident.sh
-      - name: Branch protection pending-forever guard
-        run: bash scripts/ci/test_setup_branch_protection.sh
-      - name: Inbox collector harness
-        run: bash scripts/ci/test_collect_inbox.sh
-      - name: Inbox ledger validator harness
-        run: bash scripts/ci/test_validate_inbox_ledger.sh
-      - name: Dependency landing evidence harness
-        run: bash scripts/ci/test_dep_landing_evidence.sh
-      - name: Inbox ledger shape (offline)
-        run: bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json
-      - name: Craft contract tools harness
-        run: bash scripts/ci/test_craft_contract_tools.sh
-      - name: Readability trace shape (offline)
-        run: bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json
-      - name: Artifact ledger validator harness
-        run: bash scripts/ci/test_validate_artifact_ledger.sh
-      - name: Artifact ledger partition (offline)
-        run: bash scripts/maintainer/validate_artifact_ledger.sh --offline --require-settled --ledger scripts/maintainer/artifact_ledger.json
-      - name: Repo hygiene harness
-        run: bash scripts/ci/test_repo_hygiene_check.sh
-      - name: Phase gate evidence collector harness
-        run: bash scripts/ci/test_collect_phase_gate_evidence.sh
+      - name: Set up fixture parser runtime
+        uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
+        with:
+          otp-version: '27.3.4.15'
+          elixir-version: '1.17.3-otp-27'
+      - name: Prepare only root-lock Jason and yamerl
+        run: bash scripts/ci/prepare_readiness_fixture_runtime.sh "$RUNNER_TEMP/readiness-parsers"
+      - name: Await existing contracts and readiness fixtures
+        env:
+          ERL_FLAGS: '+S 4:4'
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 scripts/ci/run_script_test_groups.py <<'HARNESSES'
+          bash scripts/ci/test_script_test_groups.sh
+          bash scripts/ci/test_ci_summary_gate.sh
+          bash scripts/ci/test_nightly_summary_gate.sh
+          bash scripts/ci/test_nightly_incident.sh
+          bash scripts/ci/test_setup_branch_protection.sh
+          bash scripts/ci/test_collect_inbox.sh
+          bash scripts/ci/test_validate_inbox_ledger.sh
+          bash scripts/ci/test_dep_landing_evidence.sh
+          bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json
+          bash scripts/ci/test_craft_contract_tools.sh
+          bash scripts/maintainer/validate_readability_trace.sh --offline --trace scripts/maintainer/readability_changes.json --baseline scripts/maintainer/credo_complexity_baseline.json
+          bash scripts/ci/test_validate_artifact_ledger.sh
+          bash scripts/maintainer/validate_artifact_ledger.sh --offline --require-settled --ledger scripts/maintainer/artifact_ledger.json
+          bash scripts/ci/test_repo_hygiene_check.sh
+          bash scripts/ci/test_collect_phase_gate_evidence.sh
+          HARNESSES
 
   ci-summary:
     name: CI Summary

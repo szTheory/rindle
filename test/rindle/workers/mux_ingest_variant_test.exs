@@ -24,7 +24,7 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
       delivery: [signed_url_ttl_seconds: 900]
   end
 
-  setup do
+  setup tags do
     prev = Application.get_env(:rindle, Rindle.Streaming.Provider.Mux, [])
 
     Application.put_env(
@@ -51,6 +51,21 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
     end)
 
     asset_id = Ecto.UUID.generate()
+
+    if tags[:sandbox] == false do
+      on_exit(fn ->
+        Ecto.Adapters.SQL.Sandbox.unboxed_run(Repo, fn ->
+          assert {1, nil} =
+                   Repo.delete_all(
+                     from a in MediaAsset,
+                       where: a.id == ^asset_id and a.profile == ^to_string(TestProfile)
+                   )
+
+          refute Repo.exists?(from a in MediaAsset, where: a.id == ^asset_id)
+        end)
+      end)
+    end
+
     storage_key = "media/#{asset_id}/source.mp4"
     recipe_digest = "sha256:" <> String.duplicate("a", 64)
 
@@ -58,9 +73,8 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
     #   - `content_type` (NOT `mime`)
     #   - validate_required([:state, :storage_key, :profile, :kind])
     {:ok, asset} =
-      %MediaAsset{}
+      %MediaAsset{id: asset_id}
       |> MediaAsset.changeset(%{
-        id: asset_id,
         state: "ready",
         storage_key: storage_key,
         profile: to_string(TestProfile),
@@ -488,5 +502,98 @@ defmodule Rindle.Workers.MuxIngestVariantTest do
 
     assert is_binary(redacted) and redacted =~ ~r/^\.\.\.[A-Za-z0-9]{4}$/,
            "Telemetry must redact provider_asset_id to last-4-char tag (security invariant 14); got: #{inspect(redacted)}"
+  end
+
+  @tag sandbox: false
+  test "create response preserves linkage and ready state committed by concurrent webhooks",
+       ctx do
+    passthrough = Ecto.UUID.generate()
+
+    row =
+      %MediaProviderAsset{}
+      |> MediaProviderAsset.changeset(%{
+        asset_id: ctx.asset.id,
+        profile: ctx.args["profile"],
+        provider_name: "mux",
+        playback_policy: "signed",
+        state: "pending",
+        mux_passthrough: passthrough
+      })
+      |> Repo.insert!()
+
+    response = fixture("asset_create_201.json")
+    parent = self()
+
+    expect(ClientMock, :create_asset, fn _ ->
+      [[backend]] = Repo.query!("SELECT pg_backend_pid()").rows
+      send(parent, {:create_in_flight, self(), backend})
+
+      receive do
+        :return_create -> {:ok, response}
+      after
+        5000 -> raise "create barrier timed out"
+      end
+    end)
+
+    task =
+      Task.async(fn ->
+        :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo, sandbox: false)
+
+        try do
+          MuxIngestVariant.perform(%Oban.Job{args: ctx.args, attempt: 1})
+        after
+          Ecto.Adapters.SQL.Sandbox.checkin(Repo)
+        end
+      end)
+
+    on_exit(fn -> if Process.alive?(task.pid), do: Process.exit(task.pid, :kill) end)
+    assert_receive {:create_in_flight, worker, worker_backend}, 2000
+    [[parent_backend]] = Repo.query!("SELECT pg_backend_pid()").rows
+    assert parent_backend != worker_backend
+    assert Repo.get!(MediaProviderAsset, row.id).state == "uploading"
+
+    linkage = %{
+      "event_id" => "link-#{Ecto.UUID.generate()}",
+      "event_type" => "video.upload.asset_created",
+      "provider" => "mux",
+      "event" => %{
+        "provider_asset_id" => response["id"],
+        "occurred_at" => "2026-05-06T00:00:01.123456Z",
+        "playback_ids" => [],
+        "raw" => %{"data" => %{"passthrough" => passthrough}}
+      }
+    }
+
+    assert :ok =
+             Rindle.Workers.IngestProviderWebhook.perform(%Oban.Job{args: linkage, attempt: 1})
+
+    ready = %{
+      linkage
+      | "event_id" => "ready-#{Ecto.UUID.generate()}",
+        "event_type" => "video.asset.ready",
+        "event" => %{
+          "provider_asset_id" => response["id"],
+          "occurred_at" => "2026-05-06T00:00:02.123456Z",
+          "playback_ids" => ["fresh-webhook-playback"],
+          "raw" => %{"data" => %{"marker" => "accepted"}}
+        }
+    }
+
+    assert :ok = Rindle.Workers.IngestProviderWebhook.perform(%Oban.Job{args: ready, attempt: 1})
+    send(worker, :return_create)
+    assert :ok = Task.await(task, 5000)
+    current = Repo.get!(MediaProviderAsset, row.id)
+    assert current.state == "ready" and current.provider_asset_id == response["id"]
+    assert current.playback_ids == ["fresh-webhook-playback"]
+
+    assert current.last_event_id == ready["event_id"] and
+             current.last_event_at == ~U[2026-05-06 00:00:02.123456Z]
+
+    assert current.raw_provider_metadata == %{"marker" => "accepted"}
+
+    assert Repo.aggregate(
+             from(p in MediaProviderAsset, where: p.asset_id == ^ctx.asset.id),
+             :count
+           ) == 1
   end
 end

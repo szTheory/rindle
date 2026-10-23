@@ -25,9 +25,9 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 - [x] **Phase 133: Evidence Charter and Live Truth** - Establish immutable evidence authority and restore truthful Nightly, incident, release, and adoption signals. (completed 2026-10-15)
 - [x] **Phase 134: Dependency, Security, and Inbox Disposition** - Give every live advisory and remote item an attributable, evidence-backed disposition. (completed 2026-10-16)
 - [x] **Phase 135: Repository and Code-Craft Consolidation** - Remove only proven residue and improve candidate-backed readability under preserved contracts. (completed 2026-10-20)
-- [ ] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed.
-- [ ] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup.
-- [ ] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries.
+- [x] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed. (completed 2026-10-21)
+- [x] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup. (completed 2026-10-21)
+- [x] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries. (completed 2026-10-22)
 - [ ] **Phase 139: Exact-Head Readiness Closure** - Produce one fail-closed, exact-head readiness verdict while keeping independent adoption open.
 
 ## Phase Details
@@ -719,7 +719,7 @@ Plans:
   4. A clean supported environment can follow one tested command map from bootstrap through focused and full verification without reconstructing workflow YAML.
   5. Structural CI checks verify workflow semantics, cache contracts, immutable or checksum-verified inputs, and justified timeouts while preserving `ci.yml`, workflow `CI`, sole required `CI Summary`, fork safety, exact-SHA release coupling, and required CI green. The exact-ten <=480-second median/<=600-second p95 target is deferred unfinished to SEED-261021-918 by the 2026-10-21 user decision, with no speed acceptance credit.
 
-**Plans**: 15 plans
+**Plans**: 15/15 plans complete
 
 Plans:
 **Wave 1**
@@ -748,8 +748,8 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [x] 136-14-PLAN.md — Repair observed CI hygiene failure and measure a replacement subject
-- [ ] 136-15-PLAN.md — Parallelize isolated Nightly harnesses after measured Proof timeouts
-- [ ] 136-07-PLAN.md — Truthful qualification; numeric timing target deferred unfinished
+- [x] 136-15-PLAN.md — Parallelize isolated Nightly harnesses after measured Proof timeouts
+- [x] 136-07-PLAN.md — Truthful qualification; numeric timing target deferred unfinished
 
 ### Phase 137: Built-Package Twin Foundation
 
@@ -764,7 +764,23 @@ Plans:
   4. Retry evidence comes from persisted database-backed Oban execution, while restart evidence terminates and resumes a separately supervised runtime without duplicate stimulus.
   5. Every registered scenario emits a schema-validated, redacted receipt bound to source SHA, package checksum, toolchain, transitions, job attempts, external effects, terminal state, cleanup, and residue, stamped as maintainer-operated synthetic evidence that cannot satisfy the independent-pilot gate.
 
-**Plans**: TBD
+**Plans**: 6/6 plans complete
+
+**Wave 1**
+- [x] 137-01-PLAN.md — Run one real packaged image lifecycle through committed retry, quiescent pause, whole-host restart, automatic completion and cleanup.
+
+**Wave 2** *(blocked on Wave 1)*
+- [x] 137-02-PLAN.md — Prove exact archive, finite consumer inputs and effective host capabilities.
+- [x] 137-03-PLAN.md — Harden the documented atomic storage fault and persisted Oban retry boundary.
+
+**Wave 3** *(blocked on Wave 2 package boundary)*
+- [x] 137-04-PLAN.md — Validate typed receipts and redaction on every exported surface.
+
+**Wave 4** *(blocked on Wave 3 receipt)*
+- [x] 137-05-PLAN.md — Prove complete pre-disposal inventories and idempotent owned-resource cleanup.
+
+**Wave 5** *(blocked on Waves 2–4)*
+- [x] 137-06-PLAN.md — Finalize one maintainer CLI, documentation and phase-wide automated regression.
 
 ### Phase 138: Lifecycle Failure and Recovery Matrix
 
@@ -779,7 +795,25 @@ Plans:
   4. Duplicate and out-of-order provider events plus a host restart between durable stages converge without duplicate provider state, duplicate stimulus, lost work, inconsistent terminal state, or secret-bearing telemetry.
   5. After an interrupted cleanup, an idempotent janitor rerun leaves zero unapproved database, job, object, provider, multipart, or temporary-file residue, and the full matrix emits independently verified receipts.
 
-**Plans**: TBD
+**Plans**: 6/6 plans complete; 20/20 must-haves and RECOV-01..06 verified
+
+**Wave 1**
+- [x] 138-01-PLAN.md — Packaged tus client interruption and independently verified exact offset/asset inventory.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 138-02-PLAN.md — Persisted source-delete retry and independently proved authoritative absence.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 138-03-PLAN.md — Real AV five-attempt failure, public diagnosis, supported repair and full decode.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 138-04-PLAN.md — Signed Mux local adapter convergence and bounded provider ordering correction.
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 138-05-PLAN.md — Promotion-stage SIGKILL and same-job continuation in a new runtime.
+
+**Wave 6** *(blocked on Waves 1–5 completion)*
+- [x] 138-06-PLAN.md — Interrupted janitor, complete six-case verifier, residue audit and operator workflow.
 
 ### Phase 139: Exact-Head Readiness Closure
 
@@ -794,7 +828,28 @@ Plans:
   4. One fail-closed readiness manifest rejects missing, stale, partial, impermissibly skipped, foreign-SHA, unclean, residue-bearing, or unexplained evidence.
   5. Automated release and adoption-truth checks keep the named independent Phoenix pilot open and reject any claim that the synthetic twin satisfies real-adopter validation or authorizes 1.0.
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+**Wave 1**
+- [x] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
+- [x] 139-01-PLAN.md — Validate the immutable readiness evidence graph
+
+**Wave 2**
+- [x] 139-02-PLAN.md — Qualify an isolated exact-subject checkout and packaged recovery matrix
+- [x] 139-03-PLAN.md — Collect full main CI, scheduled Nightly, and effective protection
+
+**Wave 3**
+- [x] 139-04-PLAN.md — Refresh complete inbox and security dispositions
+
+**Wave 4**
+- [x] 139-05-PLAN.md — Join local and remote evidence into a bounded candidate verdict
+
+**Wave 5**
+- [x] 139-06-PLAN.md — Retain byte-verified evidence and enforce honest adoption claims
+
+**Wave 6** *(requires merged main and actual live prerequisites)*
+- [ ] 139-07-PLAN.md — Run final post-merge main acceptance with historical claim scope
 
 ## Progress
 
@@ -805,10 +860,10 @@ Plans:
 | 133. Evidence Charter and Live Truth | 178/178 | Complete    | 2026-10-15 |
 | 134. Dependency, Security, and Inbox Disposition | 6/6 | Complete    | 2026-10-16 |
 | 135. Repository and Code-Craft Consolidation | 14/14 | Complete    | 2026-10-20 |
-| 136. Measured Quality and CI Ratchets | 13/15 | In progress | - |
-| 137. Built-Package Twin Foundation | 0/TBD | Not started | - |
-| 138. Lifecycle Failure and Recovery Matrix | 0/TBD | Not started | - |
-| 139. Exact-Head Readiness Closure | 0/TBD | Not started | - |
+| 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
+| 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
+| 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
+| 139. Exact-Head Readiness Closure | 7/8 | Executing | - |
 
 ---
-*Last updated: 2026-10-12 after Plan 178 passed independent plan review. Phase 133 remains active; Plan 177 is terminal no-attempt history, and Plan 178 is ready in effective Wave 28. All five requirements remain Pending, eleven evidence edges unresolved, and qualification credit zero. Next: `$gsd-execute-phase 133 --gaps-only --wave 28`.*
+*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–06 verified; 7/8 plans complete. Plan 07 awaits actual post-merge main acceptance. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*

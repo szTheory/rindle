@@ -1,7 +1,9 @@
 ---
 phase: 05-ci-1-0-readiness
 verified: 2026-04-26T23:05:00Z
-status: verified
+status: gaps_found
+legacy_status: verified
+status_migration: schema-only-no-reverification
 score: 11/17 must-haves verified
 overrides_applied: 0
 gaps:
@@ -293,3 +295,11 @@ Recommended closure plan for `/gsd-plan-phase --gaps`:
 
 _Verified: 2026-04-26T23:05:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+## Schema migration (2026-10-21)
+
+The current GSD status vocabulary is applied to the recorded historical outcome.
+Original status: `verified`; normalized status: `gaps_found`. Dates, scores, original
+body, acceptance evidence and fingerprints remain unchanged. This is not fresh
+verification or new requirement credit. The byte-identical original is retained
+in `.planning/quick/261021-ixo-reconcile-the-forensic-planning-metadata/legacy-verification-originals/v1.0-phases--05-ci-1-0-readiness.txt`.

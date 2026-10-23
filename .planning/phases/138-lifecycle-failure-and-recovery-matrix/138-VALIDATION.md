@@ -1,0 +1,119 @@
+---
+phase: "138"
+slug: "lifecycle-failure-and-recovery-matrix"
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
+created: "2026-10-21"
+---
+
+# Phase 138 — Validation Strategy
+
+Validated against all six plan summaries, focused regressions, the complete real packaged-host matrix and a separate semantic verifier. Requirement closure remains owned by the phase-goal verifier.
+
+## Test Infrastructure
+
+| Property | Value |
+|---|---|
+| Framework | Existing ExUnit plus Python standard-library verifier fixtures |
+| Config | `test/test_helper.exs`, `config/test.exs`, existing twin host |
+| Quick command | `mix test test/install_smoke/twin_*_test.exs --seed 0` |
+| Full regression | `mix ci` as defined by RUNNING.md |
+| Real acceptance | `python3 scripts/maintainer/built_package_twin.py run --verify --cleanup` with the complete six-case mode |
+| Runtime | Measure during execution; fast focused feedback target under 30s excluding first compile; tiny AV case starts with a finite 600-second deadline for five ordinary attempts and records elapsed time/margin |
+
+Prefix Mix/runner commands with
+`ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 ASDF_NODEJS_VERSION=20.18.1`.
+Preserve root lock and toolchain files. Docker-free fast tests never substitute
+for real matrix acceptance. No new framework or heavy CI lane is authorized.
+
+## Sampling Rate
+
+- After every task: its focused automated behavioral/negative-control command.
+- After every plan wave: affected focused suites plus the available packaged-host
+  slice where its implementation exists; partial runs cannot pass the full verifier.
+- At phase integration: all six cases from one fresh archive, retained input/archive
+  verification in a separate invocation, repeated safe cleanup, relevant RUNNING.md
+  quality/regression gates and `./scripts/maintainer/automation_first_contract.sh`.
+- Before goal verification: retain current-source evidence; failed or interrupted
+  attempts remain failed even if later infrastructure disposal succeeds.
+
+## Per-Requirement Verification Map
+
+The plan map below names exact task IDs, waves, threats and focused test owners.
+All entries below have passing executable evidence.
+
+| Requirement | Fast behavior/negative controls | Real acceptance oracle | Status |
+|---|---|---|---|
+| RECOV-01 | Existing twin tracer/receipt contracts extended for recreated client, wrong offset and duplicate stimuli | Completed nonfinal PATCH; new client HEAD; same session; final checksum; ready asset and exact keys | pass |
+| RECOV-02 | Existing twin fault and purge tests; missing-object vs denied/unknown absence | Same durable purge job retryable attempt 1, independent source absence, ordinary attempt 2 completes | pass |
+| RECOV-03 | AV failure/discard vs repair and receipt controls | Real five-attempt FFmpeg failure, runtime_status, genuinely enqueued public repair, probe plus full decode | pass |
+| RECOV-04 | Named stale-error assertion first fails within 138-04 task 1; its final worker regression suite passes for strict older/replay, equal/missing/precision, concurrent handlers, polling fetch/commit, initial linkage, rollback and secret canaries | Actual Mux adapter/local HTTP fixture, signed ingress, ordinary provider queue, exact identities/effects | pass |
+| RECOV-05 | Restart cut/quiescence/identity and replay controls | Promotion paused, available attempt-zero job committed; SIGKILL and new runtime; same job completes | pass |
+| RECOV-06 | Existing cleanup/maintenance contracts plus per-resource inventory and foreign-resource controls | Real multipart part, genuine expiry, post-delete janitor interruption, same-resource reruns, complete pre-disposal audit | pass |
+
+## Plan, Wave and Threat Map
+
+| Requirement | Owning tasks | Wave | Focused executable tests | Real case | Threats |
+|---|---|---:|---|---|---|
+| RECOV-01 | 138-01 tasks 1–2; 138-06 tasks 2–3 | 1, 6 | twin_tracer_contract_test.exs; twin_receipt_test.exs | tus-resume; full matrix | T-138-01, T-138-02, T-138-13 |
+| RECOV-02 | 138-02 tasks 1–2; 138-06 tasks 2–3 | 2, 6 | twin_fault_test.exs; purge_storage_test.exs; twin_receipt_test.exs | purge-absence; full matrix | T-138-03, T-138-04, T-138-13 |
+| RECOV-03 | 138-03 tasks 1–2; 138-06 tasks 2–3 | 3, 6 | twin_fault_test.exs; twin_receipt_test.exs | av-repair; full matrix | T-138-05, T-138-06, T-138-13 |
+| RECOV-04 | 138-04 tasks 1–2; 138-06 tasks 2–3 | 4, 6 | ingest_provider_webhook_test.exs; mux_sync_provider_asset_test.exs; mux_ingest_variant_test.exs; twin_receipt_test.exs | provider-events; full matrix | T-138-07, T-138-08, T-138-09, T-138-13 |
+| RECOV-05 | 138-05 tasks 1–2; 138-06 tasks 2–3 | 5, 6 | twin_tracer_contract_test.exs; twin_receipt_test.exs | promotion-restart; full matrix | T-138-10, T-138-11, T-138-13 |
+| RECOV-06 | 138-06 tasks 1–3 | 6 | twin_cleanup_test.exs; twin_receipt_test.exs; twin_cli_test.exs | interrupted-cleanup; full matrix | T-138-12, T-138-13, T-138-14, T-138-15 |
+
+The source-owned full verifier requires exactly these six case IDs from one
+fresh archive. A focused `run --case ID --verify` exits zero only for a passing
+case-specific verifier and remains diagnostic; it cannot close the matrix.
+The real acceptance command and a separate verify --inputs/--receipt process
+are required after source stabilizes; task-level fast tests are no substitute.
+
+## Wave 0 Requirements
+
+- Extend existing finite twin contract fixtures as each case lands; add new focused
+  test files explicitly to owning PLAN tasks before referencing them in verification.
+- Preserve old Phase 137 receipt interpretation without counting it as six-case success.
+- Capture valid tiny video/audio fixture, supported tus route and local Mux HTTP
+  responses through finite host-owned additions, not producer-private hooks.
+- Establish bounded runtime launch/queue barriers and single-use maintenance process
+  configuration without endpoint collisions or competing queue consumers.
+- No test dependency installation is needed. Existing test paths cited above exist;
+  new paths must have explicit creation tasks and cannot silently skip.
+
+## Manual-Only Verifications
+
+None. Every active requirement closes through executable tests, probes and evidence
+collectors. A human approval may authorize an external action; it supplies no acceptance.
+
+## Validation Sign-Off
+
+- [x] Exact task/wave/threat map reconciled to final plans.
+- [x] Every task has an automated command and observable `fails_when` signal.
+- [x] No three consecutive tasks lack fast automated feedback.
+- [x] New verification files have explicit creation ownership.
+- [x] Full six-case run and separate retained-input verifier pass at current source.
+- [x] All residue classes audited before disposal; repeated cleanup preserves foreign state.
+- [x] Relevant RUNNING.md checks pass; measured timings retained without CI speed credit.
+- [x] Nyquist audit determines `nyquist_compliant`; planning does not set it true.
+
+**Approval:** verified 2026-10-22; zero coverage gaps and zero manual-only acceptance items.
+
+## Execution Evidence
+
+- Subject: c4cf0742a043dd1f8fb8cd44ca29acad7ea083cc. All six PLAN task/verify blocks and SUMMARY evidence reconciled; 13/13 tasks have automated verification and observable failure signals.
+- Full package run: `/private/tmp/rindle-138-matrix-verified`; six exact case IDs, one archive, distinct run identities, six complete stopped-writer audits, frozen verdict and successful owned disposal.
+- Independent retained-input/archive verifier passed in a separate process; repeated root cleanup passed without changing acceptance.
+- Full local verdict time: 342727 ms, excluding disposal. This does not satisfy the deferred CI-speed target.
+- Final `mix ci`: exit 0; 3 doctests, 1748 tests, 0 failures, 87 excluded, 4 skipped; all required quality/generated-style sentinels. Log: `/private/tmp/rindle-138-mix-ci-final.txt`.
+- Fast focused suites and public surface, quality-policy, residue and CI-topology checks are documented in the six summaries; final CI includes their current versions.
+- No missing tests: existing twin fixture controls cover omission, swap, unknown inventory, sensitive output, foreign resources and active-runtime cleanup refusal. Real interruption, retries, SDK ingress and maintenance effects are additionally required by the package matrix; unit green alone grants no matrix credit.
+- The validated requirement map classifies RECOV-01..06 as COVERED, with no PARTIAL or MISSING entries. No Nyquist gap-generation agent is needed under the no-gaps branch of the workflow.
+
+## Validation Audit 2026-10-22
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |

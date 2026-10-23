@@ -1,0 +1,244 @@
+
+13:02:47.829 [info] Compiling file system watcher for Mac...
+
+13:02:48.206 [info] Done.
+==> file_system
+Compiling 7 files (.ex)
+Generated file_system app
+==> decimal
+Compiling 4 files (.ex)
+Generated decimal app
+==> mime
+Compiling 1 file (.ex)
+Generated mime app
+==> nimble_options
+Compiling 3 files (.ex)
+Generated nimble_options app
+==> fine
+Compiling 1 file (.ex)
+Generated fine app
+==> bunt
+Compiling 2 files (.ex)
+Generated bunt app
+===> Analyzing applications...
+===> Compiling telemetry
+==> ex_marcel
+Compiling 7 files (.ex)
+Generated ex_marcel app
+==> jason
+Compiling 10 files (.ex)
+Generated jason app
+==> excoveralls
+Compiling 29 files (.ex)
+     warning: CAStore.file_path/0 is undefined (module CAStore is not available or is yet to be defined)
+     │
+ 111 │         [cacertfile: String.to_charlist(CAStore.file_path())]
+     │                                                 ~
+     │
+     └─ lib/excoveralls/poster.ex:111:49: ExCoveralls.Poster.cacert_option/0
+
+Generated excoveralls app
+==> junit_formatter
+Compiling 1 file (.ex)
+Generated junit_formatter app
+==> doctor
+Compiling 17 files (.ex)
+Generated doctor app
+==> phoenix_html
+Compiling 6 files (.ex)
+Generated phoenix_html app
+==> phoenix_template
+Compiling 4 files (.ex)
+Generated phoenix_template app
+==> db_connection
+Compiling 18 files (.ex)
+Generated db_connection app
+==> phoenix_pubsub
+Compiling 12 files (.ex)
+Generated phoenix_pubsub app
+==> plug_crypto
+Compiling 5 files (.ex)
+Generated plug_crypto app
+==> hpax
+Compiling 4 files (.ex)
+Generated hpax app
+==> mint
+Compiling 1 file (.erl)
+Compiling 21 files (.ex)
+Generated mint app
+===> Analyzing applications...
+===> Compiling yamerl
+==> yaml_elixir
+Compiling 6 files (.ex)
+Generated yaml_elixir app
+==> mix_audit
+Compiling 16 files (.ex)
+Generated mix_audit app
+==> jose
+Compiling 113 files (.erl)
+Compiling 8 files (.ex)
+Generated jose app
+===> Analyzing applications...
+===> Compiling ranch
+==> credo
+Compiling 257 files (.ex)
+Generated credo app
+==> ecto
+Compiling 56 files (.ex)
+Generated ecto app
+==> plug
+Compiling 1 file (.erl)
+Compiling 42 files (.ex)
+Generated plug app
+==> color
+Compiling 93 files (.ex)
+Generated color app
+==> postgrex
+Compiling 70 files (.ex)
+Generated postgrex app
+==> erlex
+Compiling 1 file (.xrl)
+Compiling 1 file (.yrl)
+Compiling 2 files (.erl)
+Compiling 2 files (.ex)
+Generated erlex app
+==> dialyxir
+Compiling 70 files (.ex)
+Generated dialyxir app
+==> ecto_sql
+Compiling 25 files (.ex)
+Generated ecto_sql app
+==> oban
+Compiling 65 files (.ex)
+Generated oban app
+==> ex_machina
+Compiling 6 files (.ex)
+Generated ex_machina app
+==> nimble_pool
+Compiling 2 files (.ex)
+Generated nimble_pool app
+==> finch
+Compiling 23 files (.ex)
+Generated finch app
+==> goth
+Compiling 7 files (.ex)
+Generated goth app
+==> req
+Compiling 24 files (.ex)
+Generated req app
+==> gcs_signed_url
+warning: the dependency :gcs_signed_url requires Elixir "~> 1.18" but you are running on v1.17.3
+Compiling 10 files (.ex)
+    warning: JSON.decode/1 is undefined (module JSON is not available or is yet to be defined)
+    │
+ 57 │          {:ok, config} <- JSON.decode(content) do
+    │                                ~
+    │
+    └─ lib/gcs_signed_url/client.ex:57:32: GcsSignedUrl.Client.load_from_file/1
+
+Generated gcs_signed_url app
+==> elixir_make
+Compiling 8 files (.ex)
+Generated elixir_make app
+==> muontrap
+ CC muontrap.o
+ LD muontrap
+Compiling 5 files (.ex)
+Generated muontrap app
+==> cc_precompiler
+Compiling 3 files (.ex)
+Generated cc_precompiler app
+==> lazy_html
+Compiling 3 files (.ex)
+Generated lazy_html app
+==> vix
+Compiling 28 files (.ex)
+Generated vix app
+==> websock
+Compiling 1 file (.ex)
+Generated websock app
+==> sweet_xml
+Compiling 2 files (.ex)
+Generated sweet_xml app
+==> image
+Compiling 73 files (.ex)
+Generated image app
+==> ex_aws
+Compiling 29 files (.ex)
+Generated ex_aws app
+==> ex_aws_s3
+Compiling 7 files (.ex)
+Generated ex_aws_s3 app
+==> nimble_ownership
+Compiling 2 files (.ex)
+Generated nimble_ownership app
+==> mox
+Compiling 2 files (.ex)
+Generated mox app
+==> tesla
+Compiling 57 files (.ex)
+Generated tesla app
+==> mux
+Compiling 27 files (.ex)
+warning: `use Tesla.Builder` and `use Tesla` in Mux.Tesla are soft-deprecated. It will be removed in future major version in favor of
+Runtime Configuration instead. Please share your feedback at https://github.com/elixir-tesla/tesla/discussions/732
+
+If you can turn off this warning, add the following to your config.exs:
+
+```elixir
+config :tesla, disable_deprecated_builder_warning: true
+```
+
+  (tesla 1.21.2) lib/tesla/builder.ex:12: Tesla.Builder."MACRO-__using__"/2
+  (elixir 1.17.3) src/elixir_dispatch.erl:261: :elixir_dispatch.expand_macro_fun/7
+  (elixir 1.17.3) src/elixir_dispatch.erl:156: :elixir_dispatch.dispatch_require/7
+  (elixir 1.17.3) src/elixir_expand.erl:570: :elixir_expand.expand_block/5
+  (elixir 1.17.3) src/elixir_expand.erl:46: :elixir_expand.expand/3
+  (elixir 1.17.3) src/elixir_dispatch.erl:275: :elixir_dispatch.expand_quoted/7
+
+Generated mux app
+===> Analyzing applications...
+===> Compiling cowlib
+===> Analyzing applications...
+===> Compiling cowboy
+===> Analyzing applications...
+===> Compiling cowboy_telemetry
+==> plug_cowboy
+Compiling 5 files (.ex)
+Generated plug_cowboy app
+==> bypass
+Compiling 5 files (.ex)
+    warning: Application.get_env/3 is discouraged in the module body, use Application.compile_env/3 instead
+    │
+  6 │   if Application.get_env(:bypass, :enable_debug_log, false) do
+    │                  ~
+    │
+    └─ lib/bypass/utils.ex:6:18: Bypass.Utils (module)
+
+Generated bypass app
+==> websock_adapter
+Compiling 4 files (.ex)
+Generated websock_adapter app
+==> phoenix
+Compiling 74 files (.ex)
+     warning: this check/guard will always yield the same result
+     │
+ 301 │     if @requires_consolidation && config[:consolidate_protocols] do
+     │     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/phoenix/code_reloader/server.ex:301
+
+     warning: this check/guard will always yield the same result
+     │
+ 414 │       @requires_consolidation && status == :ok && config[:consolidate_protocols] ->
+     │       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     │
+     └─ lib/phoenix/code_reloader/server.ex:414
+
+Generated phoenix app
+==> phoenix_live_view
+Compiling 55 files (.ex)
+Generated phoenix_live_view app
+==> rindle
+Compiling 152 files (.ex)
+Generated rindle app

@@ -1,0 +1,149 @@
+defmodule Twin.StorageFault do
+  @behaviour Rindle.Storage
+  @impl true
+  defdelegate capabilities(), to: Rindle.Storage.S3
+  @impl true
+  defdelegate store(key, source, opts), to: Rindle.Storage.S3
+  @impl true
+  def download(key, destination, opts) do
+    with {:ok, _} = result <- Rindle.Storage.S3.download(key, destination, opts) do
+      maybe_corrupt_av(key, destination)
+      result
+    end
+  end
+
+  defp maybe_corrupt_av(key, destination) do
+    root = Path.join(Application.get_env(:rindle, :tmp_dir, System.tmp_dir!()), "Rindle.tmp")
+    parent = Path.dirname(destination)
+
+    selected_temp =
+      Path.dirname(parent) == root and Path.basename(destination) == "source.mp4" and
+        Regex.match?(
+          ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+          Path.basename(parent)
+        )
+
+    if selected_temp do
+      claim =
+        Twin.Repo.query!(
+          "UPDATE twin_fault_counters SET claims=claims+1 WHERE run_id=$1 AND operation='av-download' AND source_key=$2 AND EXISTS (SELECT 1 FROM twin_fault_counters WHERE run_id=$1 AND operation='av-enabled' AND source_key=$2 AND claims=1) RETURNING claims",
+          [System.fetch_env!("TWIN_RUN_ID"), key]
+        )
+
+      if claim.num_rows == 1, do: File.write!(destination, "twin-malformed-av-input")
+    end
+  end
+
+  @impl true
+  defdelegate url(key, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate head(key, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate presigned_put(key, expires, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate initiate_multipart_upload(key, size, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate presigned_upload_part(key, upload, part, expires, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate complete_multipart_upload(key, upload, parts, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate abort_multipart_upload(key, upload, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate upload_part_stream(key, path, offset, state, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate complete_part_stream(key, path, state, opts), to: Rindle.Storage.S3
+  @impl true
+  defdelegate concatenate(key, sources, opts), to: Rindle.Storage.S3
+
+  @impl true
+  def delete(key, opts) do
+    run = System.fetch_env!("TWIN_RUN_ID")
+
+    if claim_cleanup_cut(run, key),
+      do: delete_at_cleanup_cut(run, key, opts),
+      else: delete_with_existing_fault(run, key, opts)
+  end
+
+  defp claim_cleanup_cut(run, key) do
+    if System.get_env("TWIN_START_ROLE") == "maintenance" do
+      result =
+        Twin.Repo.query!(
+          "UPDATE twin_fault_counters SET claims=0 WHERE run_id=$1 AND operation='cleanup-arm' AND source_key=$2 AND claims=1 RETURNING claims",
+          [run, key]
+        )
+
+      result.num_rows == 1
+    else
+      false
+    end
+  end
+
+  defp delete_at_cleanup_cut(run, key, opts) do
+    with {:ok, _} <- Rindle.Storage.S3.delete(key, opts) do
+      %{num_rows: 1} =
+        Twin.Repo.query!(
+          "INSERT INTO twin_fault_counters(run_id,operation,source_key,claims) VALUES ($1,'cleanup-barrier',$2,$3)",
+          [run, key, String.to_integer(System.pid())]
+        )
+
+      # The controller kills this VM after seeing the committed barrier. A
+      # timeout retains the expired row rather than allowing a false cut.
+      receive do
+      after
+        180_000 -> {:error, :twin_cleanup_barrier_timeout}
+      end
+    end
+  end
+
+  defp delete_with_existing_fault(run, key, opts) do
+    expected =
+      Twin.Repo.query!(
+        "SELECT source_key FROM twin_fault_counters WHERE run_id=$1 AND operation='stimulus'",
+        [run]
+      ).rows
+
+    case expected do
+      [[^key]] -> delete_selected(run, key, opts)
+      _ -> Rindle.Storage.S3.delete(key, opts)
+    end
+  end
+
+  defp delete_selected(run, key, opts) do
+    # Commit the atomic claim before delegating any network I/O.
+    result =
+      Twin.Repo.query!(
+        "UPDATE twin_fault_counters SET claims = 1 WHERE run_id=$1 AND operation='delete' AND source_key=$2 AND claims=0 RETURNING claims",
+        [run, key]
+      )
+
+    if result.num_rows == 1,
+      do: {:error, :twin_source_delete_once},
+      else: delegate_claimed(run, key, opts)
+  end
+
+  defp delegate_claimed(run, key, opts) do
+    case Twin.Repo.query!(
+           "SELECT claims FROM twin_fault_counters WHERE run_id=$1 AND operation='delete' AND source_key=$2",
+           [run, key]
+         ).rows do
+      [[1]] -> Rindle.Storage.S3.delete(key, opts)
+      _ -> {:error, :twin_fixture_missing}
+    end
+  end
+end
+
+defmodule Twin.Profile do
+  use Rindle.Profile,
+    storage: Twin.StorageFault,
+    variants: [thumb: [mode: :fit, width: 64, height: 64]],
+    allow_mime: ["image/png"],
+    max_bytes: 1_048_576
+end
+
+defmodule Twin.AVProfile do
+  use Rindle.Profile,
+    storage: Twin.StorageFault,
+    variants: [web_720p: [kind: :video, preset: :web_720p]],
+    allow_mime: ["video/mp4"],
+    max_bytes: 1_048_576
+end

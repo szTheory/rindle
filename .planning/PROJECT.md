@@ -18,14 +18,57 @@ real adopter through an evidence-led quality pass and a maintainer-operated synt
 - Ratchet only measured quality debt: the reviewed complexity baseline, Dialyzer suppressions,
   coverage gaps, brittle implementation-literal tests, workflow truth, deterministic tool inputs,
   timeouts, and contributor bootstrap/reproduction paths.
-- Extend the existing Cohort, canonical-adopter, and generated-package proof into a deterministic
-  failure-and-recovery digital twin that consumes the built package, exercises real job behavior,
-  and emits machine-readable lifecycle, retry, residue, cleanup, and readiness receipts.
+- Build a dedicated minimal external Phoenix twin, informed by existing canonical/generated
+  package proof, with ordinary Repo/default Oban, deterministic fault/recovery observations and
+  machine-readable lifecycle, retry, residue and cleanup receipts; keep Cohort semantics intact.
 - Close from a clean checkout with supported-toolchain, package, docs, CI, Nightly, remote-inbox,
   release-train, and clean-worktree evidence. Phase 136 numeric CI speed acceptance is deferred,
   unfinished, to SEED-261021-918; required CI must remain green before merge.
 
 User decision (2026-10-21): defer the exact-ten CI speed target (<=480-second median / <=600-second p95) to SEED-261021-918; merge PR #162 when required CI is green. The numeric target remains unfinished, receives no acceptance credit, and is no longer a merge gate. Existing failed/blocked receipts remain immutable historical evidence.
+
+**Phase 136 result (2026-10-21):** All 15 plans and 41 active must-haves verified.
+Removal-only complexity and Dialyzer policies, exact coverage (5206/6329), clean
+supported bootstrap, finite 25-seed isolation, and CI structure have executable
+acceptance evidence. Required PR and main CI passed on the final source. The
+numeric speed target remains deferred unfinished with zero acceptance credit.
+
+**Phase 137 result (2026-10-21):** Six plans and all six TWIN foundation requirements
+verified. The dedicated external host consumes one fresh archive and compiles Rindle
+uncached per run; real same-job retry, controlled between-attempt runtime replacement,
+strict private receipts and safe owned-resource cleanup passed. Default regression:
+1717 tests plus 3 doctests, zero failures; final focused checks: 63 tests, zero failures.
+No new CI lane, public API, independent-pilot, AV-execution, numeric-speed or readiness
+credit. Doctor's legacy/host migration-ledger false failure is explicitly deferred;
+actual catalog/version/image/storage probes passed. Phase 138 subsequently closes the recovery matrix; Phase 139 remains open.
+
+**Phase 138 result (2026-10-22):** All six plans, 20/20 must-haves and RECOV-01..06
+verified automatically. One fresh archive completed six isolated lifecycle recovery cases,
+with independent retained-input verification and complete stopped-writer audits before
+safe repeated disposal. Provider writes now serialize accepted events and stale snapshots,
+with success effects after commit. Final regression: 1748 tests plus 3 doctests, zero
+failures; prior-phase gate: 372 tests, zero failures. Local matrix verdict runtime: 342727 ms,
+excluding disposal. Public API/schema/root lock and required CI contexts are preserved.
+Doctor ledger correction and final readiness remain Phase 139; no independent-pilot,
+release or deferred CI-speed credit.
+
+**Phase 139 implementation progress (2026-10-22):** Plan 00 corrects public Doctor to inspect
+the host-owned migration ledger and reject unavailable inspection and invalid version markers.
+Focused regression and unchanged quality policies pass. Plans 01/02 implement the finite
+receipt validator and isolated eighteen-gate qualifier with observed owned cleanup; their
+fixture and upstream regression checks pass. Plan 03 adds complete exact-subject CI/scheduled
+Nightly and effective-protection collectors; its 56 fixtures and live read-only CI probe pass,
+while the cancelled newest scheduled Nightly correctly leaves full collection not ready.
+Plan 04 adds separate complete inbox/security sources and fresh signed Hex audit; fixtures
+and actual root/demo audit probes pass, while undispositioned PRs and unavailable Dependabot
+visibility correctly leave live collection not ready. Plan 05 adds bounded candidate closure and immutable refresh, with actual-validator and
+owned-cleanup regressions passing. Candidate/fixture results grant no READY credit.
+Plan 06 adds producer-bound digest sidecars, authenticated durable retrieval, authoritative
+adoption parity and merged-subject/accept/claim-status commands. All 292 cheap fixtures
+pass in 89 seconds; 58 owner regressions and unchanged quality policies pass. Plan 07
+awaits the complete merged source and actual scheduled/security/durable proof, including
+the currently absent READINESS_READ_TOKEN producer secret. No terminal execution
+acceptance ran; all READY requirements and final exact-main readiness remain open.
 
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
@@ -347,7 +390,14 @@ To keep this posture durable across GSD workflows:
 
 ### Validated
 
+- ✓ Six isolated packaged lifecycle recovery cases, strict independent receipts and complete
+  pre-disposal audits, with bounded provider convergence fixes — Phase 138.
+
 <!-- Shipped and confirmed valuable. -->
+
+- Phase 137 — TWIN-01 through TWIN-06: maintainer-operated external-package image
+  lifecycle, committed fault/retry/restart, strict receipts and safe cleanup verified
+  automatically. This is synthetic foundation evidence, not independent adoption.
 
 - Phase 1 — Foundation: schemas, FSMs, profile DSL, validation primitives, and
   local/S3 storage adapters shipped in v1.0.
@@ -548,8 +598,8 @@ To keep this posture durable across GSD workflows:
   and free of mechanically proven planning/artifact residue.
 - [ ] Ratchet measured complexity, type, coverage, determinism, bootstrap, and CI/CD debt without
   weakening public or release contracts.
-- [ ] Prove the built package through a deterministic Cohort-centered failure-and-recovery digital twin
-  with machine-readable receipts and no skipped-as-green scenarios.
+- [ ] Complete aggregate readiness on the verified built-package foundation and recovery matrix;
+  reconcile Doctor migration-ledger diagnostics and current-head evidence in Phase 139.
 - [ ] Close v1.26 from a clean checkout and clean worktree with green supported-toolchain, package,
   documentation, CI, Nightly, release-train, and remote-triage evidence.
 
@@ -712,6 +762,8 @@ that section on next docs maintenance pass.
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Serialize provider freshness and writes; emit success effects after commit | Prevent stale/replayed events and stale poll snapshots from regressing accepted state or duplicating effects | ✓ Verified in Phase 138 |
+| Freeze complete six-case inventory before safe disposal | Infrastructure cleanup must never hide domain residue or manufacture acceptance | ✓ Verified in Phase 138 |
 | Media-agnostic core, image-first implementation | Images are the highest-leverage wedge; core domain model must not assume image so video/audio can slot in later | ✓ Good |
 | Variants are first-class DB records, not hidden filenames | Queryable state enables admin, retries, stale detection, cleanup, and reporting | ✓ Good |
 | Oban as required job backend | Oban is SQL-backed, persistent, observable, and supports transactional enqueueing | ✓ Good |
@@ -981,4 +1033,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-09-09 after authorizing v1.26 Pre-Adopter Readiness & Quality Consolidation.*
+*Last updated: 2026-10-22 after Phase 138 verification and transition to Phase 139.*

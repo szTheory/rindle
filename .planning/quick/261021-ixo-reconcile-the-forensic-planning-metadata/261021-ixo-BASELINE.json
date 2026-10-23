@@ -1,0 +1,42 @@
+{
+  "files": {
+    "windows": {
+      "path": ".planning/WINDOWS.md",
+      "sha256": "5c44bf1ddfd57d2fd76385949ab235e283592b480b33573cde3a57fcff1145c1"
+    },
+    "supplemental_note": {
+      "path": ".planning/milestones/v1.24-phases/122-live-truth-compile-clarity/122-VERIFICATION-FIX.md",
+      "sha256": "651bde9956db8e4173a0b8eb6059c33961714e3b40b970bb56dfa8ec08e54c7c"
+    },
+    "obsolete_continuation": {
+      "path": ".planning/phases/133-evidence-charter-and-live-truth/.continue-here.md",
+      "sha256": "769fc2b37b8a3fab6f6549dc11865714163b3118cf149fc567081bb5aeb53603"
+    }
+  },
+  "windows_body_sha256": "e045072f634d05d0efefab0f8178d91531b28fde1d43872165d98bb0c5f3474f",
+  "subject": {
+    "subject_sha": "e2d3b5c759e38c79744a1ef9bade8b6f2d92a2f9",
+    "source_tree": "9e66e48b2fc64a29f5b973ce28c922eed053cfc3"
+  },
+  "job": {
+    "version": "1.0",
+    "job_id": "136-07-final-measurements",
+    "plan_id": "136-07",
+    "phase": "136",
+    "backend": "local-subprocess",
+    "submit_command": "python3 .planning/phases/136-measured-quality-and-ci-ratchets/136-closeout-pipeline.py",
+    "status": "running",
+    "expected_artifacts": [
+      ".planning/phases/136-measured-quality-and-ci-ratchets/136-COVERAGE-EVIDENCE-SPEED.json",
+      ".planning/phases/136-measured-quality-and-ci-ratchets/136-DIALYZER-EVIDENCE-SPEED.json",
+      ".planning/phases/136-measured-quality-and-ci-ratchets/136-BOOTSTRAP-EVIDENCE-SPEED.json",
+      ".planning/phases/136-measured-quality-and-ci-ratchets/136-ASYNC-RESULT-SPEED.json",
+      ".planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json"
+    ],
+    "verification_command": "bash scripts/maintainer/verify_phase136_qualification.sh verify --subject-file .planning/phases/136-measured-quality-and-ci-ratchets/136-SUBJECT-SPEED.json --manifest .planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json",
+    "resume_command": "$gsd-execute-phase 136",
+    "submitted_at": "2026-10-21T16:57:12.134622+00:00",
+    "terminal_details": null
+  },
+  "controller_pid": 90682
+}

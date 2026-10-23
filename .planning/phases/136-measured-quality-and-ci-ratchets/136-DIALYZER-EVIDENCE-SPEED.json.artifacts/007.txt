@@ -1,0 +1,22 @@
+nightly-dialyzer mode=restored attempt=1 action=analyze
+Finding suitable PLTs
+Checking PLT...
+[:asn1, :bypass, :color, :compiler, :cowboy, :cowboy_telemetry, :cowlib, :crypto, :db_connection, :decimal, :ecto, :ecto_sql, :eex, :elixir, :ex_aws, :ex_aws_s3, :ex_machina, :ex_marcel, :ex_unit, :finch, :gcs_signed_url, :goth, :hpax, :image, :inets, :jason, :jose, :junit_formatter, :kernel, :lazy_html, :logger, :mime, :mint, :mix, :mox, :muontrap, :mux, :nimble_options, :nimble_ownership, :nimble_pool, :oban, :phoenix, :phoenix_html, :phoenix_live_view, :phoenix_pubsub, :phoenix_template, :plug, :plug_cowboy, :plug_crypto, :postgrex, ...]
+PLT is up to date!
+ignore_warnings: .dialyzer_ignore.exs
+
+Starting Dialyzer
+[
+  check_plt: false,
+  init_plt: ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/priv/plts/dialyzer.plt",
+  files: [~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Domain.MediaProcessingRun.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Domain.MediaAttachment.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Ops.UploadMaintenance.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.StorageMock.beam",
+   ~c"/private/var/folders/f3/f0clj9rd2zb85n2c849wcsrc0000gn/T/rindle-frozen-evidence-skt4laks/source/_build/test/lib/rindle/ebin/Elixir.Rindle.Ops.VariantMaintenance.beam",
+   ...],
+  warnings: [:unknown]
+]
+Total errors: 39, Skipped: 39, Unnecessary Skips: 0
+done in 0m2.56s
+done (passed successfully)

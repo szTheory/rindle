@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: ${TWIN_SECRET:?}
+      POSTGRES_DB: ${TWIN_DATABASE:?}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes: ["database:/var/lib/postgresql/data"]
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:2136d593beacf4461187035eca949fe49abd589d5079735025c711ca58fee0c8
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: twinlocal
+      MINIO_ROOT_PASSWORD: ${TWIN_SECRET:?}
+    volumes: ["objects:/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "MC_HOST_local=http://twinlocal:$$MINIO_ROOT_PASSWORD@localhost:9000 mc ready local >/dev/null"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  host:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TWIN_BUILD_RUN: ${TWIN_RUN_ID:?}
+    image: ${TWIN_PROJECT:?}:local
+    environment:
+      TWIN_RUN_ID: ${TWIN_RUN_ID:?}
+      TWIN_DATABASE: ${TWIN_DATABASE:?}
+      TWIN_BUCKET: ${TWIN_BUCKET:?}
+      TWIN_SECRET: ${TWIN_SECRET:?}
+      ERL_FLAGS: "+S 4:4"
+    depends_on:
+      postgres: {condition: service_healthy}
+      minio: {condition: service_healthy}
+    volumes: ["retained:/retained"]
+volumes:
+  database: {}
+  objects: {}
+  retained: {}
