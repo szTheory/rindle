@@ -201,6 +201,25 @@ def adverrs:
        else empty end)
     ] end;
 
+def demo_recovery_ok($merge; $evidence; $current_run):
+  . as $raw | (. | obj) as $r | ($r.original | obj) as $o | ($o.run | obj) as $run
+  | ($o.gates | obj) as $g | ($r.changed_files | arr) as $files
+  | ($raw | type) == "object" and $r.policy == "demo-config-repair-v1"
+    and ($merge | hex40) and ($evidence | hex40) and $merge != $evidence
+    and $r.merge_sha == $merge and $r.evidence_sha == $evidence
+    and ($r.changed_files | type) == "array"
+    and ($files | index("examples/adoption_demo/config/dev.exs")) != null
+    and ($files | length) == ($files | unique | length)
+    and ($files | all(.[]; if type == "string" then
+      test("^\\.planning/([^/]+/)*[^/]+\\.md$|^\\.planning/INBOX-LEDGER\\.json$")
+      or . == "examples/adoption_demo/config/dev.exs" or . == "test/install_smoke/demo_dev_config_test.exs"
+      else false end))
+    and $o.verdict == "regression" and $o.failed_jobs == ["Cohort Demo Smoke"] and $o.cohort_conclusion == "failure"
+    and ($run.id | posint) and $run.id != $current_run and $run.head_sha == $merge
+    and $run.event == "push" and $run.status == "completed" and $run.conclusion == "failure"
+    and $g.supported_toolchain == "pass" and $g.public_contract == "pass"
+    and $g.package_consumer == "fail" and $g.twin == $twin;
+
 def landerrs:
   if type != "object" then [R("landing"; "entry is not an object")] else
   . as $l | "landing \($l.number)" as $lb
@@ -212,6 +231,8 @@ def landerrs:
       (if ($l.merge_sha | hex40) then empty else R("landing"; "\($lb): merge_sha must be 40-hex") end),
       (if ($l | has("evidence_sha")) and (($l.evidence_sha | hex40) | not)
        then R("landing"; "\($lb): evidence_sha must be 40-hex") else empty end),
+      (if ($l | has("recovery")) and (($l.recovery | demo_recovery_ok($l.merge_sha; $l.evidence_sha; $l.ci_run_id)) | not)
+       then R("landing recovery"; "\($lb): invalid explicit demo repair metadata") else empty end),
       (if ($l.ci_run_id | posint) then empty else R("landing"; "\($lb): ci_run_id must be a positive integer") end),
       (if ($l.baseline_run_id | posint) then empty else R("landing"; "\($lb): baseline_run_id must be a positive integer") end),
       (if ($l.subject | nestr) then empty else R("landing"; "\($lb): subject is required") end),
@@ -303,7 +324,12 @@ def live($I; $now; $maxage):
                        or $e.run.event != "push" or $e.run.status != "completed"
                        or (($e.lock_delta | map(.package)) - $l.group_packages | length) != 0
                      then R("landing mismatch"; "pr \($it.number): landing differs from freshly collected attribution/CI")
-                     elif ($l.evidence_sha // $l.merge_sha) != $l.merge_sha and
+                     elif ($l | has("recovery")) and
+                       ($e.recovery != $l.recovery or $e.equivalence != null or $e.run.conclusion != "success")
+                     then R("landing recovery"; "pr \($it.number): repair differs from freshly verified original/repair proof")
+                     elif ($l | has("recovery") | not) and ($e | has("recovery"))
+                     then R("landing recovery"; "pr \($it.number): undeclared repair cannot substitute original-source success")
+                     elif ($l | has("recovery") | not) and ($l.evidence_sha // $l.merge_sha) != $l.merge_sha and
                        ($e.equivalence.policy != "planning-only-descendant-v1"
                         or $e.equivalence.merge_sha != $l.merge_sha
                         or $e.equivalence.evidence_sha != $l.evidence_sha

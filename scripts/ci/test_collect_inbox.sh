@@ -663,6 +663,31 @@ INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-l
 assert "collector derives actual terminal attribution and passing CI" jq -e \
   '.terminal[0].landing_evidence[0] | .verdict=="pass" and .attributable==true and .run.id==777 and .lock_delta==[{package:"req",from:"0.7.3",to:"0.7.5"}]' "${out}"
 no_mutations "collected landing evidence"
+
+# Explicit repair hints select a policy; only real Git history and both actual
+# CI sources can produce the original-failure / repaired-success receipt.
+mkdir -p "${LANDING_ROOT}/examples/adoption_demo/config"
+echo 'portable config' >"${LANDING_ROOT}/examples/adoption_demo/config/dev.exs"
+git -C "${LANDING_ROOT}" add -A && git -C "${LANDING_ROOT}" commit -qm config-repair
+REPAIR_SHA="$(git -C "${LANDING_ROOT}" rev-parse HEAD)"
+fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${LANDING_SHA}&event=push&per_page=5" \
+  "{\"workflow_runs\":[{\"id\":777,\"head_sha\":\"${LANDING_SHA}\",\"event\":\"push\",\"head_branch\":\"main\",\"repository\":{\"full_name\":\"szTheory/rindle\"},\"path\":\".github/workflows/ci.yml\",\"status\":\"completed\",\"conclusion\":\"failure\"}]}"
+fx "repos/szTheory/rindle/actions/runs/777/jobs?per_page=100" "$(jq -n --argjson names "$JOBS" '{jobs:[$names[]|{name:.,conclusion:(if .=="Cohort Demo Smoke" then "failure" else "success" end)}]}')"
+fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${REPAIR_SHA}&event=push&per_page=5" \
+  "{\"workflow_runs\":[{\"id\":778,\"head_sha\":\"${REPAIR_SHA}\",\"event\":\"push\",\"head_branch\":\"main\",\"repository\":{\"full_name\":\"szTheory/rindle\"},\"path\":\".github/workflows/ci.yml\",\"status\":\"completed\",\"conclusion\":\"success\"}]}"
+fx "repos/szTheory/rindle/actions/runs/778/jobs?per_page=100" "$(jq -n --argjson names "$JOBS" '{jobs:[$names[]|{name:.,conclusion:"success"}]}')"
+jq --arg sha "${REPAIR_SHA}" '.landings[0] += {evidence_sha:$sha,recovery:{policy:"demo-config-repair-v1"}}' "${ROOT_TMP}/landing-ledger.json" >"${ROOT_TMP}/repair-ledger.json"
+out="${ROOT_TMP}/landing-repair.json"
+INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-ledger "${ROOT_TMP}/repair-ledger.json"
+assert "collector derives repair from real range and both CI sources" jq -e \
+  '.terminal[0].landing_evidence[0] | .verdict=="pass" and .run.id==778 and .recovery.original.run.id==777 and .recovery.original.verdict=="regression" and .recovery.original.failed_jobs==["Cohort Demo Smoke"]' "${out}"
+no_mutations "collected demo repair"
+jq '.landings[0].recovery.policy="unrestricted"' "${ROOT_TMP}/repair-ledger.json" >"${ROOT_TMP}/unknown-repair-ledger.json"
+out="${ROOT_TMP}/unknown-landing-repair.json"
+INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-ledger "${ROOT_TMP}/unknown-repair-ledger.json"
+record "unknown repair policy aborts without inventory" "$([ "$RC" -ne 0 ] && [ ! -e "$out" ] && echo true || echo false)"
+no_mutations "unknown demo repair"
+
 # A malformed/unbound CI response must fail the whole collection, not supply
 # an empty successful evidence record.
 fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${LANDING_SHA}&event=push&per_page=5" \

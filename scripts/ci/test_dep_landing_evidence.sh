@@ -363,6 +363,101 @@ for file in mix.lock mix.exs lib/rindle.ex .github/workflows/ci.yml .planning/to
   run --sha "${SHA_ECTO}" --evidence-sha "$(git rev-parse HEAD)"
   assert_rc "reverted ${file} still rejected" 1
 done
+
+# A genuine Cohort-only regression needs an explicit repair receipt, not a
+# claim that its original source passed or ordinary planning-only equivalence.
+git checkout -q --detach "${SHA_ECTO}"
+mkdir -p examples/adoption_demo/config
+echo 'portable reload patterns' >examples/adoption_demo/config/dev.exs
+git add -A && git commit -qm demo-config-repair
+SHA_REPAIR="$(git rev-parse HEAD)"
+put_run "${SHA_ECTO}" 3100 completed failure
+put_jobs 3100 "" "Cohort Demo Smoke"
+put_run "${SHA_REPAIR}" 3101 completed success
+put_jobs 3101
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}" --demo-config-repair
+assert_rc "explicit demo repair accepts only the repaired passing source" 0
+assert_jq "repair retains original regression and distinct evidence identity" '.equivalence == null and .recovery.policy == "demo-config-repair-v1" and .recovery.merge_sha == .sha and .recovery.evidence_sha == .evidence_sha and .recovery.original.run.id == 3100 and .recovery.original.run.conclusion == "failure" and .recovery.original.verdict == "regression" and .recovery.original.failed_jobs == ["Cohort Demo Smoke"] and .recovery.changed_files == ["examples/adoption_demo/config/dev.exs"]'
+no_mutations "explicit demo repair"
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}"
+assert_rc "demo source repair remains forbidden without explicit mode" 1
+run --sha "${SHA_ECTO}" --demo-config-repair
+assert_rc "repair requires explicit group, package and evidence source" 64
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_DOCS}" --demo-config-repair
+assert_rc "planning alone cannot pretend to repair a demo regression" 1
+
+for file in mix.lock mix.exs examples/adoption_demo/mix.lock examples/adoption_demo/mix.exs lib/rindle.ex .github/workflows/ci.yml docker/Dockerfile.cohort-demo scripts/ci/cohort_demo_smoke.sh .planning/config.json; do
+  git checkout -q --detach "${SHA_REPAIR}"
+  mkdir -p "$(dirname "${file}")"
+  echo change >>"${file}"
+  git add -A && git commit -qm forbidden-repair-change
+  SHA_CHANGED="$(git rev-parse HEAD)"
+  run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_CHANGED}" --demo-config-repair
+  assert_rc "demo repair changing ${file} rejected" 1
+  git revert --no-edit "${SHA_CHANGED}" >/dev/null 2>&1
+  run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "$(git rev-parse HEAD)" --demo-config-repair
+  assert_rc "demo repair reverted ${file} still rejected" 1
+done
+
+git checkout -q --detach "${SHA_REPAIR}"
+rm examples/adoption_demo/config/dev.exs
+ln -s /outside/config examples/adoption_demo/config/dev.exs
+git add -A && git commit -qm symlink-repair
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "$(git rev-parse HEAD)" --demo-config-repair
+assert_rc "demo repair config cannot become a symlink" 1
+git checkout -q --detach "${SHA_REPAIR}"
+git revert --no-edit "${SHA_REPAIR}" >/dev/null 2>&1
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "$(git rev-parse HEAD)" --demo-config-repair
+assert_rc "demo repair must retain its actual config change" 1
+
+for kind in green-original wrong-failure additional-failure cancelled-original incomplete-original failed-repair; do
+  put_run "${SHA_ECTO}" 3100 completed failure
+  put_jobs 3100 "" "Cohort Demo Smoke"
+  put_run "${SHA_REPAIR}" 3101 completed success
+  put_jobs 3101
+  case "${kind}" in
+    green-original) put_run "${SHA_ECTO}" 3100 completed success; put_jobs 3100 ;;
+    wrong-failure) put_jobs 3100 "" Contract ;;
+    additional-failure)
+      file="${FAKE_DIR}/api/$(san_of 'repos/szTheory/rindle/actions/runs/3100/jobs?per_page=100').json"
+      jq '(.jobs[] | select(.name == "Adopter").conclusion) = "failure"' "${file}" >"${TMP}/jobs.new" && mv "${TMP}/jobs.new" "${file}" ;;
+    cancelled-original)
+      file="${FAKE_DIR}/api/$(san_of 'repos/szTheory/rindle/actions/runs/3100/jobs?per_page=100').json"
+      jq '(.jobs[] | select(.name == "Cohort Demo Smoke").conclusion) = "cancelled"' "${file}" >"${TMP}/jobs.new" && mv "${TMP}/jobs.new" "${file}" ;;
+    incomplete-original) put_run "${SHA_ECTO}" 3100 in_progress "" ;;
+    failed-repair) put_run "${SHA_REPAIR}" 3101 completed failure ;;
+  esac
+  run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}" --demo-config-repair
+  assert_rc "demo repair rejects ${kind}" 1
+done
+
+put_run "${SHA_ECTO}" 3100 completed failure
+put_jobs 3100 "" "Cohort Demo Smoke"
+put_run "${SHA_REPAIR}" 3101 completed success
+put_jobs 3101
+cp "${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${SHA_REPAIR}&event=push&per_page=5").json" "${TMP}/repair-run.json"
+jq '.jobs' "${FAKE_DIR}/api/$(san_of 'repos/szTheory/rindle/actions/runs/3101/jobs?per_page=100').json" >"${TMP}/repair-jobs.json"
+cp "${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${SHA_ECTO}&event=push&per_page=5").json" "${TMP}/original-run.json"
+jq '.jobs' "${FAKE_DIR}/api/$(san_of 'repos/szTheory/rindle/actions/runs/3100/jobs?per_page=100').json" >"${TMP}/original-jobs.json"
+reads_before="$(wc -l <"${FAKE_DIR}/gh.log")"
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}" --demo-config-repair --run-file "${TMP}/repair-run.json" --jobs-file "${TMP}/repair-jobs.json" --original-run-file "${TMP}/original-run.json" --original-jobs-file "${TMP}/original-jobs.json"
+assert_rc "retained original and repair responses use the same repair proof" 0
+record "retained repair performs no extra GitHub transport" "$([ "$(wc -l <"${FAKE_DIR}/gh.log")" = "$reads_before" ] && echo true || echo false)"
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}" --demo-config-repair --run-file "${TMP}/repair-run.json" --jobs-file "${TMP}/repair-jobs.json"
+assert_rc "retained repair cannot escape transport for missing original data" 64
+run --sha "${SHA_ECTO}" --original-run-file "${TMP}/original-run.json" --original-jobs-file "${TMP}/original-jobs.json"
+assert_rc "original responses require an explicit paired repair operation" 64
+cp "${TMP}/original-run.json" "${TMP}/original-run.good"
+jq '.workflow_runs[0].head_sha="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' "${TMP}/original-run.good" >"${TMP}/original-run.json"
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}" --demo-config-repair --run-file "${TMP}/repair-run.json" --jobs-file "${TMP}/repair-jobs.json" --original-run-file "${TMP}/original-run.json" --original-jobs-file "${TMP}/original-jobs.json"
+assert_rc "retained repair rejects a foreign original source" 1
+cp "${TMP}/original-run.good" "${TMP}/original-run.json"
+echo '{}' >"${TMP}/original-jobs.json"
+run --sha "${SHA_ECTO}" --group ecto_sql --packages ecto,ecto_sql --evidence-sha "${SHA_REPAIR}" --demo-config-repair --run-file "${TMP}/repair-run.json" --jobs-file "${TMP}/repair-jobs.json" --original-run-file "${TMP}/original-run.json" --original-jobs-file "${TMP}/original-jobs.json"
+assert_rc "retained repair rejects malformed original jobs" 1
+record "invalid retained original data cannot escape transport" "$([ "$(wc -l <"${FAKE_DIR}/gh.log")" = "$reads_before" ] && echo true || echo false)"
+no_mutations "retained demo repair"
+
 for field in 'head_sha="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"' 'event="workflow_dispatch"' 'head_branch="other"' 'repository.full_name="foreign/repo"' 'path=".github/workflows/other.yml"'; do
   put_run "${SHA_ECTO}" 1008 completed success
   file="${FAKE_DIR}/api/$(san_of "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${SHA_ECTO}&event=push&per_page=5").json"

@@ -283,6 +283,11 @@ for n in ${INCLUDES}; do
         evidence_sha="$(printf '%s' "${hint}" | jq -r '.evidence_sha // empty')"
         set -- --repo "${REPO}" --sha "${merge_sha}" --group "${group}" --packages "${packages}" --lock "${lock}"
         [ -z "${evidence_sha}" ] || set -- "$@" --evidence-sha "${evidence_sha}"
+        recovery_policy="$(printf '%s' "${hint}" | jq -r '.recovery.policy // empty')"
+        if [ -n "${recovery_policy}" ]; then
+          [ "${recovery_policy}" = demo-config-repair-v1 ] || die "unknown landing recovery policy"
+          set -- "$@" --demo-config-repair
+        fi
         rc=0
         (cd "${ROOT}" && bash "${SCRIPT_DIR}/dep_landing_evidence.sh" "$@" --out "${WORK}/landing.json") || rc=$?
         # A failed gate is an observable record, not an empty successful result.

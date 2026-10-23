@@ -117,6 +117,15 @@ class RemoteCollector:
                 '--lock',record['lock'],'--run-file',str(directory/'runs.json'),'--jobs-file',str(directory/'jobs.json'),
                 '--out',str(directory/'evidence.json')]
             if 'evidence_sha' in record:args+=['--evidence-sha',evidence_sha]
+            if 'recovery' in record:
+                require(isinstance(record['recovery'],dict) and record['recovery'].get('policy')=='demo-config-repair-v1','landing_recovery_policy')
+                original_data,_=self.api.get(self.api.path('actions/workflows/ci.yml/runs?head_sha='+merge_sha+'&event=push&per_page=5'))
+                originals=original_data.get('workflow_runs')
+                require(isinstance(originals,list) and originals and type(originals[0].get('id')) is int,'landing_original_ci_unavailable')
+                original_jobs=self.api.pages('actions/runs/'+str(originals[0]['id'])+'/jobs?per_page=100','jobs')
+                write_new(directory/'original-runs.json',original_data);write_new(directory/'original-jobs.json',original_jobs)
+                args+=['--demo-config-repair','--original-run-file',str(directory/'original-runs.json'),
+                       '--original-jobs-file',str(directory/'original-jobs.json')]
             code=self.command(args,ROOT,dict(os.environ),30)
             require(code in (0,1,3) and (directory/'evidence.json').is_file(),'landing_evidence_unavailable')
             result.append(read_json(directory/'evidence.json'))

@@ -273,6 +273,20 @@ live "merged: descendant without equivalence rejected" "$DL" "$DI | del(.termina
 live "merged: source-changing descendant rejected" "$DL" "$DI | .terminal[1].landing_evidence[0].equivalence.changed_files=[\"lib/rindle.ex\"]" 1 "REJECT: landing equivalence"
 live "merged: malformed descendant SHA rejected offline" "$DL | .landings[0].evidence_sha=\"bad\"" "$DI" 1 "evidence_sha must be 40-hex"
 
+RECOVERY='{policy:"demo-config-repair-v1",merge_sha:"2222222222222222222222222222222222222222",evidence_sha:"3333333333333333333333333333333333333333",changed_files:["examples/adoption_demo/config/dev.exs","test/install_smoke/demo_dev_config_test.exs"],original:{run:{id:99,head_sha:"2222222222222222222222222222222222222222",event:"push",status:"completed",conclusion:"failure"},verdict:"regression",gates:{supported_toolchain:"pass",public_contract:"pass",package_consumer:"fail",twin:"not-applicable: twin not built (Phase 137)"},failed_jobs:["Cohort Demo Smoke"],cohort_conclusion:"failure"}}'
+RL="$DL | .landings[0].recovery=$RECOVERY"
+RI="$DI | .terminal[1].landing_evidence[0] |= (.equivalence=null | .run.conclusion=\"success\" | .recovery=$RECOVERY)"
+live "merged: explicit verified Cohort repair accepted with original failure" "$RL" "$RI" 0 ""
+live "merged: repair cannot hide original failure" "$RL | .landings[0].recovery.original.run.conclusion=\"success\"" "$RI" 1 "landing recovery"
+live "merged: repair cannot cover library changes" "$RL | .landings[0].recovery.changed_files += [\"lib/rindle.ex\"]" "$RI" 1 "landing recovery"
+live "merged: repair cannot omit actual config change" "$RL | .landings[0].recovery.changed_files=[\"test/install_smoke/demo_dev_config_test.exs\"]" "$RI" 1 "landing recovery"
+live "merged: additional original failure cannot qualify" "$RL | .landings[0].recovery.original.failed_jobs += [\"Contract\"]" "$RI" 1 "landing recovery"
+live "merged: missing original source cannot qualify" "$RL | del(.landings[0].recovery.original)" "$RI" 1 "landing recovery"
+live "merged: unknown repair policy cannot qualify" "$RL | .landings[0].recovery.policy=\"arbitrary-code\"" "$RI" 1 "landing recovery"
+live "merged: forged repair differs from fresh proof" "$RL" "$RI | .terminal[1].landing_evidence[0].recovery.original.run.id=98" 1 "landing recovery"
+live "merged: repaired CI must be wholly successful" "$RL" "$RI | .terminal[1].landing_evidence[0].run.conclusion=\"failure\"" 1 "landing recovery"
+live "merged: repair cannot substitute planning equivalence" "$RL" "$DI" 1 "landing recovery"
+
 # --- untrusted text is never executed ---------------------------------------------------
 INJ="${T}/pwned"
 jq -S --arg c "\$(touch ${INJ})" '(.items[0].rationale) = $c | (.items[0].gate) = ("`touch " + $c + "`") | (.advisories[0].exception.trigger) = {"type": $c}' "${T}/base_ledger.json" >"${T}/l.json"

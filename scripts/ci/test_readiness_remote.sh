@@ -34,6 +34,12 @@ def fixture_lock(key):return '%{\n'+''.join('  "'+r['package']+'": {:hex, :'+r['
 (git_root/'mix.lock').write_text(fixture_lock('from'));git('add','-A');git('commit','-qm','base')
 (git_root/'mix.lock').write_text(fixture_lock('to'));git('add','-A');git('commit','-qm','landing')
 landing['merge_sha']=git('rev-parse','HEAD');os.environ['GIT_DIR']=str(git_root/'.git');os.environ['GIT_WORK_TREE']=str(git_root)
+(git_root/'examples/adoption_demo/config').mkdir(parents=True)
+(git_root/'examples/adoption_demo/config/dev.exs').write_text('portable config\n')
+git('add','-A');git('commit','-qm','demo config repair');repair_sha=git('rev-parse','HEAD')
+transport_root=pathlib.Path(tempfile.mkdtemp(prefix='rindle-remote-no-gh-'));atexit.register(shutil.rmtree,transport_root)
+escape_log=transport_root/'escaped';(transport_root/'gh').write_text('#!/bin/sh\nprintf "blocked\\n" >> "$RINDLE_TEST_GH_ESCAPE_LOG"\nexit 97\n');(transport_root/'gh').chmod(0o700)
+os.environ['PATH']=str(transport_root)+os.pathsep+os.environ['PATH'];os.environ['RINDLE_TEST_GH_ESCAPE_LOG']=str(escape_log)
 landing_jobs=['Quality (stable)','ADMIN-06 Optional Dependencies (stable)','Contract','Proof','Integration','CI Script Tests',
  'Package Consumer Proof Matrix + Release Preflight','Adopter','Adoption Demo Unit','Adoption Demo E2E Smoke','Cohort Demo Smoke',
  'Adoption Demo E2E','Package Consumer Full Matrix + Release Preflight (stable)']
@@ -52,8 +58,9 @@ def fixture_command(self,argv,cwd,env,budget):
         output=pathlib.Path(argv[4])
     elif len(argv)>2 and argv[:2]==['bash',str(root/'scripts/maintainer/dep_landing_evidence.sh')] and '--run-file' in argv:
         normalized=list(argv);normalized[1]=pathlib.Path(argv[1]).read_bytes().hex()
-        for flag in ('--run-file','--jobs-file'):
-            position=argv.index(flag)+1;normalized[position]=pathlib.Path(argv[position]).read_bytes().hex()
+        for flag in ('--run-file','--jobs-file','--original-run-file','--original-jobs-file'):
+            if flag in argv:
+                position=argv.index(flag)+1;normalized[position]=pathlib.Path(argv[position]).read_bytes().hex()
         position=argv.index('--out')+1;output=pathlib.Path(argv[position]);normalized[position]='OUTPUT'
         normalized += [env.get('GIT_DIR'),env.get('GIT_WORK_TREE')]
     if normalized is None:return original_command(self,argv,cwd,env,budget)
@@ -69,6 +76,7 @@ c.RemoteCollector.command=fixture_command
 
 class Remote(unittest.TestCase):
     def setUp(self):
+        escape_log.unlink(missing_ok=True)
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-remote-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
         self.responses={};self.put('repos/'+repo,{'id':123,'full_name':repo,'default_branch':'main','owner':{'type':'User'},'permissions':{'admin':True}})
         self.put(prefix+'git/ref/heads/main',{'ref':'refs/heads/main','object':{'type':'commit','sha':sha}})
@@ -127,7 +135,9 @@ class Remote(unittest.TestCase):
                 'hex_version':'2.5.1','online':True,'registry_signature_verification':True,'https_verified':True,
                 'packages':sorted(packages,key=lambda p:p['package']),'database':database})
         (self.fixture/'hex.json').write_bytes(c.canonical([self.hex_payload,self.hex_payload]))
-    def tearDown(self):shutil.rmtree(self.tmp)
+    def tearDown(self):
+        escaped=escape_log.exists();shutil.rmtree(self.tmp)
+        self.assertFalse(escaped,'retained landing proof attempted a hidden GitHub transport')
     def put(self,path,body,status=200,headers=None):self.responses[path]=[{'status':status,'body':copy.deepcopy(body),'headers':headers or {}}]
     def subject_file(self,path,raw):self.put(prefix+'contents/'+path+'?ref='+sha,{'path':path,'type':'file','encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
     def body(self,path):return self.responses[path][0]['body']
@@ -208,6 +218,34 @@ class Remote(unittest.TestCase):
         self.full_reject('ledger_reconciliation_failed')
     def test_foreign_landing_ci_is_not_accepted(self):
         self.body(self.landing_run_path)['workflow_runs'][0]['repository']['full_name']='foreign/repo'
+        self.full_reject('landing_evidence_unavailable')
+    def add_demo_repair(self):
+        original=self.body(self.landing_run_path)['workflow_runs'][0];original['conclusion']='failure'
+        next(j for j in self.body(self.landing_jobs_path)['jobs'] if j['name']=='Cohort Demo Smoke')['conclusion']='failure'
+        repaired={**original,'id':original['id']+1,'head_sha':repair_sha,'conclusion':'success'}
+        self.repair_run_path=prefix+'actions/workflows/ci.yml/runs?head_sha='+repair_sha+'&event=push&per_page=5'
+        self.put(self.repair_run_path,{'workflow_runs':[repaired]})
+        self.put(prefix+'actions/runs/'+str(repaired['id'])+'/jobs?per_page=100',
+            {'total_count':len(landing_jobs),'jobs':[{'id':i+1,'name':name,'conclusion':'success'} for i,name in enumerate(landing_jobs)]})
+        recovery={'policy':'demo-config-repair-v1','merge_sha':landing['merge_sha'],'evidence_sha':repair_sha,
+            'changed_files':['examples/adoption_demo/config/dev.exs'],'original':{
+                'run':{k:original[k] for k in ('id','head_sha','event','status','conclusion')},'verdict':'regression',
+                'gates':{**landing['gates'],'package_consumer':'fail'},'failed_jobs':['Cohort Demo Smoke'],'cohort_conclusion':'failure'}}
+        raw=copy.deepcopy(ledger);raw['landings'][0].update(evidence_sha=repair_sha,ci_run_id=repaired['id'],recovery=recovery)
+        self.subject_file(c.LEDGER,c.canonical(raw))
+    def test_demo_repair_collects_both_exact_sources_without_transport_escape(self):
+        self.add_demo_repair();code,_,collector=self.collect(full=True);self.assertEqual(code,0)
+        receipts=[c.read_json(p) for p in collector.private.glob('landing-*/evidence.json')]
+        self.assertEqual(len(receipts),2)
+        self.assertTrue(all(p['recovery']['original']['verdict']=='regression' and p['run']['head_sha']==repair_sha for p in receipts))
+    def test_demo_repair_requires_original_run_visibility(self):
+        self.add_demo_repair();self.put(self.landing_run_path,{},403);self.full_reject('remote_forbidden')
+    def test_demo_repair_rejects_foreign_original_source(self):
+        self.add_demo_repair();self.body(self.landing_run_path)['workflow_runs'][0]['head_sha']='b'*40
+        self.full_reject('landing_evidence_unavailable')
+    def test_demo_repair_changed_original_jobs_cannot_reuse_cached_green(self):
+        self.add_demo_repair();self.responses[self.landing_jobs_path].append(copy.deepcopy(self.responses[self.landing_jobs_path][0]))
+        next(j for j in self.responses[self.landing_jobs_path][1]['body']['jobs'] if j['name']=='Contract')['conclusion']='failure'
         self.full_reject('landing_evidence_unavailable')
     def test_unpublished_advisory_404_cannot_be_empty(self):
         self.put(prefix+'security-advisories?state=draft&per_page=100',{},404)

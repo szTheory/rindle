@@ -189,9 +189,19 @@ bash scripts/maintainer/validate_inbox_ledger.sh --ledger "$INBOX_LEDGER" --inve
 Merged PR filenames and merge SHAs come from GitHub. `--landing-ledger` supplies
 hints for fresh attribution/CI collection through `dep_landing_evidence.sh`; missing
 landings for changed locks reject. Keep full local Git history for these checks.
-A landing may name `evidence_sha` only for a verified descendant changing planning
+By default, a landing may name `evidence_sha` only for a verified descendant changing planning
 prose or `INBOX-LEDGER.json` in every intervening commit. Executable planning tools,
 config, source, manifests, locks, workflows and code changes later reverted reject.
+An explicit `--demo-config-repair` receipt also supports a later passing main after
+a Cohort-only failure. Its complete Git range may change only the demo development
+config, its regression test and planning prose/ledger data; locks, manifests,
+library code, CI and consumer harnesses stay unchanged. It requires an actual config
+change, an original completed run whose only failed consumer is Cohort with all
+other gates passing, and a wholly successful repaired run. The receipt keeps the
+original regression and separate repair identity. This mode never reports the
+original source as successful. Bounded collectors retain both authenticated response
+pairs and open no second GitHub transport.
+
 Keep the original failed CI receipt when using descendant evidence. Queued/running
 main CI jobs appear in `unfinished_jobs`, separately from `failed_jobs`.
 

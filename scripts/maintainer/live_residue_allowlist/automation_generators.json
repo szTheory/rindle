@@ -101,6 +101,14 @@
     {
       "path": "scripts/ci/test_dep_landing_evidence.sh",
       "class": "planning-path",
+      "text": "for file in mix.lock mix.exs examples/adoption_demo/mix.lock examples/adoption_demo/mix.exs lib/rindle.ex .github/workflows/ci.yml docker/Dockerfile.cohort-demo scripts/ci/cohort_demo_smoke.sh .planning/config.json; do",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Closed demo-config repair policy and adversarial evidence fixture; preserves the original failure, package inputs and default planning-only rule."
+    },
+    {
+      "path": "scripts/ci/test_dep_landing_evidence.sh",
+      "class": "planning-path",
       "text": "for file in mix.lock mix.exs lib/rindle.ex .github/workflows/ci.yml .planning/tools/check.py .planning/config.json; do",
       "count": 1,
       "reason_class": "fixture",
@@ -241,6 +249,14 @@
       "count": 1,
       "reason_class": "fixture",
       "reason": "Executable adverse landing/CI fixture: literal planning paths, historical twin marker and authoritative job names are input data required to exercise the actual collector/validator."
+    },
+    {
+      "path": "scripts/ci/test_validate_inbox_ledger.sh",
+      "class": "phase-ref",
+      "text": "RECOVERY='{policy:\"demo-config-repair-v1\",merge_sha:\"2222222222222222222222222222222222222222\",evidence_sha:\"3333333333333333333333333333333333333333\",changed_files:[\"examples/adoption_demo/config/dev.exs\",\"test/install_smoke/demo_dev_config_test.exs\"],original:{run:{id:99,head_sha:\"2222222222222222222222222222222222222222\",event:\"push\",status:\"completed\",conclusion:\"failure\"},verdict:\"regression\",gates:{supported_toolchain:\"pass\",public_contract:\"pass\",package_consumer:\"fail\",twin:\"not-applicable: twin not built (Phase 137)\"},failed_jobs:[\"Cohort Demo Smoke\"],cohort_conclusion:\"failure\"}}'",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Closed demo-config repair policy and adversarial evidence fixture; preserves the original failure, package inputs and default planning-only rule."
     },
     {
       "path": "scripts/ci/test_validate_inbox_ledger.sh",

@@ -340,6 +340,14 @@
     },
     {
       "path": "scripts/maintainer/dep_landing_evidence.sh",
+      "class": "planning-path",
+      "text": "test(\"^\\\\.planning/([^/]+/)*[^/]+\\\\.md$|^\\\\.planning/INBOX-LEDGER\\\\.json$\")",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Closed demo-config repair policy and adversarial evidence fixture; preserves the original failure, package inputs and default planning-only rule."
+    },
+    {
+      "path": "scripts/maintainer/dep_landing_evidence.sh",
       "class": "requirement-id",
       "text": "exact: [], prefix: [\"Quality (\", \"ADMIN-06 Optional Dependencies (\"]},",
       "count": 1,
@@ -833,6 +841,14 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Dependency landing equivalence contract: only planning prose and the known inbox ledger data file can qualify a descendant; source, executable planning tools and config are rejected."
+    },
+    {
+      "path": "scripts/maintainer/validate_inbox_ledger.sh",
+      "class": "planning-path",
+      "text": "test(\"^\\\\.planning/([^/]+/)*[^/]+\\\\.md$|^\\\\.planning/INBOX-LEDGER\\\\.json$\")",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "Closed demo-config repair policy and adversarial evidence fixture; preserves the original failure, package inputs and default planning-only rule."
     },
     {
       "path": "scripts/maintainer/validate_live_truth.exs",
