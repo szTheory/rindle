@@ -21,6 +21,24 @@ ledger=json.loads((root/c.LEDGER).read_bytes())
 # into a synthetic API map that intentionally starts with no open pulls.
 ledger['items']=[item for item in ledger['items'] if item['kind']!='pr' or 'terminal' in item]
 
+# Reuse the pure lock-parser transformation across fixture cases. The script and
+# complete lock bytes form the key; changed input cannot reuse a prior result.
+# Every authenticated API observation and ledger validation still runs normally.
+# The actual CLI subprocess test below remains unpatched.
+original_command=c.RemoteCollector.command
+lock_parses={}
+def fixture_command(self,argv,cwd,env,budget):
+    if len(argv)!=5 or argv[0]!='elixir' or argv[2]!='--inventory':
+        return original_command(self,argv,cwd,env,budget)
+    key=(pathlib.Path(argv[1]).read_bytes(),pathlib.Path(argv[3]).read_bytes())
+    output=pathlib.Path(argv[4])
+    if key in lock_parses:
+        code,raw=lock_parses[key];c.write_new(output,raw);return code
+    code=original_command(self,argv,cwd,env,budget)
+    if output.is_file():lock_parses[key]=(code,output.read_bytes())
+    return code
+c.RemoteCollector.command=fixture_command
+
 class Remote(unittest.TestCase):
     def setUp(self):
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-remote-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
