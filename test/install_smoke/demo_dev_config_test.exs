@@ -4,11 +4,18 @@ defmodule Rindle.InstallSmoke.DemoDevConfigTest do
   test "demo development configuration loads for lock audits and keeps upload reload excluded" do
     path = Path.expand("../../examples/adoption_demo/config/config.exs", __DIR__)
     config = Config.Reader.read!(path, env: :dev)
+    refute Keyword.has_key?(config[:adoption_demo][AdoptionDemoWeb.Endpoint], :live_reload)
+
+    runtime = Path.join(Path.dirname(path), "runtime.exs")
+    config = Config.Reader.read!(runtime, env: :dev)
     patterns = config[:adoption_demo][AdoptionDemoWeb.Endpoint][:live_reload][:patterns]
 
     assert is_list(patterns)
     assert Enum.any?(patterns, &Regex.match?(&1, "priv/static/assets/app.js"))
     refute Enum.any?(patterns, &Regex.match?(&1, "priv/static/uploads/example.png"))
+
+    test_config = Config.Reader.read!(runtime, env: :test)
+    refute Keyword.has_key?(test_config[:adoption_demo][AdoptionDemoWeb.Endpoint], :live_reload)
   end
 
   test "demo development configuration can be stored in an application file" do
@@ -34,18 +41,29 @@ defmodule Rindle.InstallSmoke.DemoDevConfigTest do
     end
     """)
 
+    File.mkdir!(Path.join(root, "config"))
+
+    File.write!(Path.join(root, "config/runtime.exs"), """
+    import Config
+    runtime = Config.Reader.read!(System.fetch_env!("RINDLE_RUNTIME_SOURCE"), env: config_env())
+    config :demo_config_fixture, Keyword.fetch!(runtime, :adoption_demo)
+    """)
+
+    env = [
+      {"MIX_ENV", "dev"},
+      {"MIX_HOME", Path.join(root, "mix-home")},
+      {"HEX_HOME", Path.join(root, "hex-home")},
+      {"MIX_DEPS_PATH", Path.join(root, "deps")},
+      {"MIX_BUILD_PATH", Path.join(root, "_build")},
+      {"RINDLE_CONFIG_SOURCE", source},
+      {"RINDLE_RUNTIME_SOURCE", Path.join(Path.dirname(source), "runtime.exs")}
+    ]
+
     {output, status} =
       System.cmd(System.find_executable("elixir"), ["-S", "mix", "compile.app", "--force"],
         cd: root,
         stderr_to_stdout: true,
-        env: [
-          {"MIX_ENV", "dev"},
-          {"MIX_HOME", Path.join(root, "mix-home")},
-          {"HEX_HOME", Path.join(root, "hex-home")},
-          {"MIX_DEPS_PATH", Path.join(root, "deps")},
-          {"MIX_BUILD_PATH", Path.join(root, "_build")},
-          {"RINDLE_CONFIG_SOURCE", source}
-        ]
+        env: env
       )
 
     assert status == 0, output
@@ -54,8 +72,29 @@ defmodule Rindle.InstallSmoke.DemoDevConfigTest do
     assert {:ok, [{:application, :demo_config_fixture, properties}]} =
              :file.consult(to_charlist(app))
 
-    patterns = properties[:env][AdoptionDemoWeb.Endpoint][:live_reload][:patterns]
-    assert Enum.any?(patterns, &Regex.match?(&1, "priv/static/assets/app.js"))
-    refute Enum.any?(patterns, &Regex.match?(&1, "priv/static/uploads/example.png"))
+    refute Keyword.has_key?(properties[:env][AdoptionDemoWeb.Endpoint], :live_reload)
+
+    {output, status} =
+      System.cmd(
+        System.find_executable("elixir"),
+        [
+          "-S",
+          "mix",
+          "run",
+          "--no-start",
+          "--no-compile",
+          "-e",
+          """
+          patterns = Application.fetch_env!(:demo_config_fixture, AdoptionDemoWeb.Endpoint)[:live_reload][:patterns]
+          true = Enum.any?(patterns, &Regex.match?(&1, "priv/static/assets/app.js"))
+          false = Enum.any?(patterns, &Regex.match?(&1, "priv/static/uploads/example.png"))
+          """
+        ],
+        cd: root,
+        stderr_to_stdout: true,
+        env: env
+      )
+
+    assert status == 0, output
   end
 end

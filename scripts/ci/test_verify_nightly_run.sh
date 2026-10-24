@@ -138,7 +138,10 @@ verify_missing_no_start_mutation() {
 }
 
 run_case() {
-  local name="$1" state="$2" want_exit="$3" temp got=0 poll=0 timeout=2
+  local name="$1" state="$2" want_exit="$3" temp got=0 poll=0 timeout=2 clock=""
+  local real_date real_sleep
+  real_date="$(command -v date)"
+  real_sleep="$(command -v sleep)"
   temp="$(mktemp -d)"
   make_fake_gh "${temp}/bin"
   make_fake_local_authorities "${temp}/bin"
@@ -152,12 +155,37 @@ run_case() {
   if [[ "$state" == *_rate_limit_persistent ]]; then
     poll=1
     timeout=1
+    # The original deadline starts only after dispatch. Keep setup/scheduler
+    # latency out of this fixture, then advance exactly when recovery sleeps.
+    clock="${temp}/clock"
+    printf '0\n' >"$clock"
+    cat >"${temp}/bin/date" <<'CLOCK'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "$#" -eq 1 ] && [ "$1" = +%s ]; then
+  cat "$FAKE_GH_CLOCK_FILE"
+else
+  exec "$FAKE_REAL_DATE" "$@"
+fi
+CLOCK
+    cat >"${temp}/bin/sleep" <<'CLOCK'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
+  current="$(cat "$FAKE_GH_CLOCK_FILE")"
+  printf '%s\n' "$((current + $1))" >"$FAKE_GH_CLOCK_FILE"
+else
+  exec "$FAKE_REAL_SLEEP" "$@"
+fi
+CLOCK
+    chmod +x "${temp}/bin/date" "${temp}/bin/sleep"
   fi
 
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_GH_COUNT_FILE="${temp}/count" \
     FAKE_GH_RUN_LIST_COUNT_FILE="${temp}/run-list-count" \
     FAKE_GH_WATCH_COUNT_FILE="${temp}/watch-count" \
     FAKE_GH_READ_COUNT_DIR="${temp}/read-counts" \
+    FAKE_GH_CLOCK_FILE="$clock" FAKE_REAL_DATE="$real_date" FAKE_REAL_SLEEP="$real_sleep" \
     FAKE_GH_STATE="$state" FAKE_AUTHORITY_STATE="$state" FAKE_AUTHORITY_LOG="${temp}/authority-calls" \
     bash "$collector" dispatch-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref phase-133-evidence-aaaaaaaaaaaa --expected-sha aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
@@ -325,7 +353,8 @@ run_case() {
   if [ "$state" = watch_rate_limit_persistent ]; then
     if [ "$got" -ne 0 ] &&
        [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
-       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -ge 1 ] &&
+       [ "$(grep -c '^run watch 9001 ' "${temp}/calls" || true)" -eq 2 ] &&
+       [ "$(cat "$clock")" -eq 1 ] &&
        [ ! -e "${temp}/receipt.json" ]; then
       record "persistent watch rate limit exhausts the original deadline" true
     else
@@ -354,6 +383,7 @@ run_case() {
     post_list_rate_limit_persistent|detail_rate_limit_persistent|job_log_rate_limit_persistent|incident_after_rate_limit_persistent)
       if [ "$got" -ne 0 ] &&
          [ "$(grep -c '^workflow run nightly.yml ' "${temp}/calls" || true)" -eq 1 ] &&
+         [ "$(cat "$clock")" -eq 1 ] &&
          [ ! -e "${temp}/receipt.json" ]; then
         record "${state} exhausts without a receipt" true
       else
@@ -912,6 +942,11 @@ exit "$status"
 set -euo pipefail
 printf '%s\n' "$*" >>"$FAKE_GH_LOG"
 state="${FAKE_GH_STATE:-success}"
+# Bound a broken deadline-reset mutation even under the fixture's logical clock.
+if [ -n "${FAKE_GH_CLOCK_FILE:-}" ] && [ "$(cat "$FAKE_GH_CLOCK_FILE")" -gt 2 ]; then
+  echo "fixture retry exceeded the original logical deadline" >&2
+  exit 99
+fi
 sha=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 ref=phase-133-evidence-aaaaaaaaaaaa
 run_id=9001
