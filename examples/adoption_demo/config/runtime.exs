@@ -1,5 +1,17 @@
 import Config
 
+if config_env() == :dev do
+  config :adoption_demo, AdoptionDemoWeb.Endpoint,
+    live_reload: [
+      web_console_logger: true,
+      patterns: [
+        ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
+        ~r"lib/adoption_demo_web/router\.ex$",
+        ~r"lib/adoption_demo_web/(controllers|live|components)/.*\.(ex|heex)$"
+      ]
+    ]
+end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
