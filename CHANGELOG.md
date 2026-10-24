@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.12](https://github.com/szTheory/rindle/compare/rindle-v0.4.11...rindle-v0.4.12) (2026-10-24)
+
+
+### Bug Fixes
+
+* **release:** use installed libvips for native preflight ([#169](https://github.com/szTheory/rindle/issues/169)) ([615859e](https://github.com/szTheory/rindle/commit/615859ece16cacb6bf53a437523b836bf01749ee))
+
 ## [0.4.11](https://github.com/szTheory/rindle/compare/rindle-v0.4.10...rindle-v0.4.11) (2026-10-23)
 
 
