@@ -25,14 +25,25 @@ class Groups(unittest.TestCase):
             groups=[('first',[sys.executable,'-c','raise SystemExit(7)']),('second',[sys.executable,'-c','pass']),('last',[sys.executable,'-c','import pathlib,time;time.sleep(.2);pathlib.Path('+repr(str(marker))+').touch()'])]
             self.assertEqual(g.run(groups,path/'logs'),1);self.assertTrue(marker.exists())
     def test_workflow_split_preserves_every_command_once(self):
-        commands=['bash a.sh','bash scripts/ci/test_nightly_incident.sh','bash b.sh']
+        independent=['bash scripts/ci/test_nightly_incident.sh','bash scripts/ci/test_collect_inbox.sh',
+                     'bash scripts/ci/test_validate_inbox_ledger.sh','bash scripts/ci/test_dep_landing_evidence.sh']
+        commands=['bash a.sh',*independent,'bash b.sh']
         groups=g.workflow_groups('\n'.join(commands))
         self.assertEqual(len(groups),3)
         self.assertEqual(groups[0][1][-1],'bash a.sh\nbash b.sh')
-        self.assertEqual(groups[1][1],commands[1].split())
+        self.assertEqual(groups[1][1],['bash','-euo','pipefail','-c','\n'.join(independent)])
         self.assertEqual(groups[2][1],['bash','scripts/ci/test_readiness_fixtures.sh'])
-        for script in ('bash a.sh',commands[1]+'\n'+commands[1]):
-            with self.assertRaises(ValueError):g.workflow_groups(script)
+        for command in independent:
+            for broken in ([line for line in commands if line!=command],commands+[command]):
+                with self.assertRaises(ValueError):g.workflow_groups('\n'.join(broken))
+    def test_actual_workflow_retains_every_declared_harness_once(self):
+        yaml=(root/'.github/workflows/ci.yml').read_text()
+        body=yaml.split("python3 scripts/ci/run_script_test_groups.py <<'HARNESSES'\n",1)[1].split('\n          HARNESSES',1)[0]
+        declared=[line.strip() for line in body.splitlines()]
+        groups=g.workflow_groups('\n'.join(declared))
+        observed=groups[0][1][-1].splitlines()+groups[1][1][-1].splitlines()
+        self.assertCountEqual(observed,declared)
+        self.assertEqual(len(observed),len(set(observed)))
 unittest.main(argv=['groups'],verbosity=1)
 PY
 echo 'PASS: all CI groups awaited; every command retained, failure and bounded disposal remain nonpassing'

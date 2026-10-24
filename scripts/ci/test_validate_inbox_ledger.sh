@@ -153,6 +153,23 @@ live "live: terminal merged mismatch rejected" '(.items[] | select(.number == 93
 live "live: terminal without inventory lookup rejected" "${ID}" '.terminal = []' 1 "REJECT: terminal mismatch"
 live "live: terminal on a still-open item rejected" '(.items[] | select(.number == 42)) += {"terminal":{"state":"closed","merged":false}}' "${ID}" 1 "REJECT: terminal mismatch"
 
+# Retain automated incident history without committing a future closure snapshot.
+HISTORY='.items += [{kind:"issue",number:77,disposition:"retain",rationale:"retain incident history; health gates remain independent",terminal_policy:"observe-retained-issue-v1"}]'
+CLOSED_HISTORY='.terminal += [{kind:"issue",number:77,state:"closed",state_reason:"completed",merged:false}]'
+live "history: still-open retained issue accepted" "$HISTORY" '.issues += [{number:77}]' 0 ""
+live "history: fresh completed issue lookup accepted" "$HISTORY" "$CLOSED_HISTORY" 0 ""
+live "history: duplicate individual lookup rejected" "$HISTORY" "$CLOSED_HISTORY | .terminal += [.terminal[-1]]" 1 "REJECT: terminal observation"
+live "history: unknown closure reason rejected" "$HISTORY" "$CLOSED_HISTORY | del(.terminal[-1].state_reason)" 1 "REJECT: terminal observation"
+live "history: missing individual lookup rejected" "$HISTORY" "$ID" 1 "REJECT: terminal observation"
+live "history: wrong issue lookup rejected" "$HISTORY" '.terminal += [{kind:"issue",number:78,state:"closed",state_reason:"completed",merged:false}]' 1 "REJECT: terminal observation"
+live "history: unlisted but open lookup rejected" "$HISTORY" "$CLOSED_HISTORY | .terminal[-1].state=\"open\"" 1 "REJECT: terminal observation"
+live "history: unplanned closure rejected" "$HISTORY" "$CLOSED_HISTORY | .terminal[-1].state_reason=\"not_planned\"" 1 "REJECT: terminal observation"
+live "history: merged result rejected for issue" "$HISTORY" "$CLOSED_HISTORY | .terminal[-1].merged=true" 1 "REJECT: terminal observation"
+offline "history: policy cannot apply to PR" '(.items[]|select(.number==105)).terminal_policy="observe-retained-issue-v1"' 1 "REJECT: terminal policy"
+offline "history: policy cannot override fixed terminal" '(.items[]|select(.number==93)).terminal_policy="observe-retained-issue-v1"' 1 "REJECT: terminal policy"
+offline "history: policy cannot apply to close disposition" "$HISTORY | (.items[]|select(.number==77)).disposition=\"close\"" 1 "REJECT: terminal policy"
+offline "history: unknown policy rejected" "$HISTORY | (.items[]|select(.number==77)).terminal_policy=\"allow_anything\"" 1 "REJECT: terminal policy"
+
 # disposition-specific fields
 live "live: supersede without successor rejected" '(.items[] | select(.number == 42)) |= (.disposition = "supersede")' "${ID}" 1 "REJECT: supersede requires successor"
 live "live: supersede with successor accepted" '(.items[] | select(.number == 42)) |= (.disposition = "supersede" | .successor = "#99")' "${ID}" 0 ""
@@ -242,11 +259,60 @@ rc=0; bash "${VALIDATOR}" --ledger "${T}/nonexistent.json" --offline >/dev/null 
 jq -S '(.items[] | select(.number == 42)) |= (.disposition = "defer" | .gate = "g" | .trigger = {"type":"gh_issue_closed","number":88})' "${T}/base_ledger.json" >"${T}/l.json"
 jq -S '.advisories[1].exception.trigger = {"type":"hex_version_gte","package":"bandit","version":"1.12.6"}' "${T}/l.json" >"${T}/l2.json"
 rc=0; bash "${VALIDATOR}" --print-collector-args --ledger "${T}/l2.json" >"${T}/out" 2>"${T}/err" || rc=$?
-if [ "${rc}" = 0 ] && [ "$(tr '\n' ' ' <"${T}/out")" = "--include 88 --include 93 --hex-package bandit " ]; then
+if [ "${rc}" = 0 ] && [ "$(tr '\n' ' ' <"${T}/out")" = "--include 88 --include 93 --hex-package bandit --landing-ledger ${T}/l2.json " ]; then
   ok "print-collector-args: one --include per terminal/closed-trigger number and --hex-package per version trigger"
 else
   bad "print-collector-args output: $(tr '\n' ' ' <"${T}/out")"
 fi
+
+# Retained history always requests an individual lookup, including while open.
+jq '(.items[]|select(.number==42)).terminal_policy="observe-retained-issue-v1"' "${T}/base_ledger.json" >"${T}/history-args.json"
+rc=0
+bash "${VALIDATOR}" --print-collector-args --ledger "${T}/history-args.json" >"${T}/out" 2>"${T}/err" || rc=$?
+if [ "$rc" -eq 0 ] && grep -qx '42' "${T}/out"; then
+  ok "history: collector flags include individual issue lookup"
+else
+  bad "history: collector flags omitted individual issue lookup"
+fi
+
+# Merged dependency requirements join authoritative terminal files with fresh
+# machine evidence. Existing open-PR fixtures intentionally exercise no such join.
+ML='(.items[] | select(.number==105)) += {terminal:{state:"closed",merged:true}}'
+MI='.prs[0] as $p | .prs=[] | .terminal += [($p + {kind:"pr",state:"closed",merged:true,merge_sha:"2222222222222222222222222222222222222222",changed_files:["mix.lock"],landing_evidence:[{schema:"rindle-dep-landing-v1",sha:"2222222222222222222222222222222222222222",evidence_sha:"2222222222222222222222222222222222222222",lock:"mix.lock",group:"ecto_sql",attributable:true,mix_exs_changed:false,verdict:"pass",lock_delta:[{package:"ecto",from:"3.13.6",to:"3.14.2"}],run:{id:100,head_sha:"2222222222222222222222222222222222222222",event:"push",status:"completed"},gates:{supported_toolchain:"pass",public_contract:"pass",package_consumer:"pass",twin:"not-applicable: twin not built (Phase 137)"}}]})]'
+live "merged: matching fresh landing accepted" "$ML" "$MI" 0 ""
+live "merged: deleted landing rejected" "$ML | .landings=[]" "$MI" 1 "REJECT: landing required"
+live "merged: ledger boolean cannot hide lock change" "$ML | .landings=[] | .items[1].lock_changed=false" "$MI" 1 "REJECT: landing required"
+live "merged: duplicate landing rejected" "$ML | .landings += [.landings[0]]" "$MI" 1 "REJECT: landing required"
+live "merged: missing source filenames rejected" "$ML" "$MI | del(.terminal[1].changed_files)" 1 "REJECT: landing source"
+live "merged: fresh proof missing rejected" "$ML" "$MI | .terminal[1].landing_evidence=[]" 1 "REJECT: landing evidence"
+live "merged: duplicate fresh proof rejected" "$ML" "$MI | .terminal[1].landing_evidence += [.terminal[1].landing_evidence[0]]" 1 "REJECT: landing evidence"
+live "merged: fabricated CI run rejected" "$ML | .landings[0].ci_run_id=999" "$MI" 1 "REJECT: landing mismatch"
+live "merged: foreign merge SHA rejected" "$ML | .landings[0].merge_sha=\"3333333333333333333333333333333333333333\"" "$MI" 1 "REJECT: landing mismatch"
+live "merged: lock delta mismatch rejected" "$ML | .landings[0].lock_delta[0].to=\"9.0.0\"" "$MI" 1 "REJECT: landing mismatch"
+live "merged: group mismatch rejected" "$ML | .landings[0].group=\"other\"" "$MI" 1 "REJECT: landing mismatch"
+live "merged: package group mismatch rejected" "$ML | .landings[0].group_packages=[\"ecto\"]" "$MI" 1 "REJECT: landing mismatch"
+live "merged: failed proof rejected" "$ML" "$MI | .terminal[1].landing_evidence[0].verdict=\"regression\"" 1 "REJECT: landing mismatch"
+live "merged: wrong evidence SHA rejected" "$ML" "$MI | .terminal[1].landing_evidence[0].run.head_sha=\"3333333333333333333333333333333333333333\"" 1 "REJECT: landing mismatch"
+DL="$ML | .landings[0].evidence_sha=\"3333333333333333333333333333333333333333\""
+DI="$MI | .terminal[1].landing_evidence[0] |= (.evidence_sha=\"3333333333333333333333333333333333333333\" | .run.head_sha=.evidence_sha | .equivalence={policy:\"planning-only-descendant-v1\",merge_sha:.sha,evidence_sha:.evidence_sha,changed_files:[\".planning/STATE.md\"]})"
+live "merged: verified descendant accepted" "$DL" "$DI" 0 ""
+live "merged: descendant without equivalence rejected" "$DL" "$DI | del(.terminal[1].landing_evidence[0].equivalence)" 1 "REJECT: landing equivalence"
+live "merged: source-changing descendant rejected" "$DL" "$DI | .terminal[1].landing_evidence[0].equivalence.changed_files=[\"lib/rindle.ex\"]" 1 "REJECT: landing equivalence"
+live "merged: malformed descendant SHA rejected offline" "$DL | .landings[0].evidence_sha=\"bad\"" "$DI" 1 "evidence_sha must be 40-hex"
+
+RECOVERY='{policy:"demo-config-repair-v1",merge_sha:"2222222222222222222222222222222222222222",evidence_sha:"3333333333333333333333333333333333333333",changed_files:["examples/adoption_demo/config/dev.exs","test/install_smoke/demo_dev_config_test.exs"],original:{run:{id:99,head_sha:"2222222222222222222222222222222222222222",event:"push",status:"completed",conclusion:"failure"},verdict:"regression",gates:{supported_toolchain:"pass",public_contract:"pass",package_consumer:"fail",twin:"not-applicable: twin not built (Phase 137)"},failed_jobs:["Cohort Demo Smoke"],cohort_conclusion:"failure"}}'
+RL="$DL | .landings[0].recovery=$RECOVERY"
+RI="$DI | .terminal[1].landing_evidence[0] |= (.equivalence=null | .run.conclusion=\"success\" | .recovery=$RECOVERY)"
+live "merged: explicit verified Cohort repair accepted with original failure" "$RL" "$RI" 0 ""
+live "merged: repair cannot hide original failure" "$RL | .landings[0].recovery.original.run.conclusion=\"success\"" "$RI" 1 "landing recovery"
+live "merged: repair cannot cover library changes" "$RL | .landings[0].recovery.changed_files += [\"lib/rindle.ex\"]" "$RI" 1 "landing recovery"
+live "merged: repair cannot omit actual config change" "$RL | .landings[0].recovery.changed_files=[\"test/install_smoke/demo_dev_config_test.exs\"]" "$RI" 1 "landing recovery"
+live "merged: additional original failure cannot qualify" "$RL | .landings[0].recovery.original.failed_jobs += [\"Contract\"]" "$RI" 1 "landing recovery"
+live "merged: missing original source cannot qualify" "$RL | del(.landings[0].recovery.original)" "$RI" 1 "landing recovery"
+live "merged: unknown repair policy cannot qualify" "$RL | .landings[0].recovery.policy=\"arbitrary-code\"" "$RI" 1 "landing recovery"
+live "merged: forged repair differs from fresh proof" "$RL" "$RI | .terminal[1].landing_evidence[0].recovery.original.run.id=98" 1 "landing recovery"
+live "merged: repaired CI must be wholly successful" "$RL" "$RI | .terminal[1].landing_evidence[0].run.conclusion=\"failure\"" 1 "landing recovery"
+live "merged: repair cannot substitute planning equivalence" "$RL" "$DI" 1 "landing recovery"
 
 # --- untrusted text is never executed ---------------------------------------------------
 INJ="${T}/pwned"

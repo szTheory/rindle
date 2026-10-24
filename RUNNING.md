@@ -174,6 +174,49 @@ Dialyzer remains an owned, gating Nightly signal, outside the PR-local alias and
 path. Push-main/full-verification-only lanes likewise remain outside `mix ci`; the release
 workflow still relies on the complete `ci.yml` run for the exact release SHA.
 
+For maintainer inbox validation, derive collector arguments as separate lines
+(no `eval`; paths may contain spaces), then collect and validate:
+
+```bash
+export INBOX_LEDGER=/path/to/maintainer-inbox-ledger.json
+inbox_args=()
+bash scripts/maintainer/validate_inbox_ledger.sh --print-collector-args --ledger "$INBOX_LEDGER" > /tmp/rindle-inbox-args
+while IFS= read -r arg; do inbox_args+=("$arg"); done < /tmp/rindle-inbox-args
+bash scripts/maintainer/collect_inbox.sh --out /tmp/rindle-inbox.json "${inbox_args[@]}"
+bash scripts/maintainer/validate_inbox_ledger.sh --ledger "$INBOX_LEDGER" --inventory /tmp/rindle-inbox.json
+```
+
+Merged PR filenames and merge SHAs come from GitHub. `--landing-ledger` supplies
+hints for fresh attribution/CI collection through `dep_landing_evidence.sh`; missing
+landings for changed locks reject. Keep full local Git history for these checks.
+By default, a landing may name `evidence_sha` only for a verified descendant changing planning
+prose or `INBOX-LEDGER.json` in every intervening commit. Executable planning tools,
+config, source, manifests, locks, workflows and code changes later reverted reject.
+An explicit `--demo-config-repair` receipt also supports a later passing main after
+a Cohort-only failure. Its complete Git range may change only the demo development
+config, its regression test and planning prose/ledger data; locks, manifests,
+library code, CI and consumer harnesses stay unchanged. It requires an actual config
+change, an original completed run whose only failed consumer is Cohort with all
+other gates passing, and a wholly successful repaired run. The receipt keeps the
+original regression and separate repair identity. This mode never reports the
+original source as successful. Bounded collectors retain both authenticated response
+pairs and open no second GitHub transport.
+
+Keep the original failed CI receipt when using descendant evidence. Queued/running
+main CI jobs appear in `unfinished_jobs`, separately from `failed_jobs`.
+
+A retained issue may opt into `terminal_policy: "observe-retained-issue-v1"` to
+retain its history across an automated closure. This records no future state or
+resolution credit: an absent issue requires a fresh individual lookup proving
+closed/completed and not merged. Unknown, missing, inaccessible or unplanned
+closures reject. The policy cannot apply to PRs, other dispositions or fixed
+terminal records. Normal qualification gates and both remote observations remain
+mandatory; a state change during collection still invalidates the result.
+
+The three cheap behavior harnesses are `bash scripts/ci/test_collect_inbox.sh`,
+`bash scripts/ci/test_validate_inbox_ledger.sh` and
+`bash scripts/ci/test_dep_landing_evidence.sh` (no network or Elixir required).
+
 ### Repository craft gates
 
 These commands are the supported way to check repository craft locally. The test suite runs

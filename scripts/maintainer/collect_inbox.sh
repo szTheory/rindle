@@ -6,13 +6,13 @@
 #
 # Usage:
 #   scripts/maintainer/collect_inbox.sh --out FILE [--repo OWNER/NAME] [--include N]...
-#                                       [--hex-package NAME]... [--skip-demo-audit]
+#                                       [--hex-package NAME]... [--landing-ledger FILE] [--skip-demo-audit]
 #
 # Clock injection for tests: INBOX_NOW_EPOCH (seconds since epoch).
 # Exit codes: 0 inventory written | 1 collection failure (no file written) | 64 usage.
 #
 # Read-only by construction: every GitHub call goes through gh_get / gh_get_opt /
-# gh_paged below, which only ever run `gh api <path>` with no method or field flag.
+# gh_paged / gh_jobs below, which only ever run `gh api <path>` with no method or field flag.
 # Untrusted text (titles, labels, patches, audit output) only ever reaches jq via
 # --arg / --slurpfile, never an eval or an unquoted shell expansion.
 # Bash 3.2 compatible (no mapfile, no associative arrays). jq 1.6 compatible.
@@ -26,11 +26,12 @@ REPO="szTheory/rindle"
 OUT=""
 INCLUDES=""
 HEX_PACKAGES=""
+LANDING_LEDGER=""
 SKIP_DEMO_AUDIT=false
 
 usage() {
   cat >&2 <<'USAGE'
-usage: collect_inbox.sh --out FILE [--repo OWNER/NAME] [--include N]... [--hex-package NAME]... [--skip-demo-audit]
+usage: collect_inbox.sh --out FILE [--repo OWNER/NAME] [--include N]... [--hex-package NAME]... [--landing-ledger FILE] [--skip-demo-audit]
 USAGE
   exit 64
 }
@@ -49,6 +50,7 @@ while [ "$#" -gt 0 ]; do
         ''|[!a-z]*|*[!a-z0-9_]*) echo "collect_inbox: bad --hex-package name" >&2; exit 64 ;;
       esac
       HEX_PACKAGES="${HEX_PACKAGES} $2"; shift 2 ;;
+    --landing-ledger) [ "$#" -ge 2 ] || usage; LANDING_LEDGER="$2"; shift 2 ;;
     --skip-demo-audit) SKIP_DEMO_AUDIT=true; shift ;;
     -h|--help) usage ;;
     *) echo "collect_inbox: unknown argument: $1" >&2; usage ;;
@@ -125,6 +127,13 @@ gh_paged() {
   gh api -H "${ACCEPT}" --paginate --slurp "$1" | jq -S '[.[][]]'
 }
 
+# gh_jobs RUN_ID: flatten every page of a run's jobs.
+gh_jobs() {
+  local p="repos/${REPO}/actions/runs/$1/jobs?per_page=100"
+  check_path "${p}"
+  gh api -H "${ACCEPT}" --paginate --slurp "${p}" | jq '[.[].jobs[]]'
+}
+
 # gh_get_opt PATH: for endpoints where 403/404 is a recordable state, not a
 # failure. Sets OPT_STATUS (HTTP code) and OPT_BODY (file). A response with no
 # parseable status line (transport failure) or a 5xx aborts the collection.
@@ -147,6 +156,13 @@ gh_get_opt() {
     5??) die "GET $1 returned HTTP ${OPT_STATUS}" ;;
   esac
 }
+
+# Ledger values select evidence hints only. All facts are freshly derived from
+# GitHub PR metadata and the existing landing helper; a missing hint is not proof.
+if [ -n "${LANDING_LEDGER}" ]; then
+  jq -e --arg repo "${REPO}" '.repo == $repo and (.landings|type) == "array"' "${LANDING_LEDGER}" >/dev/null \
+    || die "invalid landing ledger or repository mismatch"
+fi
 
 # --- collection -------------------------------------------------------------
 
@@ -241,7 +257,7 @@ done
 jq -S -s '{prs: (sort_by(.number))}' "${WORK}/prs.jsonl" >"${WORK}/sec-prs.json" \
   || die "cannot assemble PR list"
 
-# Terminal lookups for ledger entries that are already closed (--include N).
+# Individual lookups for fixed terminal records or retained issue history (--include N).
 : >"${WORK}/terminal.jsonl"
 for n in ${INCLUDES}; do
   gh_get "repos/${REPO}/issues/${n}" >"${WORK}/term.issue.json" || die "cannot read #${n}"
@@ -250,11 +266,47 @@ for n in ${INCLUDES}; do
   else
     echo '{"merged":false}' >"${WORK}/term.pull.json"
   fi
-  jq -S -n --slurpfile i "${WORK}/term.issue.json" --slurpfile p "${WORK}/term.pull.json" \
+  echo '[]' >"${WORK}/term.files.json"
+  : >"${WORK}/term.evidence.jsonl"
+  if jq -e '.merged == true' "${WORK}/term.pull.json" >/dev/null; then
+    gh_paged "repos/${REPO}/pulls/${n}/files?per_page=100" >"${WORK}/term.files.json" \
+      || die "cannot read terminal PR #${n} files"
+    jq -e 'type == "array" and all(.[]; (.filename|type) == "string")' "${WORK}/term.files.json" >/dev/null \
+      || die "malformed terminal PR #${n} files"
+    if [ -n "${LANDING_LEDGER}" ]; then
+      jq -c --argjson n "${n}" '.landings[] | select(.number == $n)' "${LANDING_LEDGER}" >"${WORK}/term.hints.jsonl"
+      while IFS= read -r hint; do
+        merge_sha="$(jq -r '.merge_commit_sha' "${WORK}/term.pull.json")"
+        group="$(printf '%s' "${hint}" | jq -er '.group')" || die "missing landing group"
+        packages="$(printf '%s' "${hint}" | jq -er '.group_packages | join(",")')" || die "missing landing packages"
+        lock="$(printf '%s' "${hint}" | jq -er '.lock')" || die "missing landing lock"
+        evidence_sha="$(printf '%s' "${hint}" | jq -r '.evidence_sha // empty')"
+        set -- --repo "${REPO}" --sha "${merge_sha}" --group "${group}" --packages "${packages}" --lock "${lock}"
+        [ -z "${evidence_sha}" ] || set -- "$@" --evidence-sha "${evidence_sha}"
+        recovery_policy="$(printf '%s' "${hint}" | jq -r '.recovery.policy // empty')"
+        if [ -n "${recovery_policy}" ]; then
+          [ "${recovery_policy}" = demo-config-repair-v1 ] || die "unknown landing recovery policy"
+          set -- "$@" --demo-config-repair
+        fi
+        rc=0
+        (cd "${ROOT}" && bash "${SCRIPT_DIR}/dep_landing_evidence.sh" "$@" --out "${WORK}/landing.json") || rc=$?
+        # A failed gate is an observable record, not an empty successful result.
+        [ -f "${WORK}/landing.json" ] || die "landing evidence unavailable for PR #${n} (exit ${rc})"
+        [ "${rc}" -eq 0 ] || [ "${rc}" -eq 1 ] || [ "${rc}" -eq 3 ] || die "landing collection failed for PR #${n}"
+        jq -c . "${WORK}/landing.json" >>"${WORK}/term.evidence.jsonl"
+        rm -f "${WORK}/landing.json"
+      done <"${WORK}/term.hints.jsonl"
+    fi
+  fi
+  jq -s . "${WORK}/term.evidence.jsonl" >"${WORK}/term.evidence.json"
+  jq -S -n --slurpfile f "${WORK}/term.files.json" --slurpfile e "${WORK}/term.evidence.json" --slurpfile i "${WORK}/term.issue.json" --slurpfile p "${WORK}/term.pull.json" \
     '$i[0] as $x | {number: $x.number,
                     kind: (if $x.pull_request != null then "pr" else "issue" end),
                     state: $x.state, state_reason: $x.state_reason,
-                    merged: ($p[0].merged // false)}' >>"${WORK}/terminal.jsonl" \
+                    merged: ($p[0].merged // false),
+                    merge_sha: $p[0].merge_commit_sha,
+                    changed_files: [$f[0][] | .filename],
+                    landing_evidence: $e[0]}' >>"${WORK}/terminal.jsonl" \
     || die "cannot assemble terminal record for #${n}"
 done
 jq -S -s '{terminal: (sort_by(.number))}' "${WORK}/terminal.jsonl" >"${WORK}/sec-terminal.json" \
@@ -293,17 +345,18 @@ case "${PROT_STATUS}" in
   *) die "unexpected HTTP ${PROT_STATUS} reading branch protection" ;;
 esac
 
-# Main CI baseline: latest ci.yml push run on main and every job that did not pass.
+# Main CI baseline: terminal failures and unfinished jobs are separate facts.
 gh_get "repos/${REPO}/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=5" \
   >"${WORK}/main.runs.json" || die "cannot read main CI runs"
 MAIN_RUN_ID="$(jq -r '.workflow_runs[0].id // empty' "${WORK}/main.runs.json")" || die "malformed main CI runs"
 case "${MAIN_RUN_ID}" in ''|*[!0-9]*) die "no ci.yml push run found on main" ;; esac
-gh_get "repos/${REPO}/actions/runs/${MAIN_RUN_ID}/jobs?per_page=100" >"${WORK}/main.jobs.json" \
+gh_jobs "${MAIN_RUN_ID}" >"${WORK}/main.jobs.json" \
   || die "cannot read jobs of main CI run ${MAIN_RUN_ID}"
 jq -S -n --slurpfile r "${WORK}/main.runs.json" --slurpfile j "${WORK}/main.jobs.json" \
   '$r[0].workflow_runs[0] as $run
-   | {main_ci: {run_id: $run.id, head_sha: $run.head_sha, conclusion: $run.conclusion,
-                failed_jobs: [ $j[0].jobs[] | select(.conclusion != "success" and .conclusion != "skipped") | .name ]}}' \
+   | {main_ci: {run_id: $run.id, head_sha: $run.head_sha, status: $run.status, conclusion: $run.conclusion,
+                failed_jobs: [ $j[0][] | select(.status == "completed" and .conclusion != "success" and .conclusion != "skipped") | .name ],
+                unfinished_jobs: [ $j[0][] | select(.status != "completed") | .name ]}}' \
   >"${WORK}/sec-main-ci.json" || die "cannot assemble main CI baseline"
 
 # --- advisories (security advisory input) ---------------------------------
@@ -384,8 +437,13 @@ fi
 # deps.audit is a second opinion only (it disagreed with hex.audit in research).
 da_rc=0
 (cd "${ROOT}" && mix deps.audit) >"${WORK}/deps-audit.out" 2>&1 || da_rc=$?
-sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/deps-audit.out" | tail -n 20 >"${WORK}/deps-audit.tail"
-if [ "${da_rc}" -eq 0 ]; then
+sed "s/${ESC}\[[0-9;]*m//g" "${WORK}/deps-audit.out" >"${WORK}/deps-audit.plain"
+tail -n 20 "${WORK}/deps-audit.plain" >"${WORK}/deps-audit.tail"
+# mix_audit ignores its internal Git refresh exit code. Inspect the complete
+# output so a cached result cannot hide an early refresh/command error.
+if grep -qiE '^[[:space:]]*(fatal|error):' "${WORK}/deps-audit.plain"; then
+  da_status=unreadable
+elif [ "${da_rc}" -eq 0 ]; then
   da_status=clean
 elif grep -qi 'vulnerabilit' "${WORK}/deps-audit.tail"; then
   da_status=findings

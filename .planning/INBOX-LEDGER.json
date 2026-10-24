@@ -306,6 +306,32 @@
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
       "status": "resolved"
+    },
+    {
+      "fix_version": "2.2.1",
+      "id": "EEF-CVE-2026-105963",
+      "locked": "2.2.0",
+      "package": "plug_crypto",
+      "path": [
+        "plug",
+        "plug_crypto"
+      ],
+      "reachability": "runtime",
+      "scope": "root",
+      "status": "resolved"
+    },
+    {
+      "fix_version": "2.2.1",
+      "id": "EEF-CVE-2026-105963",
+      "locked": "2.2.0",
+      "package": "plug_crypto",
+      "path": [
+        "phoenix",
+        "plug_crypto"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -501,7 +527,7 @@
         "mint",
         "req"
       ],
-      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 is a regression by dep_landing_evidence.sh: the package-consumer legs failed at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), which skipped the built-package proof, and Proof was cancelled, so no landings[] record; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
+      "rationale": "optional runtime dep req 0.7.5; its delta carries mint 1.11.0 and decimal 3.2.0, which resolve the mint and decimal advisories and replace queue entries A4/A5; squash-merged as da637439 after PR CI green on 527e1e59 and lock delta == declared group; its own main run 38809962966 is a regression by dep_landing_evidence.sh: the package-consumer legs failed at the hex-baseline hygiene BLOCK (0.4.8 publish race, see todos/pending/2026-10-15-hygiene-baseline-publish-race.md), which skipped the built-package proof, and Proof was cancelled, so its own run provides no passing landing credit; the explicit landings[] record now uses freshly verified planning-only descendant evidence; descendant main run 38828155392 on dc75ab83 (no mix.exs, mix.lock or lib/ change since da637439) passes supported_toolchain, public_contract and package_consumer per dep_landing_evidence.sh baseline mode",
       "terminal": {
         "merged": true,
         "state": "closed",
@@ -573,10 +599,15 @@
       }
     },
     {
-      "disposition": "retain",
+      "disposition": "close",
       "kind": "issue",
       "number": 131,
-      "rationale": "Nightly incident for scheduled run 38868181351 on f5ae9442 (Compat 1.18 warnings-as-errors + fresh-PLT Dialyzer on test/support/strict_conn_adapter.ex from #124); fix in #133; the incident lifecycle closes it on the next green scheduled Nightly"
+      "rationale": "GitHub records this historical scheduled incident closed by szTheory on 2026-10-20T15:40:31Z (state_reason completed). Refreshed from authenticated source state; this records issue disposition only and grants no automated Nightly or readiness credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": false,
+        "state_reason": "completed"
+      }
     },
     {
       "disposition": "close",
@@ -680,27 +711,184 @@
     },
     {
       "disposition": "retain",
-      "head_sha": "a98c2c4d5603b7e35f6ee9c158abe436913ec819",
+      "head_sha": "681b786d821650c55ca198b7edfb44cdccd22338",
       "kind": "pr",
       "number": 144,
-      "rationale": "Dependency maintenance owns the phoenix_live_view 1.2.12 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "cefcb0afa4b29bdc263be8906198e7f79ebe1c6e",
+      "head_sha": "8c3552928153a9280e77e15a89b6eb8499c18810",
       "kind": "pr",
       "number": 145,
-      "rationale": "Dependency maintenance owns the oban 2.24.2 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump oban from 2.21.1 to 2.24.2. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "0de8150f65553bd639938b50c77fa44dcaeb803f",
+      "head_sha": "70eb4e590fa63dc7f7699d450f98239fe4d39d9a",
       "kind": "pr",
       "number": 146,
-      "rationale": "Dependency maintenance owns the muontrap 1.8.0 candidate. Observed 2026-10-22: open, changes only mix.lock, behind main. Retain for separate landing to preserve the readiness source dependency pin. Rebase and obtain fresh successful CI Summary, package-consumer and adopter proof on the candidate head before a maintainer landing decision."
+      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump muontrap from 1.7.0 to 1.8.0. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 166,
+      "rationale": "Focused upstream plug_crypto 2.2.1 fix for EEF-CVE-2026-105963, plus demo config audit-enablement. Required exact-head PR CI passed; original main Cohort regression is preserved and bounded config repair #168 supplies wholly green descendant CI with unchanged package, locks, manifests and gates. Both lock repair receipts are explicitly recorded. No general dependency sweep or READY credit.",
+      "risk_group": "security-plug-crypto",
+      "group_packages": [
+        "plug_crypto"
+      ],
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "disposition": "merge",
+      "kind": "pr",
+      "number": 168,
+      "rationale": "Cross-runtime dev config serialization repair; real compiler roundtrip, exact-head PR CI and actual repaired main gates passed. Restores Cohort without changing dependency locks, manifests, library code or CI. Original #166 regression remains explicit in both repair receipts.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 165,
+      "disposition": "merge",
+      "rationale": "Normal-CI baseline PR landing owner and native CI bootstrap; exact-head required PR CI40027457205 passed; merged a92f9f37. Historical main Script Tests deadline failure remains explicit; final reconciliation supplies its fixture-runtime repair. No scheduled readiness credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 167,
+      "disposition": "merge",
+      "rationale": "Release Please normal patch0.4.11; temporary Cohort regression hold removed only after actual repaired main40037539740 passed. Existing guarded automerge40040374013 merged e91a5626 after full PR CI40037579733. Exact-ref publish40040402099 is in progress; no public verification or baseline success is inferred from merge.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 169,
+      "disposition": "merge",
+      "rationale": "Release native bootstrap repair; full exact-head PR CI40056334904 passed and squash615859ec is real. Original failed preflight and first PR fixture-budget failure remain explicit. Actual0.4.11 recovery/public verification and normal-CI baseline170 succeeded. No READY credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 170,
+      "disposition": "merge",
+      "rationale": "Actual0.4.11 baseline owner: required CI40059293772 and app15368 Summary passed, then protected squashc459a965 changed only RELEASE-TRAIN.md. Public verification40057807676 succeeded; no CI bypass or new release intent.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 171,
+      "disposition": "merge",
+      "rationale": "Normal Release Please0.4.12 intent merged11196b5f. Its actual main40061666091 failed one persistent-watch deadline fixture; publish40061667596 correctly stopped at exact-source CI gate. Keep failed source unpublished; subsequent reviewed fixes require their own full green main before exact-ref recovery. No source-success or publication credit inferred from merge.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 174,
+      "disposition": "merge",
+      "rationale": "Observed overnight config/runtime and deterministic deadline-fixture repair. Full PR CI40109133395 passed on9e0a4243; actual squashd9033557 and full main40110633280 succeeded. Original scheduled1.18/28 failure and main fixture failure remain history. Dev-only runtime patterns preserve reload/upload behavior; production collector/deadline unchanged. Manual Nightly40134255679 completed successfully on exactd9033557, including1.18/28; schedule-only incident jobs were skipped, granting no scheduled acceptance credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "issue",
+      "number": 172,
+      "disposition": "retain",
+      "rationale": "Retain the automated release-train drift incident while existing0.4.12 intent awaits verified fixed-source publication/public verification.174 repaired the observed source failures; normal release truth and bot-owned incident state must be reobserved after actual recovery. No manual issue closure or waiver. Retain incident history across automated closure; require a fresh completed-issue lookup when absent. This policy grants no fix, CI, scheduled or READY credit; all independent qualification gates remain mandatory.",
+      "terminal_policy": "observe-retained-issue-v1"
+    },
+    {
+      "kind": "issue",
+      "number": 173,
+      "disposition": "retain",
+      "rationale": "Retain the actual scheduled Nightly failure on11196b5f.174 repaired the observed1.18/28 serialization failure, full main is green, and manual40134255679 supplies immediate feedback only. Actual newest successful scheduled evidence and bot-owned incident lifecycle must qualify the final source; retaining this issue gives no passing Nightly or READY credit. Retain incident history across automated closure; require a fresh completed-issue lookup when absent. This policy grants no fix, CI, scheduled or READY credit; all independent qualification gates remain mandatory.",
+      "terminal_policy": "observe-retained-issue-v1"
     }
   ],
   "landings": [
+    {
+      "number": 122,
+      "group": "req",
+      "group_packages": [
+        "decimal",
+        "finch",
+        "hpax",
+        "mint",
+        "req"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "da637439f7d2cfdab9f3c62f7a05eb174fe96bb5",
+      "evidence_sha": "dc75ab831e519d4bd07517e59e9e92ab98183bc0",
+      "ci_run_id": 38828155392,
+      "original_ci_run_id": 38809962966,
+      "baseline_run_id": 38806584139,
+      "subject": "build(deps): bump req from 0.7.3 to 0.7.5 (#122)",
+      "lock_delta": [
+        {
+          "from": "3.1.1",
+          "package": "decimal",
+          "to": "3.2.0"
+        },
+        {
+          "from": "0.23.0",
+          "package": "finch",
+          "to": "0.24.0"
+        },
+        {
+          "from": "1.0.4",
+          "package": "hpax",
+          "to": "1.1.0"
+        },
+        {
+          "from": "1.9.3",
+          "package": "mint",
+          "to": "1.11.0"
+        },
+        {
+          "from": "0.7.3",
+          "package": "req",
+          "to": "0.7.5"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
     {
       "number": 123,
       "group": "image",
@@ -949,6 +1137,118 @@
           "from": "1.5.0",
           "package": "thousand_island",
           "to": "1.6.0"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 166,
+      "group": "security-plug-crypto",
+      "group_packages": [
+        "plug_crypto"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+      "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+      "ci_run_id": 40037539740,
+      "original_ci_run_id": 40033089993,
+      "recovery": {
+        "policy": "demo-config-repair-v1",
+        "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+        "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+        "changed_files": [
+          "examples/adoption_demo/config/dev.exs",
+          "test/install_smoke/demo_dev_config_test.exs"
+        ],
+        "original": {
+          "run": {
+            "conclusion": "failure",
+            "event": "push",
+            "head_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+            "id": 40033089993,
+            "status": "completed"
+          },
+          "verdict": "regression",
+          "gates": {
+            "package_consumer": "fail",
+            "public_contract": "pass",
+            "supported_toolchain": "pass",
+            "twin": "not-applicable: twin not built (Phase 137)"
+          },
+          "failed_jobs": [
+            "Cohort Demo Smoke"
+          ],
+          "cohort_conclusion": "failure"
+        }
+      },
+      "baseline_run_id": 40030211340,
+      "subject": "fix: patch token secret disclosure and restore demo advisory audit (#166)",
+      "lock_delta": [
+        {
+          "from": "2.2.0",
+          "package": "plug_crypto",
+          "to": "2.2.1"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 166,
+      "group": "security-plug-crypto",
+      "group_packages": [
+        "plug_crypto"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+      "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+      "ci_run_id": 40037539740,
+      "original_ci_run_id": 40033089993,
+      "recovery": {
+        "policy": "demo-config-repair-v1",
+        "merge_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+        "evidence_sha": "1b6999014da57ddbba612d95995e469c60ab43b8",
+        "changed_files": [
+          "examples/adoption_demo/config/dev.exs",
+          "test/install_smoke/demo_dev_config_test.exs"
+        ],
+        "original": {
+          "run": {
+            "conclusion": "failure",
+            "event": "push",
+            "head_sha": "e128269c26fcbc0b1b7fa5da69e51316fcd02aef",
+            "id": 40033089993,
+            "status": "completed"
+          },
+          "verdict": "regression",
+          "gates": {
+            "package_consumer": "fail",
+            "public_contract": "pass",
+            "supported_toolchain": "pass",
+            "twin": "not-applicable: twin not built (Phase 137)"
+          },
+          "failed_jobs": [
+            "Cohort Demo Smoke"
+          ],
+          "cohort_conclusion": "failure"
+        }
+      },
+      "baseline_run_id": 40030211340,
+      "subject": "fix: patch token secret disclosure and restore demo advisory audit (#166)",
+      "lock_delta": [
+        {
+          "from": "2.2.0",
+          "package": "plug_crypto",
+          "to": "2.2.1"
         }
       ],
       "gates": {

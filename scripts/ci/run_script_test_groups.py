@@ -50,14 +50,20 @@ def run(groups,output,budget=240):
 
 
 def workflow_groups(script):
-    # The incident replay harness is independent of the other fixture repositories.
-    # Keep its exact workflow command, but remove it from their serial critical path.
+    # These harnesses own independent fixture repositories. Balance the existing
+    # three groups without changing their shared deadline or dropping commands.
     incident='bash scripts/ci/test_nightly_incident.sh'
+    inbox=('bash scripts/ci/test_collect_inbox.sh',
+           'bash scripts/ci/test_validate_inbox_ledger.sh',
+           'bash scripts/ci/test_dep_landing_evidence.sh')
     lines=script.splitlines()
-    if lines.count(incident)!=1:raise ValueError('exactly one Nightly incident harness command required')
-    legacy='\n'.join(line for line in lines if line!=incident)
+    independent=(incident,*inbox)
+    for command in independent:
+        if lines.count(command)!=1:raise ValueError('exactly one independent harness command required: '+command)
+    legacy='\n'.join(line for line in lines if line not in independent)
+    isolated='\n'.join(line for line in lines if line in independent)
     return [('Existing CI contract harnesses',['bash','-euo','pipefail','-c',legacy]),
-            ('Nightly incident contract harness',['bash','scripts/ci/test_nightly_incident.sh']),
+            ('Incident and inbox contract harnesses',['bash','-euo','pipefail','-c',isolated]),
             ('Exact-head readiness fixtures',['bash','scripts/ci/test_readiness_fixtures.sh'])]
 
 

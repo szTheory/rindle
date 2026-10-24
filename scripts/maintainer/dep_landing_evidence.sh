@@ -5,12 +5,14 @@
 # Usage:
 #   scripts/maintainer/dep_landing_evidence.sh --sha SHA [--group NAME --packages a,b,...]
 #       [--lock mix.lock|examples/adoption_demo/mix.lock] [--baseline-sha SHA]
-#       [--repo OWNER/NAME] [--out FILE]
+#       [--evidence-sha SHA] [--repo OWNER/NAME] [--out FILE]
 #
 # With --group the squash commit SHA must have exactly one parent; its package-level
 # lock delta must be a subset of --packages (an empty --packages requires an empty
 # delta) and the matching mix.exs must be unchanged. Without --group the tool runs in
 # baseline mode: gates only, no attribution.
+# By default --evidence-sha must equal SHA or descend through planning prose
+# (*.md) / INBOX-LEDGER.json changes only; executable planning tools never qualify.
 #
 # The post-merge ci.yml push run for SHA is mapped to the supported_toolchain,
 # public_contract and package_consumer gates. The twin gate is always the fixed
@@ -34,12 +36,21 @@ GROUP=""
 PACKAGES=""
 LOCK="mix.lock"
 BASELINE_SHA=""
+EVIDENCE_SHA=""
+RUN_FILE=""
+JOBS_FILE=""
+DEMO_REPAIR=false
+ORIGINAL_RUN_FILE=""
+ORIGINAL_JOBS_FILE=""
 OUT=""
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 
 usage() {
   cat >&2 <<'USAGE'
 usage: dep_landing_evidence.sh --sha SHA [--group NAME --packages a,b,...] [--lock PATH]
-                               [--baseline-sha SHA] [--repo OWNER/NAME] [--out FILE]
+                               [--baseline-sha SHA] [--evidence-sha SHA] [--repo OWNER/NAME] [--out FILE]
+                               [--run-file FILE --jobs-file FILE]
+                               [--demo-config-repair [--original-run-file FILE --original-jobs-file FILE]]
 USAGE
   exit 64
 }
@@ -50,6 +61,12 @@ while [ "$#" -gt 0 ]; do
     --group) [ "$#" -ge 2 ] || usage; GROUP="$2"; shift 2 ;;
     --packages) [ "$#" -ge 2 ] || usage; PACKAGES="$2"; shift 2 ;;
     --lock) [ "$#" -ge 2 ] || usage; LOCK="$2"; shift 2 ;;
+    --run-file) [ "$#" -ge 2 ] || usage; RUN_FILE="$2"; shift 2 ;;
+    --jobs-file) [ "$#" -ge 2 ] || usage; JOBS_FILE="$2"; shift 2 ;;
+    --demo-config-repair) DEMO_REPAIR=true; shift ;;
+    --original-run-file) [ "$#" -ge 2 ] || usage; ORIGINAL_RUN_FILE="$2"; shift 2 ;;
+    --original-jobs-file) [ "$#" -ge 2 ] || usage; ORIGINAL_JOBS_FILE="$2"; shift 2 ;;
+    --evidence-sha) [ "$#" -ge 2 ] || usage; EVIDENCE_SHA="$2"; shift 2 ;;
     --baseline-sha) [ "$#" -ge 2 ] || usage; BASELINE_SHA="$2"; shift 2 ;;
     --repo) [ "$#" -ge 2 ] || usage; REPO="$2"; shift 2 ;;
     --out) [ "$#" -ge 2 ] || usage; OUT="$2"; shift 2 ;;
@@ -58,6 +75,22 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
+# A bounded authenticated collector may pass retained GET responses to avoid a
+# second credential transport. Data inputs never confer acceptance authority.
+if [ -n "${RUN_FILE}" ] || [ -n "${JOBS_FILE}" ]; then
+  [ -f "${RUN_FILE}" ] && [ -f "${JOBS_FILE}" ] && [ -z "${BASELINE_SHA}" ] || usage
+fi
+if [ "${DEMO_REPAIR}" = true ]; then
+  [ -n "${GROUP}" ] && [ -n "${PACKAGES}" ] && [ -n "${EVIDENCE_SHA}" ] || usage
+  if [ -n "${RUN_FILE}" ]; then
+    [ -f "${ORIGINAL_RUN_FILE}" ] && [ -f "${ORIGINAL_JOBS_FILE}" ] || usage
+  fi
+fi
+if [ -n "${ORIGINAL_RUN_FILE}" ] || [ -n "${ORIGINAL_JOBS_FILE}" ]; then
+  [ "${DEMO_REPAIR}" = true ] && [ -n "${RUN_FILE}" ] \
+    && [ -f "${ORIGINAL_RUN_FILE}" ] && [ -f "${ORIGINAL_JOBS_FILE}" ] || usage
+fi
+
 die() { echo "dep_landing_evidence: $*" >&2; exit 1; }
 
 [ -n "${SHA}" ] || usage
@@ -65,6 +98,10 @@ case "${SHA}" in *[!0-9a-f]*) echo "dep_landing_evidence: --sha must be hex" >&2
 [ "${#SHA}" -ge 7 ] && [ "${#SHA}" -le 40 ] || { echo "dep_landing_evidence: --sha must be 7-40 hex chars" >&2; exit 64; }
 if [ -n "${BASELINE_SHA}" ]; then
   case "${BASELINE_SHA}" in *[!0-9a-f]*|'') echo "dep_landing_evidence: --baseline-sha must be hex" >&2; exit 64 ;; esac
+fi
+if [ -n "${EVIDENCE_SHA}" ]; then
+  case "${EVIDENCE_SHA}" in *[!0-9a-f]*) usage ;; esac
+  [ "${#EVIDENCE_SHA}" -eq 40 ] || usage
 fi
 case "${REPO}" in */*) ;; *) echo "dep_landing_evidence: --repo must be OWNER/NAME" >&2; exit 64 ;; esac
 case "${LOCK}" in
@@ -93,14 +130,16 @@ check_path() {
 
 gh_get() {
   check_path "$1"
-  gh api -H "${ACCEPT}" "$1"
+  if [ -n "${RUN_FILE}" ]; then cat "${RUN_FILE}"
+  else gh api -H "${ACCEPT}" "$1"; fi
 }
 
 # gh_jobs RUN_ID: every job of a run as one flat JSON array.
 gh_jobs() {
   local p="repos/${REPO}/actions/runs/$1/jobs?per_page=100"
   check_path "${p}"
-  gh api -H "${ACCEPT}" --paginate --slurp "${p}" | jq -S '[.[].jobs[]]'
+  if [ -n "${JOBS_FILE}" ]; then jq -e 'type == "array"' "${JOBS_FILE}" >/dev/null || die "malformed jobs input"; cat "${JOBS_FILE}"
+  else gh api -H "${ACCEPT}" --paginate --slurp "${p}" | jq -S '[.[].jobs[]]'; fi
 }
 
 # --- attribution (group mode) ------------------------------------------------
@@ -153,6 +192,45 @@ if [ -n "${GROUP}" ]; then
     | ($subset and $shape and ($mix | not))')"
 fi
 
+# A replacement run may qualify only an actual docs-only descendant. Inspect
+# EVERY commit, not just the endpoint diff: a code change followed by a revert
+# must not silently qualify. GitHub run identity below binds this history to REPO.
+CI_SHA="${FULL_SHA}"
+EQUIVALENCE='null'
+REPAIR_FILES='[]'
+if [ -n "${EVIDENCE_SHA}" ]; then
+  FULL_SHA="$(git rev-parse --verify "${SHA}^{commit}")" || die "merge commit absent locally"
+  CI_SHA="$(git rev-parse --verify "${EVIDENCE_SHA}^{commit}")" || die "evidence commit absent locally"
+  git merge-base --is-ancestor "${FULL_SHA}" "${CI_SHA}" || die "evidence SHA is not a descendant of merge SHA"
+  if [ "${CI_SHA}" != "${FULL_SHA}" ]; then
+    git rev-list "${FULL_SHA}..${CI_SHA}" >"${WORK}/range"
+    while IFS= read -r commit; do
+      # Inspect merges against every parent as well as ordinary commits.
+      git diff-tree --root -m --no-commit-id --name-only -r "${commit}" >>"${WORK}/range.files"
+    done <"${WORK}/range"
+    jq -R -s 'split("\n") | map(select(length > 0)) | unique' "${WORK}/range.files" >"${WORK}/range.files.json"
+    if [ "${DEMO_REPAIR}" = true ]; then
+      jq -e 'index("examples/adoption_demo/config/dev.exs") != null and all(.[];
+        test("^\\.planning/([^/]+/)*[^/]+\\.md$|^\\.planning/INBOX-LEDGER\\.json$")
+        or . == "examples/adoption_demo/config/dev.exs" or . == "test/install_smoke/demo_dev_config_test.exs")' \
+        "${WORK}/range.files.json" >/dev/null || die "demo repair range changes forbidden inputs or lacks dev config"
+      config_diff_rc=0
+      git diff --quiet "${FULL_SHA}" "${CI_SHA}" -- examples/adoption_demo/config/dev.exs || config_diff_rc=$?
+      [ "${config_diff_rc}" -eq 1 ] || die "demo repair requires an observable retained dev config change"
+      [ "$(git ls-tree "${CI_SHA}" -- examples/adoption_demo/config/dev.exs | awk '{print $1}')" = 100644 ] \
+        || die "demo repair config must remain a regular source file"
+      REPAIR_FILES="$(cat "${WORK}/range.files.json")"
+    else
+      jq -e 'all(.[]; test("^\\.planning/([^/]+/)*[^/]+\\.md$|^\\.planning/INBOX-LEDGER\\.json$"))' "${WORK}/range.files.json" >/dev/null \
+        || die "evidence range contains changes outside planning prose/INBOX-LEDGER.json"
+      EQUIVALENCE="$(jq -n --arg merge "${FULL_SHA}" --arg sha "${CI_SHA}" \
+        --slurpfile files "${WORK}/range.files.json" \
+        '{policy:"planning-only-descendant-v1", merge_sha:$merge, evidence_sha:$sha, changed_files:$files[0]}')"
+    fi
+  fi
+fi
+[ "${DEMO_REPAIR}" = false ] || [ "${CI_SHA}" != "${FULL_SHA}" ] || die "demo repair requires a distinct descendant"
+
 # --- post-merge run ---------------------------------------------------------
 
 # find_run SHA OUTFILE: writes the first push run for SHA (or "null").
@@ -161,7 +239,7 @@ find_run() {
   gh_get "${p}" | jq -S '(.workflow_runs // [])[0] // null' >"$2"
 }
 
-find_run "${FULL_SHA}" "${WORK}/run.json"
+find_run "${CI_SHA}" "${WORK}/run.json"
 if [ "$(jq -r '. == null' "${WORK}/run.json")" = true ]; then
   echo "dep_landing_evidence: no ci.yml push run for ${FULL_SHA} yet" >&2
   exit 75
@@ -170,6 +248,11 @@ if [ "$(jq -r '.status' "${WORK}/run.json")" != completed ]; then
   echo "dep_landing_evidence: run $(jq -r '.id' "${WORK}/run.json") is $(jq -r '.status' "${WORK}/run.json"), not completed" >&2
   exit 75
 fi
+jq -e --arg sha "${CI_SHA}" --arg repo "${REPO}" '
+  (.head_sha == $sha or (($sha|length) < 40 and (.head_sha|startswith($sha))))
+  and .event == "push" and .head_branch == "main"
+  and .repository.full_name == $repo and .path == ".github/workflows/ci.yml"
+' "${WORK}/run.json" >/dev/null || die "CI run identity does not match repository, push/main, workflow and evidence SHA"
 gh_jobs "$(jq -r '.id' "${WORK}/run.json")" >"${WORK}/jobs.json"
 
 echo 'null' >"${WORK}/baseline_run.json"
@@ -187,6 +270,8 @@ fi
 jq -S -n \
   --arg schema "${SCHEMA}" \
   --arg sha "${FULL_SHA}" \
+  --arg evidence_sha "${CI_SHA}" \
+  --argjson equivalence "${EQUIVALENCE}" \
   --arg group "${GROUP}" \
   --arg lock "${LOCK}" \
   --arg twin "${TWIN_LITERAL}" \
@@ -244,6 +329,8 @@ jq -S -n \
   | ([$gates[]] ) as $gv
   | { schema: $schema,
       sha: $sha,
+      evidence_sha: $evidence_sha,
+      equivalence: $equivalence,
       group: (if $group == "" then null else $group end),
       lock: $lock,
       lock_delta: $lock_delta,
@@ -259,6 +346,36 @@ jq -S -n \
                 elif ($gv | index("inherited_red")) != null then "inherited_red"
                 else "pass" end) }
 ' >"${WORK}/evidence.json"
+
+if [ "${DEMO_REPAIR}" = true ]; then
+  jq -e '.verdict == "pass" and .run.conclusion == "success"' "${WORK}/evidence.json" >/dev/null \
+    || die "repaired source must have successful completed main CI and every gate"
+  # Reuse the unchanged exact-source proof owner. The bounded remote collector
+  # supplies BOTH response pairs, so this child cannot open another transport.
+  set -- --repo "${REPO}" --sha "${FULL_SHA}" --group "${GROUP}" --packages "${PACKAGES}" --lock "${LOCK}" \
+    --out "${WORK}/original.json"
+  [ -z "${ORIGINAL_RUN_FILE}" ] || set -- "$@" --run-file "${ORIGINAL_RUN_FILE}" --jobs-file "${ORIGINAL_JOBS_FILE}"
+  original_rc=0
+  bash "${SCRIPT_PATH}" "$@" >/dev/null || original_rc=$?
+  [ "${original_rc}" -eq 1 ] && [ -f "${WORK}/original.json" ] \
+    || die "demo repair requires an observable original regression"
+  jq -e --arg sha "${FULL_SHA}" --argjson current "$(jq '.run.id' "${WORK}/evidence.json")" '
+    .sha == $sha and .evidence_sha == $sha and .attributable == true and .mix_exs_changed == false
+    and .verdict == "regression" and .run.head_sha == $sha and .run.status == "completed"
+    and .run.event == "push" and .run.conclusion == "failure" and .run.id != $current
+    and .gates.supported_toolchain == "pass" and .gates.public_contract == "pass"
+    and .gates.package_consumer == "fail"
+    and any(.jobs[]; .name == "Cohort Demo Smoke" and .conclusion == "failure")
+    and ([.jobs[].name] | unique | length) == (.jobs | length)
+    and [.jobs[] | select(.conclusion != "success" and .conclusion != "skipped" and .name != "CI Summary") | .name]
+        == ["Cohort Demo Smoke"]' "${WORK}/original.json" >/dev/null \
+    || die "original failure must be exclusively Cohort, with other gates passing"
+  jq --slurpfile original "${WORK}/original.json" --argjson files "${REPAIR_FILES}" '
+    .recovery = {policy:"demo-config-repair-v1",merge_sha:.sha,evidence_sha:.evidence_sha,changed_files:$files,
+      original: {run:$original[0].run,verdict:$original[0].verdict,gates:$original[0].gates,
+        failed_jobs:["Cohort Demo Smoke"],cohort_conclusion:"failure"}}' "${WORK}/evidence.json" >"${WORK}/repaired.json"
+  mv "${WORK}/repaired.json" "${WORK}/evidence.json"
+fi
 
 OUT_DIR="."
 if [ -n "${OUT}" ]; then

@@ -196,7 +196,7 @@ fx_new() {
     '{"required_status_checks":{"strict":true,"contexts":["CI Summary"],"checks":[{"context":"CI Summary","app_id":15368}]},"enforce_admins":{"enabled":false}}'
   fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=5" \
     '{"workflow_runs":[{"id":555,"head_sha":"'"${MAIN_SHA}"'","conclusion":"success"}]}'
-  fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" '{"jobs":[{"name":"Quality","conclusion":"success"}]}'
+  fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" '{"jobs":[{"name":"Quality","status":"completed","conclusion":"success"}]}'
   fx "repos/szTheory/rindle/dependabot/alerts?state=open&per_page=100" \
     '{"message":"Dependabot alerts are disabled for this repository.","status":"403"}' 403
   fx "repos/szTheory/rindle/vulnerability-alerts" '{"message":"Not Found"}' 404
@@ -345,9 +345,10 @@ fx "repos/szTheory/rindle/issues/93" '{"number":93,"state":"closed","state_reaso
 fx "repos/szTheory/rindle/pulls/93" '{"number":93,"merged":false}'
 fx "repos/szTheory/rindle/issues/88" '{"number":88,"state":"closed","state_reason":"completed"}'
 fx "repos/szTheory/rindle/issues/77" '{"number":77,"state":"closed","state_reason":null,"pull_request":{"url":"x"}}'
-fx "repos/szTheory/rindle/pulls/77" '{"number":77,"merged":true}'
+fx "repos/szTheory/rindle/pulls/77" '{"number":77,"merged":true,"merge_commit_sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}'
+fx "repos/szTheory/rindle/pulls/77/files?per_page=100" '[{"filename":"mix.lock"}]'
 fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" \
-  '{"jobs":[{"name":"Quality","conclusion":"success"},{"name":"Adoption Demo E2E","conclusion":"failure"},{"name":"Cohort Demo Smoke","conclusion":"skipped"},{"name":"Package Consumer Full","conclusion":null}]}'
+  '{"jobs":[{"name":"Quality","status":"completed","conclusion":"success"},{"name":"Adoption Demo E2E","status":"completed","conclusion":"failure"},{"name":"Cohort Demo Smoke","status":"completed","conclusion":"skipped"},{"name":"Package Consumer Full","status":"in_progress","conclusion":null}]}'
 out="${ROOT_TMP}/prs.json"
 run_collector "${out}" --include 93 --include 88 --include 77
 if [ "${RC}" -eq 0 ] && [ -f "${out}" ]; then
@@ -378,13 +379,18 @@ assert "prs sorted by number" jq -e '(.prs|map(.number))==[95,108,120]' "${out}"
 assert "terminal include 93: closed, merged false, kind pr" \
   jq -e '.terminal[]|select(.number==93)|(.state=="closed" and .merged==false and .kind=="pr")' "${out}"
 assert "terminal include 77: merged true" \
-  jq -e '.terminal[]|select(.number==77)|(.merged==true and .state=="closed")' "${out}"
+  jq -e '.terminal[]|select(.number==77)|(.merged==true and .state=="closed" and .merge_sha=="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" and .changed_files==["mix.lock"] and .landing_evidence==[])' "${out}"
 assert "terminal include 88: issue with state_reason completed" \
   jq -e '.terminal[]|select(.number==88)|(.kind=="issue" and .state_reason=="completed" and .merged==false)' "${out}"
+fx "repos/szTheory/rindle/issues/88" '{"number":88,"state":"open","state_reason":null}'
+run_collector "${ROOT_TMP}/retained-open.json" --include 88
+assert "retained issue observation keeps actual open state without inventing closure" \
+  jq -e '.terminal[0]|.kind=="issue" and .state=="open" and .merged==false and .state_reason==null' "${ROOT_TMP}/retained-open.json"
+fx "repos/szTheory/rindle/issues/88" '{"number":88,"state":"closed","state_reason":"completed"}'
 assert "protection 200: source protection, strict true, enforce_admins false (booleans)" \
   jq -e '.branch_protection==({source:"protection",http:200,contexts:["CI Summary"],strict:true,enforce_admins:false})' "${out}"
-assert "main_ci: latest push run with every non-passing job listed" \
-  jq -e '.main_ci|(.run_id==555 and .conclusion=="success" and .failed_jobs==["Adoption Demo E2E","Package Consumer Full"])' "${out}"
+assert "main_ci: latest push run with completed failures exclude unfinished jobs" \
+  jq -e '.main_ci|(.run_id==555 and .conclusion=="success" and .failed_jobs==["Adoption Demo E2E"] and .unfinished_jobs==["Package Consumer Full"])' "${out}"
 no_mutations "PR inventory"
 assert "PR title with shell metacharacters was not executed" test ! -e pwned2
 
@@ -532,11 +538,35 @@ else
 fi
 
 fx_new adv_depsaudit
-mixfx deps_audit 1 "$(printf '%s\n' 'Name: plug' '1 vulnerabilities found')"
+mixfx deps_audit 1 "$(printf '%s\n' 'Name: plug' 'Title: error: secret disclosure in malformed calls' '1 vulnerabilities found')"
 out="${ROOT_TMP}/adv_depsaudit.json"
 run_collector "${out}"
 assert "deps.audit findings recorded as second opinion" \
   jq -e '.advisories.sources.deps_audit.status=="findings"' "${out}"
+
+fx_new adv_depsaudit_refresh_error
+mixfx deps_audit 0 "$(printf '\033[31merror: cannot open .git/FETCH_HEAD: Operation not permitted\033[0m\nNo vulnerabilities found.\n')"
+out="${ROOT_TMP}/adv_depsaudit_refresh_error.json"
+run_collector "${out}"
+assert "deps.audit successful exit cannot hide a Git refresh error" \
+  jq -e '.advisories.sources.deps_audit.status=="unreadable"' "${out}"
+no_mutations "deps.audit refresh error"
+
+fx_new adv_depsaudit_early_error
+mixfx deps_audit 0 "$(printf 'fatal: unable to access advisory database\n'; for i in $(seq 1 25); do printf 'audit output %s\n' "${i}"; done; printf 'No vulnerabilities found.\n')"
+out="${ROOT_TMP}/adv_depsaudit_early_error.json"
+run_collector "${out}"
+assert "deps.audit error detection reads complete output before the diagnostic tail" \
+  jq -e '.advisories.sources.deps_audit.status=="unreadable" and (.advisories.sources.deps_audit.output_tail|contains("fatal:")|not)' "${out}"
+no_mutations "deps.audit early error"
+
+fx_new adv_depsaudit_error_and_findings
+mixfx deps_audit 1 "$(printf '%s\n' 'fatal: unable to fetch advisory database' '1 vulnerabilities found')"
+out="${ROOT_TMP}/adv_depsaudit_error_and_findings.json"
+run_collector "${out}"
+assert "deps.audit refresh failure stays unreadable alongside cached findings" \
+  jq -e '.advisories.sources.deps_audit.status=="unreadable"' "${out}"
+no_mutations "deps.audit error with findings"
 
 # GitHub-side sources.
 fx_new gh_disabled
@@ -596,6 +626,87 @@ if [ "${RC}" -ne 0 ] && [ ! -e "${ROOT_TMP}/hexlatest-none.json" ]; then
 else
   record "unknown --hex-package aborts with no output file" false "rc=${RC}"
 fi
+
+# Paginated jobs, unfinished state and adverse terminal conclusions.
+fx_new job_states
+fx "repos/szTheory/rindle/actions/runs/555/jobs?per_page=100" \
+  '{"jobs":[{"name":"Queued","status":"queued","conclusion":null},{"name":"Running","status":"in_progress","conclusion":null},{"name":"Okay","status":"completed","conclusion":"success"}]},
+   {"jobs":[{"name":"Failed","status":"completed","conclusion":"failure"},{"name":"Cancelled","status":"completed","conclusion":"cancelled"},{"name":"Timed out","status":"completed","conclusion":"timed_out"},{"name":"Action required","status":"completed","conclusion":"action_required"},{"name":"Malformed terminal","status":"completed","conclusion":null},{"name":"Skipped","status":"completed","conclusion":"skipped"}]}'
+out="${ROOT_TMP}/job-states.json"
+run_collector "${out}"
+assert "all job pages: unfinished jobs separated from terminal failures" jq -e \
+  '.main_ci.failed_jobs==["Failed","Cancelled","Timed out","Action required","Malformed terminal"] and .main_ci.unfinished_jobs==["Queued","Running"]' "${out}"
+no_mutations "paginated job states"
+
+# Full collector -> real landing helper integration with an actual local merge.
+LANDING_ROOT="${ROOT_TMP}/landing-root"
+mkdir -p "${LANDING_ROOT}"
+(
+  cd "${LANDING_ROOT}"
+  git init -q .
+  git config user.name Test
+  git config user.email test@example.invalid
+  git config commit.gpgsign false
+  echo 'defmodule M do end' >mix.exs
+  printf '%%{\n  "req": {:hex, :req, "0.7.3", [], [], "hexpm", "a"},\n}\n' >mix.lock
+  git add -A && git commit -qm base
+  sed 's/0.7.3/0.7.5/' mix.lock >lock.new && mv lock.new mix.lock
+  git add -A && git commit -qm bump
+)
+LANDING_SHA="$(git -C "${LANDING_ROOT}" rev-parse HEAD)"
+fx_new landing
+fx "repos/szTheory/rindle/issues/77" '{"number":77,"state":"closed","pull_request":{}}'
+fx "repos/szTheory/rindle/pulls/77" "{\"number\":77,\"merged\":true,\"merge_commit_sha\":\"${LANDING_SHA}\"}"
+fx "repos/szTheory/rindle/pulls/77/files?per_page=100" '[{"filename":"mix.lock"}]'
+fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${LANDING_SHA}&event=push&per_page=5" \
+  "{\"workflow_runs\":[{\"id\":777,\"head_sha\":\"${LANDING_SHA}\",\"event\":\"push\",\"head_branch\":\"main\",\"repository\":{\"full_name\":\"szTheory/rindle\"},\"path\":\".github/workflows/ci.yml\",\"status\":\"completed\",\"conclusion\":\"success\"}]}"
+JOBS='["Quality (stable)","ADMIN-06 Optional Dependencies (stable)","Contract","Proof","Integration","CI Script Tests","Package Consumer Proof Matrix + Release Preflight","Adopter","Adoption Demo Unit","Adoption Demo E2E Smoke","Cohort Demo Smoke","Adoption Demo E2E","Package Consumer Full Matrix + Release Preflight (stable)"]'
+fx "repos/szTheory/rindle/actions/runs/777/jobs?per_page=100" "$(jq -n --argjson names "$JOBS" '{jobs:[$names[]|{name:.,conclusion:"success"}]}')"
+jq -n --arg sha "${LANDING_SHA}" '{repo:"szTheory/rindle",landings:[{number:77,merge_sha:$sha,group:"req",group_packages:["req"],lock:"mix.lock"}]}' >"${ROOT_TMP}/landing-ledger.json"
+out="${ROOT_TMP}/landing.json"
+INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-ledger "${ROOT_TMP}/landing-ledger.json"
+assert "collector derives actual terminal attribution and passing CI" jq -e \
+  '.terminal[0].landing_evidence[0] | .verdict=="pass" and .attributable==true and .run.id==777 and .lock_delta==[{package:"req",from:"0.7.3",to:"0.7.5"}]' "${out}"
+no_mutations "collected landing evidence"
+
+# Explicit repair hints select a policy; only real Git history and both actual
+# CI sources can produce the original-failure / repaired-success receipt.
+mkdir -p "${LANDING_ROOT}/examples/adoption_demo/config"
+echo 'portable config' >"${LANDING_ROOT}/examples/adoption_demo/config/dev.exs"
+git -C "${LANDING_ROOT}" add -A && git -C "${LANDING_ROOT}" commit -qm config-repair
+REPAIR_SHA="$(git -C "${LANDING_ROOT}" rev-parse HEAD)"
+fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${LANDING_SHA}&event=push&per_page=5" \
+  "{\"workflow_runs\":[{\"id\":777,\"head_sha\":\"${LANDING_SHA}\",\"event\":\"push\",\"head_branch\":\"main\",\"repository\":{\"full_name\":\"szTheory/rindle\"},\"path\":\".github/workflows/ci.yml\",\"status\":\"completed\",\"conclusion\":\"failure\"}]}"
+fx "repos/szTheory/rindle/actions/runs/777/jobs?per_page=100" "$(jq -n --argjson names "$JOBS" '{jobs:[$names[]|{name:.,conclusion:(if .=="Cohort Demo Smoke" then "failure" else "success" end)}]}')"
+fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${REPAIR_SHA}&event=push&per_page=5" \
+  "{\"workflow_runs\":[{\"id\":778,\"head_sha\":\"${REPAIR_SHA}\",\"event\":\"push\",\"head_branch\":\"main\",\"repository\":{\"full_name\":\"szTheory/rindle\"},\"path\":\".github/workflows/ci.yml\",\"status\":\"completed\",\"conclusion\":\"success\"}]}"
+fx "repos/szTheory/rindle/actions/runs/778/jobs?per_page=100" "$(jq -n --argjson names "$JOBS" '{jobs:[$names[]|{name:.,conclusion:"success"}]}')"
+jq --arg sha "${REPAIR_SHA}" '.landings[0] += {evidence_sha:$sha,recovery:{policy:"demo-config-repair-v1"}}' "${ROOT_TMP}/landing-ledger.json" >"${ROOT_TMP}/repair-ledger.json"
+out="${ROOT_TMP}/landing-repair.json"
+INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-ledger "${ROOT_TMP}/repair-ledger.json"
+assert "collector derives repair from real range and both CI sources" jq -e \
+  '.terminal[0].landing_evidence[0] | .verdict=="pass" and .run.id==778 and .recovery.original.run.id==777 and .recovery.original.verdict=="regression" and .recovery.original.failed_jobs==["Cohort Demo Smoke"]' "${out}"
+no_mutations "collected demo repair"
+jq '.landings[0].recovery.policy="unrestricted"' "${ROOT_TMP}/repair-ledger.json" >"${ROOT_TMP}/unknown-repair-ledger.json"
+out="${ROOT_TMP}/unknown-landing-repair.json"
+INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-ledger "${ROOT_TMP}/unknown-repair-ledger.json"
+record "unknown repair policy aborts without inventory" "$([ "$RC" -ne 0 ] && [ ! -e "$out" ] && echo true || echo false)"
+no_mutations "unknown demo repair"
+
+# A malformed/unbound CI response must fail the whole collection, not supply
+# an empty successful evidence record.
+fx "repos/szTheory/rindle/actions/workflows/ci.yml/runs?head_sha=${LANDING_SHA}&event=push&per_page=5" \
+  '{"workflow_runs":[{"id":777,"head_sha":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","status":"completed","event":"push","head_branch":"main","path":".github/workflows/ci.yml","repository":{"full_name":"szTheory/rindle"}}]}'
+out="${ROOT_TMP}/landing-wrong-ci.json"
+INBOX_ROOT_DIR="${LANDING_ROOT}" run_collector "${out}" --include 77 --landing-ledger "${ROOT_TMP}/landing-ledger.json"
+record "unbound landing CI aborts without output" "$([ "$RC" -ne 0 ] && [ ! -e "$out" ] && echo true || echo false)"
+no_mutations "unbound landing CI"
+# An unreadable files endpoint must not become an empty changed-files list.
+fx "repos/szTheory/rindle/pulls/77/files?per_page=100" '{"message":"Forbidden"}' 403
+out="${ROOT_TMP}/landing-unreadable.json"
+run_collector "${out}" --include 77
+record "unreadable terminal files abort without output" "$([ "$RC" -ne 0 ] && [ ! -e "$out" ] && echo true || echo false)"
+no_mutations "unreadable terminal files"
 
 # Tripwire self-test: the fake gh must flag writes, otherwise "no mutations" proves nothing.
 fx_new tripwire

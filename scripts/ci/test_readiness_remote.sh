@@ -4,7 +4,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$root"
 export PYTHONDONTWRITEBYTECODE=1
 python3 - "$root" <<'PY'
-import base64,copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,hashlib,functools,time
+import atexit,base64,copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,hashlib,functools,time
 from unittest.mock import patch
 from types import SimpleNamespace
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
@@ -21,26 +21,62 @@ ledger=json.loads((root/c.LEDGER).read_bytes())
 # into a synthetic API map that intentionally starts with no open pulls.
 ledger['items']=[item for item in ledger['items'] if item['kind']!='pr' or 'terminal' in item]
 
-# Reuse the pure lock-parser transformation across fixture cases. The script and
-# complete lock bytes form the key; changed input cannot reuse a prior result.
-# Every authenticated API observation and ledger validation still runs normally.
-# The actual CLI subprocess test below remains unpatched.
+# Controlled merged dependency landing exercises the real validator/helper
+# without importing historical live PRs or requiring deep CI checkout history.
+landing=copy.deepcopy(next(r for r in ledger['landings'] if r['number']==105))
+ledger['items']=[r for r in ledger['items'] if r['kind']!='pr' or r['number']==105]
+ledger['landings']=[landing]
+git_root=pathlib.Path(tempfile.mkdtemp(prefix='rindle-remote-landing-'));atexit.register(shutil.rmtree,git_root)
+def git(*args):return subprocess.check_output(['git','-C',str(git_root),*args],stderr=subprocess.DEVNULL).decode().strip()
+git('init','-q');git('config','user.name','Test');git('config','user.email','test@example.invalid');git('config','commit.gpgsign','false')
+(git_root/'mix.exs').write_text('defmodule M do end\n')
+def fixture_lock(key):return '%{\n'+''.join('  "'+r['package']+'": {:hex, :'+r['package']+', "'+r[key]+'", [], [], "hexpm", "a"},\n' for r in landing['lock_delta'])+'}\n'
+(git_root/'mix.lock').write_text(fixture_lock('from'));git('add','-A');git('commit','-qm','base')
+(git_root/'mix.lock').write_text(fixture_lock('to'));git('add','-A');git('commit','-qm','landing')
+landing['merge_sha']=git('rev-parse','HEAD');os.environ['GIT_DIR']=str(git_root/'.git');os.environ['GIT_WORK_TREE']=str(git_root)
+(git_root/'examples/adoption_demo/config').mkdir(parents=True)
+(git_root/'examples/adoption_demo/config/dev.exs').write_text('portable config\n')
+git('add','-A');git('commit','-qm','demo config repair');repair_sha=git('rev-parse','HEAD')
+transport_root=pathlib.Path(tempfile.mkdtemp(prefix='rindle-remote-no-gh-'));atexit.register(shutil.rmtree,transport_root)
+escape_log=transport_root/'escaped';(transport_root/'gh').write_text('#!/bin/sh\nprintf "blocked\\n" >> "$RINDLE_TEST_GH_ESCAPE_LOG"\nexit 97\n');(transport_root/'gh').chmod(0o700)
+os.environ['PATH']=str(transport_root)+os.pathsep+os.environ['PATH'];os.environ['RINDLE_TEST_GH_ESCAPE_LOG']=str(escape_log)
+landing_jobs=['Quality (stable)','ADMIN-06 Optional Dependencies (stable)','Contract','Proof','Integration','CI Script Tests',
+ 'Package Consumer Proof Matrix + Release Preflight','Adopter','Adoption Demo Unit','Adoption Demo E2E Smoke','Cohort Demo Smoke',
+ 'Adoption Demo E2E','Package Consumer Full Matrix + Release Preflight (stable)']
+
+# Memoize deterministic parser/helper transformations across fixture cases, as
+# the workflow-policy parser above already does. Every authenticated API read and
+# every validator invocation still runs twice. Changed run/job/lock bytes produce
+# a different key; the changed-jobs regression below prevents stale green reuse.
+# The actual-CLI subprocess test is unpatched and exercises the full real path.
 original_command=c.RemoteCollector.command
-lock_parses={}
+pure_commands={}
 def fixture_command(self,argv,cwd,env,budget):
-    if len(argv)!=5 or argv[0]!='elixir' or argv[2]!='--inventory':
-        return original_command(self,argv,cwd,env,budget)
-    key=(pathlib.Path(argv[1]).read_bytes(),pathlib.Path(argv[3]).read_bytes())
-    output=pathlib.Path(argv[4])
-    if key in lock_parses:
-        code,raw=lock_parses[key];c.write_new(output,raw);return code
+    normalized=None;output=None
+    if len(argv)==5 and argv[0]=='elixir' and argv[2]=='--inventory':
+        normalized=[argv[0],pathlib.Path(argv[1]).read_bytes().hex(),argv[2],pathlib.Path(argv[3]).read_bytes().hex()]
+        output=pathlib.Path(argv[4])
+    elif len(argv)>2 and argv[:2]==['bash',str(root/'scripts/maintainer/dep_landing_evidence.sh')] and '--run-file' in argv:
+        normalized=list(argv);normalized[1]=pathlib.Path(argv[1]).read_bytes().hex()
+        for flag in ('--run-file','--jobs-file','--original-run-file','--original-jobs-file'):
+            if flag in argv:
+                position=argv.index(flag)+1;normalized[position]=pathlib.Path(argv[position]).read_bytes().hex()
+        position=argv.index('--out')+1;output=pathlib.Path(argv[position]);normalized[position]='OUTPUT'
+        normalized += [env.get('GIT_DIR'),env.get('GIT_WORK_TREE')]
+    if normalized is None:return original_command(self,argv,cwd,env,budget)
+    key=c.canonical(normalized)
+    if key in pure_commands:
+        code,raw=pure_commands[key]
+        c.write_new(output,raw)
+        return code
     code=original_command(self,argv,cwd,env,budget)
-    if output.is_file():lock_parses[key]=(code,output.read_bytes())
+    if output.is_file():pure_commands[key]=(code,output.read_bytes())
     return code
 c.RemoteCollector.command=fixture_command
 
 class Remote(unittest.TestCase):
     def setUp(self):
+        escape_log.unlink(missing_ok=True)
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-remote-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
         self.responses={};self.put('repos/'+repo,{'id':123,'full_name':repo,'default_branch':'main','owner':{'type':'User'},'permissions':{'admin':True}})
         self.put(prefix+'git/ref/heads/main',{'ref':'refs/heads/main','object':{'type':'commit','sha':sha}})
@@ -56,8 +92,15 @@ class Remote(unittest.TestCase):
             if terminal:
                 self.put(prefix+'issues/'+str(number),value)
                 if record['kind']=='pr':self.put(prefix+'pulls/'+str(number),{'number':number,'state':'closed','merged':terminal['merged'],
-                    'base':{'repo':{'full_name':repo}}})
+                    'base':{'repo':{'full_name':repo}},'merge_commit_sha':landing['merge_sha']})
             else:issues.append(value)
+        self.put(prefix+'pulls/105/files?per_page=100',[{'filename':'mix.lock'}])
+        self.landing_run_path=prefix+'actions/workflows/ci.yml/runs?head_sha='+landing['merge_sha']+'&event=push&per_page=5'
+        self.put(self.landing_run_path,{'workflow_runs':[{'id':landing['ci_run_id'],'head_sha':landing['merge_sha'],
+            'event':'push','head_branch':'main','repository':{'full_name':repo},'path':'.github/workflows/ci.yml',
+            'status':'completed','conclusion':'success'}]})
+        self.landing_jobs_path=prefix+'actions/runs/'+str(landing['ci_run_id'])+'/jobs?per_page=100'
+        self.put(self.landing_jobs_path,{'total_count':len(landing_jobs),'jobs':[{'id':i+1,'name':name,'conclusion':'success'} for i,name in enumerate(landing_jobs)]})
         self.put(prefix+'issues?state=open&per_page=100',issues)
         self.issue_path=prefix+'issues?state=open&per_page=100'
         self.put(prefix+'pulls?state=open&per_page=100',[])
@@ -92,7 +135,9 @@ class Remote(unittest.TestCase):
                 'hex_version':'2.5.1','online':True,'registry_signature_verification':True,'https_verified':True,
                 'packages':sorted(packages,key=lambda p:p['package']),'database':database})
         (self.fixture/'hex.json').write_bytes(c.canonical([self.hex_payload,self.hex_payload]))
-    def tearDown(self):shutil.rmtree(self.tmp)
+    def tearDown(self):
+        escaped=escape_log.exists();shutil.rmtree(self.tmp)
+        self.assertFalse(escaped,'retained landing proof attempted a hidden GitHub transport')
     def put(self,path,body,status=200,headers=None):self.responses[path]=[{'status':status,'body':copy.deepcopy(body),'headers':headers or {}}]
     def subject_file(self,path,raw):self.put(prefix+'contents/'+path+'?ref='+sha,{'path':path,'type':'file','encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
     def body(self,path):return self.responses[path][0]['body']
@@ -160,6 +205,48 @@ class Remote(unittest.TestCase):
         record=next(r for r in ledger['items'] if r['kind']=='pr' and 'terminal' in r)
         self.body(prefix+'pulls/'+str(record['number']))['merged']=not record['terminal']['merged']
         code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'ledger_reconciliation_failed')
+    def test_merged_lock_landing_cannot_be_deleted(self):
+        raw=copy.deepcopy(ledger);raw['landings']=[]
+        self.subject_file(c.LEDGER,c.canonical(raw));self.full_reject('ledger_reconciliation_failed')
+    def test_merged_lock_landing_uses_actual_terminal_merge(self):
+        self.body(prefix+'pulls/105')['merge_commit_sha']='b'*40
+        code,value,_=self.collect(full=True);self.assertEqual(code,1)
+        self.assertIn(value['reason'],('fixture_response_missing','landing_evidence_unavailable','ledger_reconciliation_failed'))
+    def test_changed_landing_ci_between_observations_rejects(self):
+        self.responses[self.landing_jobs_path].append(copy.deepcopy(self.responses[self.landing_jobs_path][0]))
+        self.responses[self.landing_jobs_path][1]['body']['jobs'][0]['conclusion']='failure'
+        self.full_reject('ledger_reconciliation_failed')
+    def test_foreign_landing_ci_is_not_accepted(self):
+        self.body(self.landing_run_path)['workflow_runs'][0]['repository']['full_name']='foreign/repo'
+        self.full_reject('landing_evidence_unavailable')
+    def add_demo_repair(self):
+        original=self.body(self.landing_run_path)['workflow_runs'][0];original['conclusion']='failure'
+        next(j for j in self.body(self.landing_jobs_path)['jobs'] if j['name']=='Cohort Demo Smoke')['conclusion']='failure'
+        repaired={**original,'id':original['id']+1,'head_sha':repair_sha,'conclusion':'success'}
+        self.repair_run_path=prefix+'actions/workflows/ci.yml/runs?head_sha='+repair_sha+'&event=push&per_page=5'
+        self.put(self.repair_run_path,{'workflow_runs':[repaired]})
+        self.put(prefix+'actions/runs/'+str(repaired['id'])+'/jobs?per_page=100',
+            {'total_count':len(landing_jobs),'jobs':[{'id':i+1,'name':name,'conclusion':'success'} for i,name in enumerate(landing_jobs)]})
+        recovery={'policy':'demo-config-repair-v1','merge_sha':landing['merge_sha'],'evidence_sha':repair_sha,
+            'changed_files':['examples/adoption_demo/config/dev.exs'],'original':{
+                'run':{k:original[k] for k in ('id','head_sha','event','status','conclusion')},'verdict':'regression',
+                'gates':{**landing['gates'],'package_consumer':'fail'},'failed_jobs':['Cohort Demo Smoke'],'cohort_conclusion':'failure'}}
+        raw=copy.deepcopy(ledger);raw['landings'][0].update(evidence_sha=repair_sha,ci_run_id=repaired['id'],recovery=recovery)
+        self.subject_file(c.LEDGER,c.canonical(raw))
+    def test_demo_repair_collects_both_exact_sources_without_transport_escape(self):
+        self.add_demo_repair();code,_,collector=self.collect(full=True);self.assertEqual(code,0)
+        receipts=[c.read_json(p) for p in collector.private.glob('landing-*/evidence.json')]
+        self.assertEqual(len(receipts),2)
+        self.assertTrue(all(p['recovery']['original']['verdict']=='regression' and p['run']['head_sha']==repair_sha for p in receipts))
+    def test_demo_repair_requires_original_run_visibility(self):
+        self.add_demo_repair();self.put(self.landing_run_path,{},403);self.full_reject('remote_forbidden')
+    def test_demo_repair_rejects_foreign_original_source(self):
+        self.add_demo_repair();self.body(self.landing_run_path)['workflow_runs'][0]['head_sha']='b'*40
+        self.full_reject('landing_evidence_unavailable')
+    def test_demo_repair_changed_original_jobs_cannot_reuse_cached_green(self):
+        self.add_demo_repair();self.responses[self.landing_jobs_path].append(copy.deepcopy(self.responses[self.landing_jobs_path][0]))
+        next(j for j in self.responses[self.landing_jobs_path][1]['body']['jobs'] if j['name']=='Contract')['conclusion']='failure'
+        self.full_reject('landing_evidence_unavailable')
     def test_unpublished_advisory_404_cannot_be_empty(self):
         self.put(prefix+'security-advisories?state=draft&per_page=100',{},404)
         code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_unavailable')
@@ -194,6 +281,33 @@ class Remote(unittest.TestCase):
         return head
     def full_reject(self,reason):
         code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],reason)
+    def retained_history(self,close=True,reason='completed'):
+        raw=copy.deepcopy(ledger);record=next(x for x in raw['items'] if x['kind']=='issue' and x['number']==42)
+        record['terminal_policy']='observe-retained-issue-v1';self.subject_file(c.LEDGER,c.canonical(raw))
+        issue=next(x for x in self.body(self.issue_path) if x['number']==42)
+        if close:self.body(self.issue_path).remove(issue)
+        closed=copy.deepcopy(issue);closed.update(state='closed',state_reason=reason)
+        self.put(prefix+'issues/42',closed)
+        return issue
+    def test_retained_history_stays_valid_while_open(self):
+        self.retained_history(close=False);code,_,_=self.collect();self.assertEqual(code,0)
+    def test_retained_history_requires_actual_completed_lookup_in_full_mode(self):
+        self.retained_history();code,_,collector=self.collect(full=True);self.assertEqual(code,0)
+        calls=[v['path'] for v in collector.api.calls]
+        self.assertEqual(calls.count(prefix+'issues/42'),2)
+    def test_retained_history_cannot_turn_missing_lookup_into_closed(self):
+        self.retained_history();self.put(prefix+'issues/42',{},404);self.reject('remote_unavailable')
+    def test_retained_history_rejects_unplanned_closure(self):
+        self.retained_history(reason='not_planned');self.reject('issue_terminal_mismatch')
+    def test_retained_history_rejects_unknown_policy(self):
+        self.retained_history();path=prefix+'contents/'+c.LEDGER+'?ref='+sha
+        raw=c.json_bytes(base64.b64decode(self.body(path)['content']))
+        next(x for x in raw['items'] if x['number']==42)['terminal_policy']='allow_anything'
+        self.subject_file(c.LEDGER,c.canonical(raw));self.reject('ledger_shape_invalid')
+    def test_retained_history_transition_during_observation_is_still_drift(self):
+        issue=self.retained_history();second=copy.deepcopy(self.responses[self.issue_path][0])
+        self.responses[self.issue_path][0]['body'].append(issue)
+        self.responses[self.issue_path].append(second);self.reject('remote_state_changed')
     def test_pr_checks_bind_each_historical_attempt_and_statuses_separately(self):
         self.add_pr();code,_,collector=self.collect(full=True);self.assertEqual(code,0)
         observed=c.read_json(collector.private/'normalized-1.json')
