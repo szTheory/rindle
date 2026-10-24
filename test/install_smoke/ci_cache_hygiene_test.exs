@@ -391,6 +391,35 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     end
   end
 
+  test "release compilation and public verification use the installed libvips SDK" do
+    release = YamlElixir.read_from_file!(@release_path)
+
+    for id <- ["publish", "public_verify"] do
+      job = release["jobs"][id]
+      env = Map.merge(release["env"] || %{}, job["env"] || %{})
+      assert env["VIX_COMPILATION_MODE"] == "PLATFORM_PROVIDED_LIBVIPS"
+
+      steps = job["steps"]
+
+      sdk =
+        Enum.find_index(steps, fn step ->
+          String.contains?(step["run"] || "", "install_apt_packages.sh libvips-dev")
+        end)
+
+      build =
+        Enum.find_index(steps, fn step ->
+          String.contains?(step["run"] || "", [
+            "release_preflight.sh",
+            "mix hex.info",
+            "public_smoke.sh"
+          ])
+        end)
+
+      assert is_integer(sdk) and is_integer(build) and sdk < build,
+             "#{id} must install its SDK before compilation"
+    end
+  end
+
   @tag :tmp_dir
   test "apt helper gives the official archive explicit priority and preserves fallbacks", %{
     tmp_dir: tmp_dir
