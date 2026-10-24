@@ -711,24 +711,24 @@
     },
     {
       "disposition": "retain",
-      "head_sha": "7f0958cc5287c02353df19848fde60b81c9891e7",
+      "head_sha": "681b786d821650c55ca198b7edfb44cdccd22338",
       "kind": "pr",
       "number": 144,
-      "rationale": "Retain separate dependency candidate, observed at final ledger reconciliation: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Current dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; no readiness credit."
+      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "276c6777978c116fa71bf0508fe21e2234938eec",
+      "head_sha": "8c3552928153a9280e77e15a89b6eb8499c18810",
       "kind": "pr",
       "number": 145,
-      "rationale": "Retain separate dependency candidate, observed at final ledger reconciliation: build(deps): bump oban from 2.21.1 to 2.24.2. Current dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; no readiness credit."
+      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump oban from 2.21.1 to 2.24.2. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "9b55cc696b7a31a4fd3153ce066931c5c1ab063d",
+      "head_sha": "70eb4e590fa63dc7f7699d450f98239fe4d39d9a",
       "kind": "pr",
       "number": 146,
-      "rationale": "Retain separate dependency candidate, observed at final ledger reconciliation: build(deps): bump muontrap from 1.7.0 to 1.8.0. Current dependency pins remain unchanged. Obtain fresh exact-head CI/package-consumer/adopter proof and a separate landing decision before merging; no readiness credit."
+      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump muontrap from 1.7.0 to 1.8.0. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
     },
     {
       "disposition": "merge",
@@ -777,6 +777,62 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 169,
+      "disposition": "merge",
+      "rationale": "Release native bootstrap repair; full exact-head PR CI40056334904 passed and squash615859ec is real. Original failed preflight and first PR fixture-budget failure remain explicit. Actual0.4.11 recovery/public verification and normal-CI baseline170 succeeded. No READY credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 170,
+      "disposition": "merge",
+      "rationale": "Actual0.4.11 baseline owner: required CI40059293772 and app15368 Summary passed, then protected squashc459a965 changed only RELEASE-TRAIN.md. Public verification40057807676 succeeded; no CI bypass or new release intent.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 171,
+      "disposition": "merge",
+      "rationale": "Normal Release Please0.4.12 intent merged11196b5f. Its actual main40061666091 failed one persistent-watch deadline fixture; publish40061667596 correctly stopped at exact-source CI gate. Keep failed source unpublished; subsequent reviewed fixes require their own full green main before exact-ref recovery. No source-success or publication credit inferred from merge.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 174,
+      "disposition": "merge",
+      "rationale": "Observed overnight config/runtime and deterministic deadline-fixture repair. Full PR CI40109133395 passed on9e0a4243; actual squashd9033557 and full main40110633280 succeeded. Original scheduled1.18/28 failure and main fixture failure remain history. Dev-only runtime patterns preserve reload/upload behavior; production collector/deadline unchanged. Manual Nightly feedback40134255679 is running and grants no scheduled acceptance credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "issue",
+      "number": 172,
+      "disposition": "retain",
+      "rationale": "Retain the automated release-train drift incident while existing0.4.12 intent awaits verified fixed-source publication/public verification.174 repaired the observed source failures; normal release truth and bot-owned incident state must be reobserved after actual recovery. No manual issue closure or waiver."
+    },
+    {
+      "kind": "issue",
+      "number": 173,
+      "disposition": "retain",
+      "rationale": "Retain the actual scheduled Nightly failure on11196b5f.174 repaired the observed1.18/28 serialization failure, full main is green, and manual40134255679 supplies immediate feedback only. Actual newest successful scheduled evidence and bot-owned incident lifecycle must qualify the final source; retaining this issue gives no passing Nightly or READY credit."
     }
   ],
   "landings": [
