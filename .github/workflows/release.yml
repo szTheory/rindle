@@ -26,6 +26,11 @@ concurrency:
   group: release-publish-rindle
   cancel-in-progress: false
 
+env:
+  # Match CI's supported build mode; both compilation jobs install libvips-dev.
+  # This avoids oversized GitHub asset redirect headers in Vix's downloader.
+  VIX_COMPILATION_MODE: PLATFORM_PROVIDED_LIBVIPS
+
 permissions:
   contents: read
 
