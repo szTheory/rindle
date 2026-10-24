@@ -382,6 +382,11 @@ assert "terminal include 77: merged true" \
   jq -e '.terminal[]|select(.number==77)|(.merged==true and .state=="closed" and .merge_sha=="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" and .changed_files==["mix.lock"] and .landing_evidence==[])' "${out}"
 assert "terminal include 88: issue with state_reason completed" \
   jq -e '.terminal[]|select(.number==88)|(.kind=="issue" and .state_reason=="completed" and .merged==false)' "${out}"
+fx "repos/szTheory/rindle/issues/88" '{"number":88,"state":"open","state_reason":null}'
+run_collector "${ROOT_TMP}/retained-open.json" --include 88
+assert "retained issue observation keeps actual open state without inventing closure" \
+  jq -e '.terminal[0]|.kind=="issue" and .state=="open" and .merged==false and .state_reason==null' "${ROOT_TMP}/retained-open.json"
+fx "repos/szTheory/rindle/issues/88" '{"number":88,"state":"closed","state_reason":"completed"}'
 assert "protection 200: source protection, strict true, enforce_admins false (booleans)" \
   jq -e '.branch_protection==({source:"protection",http:200,contexts:["CI Summary"],strict:true,enforce_admins:false})' "${out}"
 assert "main_ci: latest push run with completed failures exclude unfinished jobs" \

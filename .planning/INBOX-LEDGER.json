@@ -815,7 +815,7 @@
       "kind": "pr",
       "number": 174,
       "disposition": "merge",
-      "rationale": "Observed overnight config/runtime and deterministic deadline-fixture repair. Full PR CI40109133395 passed on9e0a4243; actual squashd9033557 and full main40110633280 succeeded. Original scheduled1.18/28 failure and main fixture failure remain history. Dev-only runtime patterns preserve reload/upload behavior; production collector/deadline unchanged. Manual Nightly feedback40134255679 is running and grants no scheduled acceptance credit.",
+      "rationale": "Observed overnight config/runtime and deterministic deadline-fixture repair. Full PR CI40109133395 passed on9e0a4243; actual squashd9033557 and full main40110633280 succeeded. Original scheduled1.18/28 failure and main fixture failure remain history. Dev-only runtime patterns preserve reload/upload behavior; production collector/deadline unchanged. Manual Nightly40134255679 completed successfully on exactd9033557, including1.18/28; schedule-only incident jobs were skipped, granting no scheduled acceptance credit.",
       "terminal": {
         "state": "closed",
         "merged": true,
@@ -826,13 +826,15 @@
       "kind": "issue",
       "number": 172,
       "disposition": "retain",
-      "rationale": "Retain the automated release-train drift incident while existing0.4.12 intent awaits verified fixed-source publication/public verification.174 repaired the observed source failures; normal release truth and bot-owned incident state must be reobserved after actual recovery. No manual issue closure or waiver."
+      "rationale": "Retain the automated release-train drift incident while existing0.4.12 intent awaits verified fixed-source publication/public verification.174 repaired the observed source failures; normal release truth and bot-owned incident state must be reobserved after actual recovery. No manual issue closure or waiver. Retain incident history across automated closure; require a fresh completed-issue lookup when absent. This policy grants no fix, CI, scheduled or READY credit; all independent qualification gates remain mandatory.",
+      "terminal_policy": "observe-retained-issue-v1"
     },
     {
       "kind": "issue",
       "number": 173,
       "disposition": "retain",
-      "rationale": "Retain the actual scheduled Nightly failure on11196b5f.174 repaired the observed1.18/28 serialization failure, full main is green, and manual40134255679 supplies immediate feedback only. Actual newest successful scheduled evidence and bot-owned incident lifecycle must qualify the final source; retaining this issue gives no passing Nightly or READY credit."
+      "rationale": "Retain the actual scheduled Nightly failure on11196b5f.174 repaired the observed1.18/28 serialization failure, full main is green, and manual40134255679 supplies immediate feedback only. Actual newest successful scheduled evidence and bot-owned incident lifecycle must qualify the final source; retaining this issue gives no passing Nightly or READY credit. Retain incident history across automated closure; require a fresh completed-issue lookup when absent. This policy grants no fix, CI, scheduled or READY credit; all independent qualification gates remain mandatory.",
+      "terminal_policy": "observe-retained-issue-v1"
     }
   ],
   "landings": [

@@ -205,6 +205,14 @@ pairs and open no second GitHub transport.
 Keep the original failed CI receipt when using descendant evidence. Queued/running
 main CI jobs appear in `unfinished_jobs`, separately from `failed_jobs`.
 
+A retained issue may opt into `terminal_policy: "observe-retained-issue-v1"` to
+retain its history across an automated closure. This records no future state or
+resolution credit: an absent issue requires a fresh individual lookup proving
+closed/completed and not merged. Unknown, missing, inaccessible or unplanned
+closures reject. The policy cannot apply to PRs, other dispositions or fixed
+terminal records. Normal qualification gates and both remote observations remain
+mandatory; a state change during collection still invalidates the result.
+
 The three cheap behavior harnesses are `bash scripts/ci/test_collect_inbox.sh`,
 `bash scripts/ci/test_validate_inbox_ledger.sh` and
 `bash scripts/ci/test_dep_landing_evidence.sh` (no network or Elixir required).

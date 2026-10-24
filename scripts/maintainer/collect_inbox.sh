@@ -257,7 +257,7 @@ done
 jq -S -s '{prs: (sort_by(.number))}' "${WORK}/prs.jsonl" >"${WORK}/sec-prs.json" \
   || die "cannot assemble PR list"
 
-# Terminal lookups for ledger entries that are already closed (--include N).
+# Individual lookups for fixed terminal records or retained issue history (--include N).
 : >"${WORK}/terminal.jsonl"
 for n in ${INCLUDES}; do
   gh_get "repos/${REPO}/issues/${n}" >"${WORK}/term.issue.json" || die "cannot read #${n}"

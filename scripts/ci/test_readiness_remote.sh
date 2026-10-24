@@ -281,6 +281,33 @@ class Remote(unittest.TestCase):
         return head
     def full_reject(self,reason):
         code,value,_=self.collect(full=True);self.assertEqual(code,1);self.assertEqual(value['reason'],reason)
+    def retained_history(self,close=True,reason='completed'):
+        raw=copy.deepcopy(ledger);record=next(x for x in raw['items'] if x['kind']=='issue' and x['number']==42)
+        record['terminal_policy']='observe-retained-issue-v1';self.subject_file(c.LEDGER,c.canonical(raw))
+        issue=next(x for x in self.body(self.issue_path) if x['number']==42)
+        if close:self.body(self.issue_path).remove(issue)
+        closed=copy.deepcopy(issue);closed.update(state='closed',state_reason=reason)
+        self.put(prefix+'issues/42',closed)
+        return issue
+    def test_retained_history_stays_valid_while_open(self):
+        self.retained_history(close=False);code,_,_=self.collect();self.assertEqual(code,0)
+    def test_retained_history_requires_actual_completed_lookup_in_full_mode(self):
+        self.retained_history();code,_,collector=self.collect(full=True);self.assertEqual(code,0)
+        calls=[v['path'] for v in collector.api.calls]
+        self.assertEqual(calls.count(prefix+'issues/42'),2)
+    def test_retained_history_cannot_turn_missing_lookup_into_closed(self):
+        self.retained_history();self.put(prefix+'issues/42',{},404);self.reject('remote_unavailable')
+    def test_retained_history_rejects_unplanned_closure(self):
+        self.retained_history(reason='not_planned');self.reject('issue_terminal_mismatch')
+    def test_retained_history_rejects_unknown_policy(self):
+        self.retained_history();path=prefix+'contents/'+c.LEDGER+'?ref='+sha
+        raw=c.json_bytes(base64.b64decode(self.body(path)['content']))
+        next(x for x in raw['items'] if x['number']==42)['terminal_policy']='allow_anything'
+        self.subject_file(c.LEDGER,c.canonical(raw));self.reject('ledger_shape_invalid')
+    def test_retained_history_transition_during_observation_is_still_drift(self):
+        issue=self.retained_history();second=copy.deepcopy(self.responses[self.issue_path][0])
+        self.responses[self.issue_path][0]['body'].append(issue)
+        self.responses[self.issue_path].append(second);self.reject('remote_state_changed')
     def test_pr_checks_bind_each_historical_attempt_and_statuses_separately(self):
         self.add_pr();code,_,collector=self.collect(full=True);self.assertEqual(code,0)
         observed=c.read_json(collector.private/'normalized-1.json')

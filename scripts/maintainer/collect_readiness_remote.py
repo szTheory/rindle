@@ -350,8 +350,13 @@ class RemoteCollector:
         open_numbers={i['number'] for i in issues};closed={i['number']:i for i in absent if i['kind']=='issue'}
         for number,record in records.items():
             if number not in open_numbers:
-                require('terminal' in record and number in closed and
-                        all(closed[number].get(k)==v for k,v in record['terminal'].items()),'issue_terminal_mismatch')
+                if record.get('terminal_policy')=='observe-retained-issue-v1':
+                    require(record['disposition']=='retain' and 'terminal' not in record and number in closed and
+                            closed[number].get('state')=='closed' and closed[number].get('merged') is False and
+                            closed[number].get('state_reason')=='completed','issue_terminal_mismatch')
+                else:
+                    require('terminal' in record and number in closed and
+                            all(closed[number].get(k)==v for k,v in record['terminal'].items()),'issue_terminal_mismatch')
             if record['disposition']=='defer' and 'terminal' not in record:
                 raise NotReady('full_disposition_reconciliation_required')
 

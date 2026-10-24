@@ -69,7 +69,8 @@ if [ "${PRINT_ARGS}" = true ]; then
   jq -r '
     def trigs: [ (.items // [])[]?  | select(type == "object") | .trigger? ],
                [ (.advisories // [])[]? | select(type == "object") | .exception?.trigger? ];
-    ( [ (.items // [])[] | select(type == "object" and has("terminal")) | .number ]
+    ( [ (.items // [])[] | select(type == "object" and
+          (has("terminal") or .terminal_policy == "observe-retained-issue-v1")) | .number ]
       + [ (trigs[]) | select(type == "object" and .type == "gh_issue_closed") | .number ] )
       | map(select(type == "number")) | unique | .[] | "--include\n\(.)"
   ' "${LEDGER}"
@@ -157,6 +158,11 @@ def itemerrs:
             else empty end)
        elif $i.kind == "pr" then
          (if ($i.head_sha | hex40) then empty else R("item"; "\($lb): PR item needs a 40-hex head_sha (or a terminal record)") end)
+       else empty end),
+      (if ($i | has("terminal_policy")) and
+          ($i.terminal_policy != "observe-retained-issue-v1" or $i.kind != "issue"
+           or $i.disposition != "retain" or ($i | has("terminal")))
+       then R("terminal policy"; "\($lb): observation policy requires a retained issue without a fixed terminal record")
        else empty end),
       (if ($i | has("pending_action")) and (($i.pending_action | IN("rebase", "close", "merge")) | not)
        then R("item"; "\($lb): pending_action must be rebase|close|merge") else empty end),
@@ -287,6 +293,12 @@ def live($I; $now; $maxage):
       ($items[] | . as $it | ($it | ikey) as $k
         | if ($open | index($k)) != null then
             (if ($it | has("terminal")) then R("terminal mismatch"; "\($k) is still open but the ledger records it terminal") else empty end)
+          elif $it.terminal_policy == "observe-retained-issue-v1" then
+            (($I.terminal | arr | map(select(.kind == "issue" and .number == $it.number))) as $observed
+             | $observed[0] as $t
+             | if ($observed | length) != 1 or $t.state != "closed" or $t.merged != false or $t.state_reason != "completed"
+               then R("terminal observation"; "\($k) needs a fresh individual completed-issue lookup; no resolution credit is inferred")
+               else empty end)
           elif ($it | has("terminal") | not) then R("not-open"; "\($k) is not open and has no terminal record")
           else
             (($I.terminal | arr | map(select(.kind == $it.kind and .number == $it.number)) | .[0]) as $t

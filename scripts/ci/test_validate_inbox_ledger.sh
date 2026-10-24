@@ -153,6 +153,23 @@ live "live: terminal merged mismatch rejected" '(.items[] | select(.number == 93
 live "live: terminal without inventory lookup rejected" "${ID}" '.terminal = []' 1 "REJECT: terminal mismatch"
 live "live: terminal on a still-open item rejected" '(.items[] | select(.number == 42)) += {"terminal":{"state":"closed","merged":false}}' "${ID}" 1 "REJECT: terminal mismatch"
 
+# Retain automated incident history without committing a future closure snapshot.
+HISTORY='.items += [{kind:"issue",number:77,disposition:"retain",rationale:"retain incident history; health gates remain independent",terminal_policy:"observe-retained-issue-v1"}]'
+CLOSED_HISTORY='.terminal += [{kind:"issue",number:77,state:"closed",state_reason:"completed",merged:false}]'
+live "history: still-open retained issue accepted" "$HISTORY" '.issues += [{number:77}]' 0 ""
+live "history: fresh completed issue lookup accepted" "$HISTORY" "$CLOSED_HISTORY" 0 ""
+live "history: duplicate individual lookup rejected" "$HISTORY" "$CLOSED_HISTORY | .terminal += [.terminal[-1]]" 1 "REJECT: terminal observation"
+live "history: unknown closure reason rejected" "$HISTORY" "$CLOSED_HISTORY | del(.terminal[-1].state_reason)" 1 "REJECT: terminal observation"
+live "history: missing individual lookup rejected" "$HISTORY" "$ID" 1 "REJECT: terminal observation"
+live "history: wrong issue lookup rejected" "$HISTORY" '.terminal += [{kind:"issue",number:78,state:"closed",state_reason:"completed",merged:false}]' 1 "REJECT: terminal observation"
+live "history: unlisted but open lookup rejected" "$HISTORY" "$CLOSED_HISTORY | .terminal[-1].state=\"open\"" 1 "REJECT: terminal observation"
+live "history: unplanned closure rejected" "$HISTORY" "$CLOSED_HISTORY | .terminal[-1].state_reason=\"not_planned\"" 1 "REJECT: terminal observation"
+live "history: merged result rejected for issue" "$HISTORY" "$CLOSED_HISTORY | .terminal[-1].merged=true" 1 "REJECT: terminal observation"
+offline "history: policy cannot apply to PR" '(.items[]|select(.number==105)).terminal_policy="observe-retained-issue-v1"' 1 "REJECT: terminal policy"
+offline "history: policy cannot override fixed terminal" '(.items[]|select(.number==93)).terminal_policy="observe-retained-issue-v1"' 1 "REJECT: terminal policy"
+offline "history: policy cannot apply to close disposition" "$HISTORY | (.items[]|select(.number==77)).disposition=\"close\"" 1 "REJECT: terminal policy"
+offline "history: unknown policy rejected" "$HISTORY | (.items[]|select(.number==77)).terminal_policy=\"allow_anything\"" 1 "REJECT: terminal policy"
+
 # disposition-specific fields
 live "live: supersede without successor rejected" '(.items[] | select(.number == 42)) |= (.disposition = "supersede")' "${ID}" 1 "REJECT: supersede requires successor"
 live "live: supersede with successor accepted" '(.items[] | select(.number == 42)) |= (.disposition = "supersede" | .successor = "#99")' "${ID}" 0 ""
@@ -246,6 +263,16 @@ if [ "${rc}" = 0 ] && [ "$(tr '\n' ' ' <"${T}/out")" = "--include 88 --include 9
   ok "print-collector-args: one --include per terminal/closed-trigger number and --hex-package per version trigger"
 else
   bad "print-collector-args output: $(tr '\n' ' ' <"${T}/out")"
+fi
+
+# Retained history always requests an individual lookup, including while open.
+jq '(.items[]|select(.number==42)).terminal_policy="observe-retained-issue-v1"' "${T}/base_ledger.json" >"${T}/history-args.json"
+rc=0
+bash "${VALIDATOR}" --print-collector-args --ledger "${T}/history-args.json" >"${T}/out" 2>"${T}/err" || rc=$?
+if [ "$rc" -eq 0 ] && grep -qx '42' "${T}/out"; then
+  ok "history: collector flags include individual issue lookup"
+else
+  bad "history: collector flags omitted individual issue lookup"
 fi
 
 # Merged dependency requirements join authoritative terminal files with fresh
