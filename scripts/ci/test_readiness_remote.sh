@@ -132,7 +132,7 @@ class Remote(unittest.TestCase):
                                   (['versions','hexpm',package['package']],'d'*64)]:
                     database.append({'key':key,'value_sha256':value})
             self.hex_payload.append({'schema':'rindle-readiness-hex-v1','scope':scope,'lock_sha256':c.digest(text.encode()),
-                'hex_version':'2.5.1','online':True,'registry_signature_verification':True,'https_verified':True,
+                'hex_version':'2.6.0','online':True,'registry_signature_verification':True,'https_verified':True,
                 'packages':sorted(packages,key=lambda p:p['package']),'database':database})
         (self.fixture/'hex.json').write_bytes(c.canonical([self.hex_payload,self.hex_payload]))
     def tearDown(self):
@@ -378,6 +378,17 @@ class Remote(unittest.TestCase):
         with patch.dict(os.environ,{'INBOX_NOW_EPOCH':'1'}):self.full_reject('ledger_reconciliation_failed')
     def set_hex(self,rows):
         (self.fixture/'hex.json').write_bytes(c.canonical(rows))
+    def test_hex_251_retains_full_collection_and_security_gates(self):
+        for row in self.hex_payload:row['hex_version']='2.5.1'
+        self.set_hex([self.hex_payload,self.hex_payload])
+        code,_,_=self.collect(full=True);self.assertEqual(code,0)
+    def test_hex_rejects_unreviewed_versions(self):
+        for version in ('2.5.0','2.6.1','2.6.0-dev','3.0.0',None):
+            rows=copy.deepcopy(self.hex_payload);rows[0]['hex_version']=version
+            self.set_hex([rows,rows])
+            owner=c.RemoteCollector(repo,sha,self.tmp/('version-'+str(version)),self.fixture)
+            owner.observation=1;owner.inputs={'mix.lock':(root/'mix.lock').read_text(),'examples/adoption_demo/mix.lock':(root/'examples/adoption_demo/mix.lock').read_text()}
+            with self.assertRaisesRegex(c.NotReady,'hex_source_identity'):owner.hex_audits()
     def test_hex_cannot_omit_demo_audit(self):
         self.set_hex([[self.hex_payload[0]],[self.hex_payload[0]]]);self.full_reject('hex_source_unavailable')
     def test_hex_must_cover_every_locked_package(self):

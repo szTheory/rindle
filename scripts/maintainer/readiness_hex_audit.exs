@@ -26,10 +26,52 @@ defmodule Rindle.ReadinessHexAudit do
 
   def lock_packages(_), do: {:error, "lock_inventory_unavailable"}
 
+  # These versions and readers are reviewed together with the collector and
+  # immutable validator. Never infer support from a filename or a semver range.
+  def supported_version?(version), do: version in ["2.5.1", "2.6.0"]
+
+  def cache_snapshot(home, version) do
+    {:ok, table} =
+      case version do
+        "2.5.1" ->
+          :ets.file2tab(String.to_charlist(Path.join(home, "cache.ets")), verify: true)
+
+        "2.6.0" ->
+          # Hex's native reader verifies its header/CRC and rejects invalid data.
+          # This is the freshly persisted isolated cache; no legacy fallback.
+          Hex.Registry.Server.read_cache(Path.join(home, "cache.bin"))
+
+        _ ->
+          raise ArgumentError, "unsupported readiness Hex version"
+      end
+
+    try do
+      sha = fn bytes -> :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower) end
+
+      :ets.tab2list(table)
+      |> Enum.reject(fn {key, _value} ->
+        key == :last_update or (is_tuple(key) and elem(key, 0) == :timestamp)
+      end)
+      |> Enum.map(fn {key, value} ->
+        key = if is_tuple(key), do: Tuple.to_list(key), else: [key]
+
+        %{
+          "key" =>
+            Enum.map(key, fn item -> if is_atom(item), do: Atom.to_string(item), else: item end),
+          "value_sha256" => sha.(:erlang.term_to_binary(value))
+        }
+      end)
+      |> Enum.sort_by(& &1["key"])
+    after
+      :ets.delete(table)
+    end
+  end
+
   def audit(output, extra_packages \\ []) do
     {:ok, expected} = lock_packages(File.read!("mix.lock"))
     Mix.Local.append_archives()
     true = Code.ensure_loaded?(Hex)
+    true = supported_version?(Hex.version())
     Hex.start()
     registry = Hex.Registry.Server
     :ok = registry.open(check_version: false)
@@ -85,27 +127,8 @@ defmodule Rindle.ReadinessHexAudit do
       end)
 
     :ok = registry.close()
-    cache = Path.join(System.fetch_env!("HEX_HOME"), "cache.ets")
-    {:ok, table} = :ets.file2tab(String.to_charlist(cache), verify: true)
+    snapshot = cache_snapshot(System.fetch_env!("HEX_HOME"), Hex.version())
     sha = fn bytes -> :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower) end
-
-    snapshot =
-      :ets.tab2list(table)
-      |> Enum.reject(fn {key, _value} ->
-        key == :last_update or (is_tuple(key) and elem(key, 0) == :timestamp)
-      end)
-      |> Enum.map(fn {key, value} ->
-        key = if is_tuple(key), do: Tuple.to_list(key), else: [key]
-
-        %{
-          "key" =>
-            Enum.map(key, fn item -> if is_atom(item), do: Atom.to_string(item), else: item end),
-          "value_sha256" => sha.(:erlang.term_to_binary(value))
-        }
-      end)
-      |> Enum.sort_by(& &1["key"])
-
-    :ets.delete(table)
 
     payload = %{
       "schema" => "rindle-readiness-hex-v1",
