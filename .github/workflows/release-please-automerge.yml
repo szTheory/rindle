@@ -30,10 +30,27 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      - name: Checkout trusted main tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Select and admit release merge credential
+        id: merge_credential
+        uses: ./.github/actions/repository-credential
+        with:
+          profile: merge
+          app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          other-app-client-id: ${{ vars.PROTECTION_APP_CLIENT_ID }}
+          legacy-token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          job-token: ${{ github.token }}
+
       - name: Find eligible Release Please PR
         id: candidate
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ steps.merge_credential.outputs.token }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
@@ -103,7 +120,7 @@ jobs:
         id: merge
         if: ${{ steps.candidate.outputs.found == 'true' }}
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ steps.merge_credential.outputs.token }}
           GH_REPO: ${{ github.repository }}
           PR_NUMBER: ${{ steps.candidate.outputs.number }}
         shell: bash
@@ -135,7 +152,7 @@ jobs:
       - name: Dispatch trusted release workflow for exact merge ref
         if: ${{ steps.candidate.outputs.found == 'true' }}
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
           PR_NUMBER: ${{ steps.candidate.outputs.number }}

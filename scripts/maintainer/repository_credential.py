@@ -32,7 +32,7 @@ def select(profile):
     client, key = os.environ.get('APP_CLIENT_ID', ''), os.environ.get('APP_PRIVATE_KEY', '')
     require(bool(client) == bool(key))
     if client:
-        require(re.fullmatch(r'[A-Za-z0-9_]+', client) is not None)
+        require(re.fullmatch(r'[A-Za-z0-9_.-]+', client) is not None)
         require(client != os.environ.get('OTHER_APP_CLIENT_ID'))
         source, token = 'app', ''
     elif os.environ.get('LEGACY_TOKEN'):

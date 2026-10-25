@@ -49,7 +49,7 @@ print(os.environ['RESPONSE'])
                                '--repository-id', '99', '--installation-id', '17', ok=ok, **env)
 
     def test_app_selected_ahead_of_all_fallbacks(self):
-        output, _ = self.select(APP_CLIENT_ID='Iv123', APP_PRIVATE_KEY='private',
+        output, _ = self.select(APP_CLIENT_ID='Iv1.test-client', APP_PRIVATE_KEY='private',
                                 LEGACY_TOKEN='opaque-test-secret', JOB_TOKEN='job')
         self.assertIn('source=app', output)
         self.assertNotIn('opaque-test-secret', output)

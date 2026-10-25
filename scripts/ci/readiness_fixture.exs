@@ -63,6 +63,10 @@ defmodule ReadinessFixture do
                "scripts/maintainer/readiness_workflow.exs",
                "scripts/maintainer/readiness_hex_audit.exs",
                "scripts/maintainer/land_release_train_baseline.py",
+               ".github/actions/repository-credential/action.yml",
+               "scripts/maintainer/repository_credential.py",
+               ".github/workflows/release-please-automerge.yml",
+               ".github/workflows/branch-protection-apply.yml",
                "mix.lock",
                "examples/adoption_demo/mix.lock"
              ],
