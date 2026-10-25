@@ -1,0 +1,72 @@
+name: Repository credential
+description: Select an explicit principal, mint a narrowed App token and admit its repository identity
+inputs:
+  profile:
+    description: release, merge, or protection; fixed per caller
+    required: true
+  app-client-id:
+    description: Optional client ID for this caller's separate App
+    required: false
+  app-private-key:
+    description: Optional private key; a partial App configuration fails
+    required: false
+  other-app-client-id:
+    description: Other principal's client ID; reject reuse of one App for both roles
+    required: false
+  legacy-token:
+    description: Existing rollout credential; selected only when App settings are absent
+    required: false
+  job-token:
+    description: Runner token fallback for release callers only
+    required: false
+outputs:
+  token:
+    description: Job-local credential; never pass to another job or artifact
+    value: ${{ steps.mint.outputs.token || steps.select.outputs.token }}
+  source:
+    description: app, legacy, job, or none
+    value: ${{ steps.select.outputs.source }}
+  enabled:
+    description: false only for unconfigured protection
+    value: ${{ steps.select.outputs.enabled }}
+runs:
+  using: composite
+  steps:
+    - name: Select repository principal
+      id: select
+      shell: bash
+      env:
+        APP_CLIENT_ID: ${{ inputs.app-client-id }}
+        APP_PRIVATE_KEY: ${{ inputs.app-private-key }}
+        OTHER_APP_CLIENT_ID: ${{ inputs.other-app-client-id }}
+        LEGACY_TOKEN: ${{ inputs.legacy-token }}
+        JOB_TOKEN: ${{ inputs.job-token }}
+        CREDENTIAL_PROFILE: ${{ inputs.profile }}
+      run: python3 scripts/maintainer/repository_credential.py select --profile "$CREDENTIAL_PROFILE"
+    - name: Mint job-local App token
+      id: mint
+      if: steps.select.outputs.source == 'app'
+      uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+      with:
+        client-id: ${{ inputs.app-client-id }}
+        private-key: ${{ inputs.app-private-key }}
+        owner: ${{ github.repository_owner }}
+        repositories: ${{ github.event.repository.name }}
+        permission-contents: ${{ inputs.profile != 'protection' && 'write' || '' }}
+        permission-pull-requests: ${{ inputs.profile != 'protection' && 'write' || '' }}
+        permission-issues: ${{ inputs.profile == 'release' && 'write' || '' }}
+        permission-administration: ${{ inputs.profile == 'protection' && 'write' || '' }}
+        skip-token-revoke: false
+    - name: Admit selected credential without mutation
+      if: steps.select.outputs.enabled == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.mint.outputs.token || steps.select.outputs.token }}
+        CREDENTIAL_SOURCE: ${{ steps.select.outputs.source }}
+        GH_REPO: ${{ github.repository }}
+        REPOSITORY_ID: ${{ github.repository_id }}
+        INSTALLATION_ID: ${{ steps.mint.outputs.installation-id }}
+      run: >-
+        python3 scripts/maintainer/repository_credential.py validate
+        --source "$CREDENTIAL_SOURCE" --repo "$GH_REPO"
+        --repository-id "$REPOSITORY_ID" --installation-id "$INSTALLATION_ID"
