@@ -296,7 +296,7 @@ class RemoteCollector:
         require(isinstance(rows,list) and len(rows)==2 and {r.get('scope') for r in rows}=={'root','examples/adoption_demo'},'hex_source_unavailable')
         for row in rows:
             relative='mix.lock' if row['scope']=='root' else 'examples/adoption_demo/mix.lock'
-            require(row.get('schema')=='rindle-readiness-hex-v1' and row.get('hex_version')=='2.5.1' and row.get('online') is True and
+            require(row.get('schema')=='rindle-readiness-hex-v1' and row.get('hex_version') in ('2.5.1','2.6.0') and row.get('online') is True and
                 row.get('registry_signature_verification') is True and row.get('https_verified') is True and
                 row.get('lock_sha256')==digest(self.inputs[relative].encode()),'hex_source_identity')
             latest=row.get('latest_versions',{})

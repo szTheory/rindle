@@ -14,7 +14,7 @@ defmodule ReadinessParserRuntime.MixProject do
 end
 EX
 cp "$root/mix.lock" "$output/mix.lock"
-(cd "$output" && export MIX_HOME="$output/mix-home" HEX_HOME="$output/hex-home" && MIX_ENV=dev mix local.hex --force && MIX_ENV=dev mix local.rebar --force && MIX_ENV=dev mix deps.get --check-locked && MIX_ENV=dev mix deps.compile)
+(cd "$output" && export MIX_HOME="$output/mix-home" HEX_HOME="$output/hex-home" && MIX_ENV=dev mix local.hex 2.6.0 --force && MIX_ENV=dev mix local.rebar --force && MIX_ENV=dev mix deps.get --check-locked && MIX_ENV=dev mix deps.compile)
 mkdir -m 700 "$output/bin"
 real_elixir="$(command -v elixir)"
 python3 - "$output" "$real_elixir" <<'PY'
@@ -22,6 +22,10 @@ import pathlib,sys
 out=pathlib.Path(sys.argv[1]);elixir=sys.argv[2]
 ebins=[str(out/'_build/dev/lib'/dep/'ebin') for dep in ('jason','yamerl')]
 assert all(pathlib.Path(p).is_dir() for p in ebins)
+# Exercise the real reviewed Hex cache reader/writer in the parser-only fixtures.
+hex_ebin = out/'mix-home/archives/hex-2.6.0/hex-2.6.0/ebin'
+assert hex_ebin.is_dir()
+ebins.append(str(hex_ebin))
 # This fixture-only adapter refuses compilation, installs and arbitrary Mix tasks.
 script='''#!/usr/bin/env python3
 import os,sys
