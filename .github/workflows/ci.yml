@@ -521,7 +521,9 @@ jobs:
     runs-on: ubuntu-22.04
     # Merge-blocking docs parity + operator proof tests.
     # See RUNNING.md `## CI lane severity` for the full matrix.
-    needs: [quality, optional-dependencies]
+    # Proof owns its checkout, services and compile; Quality passes no artifact here.
+    # The final CI Summary still requires both jobs to succeed.
+    needs: [optional-dependencies]
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"

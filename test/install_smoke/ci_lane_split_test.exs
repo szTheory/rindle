@@ -233,6 +233,15 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   @tag :required_job_topology
+  test "Proof overlaps Quality and both remain required by the final gate", %{ci: ci} do
+    assert job_needs(ci, "proof") == ["optional-dependencies"]
+    assert "proof" in job_needs(ci, "ci-summary")
+    assert "quality" in job_needs(ci, "ci-summary")
+    assert job_block(ci, "ci-summary") =~ "if: always()"
+    refute job_block(ci, "proof") =~ "continue-on-error: true"
+  end
+
+  @tag :required_job_topology
   test "required jobs keep their runner authorities and the aggregation graph", %{
     ci: ci
   } do
