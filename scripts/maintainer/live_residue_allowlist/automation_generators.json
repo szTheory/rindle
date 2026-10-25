@@ -219,6 +219,14 @@
       "reason": "Exact historical timing deferral and blocked qualification inputs are preserved byte-for-byte with zero numeric acceptance credit; fixtures reject rewritten history."
     },
     {
+      "path": "scripts/ci/test_readiness_snapshot.py",
+      "class": "planning-path",
+      "text": "ledger=put(root,prefix+'authority/ledger.json',(ROOT/'.planning/INBOX-LEDGER.json').read_bytes())",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "The snapshot test reads the public committed inbox ledger to exercise fresh-current-authority byte binding; fixture execution grants no readiness credit."
+    },
+    {
       "path": "scripts/ci/test_repo_hygiene_check.sh",
       "class": "planning-path",
       "text": "cat >\"${d}/.planning/RELEASE-TRAIN.md\" <<EOF",
