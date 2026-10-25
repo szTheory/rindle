@@ -70,6 +70,12 @@ awaits the complete merged source and actual scheduled/security/durable proof, i
 the currently absent READINESS_READ_TOKEN producer secret. No terminal execution
 acceptance ran; all READY requirements and final exact-main readiness remain open.
 
+**Readiness Hex compatibility (2026-10-25):** Registry snapshots explicitly support Hex
+2.5.1 verified ETS persistence and Hex 2.6.0 native CRC-checked persistence. Collector
+and immutable validator use the same reviewed version set. Fresh isolated signed
+online registry/TLS, complete lock coverage and advisory/retirement gates remain
+required; compatibility alone grants no READY or qualification credit.
+
 **Boundaries:** “Work of art” means maximum clarity with minimum accidental complexity, not maximum
 comment density, blanket rewriting, arbitrary file-size splitting, or 100% coverage theater. Do not
 delete historical planning or generated assets without consumer/provenance proof. Preserve public API,
