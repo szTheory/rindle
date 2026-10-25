@@ -2,6 +2,13 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.13](https://github.com/szTheory/rindle/compare/rindle-v0.4.12...rindle-v0.4.13) (2026-10-25)
+
+
+### Bug Fixes
+
+* **readiness:** support reviewed Hex 2.6 cache snapshots ([#178](https://github.com/szTheory/rindle/issues/178)) ([bd2ef1a](https://github.com/szTheory/rindle/commit/bd2ef1ad386c93c59377d9fc1d80cc38b9c90d20))
+
 ## [0.4.12](https://github.com/szTheory/rindle/compare/rindle-v0.4.11...rindle-v0.4.12) (2026-10-24)
 
 
