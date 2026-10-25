@@ -27,6 +27,12 @@ real adopter through an evidence-led quality pass and a maintainer-operated synt
 
 User decision (2026-10-21): defer the exact-ten CI speed target (<=480-second median / <=600-second p95) to SEED-261021-918; merge PR #162 when required CI is green. The numeric target remains unfinished, receives no acceptance credit, and is no longer a merge gate. Existing failed/blocked receipts remain immutable historical evidence.
 
+**Release credential maintenance (2026-10-25):** Optional separate release and
+protection Apps use narrowed job-local installation tokens with explicit admission.
+Existing credentials remain the rollout path when App settings are absent; partial
+or invalid configured Apps fail without fallback. Implementation/offline tests do
+not complete live credential migration, grant permissions, or close READY-01–05.
+
 **Phase 136 result (2026-10-21):** All 15 plans and 41 active must-haves verified.
 Removal-only complexity and Dialyzer policies, exact coverage (5206/6329), clean
 supported bootstrap, finite 25-seed isolation, and CI structure have executable
