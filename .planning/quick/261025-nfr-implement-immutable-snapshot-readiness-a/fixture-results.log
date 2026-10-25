@@ -1,0 +1,312 @@
+Running ExUnit with seed: 0, max_cases: 36
+
+...........................................................not_ready: duplicate_json_key: duplicate JSON object key
+.ready: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+.not_ready: unsafe_path: symlinks and special files forbidden
+not_ready: unsafe_path: relative confined path required
+not_ready: unsafe_path: relative confined path required
+not_ready: io_failure: missing, unreadable or malformed evidence
+........
+Finished in 6.7 seconds (0.2s on load, 0.00s async, 6.5s sync)
+69 tests, 0 failures
+PASS: exact-head readiness CLI, immutable graph, negative-case count >= 40; refresh graph and path confinement
+...not_ready: main_changed
+.QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+..QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+.QUALIFY format
+not_ready: command_timeout
+.QUALIFY format
+not_ready: qualification_unavailable
+.owned cleanup observed; original readiness attempt remains unchanged
+QUALIFY format
+not_ready: qualification_unavailable
+.not_ready: cleanup_failed
+.QUALIFY format
+not_ready: qualification_unavailable
+..QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+....local qualification complete; readiness remains not_ready until remote closure
+QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+.local qualification complete; readiness remains not_ready until remote closure
+QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+......local qualification complete; readiness remains not_ready until remote closure
+QUALIFY format
+not_ready: qualification_interrupted
+.
+----------------------------------------------------------------------
+Ran 25 tests in 7.844s
+
+OK
+PASS: exact-head qualification full-gate fixture assertions; exact archive/metadata/payload identities, owned cleanup and nonpassing failure paths
+........................................................
+----------------------------------------------------------------------
+Ran 56 tests in 19.344s
+
+OK
+not_ready: remote_unavailable
+not_ready: protection_drift
+collected: remote_sources_collected
+not_ready: incident_artifact_digest
+not_ready: incident_artifact_unsafe
+not_ready: attempt_changed
+not_ready: latest_attempt_not_green
+collected: remote_sources_collected
+collected: remote_sources_collected
+collected: remote_sources_collected
+not_ready: inventory_count_limit
+not_ready: job_inventory
+not_ready: incident_artifact_identity
+not_ready: unavailable_json
+not_ready: foreign_next_page
+not_ready: incident_policy
+not_ready: workflow_policy_drift
+not_ready: historical_timing_receipt_changed
+not_ready: incident_identity
+not_ready: protection_binding_unavailable
+not_ready: attempt_changed
+not_ready: main_changed
+not_ready: job_inventory
+not_ready: job_inventory
+not_ready: incomplete_pages
+not_ready: job_inventory
+not_ready: job_inventory
+not_ready: newer_run_observed
+not_ready: latest_attempt_not_green
+not_ready: latest_attempt_not_green
+not_ready: pagination_query_drift
+not_ready: scheduled_run_missing
+not_ready: job_identity
+not_ready: protection_drift
+not_ready: remote_forbidden
+not_ready: remote_rate_limited
+not_ready: workflow_policy_drift
+not_ready: job_outcome
+collected: remote_sources_collected
+not_ready: protection_drift
+not_ready: unavailable_json
+not_ready: incident_policy
+collected: remote_sources_collected
+not_ready: incident_identity
+not_ready: job_identity
+not_ready: protection_drift
+not_ready: workflow_identity
+PASS readiness runs: 56 CI/scheduled/protection/topology fixtures; no READY credit
+.....................................................................
+----------------------------------------------------------------------
+Ran 69 tests in 14.178s
+
+OK
+collected: remote_dispositions_collected
+not_ready: advisory_visibility_unproved
+not_ready: pagination_query_drift
+collected: remote_dispositions_collected
+not_ready: advisory_visibility_changed
+not_ready: remote_state_changed
+not_ready: remote_state_changed
+not_ready: ledger_reconciliation_failed
+not_ready: incomplete_pages
+collected: remote_dispositions_collected
+not_ready: landing_evidence_unavailable
+collected: remote_dispositions_collected
+not_ready: landing_evidence_unavailable
+not_ready: remote_forbidden
+not_ready: remote_forbidden
+not_ready: ambiguous_inventory_identity
+not_ready: ledger_reconciliation_failed
+not_ready: unavailable_json
+collected: remote_dispositions_collected
+not_ready: ledger_reconciliation_failed
+not_ready: landing_evidence_unavailable
+collected: remote_dispositions_collected
+not_ready: ledger_reconciliation_failed
+collected: remote_dispositions_collected
+not_ready: hex_source_unavailable
+not_ready: hex_source_identity
+not_ready: remote_state_changed
+not_ready: hex_lock_coverage
+not_ready: hex_identity
+collected: remote_dispositions_collected
+not_ready: check_attempt_identity
+not_ready: ledger_changed
+not_ready: remote_state_changed
+not_ready: main_changed
+not_ready: ledger_reconciliation_failed
+not_ready: fixture_response_missing
+not_ready: advisory_visibility_unproved
+not_ready: check_attempt_unavailable
+not_ready: issue_terminal_mismatch
+not_ready: issue_undispositioned
+not_ready: ledger_reconciliation_failed
+collected: remote_dispositions_collected
+not_ready: fixture_response_map_invalid
+not_ready: incomplete_pages
+not_ready: incomplete_pages
+not_ready: incomplete_pages
+collected: remote_dispositions_collected
+collected: remote_dispositions_collected
+not_ready: remote_unavailable
+collected: remote_dispositions_collected
+not_ready: remote_rate_limited
+not_ready: remote_unavailable
+not_ready: ledger_shape_invalid
+not_ready: issue_terminal_mismatch
+collected: remote_dispositions_collected
+collected: remote_dispositions_collected
+not_ready: remote_state_changed
+collected: remote_dispositions_collected
+collected: remote_dispositions_collected
+not_ready: ledger_reconciliation_failed
+not_ready: remote_unauthorized
+not_ready: pull_undispositioned
+not_ready: remote_unavailable
+not_ready: lock_inventory_unavailable
+not_ready: ci_summary_workflow_identity
+PASS readiness remote: 69 issue/disposition/privacy fixtures; no READY credit
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 24.942s
+
+OK
+candidate_ready: validated_candidate
+not_ready: mutable_source_changed
+not_ready: cleanup_failed
+not_ready: object_digest_changed
+not_ready: validator_proof_outcome
+not_ready: invalid_closure_fixture
+not_ready: cleanup_failed
+not_ready: main_changed
+not_ready: main_changed
+not_ready: cleanup_failed
+not_ready: source_registry_incomplete
+not_ready: scheduled_run_missing
+not_ready: local_subject_or_mode
+not_ready: mutable_source_changed
+not_ready: closure_command_timeout
+not_ready: manifest_bytes_changed
+candidate_ready: validated_refresh
+not_ready: main_changed
+not_ready: mutable_source_changed
+not_ready: validator_refresh_inventory
+not_ready: validator_refresh_inventory
+not_ready: closure_unavailable
+not_ready: source_subject_or_mode
+PASS exact-head closure: 28 candidate/immutable-refresh fixtures; no READY credit
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 2.622s
+
+OK
+PASS: producer sidecar, completed attempt identity, durable byte verification, private canaries and adverse retention fixtures
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.175s
+
+OK
+PASS readiness adoption: 19 actual-state/synthetic-rejection fixtures; no READY credit
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 10.087s
+
+OK
+not_ready: output_must_be_new_external_directory
+not_ready: main_changed
+not_ready: unavailable_json
+not_ready: producer_sidecar_missing_or_ambiguous
+not_ready: validator_refresh_inventory
+not_ready: durable_subject_or_mode
+PASS: merged-subject inventory, durable acceptance join, fresh current/historical claims and no fixture credit
+.......................not_ready: cleanup_failed
+....
+----------------------------------------------------------------------
+Ran 27 tests in 15.140s
+
+OK
+candidate_ready: validated_candidate
+candidate_ready: validated_refresh
+candidate_ready: validated_refresh
+not_ready: acceptance_policy_mismatch
+PASS: all cheap readiness fixtures in 105s (240s fixture budget within existing 5-minute CI seam)

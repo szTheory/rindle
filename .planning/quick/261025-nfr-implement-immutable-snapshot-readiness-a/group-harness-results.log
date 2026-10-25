@@ -1,0 +1,38 @@
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.161}, {"name": "1", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.16}], "exit_code": 0, "requirements_credit": false}
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": 7, "state": "completed", "elapsed_seconds": 0.053}, {"name": "1", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.264}], "exit_code": 1, "requirements_credit": false}
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.164}, {"name": "1", "exit_code": 3, "state": "completed", "elapsed_seconds": 0.055}], "exit_code": 1, "requirements_credit": false}
+.::group::first
+::endgroup::
+::group::second
+::endgroup::
+::group::last
+::endgroup::
+{"groups": [{"name": "first", "exit_code": 7, "state": "completed", "elapsed_seconds": 0.059}, {"name": "second", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.057}, {"name": "last", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.273}], "exit_code": 1, "requirements_credit": false}
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": -15, "state": "terminated", "elapsed_seconds": 0.11}, {"name": "1", "exit_code": -15, "state": "terminated", "elapsed_seconds": 0.109}, {"reason": "CI harness group budget exhausted"}], "exit_code": 1, "requirements_credit": false}
+.::group::finished
+::endgroup::
+::group::slow
+::endgroup::
+{"groups": [{"name": "finished", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.054}, {"name": "slow", "exit_code": -15, "state": "terminated", "elapsed_seconds": 1.001}, {"reason": "CI harness group budget exhausted"}], "exit_code": 1, "requirements_credit": false}
+..
+----------------------------------------------------------------------
+Ran 8 tests in 2.011s
+
+OK
+PASS: all CI groups awaited; every command retained, failure and bounded disposal remain nonpassing
