@@ -73,23 +73,23 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   # ------------------------------------------------------------------
-  # Concurrency — stale PR runs cancel; push:main/dispatch serialize.
+  # Concurrency — open PRs supersede; merged PR labels cannot cancel main.
   # ------------------------------------------------------------------
-  test "ci.yml has a top-level concurrency block keyed on workflow + ref", %{ci: ci} do
+  test "PR numbers isolate merged PR label events from the main ref group", %{ci: ci} do
     assert ci =~ "concurrency:",
            "ci.yml must declare a top-level concurrency block"
 
-    assert ci =~ "group: ${{ github.workflow }}-${{ github.ref }}",
-           "concurrency group must key on github.workflow + github.ref so each ref serializes independently"
+    assert ci =~
+             "group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('ref-{0}', github.ref) }}",
+           "PR identity must precede ref; the ref- namespace must also isolate main from historical PR workflows"
   end
 
-  test "cancel-in-progress is true ONLY for pull_request events", %{ci: ci} do
-    # The exact shipped expression: cancellation fires on PR, evaluates false on
-    # push:main / workflow_dispatch (which then SERIALIZE and are never cancelled —
-    # load-bearing for release.yml gate-ci-green reading the push:main conclusion).
+  test "only open PRs cancel; main pushes and manual main runs serialize", %{ci: ci} do
+    # Release automation labels merged PRs after publication. They must neither
+    # share main's group nor request cancellation inside their own PR group.
     assert ci =~
-             "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
-           "cancel-in-progress must be true ONLY for pull_request — push:main/dispatch must never cancel"
+             "cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.pull_request.state == 'open' }}",
+           "only open pull_request events may cancel earlier runs"
 
     # Guard against the footgun: a bare `cancel-in-progress: true` would
     # cancel push:main runs and destroy the full-matrix release evidence.
