@@ -238,6 +238,13 @@ CI Script Tests.
 
 ### Release train
 
+CI concurrency groups use PR numbers for pull-request events, including labels
+applied after merge. Only open PRs cancel earlier runs. Main pushes and manual
+main runs share a `ref-` group with cancellation disabled. That namespace also
+isolates main from merged PRs executing older workflows, so release label
+reconciliation cannot cancel the full main evidence run. The default-suite
+`test/install_smoke/ci_lane_split_test.exs` locks this separation.
+
 CI compiles Vix against the runner's installed `libvips-dev` using its supported
 `PLATFORM_PROVIDED_LIBVIPS` mode. This avoids precompiled-asset redirects exceeding
 the Erlang HTTP client's header limit. Dependency versions and test gates remain
