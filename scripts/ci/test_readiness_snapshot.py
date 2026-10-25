@@ -12,6 +12,8 @@ from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/maintainer'))
+sys.path.insert(0,str(ROOT/'scripts/ci'))
+from readiness_validator_fixture import ValidatorFixture
 import exact_head_readiness as q
 import readiness_acceptance as a
 import readiness_closure as c
@@ -174,6 +176,11 @@ class Graph(unittest.TestCase):
         cls.base=Path(json.loads(result.stdout.decode().splitlines()[-1])['base'])
         m=q.read_json(cls.base/'manifest.json');upgrade(cls.base,m,m,'snapshot/');put(cls.base,'manifest.json',m)
         e=q.read_json(cls.base/'refresh-envelope.json');upgrade(cls.base,e,m,'refresh/snapshot/');e['manifest_sha256']=q.digest((cls.base/'manifest.json').read_bytes());put(cls.base,'refresh-envelope.json',e)
+        if os.environ.get('RINDLE_READINESS_FRESH_VALIDATOR')!='1':
+            cls.validator=ValidatorFixture();cls.addClassCleanup(cls.validator.close)
+            original=c.Closure.command
+            adapter=patch.object(c.Closure,'command',lambda owner,argv,seconds,**kwargs: cls.validator.command(original,owner,argv,seconds,**kwargs))
+            adapter.start();cls.addClassCleanup(adapter.stop)
     @classmethod
     def tearDownClass(cls):shutil.rmtree(cls.shared)
     def setUp(self):
