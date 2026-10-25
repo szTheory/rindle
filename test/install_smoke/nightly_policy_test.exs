@@ -112,6 +112,7 @@ defmodule Rindle.InstallSmoke.NightlyPolicyTest do
              "bash scripts/ci/test_nightly_incident.sh",
              "bash scripts/ci/test_setup_branch_protection.sh",
              "python3 scripts/ci/test_land_release_train_baseline.py",
+             "python3 scripts/ci/test_repository_credential.py",
              "bash scripts/ci/test_collect_inbox.sh",
              "bash scripts/ci/test_validate_inbox_ledger.sh",
              "bash scripts/ci/test_dep_landing_evidence.sh",
