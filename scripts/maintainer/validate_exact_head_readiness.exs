@@ -30,7 +30,7 @@ defmodule Rindle.ExactHeadReadiness do
                          )
                          |> Base.encode16(case: :lower)}
                       end)
-  @ci_guard "f1951502cf1b6a38fee3861b3489aa0d8a0e71f5f30d01f1ed33c4f8e8d2f749"
+  @ci_guard "90f8baf94a3d997994f917240b77866d219061ff20fe6df35f81c1cdda1a6238"
   @release_guard "198172f4e655c3b25990943329c38382a6fe753134d58fe378e1afdb66acb8c2"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
