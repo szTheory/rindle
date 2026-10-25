@@ -36,9 +36,11 @@ def policy(request):
 
 
 class Collector:
-    def __init__(self,repo,subject,output,fixture=None,only=None):
+    def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False):
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
         self.repo,self.subject,self.output=repo,subject,Path(output).resolve()
+        self.snapshot=snapshot
+        self.policy_name='rindle-snapshot-v2' if snapshot else POLICY
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
         self.output.mkdir(mode=0o700,parents=True)
         self.portable=self.output/'portable';self.portable.mkdir(mode=0o700)
@@ -49,6 +51,10 @@ class Collector:
         self.inputs={};self.artifacts={}
 
     def main(self):
+        if self.snapshot:
+            from readiness_subject import observe
+            self.snapshot_binding=observe(self.api,self.subject)
+            return self.snapshot_binding['current_main_sha']
         value,_=self.api.get(self.api.path('git/ref/heads/main'))
         require(value.get('ref')=='refs/heads/main' and value.get('object',{}).get('type')=='commit' and
                 value['object']['sha']==self.subject,'main_changed')
@@ -216,7 +222,7 @@ class Collector:
                     path=self.portable/'observations'/(id+'-'+position+'.json');write_new(path,value)
                     refs.append(reference(self.portable,path))
                 source={'complete':True,'authenticated':True,'query':'GET exact-subject/'+id+'; all pages; current-attempt; two full reads',
-                    'pages':len(self.api.calls),'policy':POLICY,'normalized':value,'observation_interval':interval,
+                    'pages':len(self.api.calls),'policy':self.policy_name,'normalized':value,'observation_interval':interval,
                     'before_sha256':refs[0]['sha256'],'after_sha256':refs[1]['sha256'],'observations':refs}
                 sources[id]={'source':source,'references':refs+self.artifacts.get(id,[])}
             write_new(self.portable/'sources.json',{'repository':self.repo,'subject_sha':self.subject,'evidence_mode':self.mode,
@@ -238,9 +244,9 @@ class Collector:
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo',required=True);parser.add_argument('--subject',required=True)
-    parser.add_argument('--output',required=True);parser.add_argument('--fixture');parser.add_argument('--only',choices=['ci'])
+    parser.add_argument('--output',required=True);parser.add_argument('--snapshot',action='store_true');parser.add_argument('--fixture');parser.add_argument('--only',choices=['ci'])
     args=parser.parse_args()
-    try:return Collector(args.repo,args.subject,args.output,args.fixture,args.only).run()
+    try:return Collector(args.repo,args.subject,args.output,args.fixture,args.only,args.snapshot).run()
     except NotReady as exc: print('not_ready: '+str(exc));return 1
 
 

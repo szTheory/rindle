@@ -78,7 +78,10 @@ presence, while actual workflow reads must still prove its access.
 Security-setting changes and credential provisioning are separate authorized
 maintainer operations under RUNNING.md.
 
-The scheduled Nightly must pass for the accepted main SHA. Its current schedule is
+The scheduled Nightly must pass for the accepted previously-main snapshot SHA.
+Use the versioned snapshot command in Running to keep that SHA fixed while main advances;
+current security, inbox, protection and adoption facts are still refreshed.
+A snapshot verdict is historical evidence and never grants current-head readiness. Its current schedule is
 07:27 UTC daily; dispatching it manually does not supply scheduled-event evidence,
 and GitHub may delay scheduled execution. PR merge, storage setup and fixture tests
 leave READY requirements open until terminal live acceptance passes.
