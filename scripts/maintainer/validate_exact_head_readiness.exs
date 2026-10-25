@@ -19,11 +19,23 @@ defmodule Rindle.ExactHeadReadiness do
                          File.read!(Path.join(__DIR__, "land_release_train_baseline.py"))
                        )
                        |> Base.encode16(case: :lower)
+  @credential_inputs ~w(.github/actions/repository-credential/action.yml
+    scripts/maintainer/repository_credential.py
+    .github/workflows/release-please-automerge.yml .github/workflows/branch-protection-apply.yml)
+  @credential_digests Map.new(@credential_inputs, fn path ->
+                        {path,
+                         :crypto.hash(
+                           :sha256,
+                           File.read!(Path.expand("../..", __DIR__) <> "/" <> path)
+                         )
+                         |> Base.encode16(case: :lower)}
+                      end)
   @ci_guard "f1951502cf1b6a38fee3861b3489aa0d8a0e71f5f30d01f1ed33c4f8e8d2f749"
-  @release_guard "36738aba50e2409a1c62884b53634f523343e504483e1af00f6e6ae7c10bdb31"
+  @release_guard "198172f4e655c3b25990943329c38382a6fe753134d58fe378e1afdb66acb8c2"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
-  @inputs ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
+  @inputs @credential_inputs ++
+            ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
     .github/workflows/ci.yml .github/workflows/nightly.yml .github/workflows/release.yml
     config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json
     scripts/maintainer/credo_complexity_baseline.json scripts/maintainer/phase136_evidence_contract.json
@@ -223,6 +235,14 @@ defmodule Rindle.ExactHeadReadiness do
       "tool_identity",
       "baseline landing evaluator differs"
     )
+
+    Enum.each(@credential_digests, fn {path, expected} ->
+      ensure!(
+        m["input_identity"][path] == expected,
+        "tool_identity",
+        "credential policy input differs"
+      )
+    end)
 
     validate_refs!(m["input_files"], c)
 

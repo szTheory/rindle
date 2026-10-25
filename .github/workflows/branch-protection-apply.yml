@@ -1,7 +1,7 @@
 name: Branch Protection Apply
 
 # Owner-controlled re-assertion of merge-blocking CI on main.
-# Requires BRANCH_PROTECTION_PAT (fine-grained PAT with Administration: read and write).
+# Uses a separate protection App, or the existing BRANCH_PROTECTION_PAT during rollout.
 
 on:
   schedule:
@@ -16,31 +16,30 @@ jobs:
     name: Re-assert branch protection on main
     runs-on: ubuntu-22.04
     steps:
-      - name: Check for BRANCH_PROTECTION_PAT secret
-        id: check-pat
-        env:
-          PAT_SET: ${{ secrets.BRANCH_PROTECTION_PAT != '' }}
-        run: |
-          if [ "$PAT_SET" = "true" ]; then
-            echo "pat_present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "pat_present=false" >> "$GITHUB_OUTPUT"
-            {
-              echo "## Branch Protection Apply — Skipped"
-              echo ""
-              echo "BRANCH_PROTECTION_PAT secret not set."
-              echo "Add a fine-grained PAT with Administration read/write for this repo."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Checkout
-        if: steps.check-pat.outputs.pat_present == 'true'
+      - name: Checkout trusted main tooling
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Select and admit separate protection credential
+        id: protection_credential
+        uses: ./.github/actions/repository-credential
+        with:
+          profile: protection
+          app-client-id: ${{ vars.PROTECTION_APP_CLIENT_ID }}
+          app-private-key: ${{ secrets.PROTECTION_APP_PRIVATE_KEY }}
+          other-app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          legacy-token: ${{ secrets.BRANCH_PROTECTION_PAT }}
+
+      - name: Report unconfigured protection principal
+        if: steps.protection_credential.outputs.enabled != 'true'
+        run: echo 'Protection principal absent; configure the separate protection App or existing BRANCH_PROTECTION_PAT.' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Re-assert branch protection
-        if: steps.check-pat.outputs.pat_present == 'true'
+        if: steps.protection_credential.outputs.enabled == 'true'
         env:
-          GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_PAT }}
+          GH_TOKEN: ${{ steps.protection_credential.outputs.token }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: bash scripts/setup_branch_protection.sh main

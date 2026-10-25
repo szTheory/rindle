@@ -194,6 +194,17 @@ defmodule ReadinessPolicyTest do
     end
   end
 
+  test "credential selection and workflow policy inputs cannot be substituted" do
+    for path <- ~w(.github/actions/repository-credential/action.yml scripts/maintainer/repository_credential.py .github/workflows/release-please-automerge.yml .github/workflows/branch-protection-apply.yml) do
+      {root, manifest} = F.fixture()
+      assert path in V.input_paths()
+      ref = F.put(root, "inputs/" <> path, "foreign credential policy")
+      manifest = manifest |> put_in(["input_files", path], ref) |> put_in(["input_identity", path], ref["sha256"])
+      assert [%{"id" => "tool_identity", "detail" => "credential policy input differs"}] =
+               V.validate_contract(manifest, F.context(root, manifest))["reasons"]
+    end
+  end
+
   test "extracted baseline landing source is a required byte-bound policy input" do
     {root, m} = F.fixture()
     path = "scripts/maintainer/land_release_train_baseline.py"

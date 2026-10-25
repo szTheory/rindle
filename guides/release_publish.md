@@ -182,7 +182,7 @@ engages as a fallback. As a result **no 0.3.2 PR was ever opened**.
 3. **Re-trigger `release.yml`.** Push (or re-run the latest `main` push) to
    re-run the canonical automerge → dispatch → gate-ci-green → publish chain.
 
-**`Actions: write` footgun (confirmed while cutting 0.3.2):** this repo's
+**Historical `Actions: write` footgun (confirmed while cutting 0.3.2):** the then-current
 automerge job publishes by *dispatching* `release.yml`
 (`gh workflow run … --field recovery_ref=<merge_sha>`). A PAT **without**
 `Actions: write` merges the release PR fine but the dispatch step **403s**
@@ -196,6 +196,9 @@ the expired token, (b) relabel #40 `pending` → `tagged`, and (c) (because the 
 PAT lacked `Actions: write`) a manual publish-dispatch. Published + verified via
 run **28420598348**; Hex live == **0.3.2**.
 
+The current automerge workflow uses its explicit Actions-write job token for
+dispatch; the release App does not need Actions permission.
+
 **Prevention:**
 
 - `release-train-drift.yml` self-files an issue when `main` has releasable
@@ -204,9 +207,9 @@ run **28420598348**; Hex live == **0.3.2**.
   are blocked by a merged release PR that still has `autorelease: pending`.
 - After Public Verify succeeds, `release.yml` transitions the matching merged
   Release Please PR to `autorelease: tagged` and verifies the label persisted.
-- The token-validity step in the Release Please job should fail loudly on a
-  present-but-invalid token (and ideally check `Actions: write` capability, not
-  just `gh api user`) so the `|| github.token` mask cannot pass silently.
+- Explicit credential selection and admission reject partial configuration and
+  invalid selected tokens. App tokens use installation-aware admission; PATs use
+  user identity plus repository selection. Actual operations prove write grants.
 
 ## Runbook: Rotating `RELEASE_PLEASE_TOKEN`
 
@@ -238,8 +241,7 @@ permissions at *No access*:
 
 | Permission | Access | Why |
 | --- | --- | --- |
-| Actions | Read and write | The automerge workflow dispatches `release.yml`; dispatch fails without write access. |
-| Contents | Read and write | Release Please writes version/changelog commits and release tags. |
+| Contents | Read and write | Release Please writes version/changelog commits. |
 | Issues | Read and write | Release Please manages its release labels and issue metadata. |
 | Pull requests | Read and write | Release Please opens and updates the release PR. |
 
@@ -257,23 +259,64 @@ zero. Never grant organization-wide or all-repository access.
 4. Confirm the secret's **Last updated** timestamp changed. GitHub deliberately
    does not expose the stored value.
 5. On the next intended `release.yml` run, confirm the validator prints
-   `RELEASE_PLEASE_TOKEN validated (auth + repository access).`
-6. Confirm the later automerge publish-dispatch step succeeds. The current
-   validator proves authentication and repository selection. GitHub does not
-   provide a safe fine-grained-PAT introspection endpoint for checking write
-   grants, so the successful dispatch is the end-to-end proof of
-   `Actions: write`.
+   `credential_admitted: legacy; read-only identity, write acceptance remains pending`
+6. Confirm intended Release Please PR maintenance and protected merge succeed.
+   Admission proves authentication and repository selection, not write grants.
+   Dispatch uses the separate job token and cannot certify PAT write access.
 7. Record the new rotation and expiry date in the table above.
 
 Do not rerun Release Please solely as a token health check while a release is
 mid-flight. A push to `main` in the normal green-main release train provides the
 canonical validation path.
 
-### Longer-term improvement
+### Staged GitHub App migration
 
-Prefer a repository-installed GitHub App that mints a short-lived installation
-token per workflow run. Give the App the same four repository permissions. This
-removes calendar-based PAT rotation and retains repository-only scope.
+The workflows support two separate repository-installed Apps. Configuration is
+optional during rollout: with no App settings, release jobs select the existing
+`RELEASE_PLEASE_TOKEN`, then their explicit job token if that secret is absent.
+Protection selects its existing `BRANCH_PROTECTION_PAT`, or reports unconfigured.
+Setting either half of an App configuration selects the App path: a missing half,
+invalid key, failed mint or failed admission stops the job, without credential
+fallback. The same client ID cannot serve release and protection.
+
+| Principal | Repository variable | Repository secret | Installation grants |
+| --- | --- | --- | --- |
+| Release App | `RELEASE_APP_CLIENT_ID` | `RELEASE_APP_PRIVATE_KEY` | Contents, Pull requests, Issues: write; only `szTheory/rindle` |
+| Protection App | `PROTECTION_APP_CLIENT_ID` | `PROTECTION_APP_PRIVATE_KEY` | Administration: write; only `szTheory/rindle` |
+
+Each job mints a subset using the SHA-pinned official token action. Release Please
+and baseline maintenance request Contents/Pull requests/Issues write. Automerge
+requests Contents/Pull requests write. Protection requests only Administration
+write. Release publication and explicit workflow dispatch use their existing job
+token; baseline CI observation keeps `BASELINE_CHECKS_TOKEN` with Checks read.
+Protection credentials are never a release fallback. These choices preserve the
+exact-source CI, release environment, publish preflight and public verification.
+
+The local credential action is loaded from trusted main tooling, never a PR head.
+The minted token is restricted to the named repository and admitted through the
+complete installation repository inventory, matching its numeric repository ID.
+Installation tokens never go through the PAT-only `GET /user` guard. Token values
+are job-local, masked, and revoked by the mint action at job completion; never put
+tokens or API bodies in artifacts. App tokens last one hour: baseline landing
+mints immediately before its existing 45-minute observer, separately from earlier
+label reconciliation. An expired selected token fails; it never changes principal.
+
+Roll out one principal at a time after reviewing the PR. App creation/installation
+and secure secret entry are separate authorized setup actions. Do not paste a key
+or token into chat. The mint/admission GETs prove identity and repository scope;
+they do not prove write permission, automatic PR CI, protected merge, publish or
+protection application. Keep migration acceptance open until intended real
+operations yield machine evidence for automatic PR CI, protected merge/exact-ref
+dispatch, and protection apply/readback. Do not dispatch the publish workflow as a
+credential health probe. Keep existing credentials for rollback until replacement
+operations pass. To roll back, remove both settings for the affected App together
+and retain its existing valid credential; never recover by broadening the other
+App. Retire each old credential only after its own replacement is proven.
+
+The action's [permission and revocation inputs](https://github.com/actions/create-github-app-token/blob/64ab729a6294000f5aa4a4bc0b73d1f32bc45510/action.yml)
+and GitHub's [installation repository endpoint](https://docs.github.com/en/rest/apps/installations#list-repositories-accessible-to-the-app-installation)
+define the admission boundary. Explicit dispatch can use the job token under
+[GitHub's workflow trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 
 ## Post-Publish Follow-Up
 

@@ -106,32 +106,18 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
   # The token-validity guard ships inside release-please (a STEP, not a
   # new top-level job / required check).
   # ------------------------------------------------------------------
-  test "release.yml validates RELEASE_PLEASE_TOKEN auth and repository selection before Run Release Please",
-       %{release: release} do
-    assert release =~ "gh api user",
-           "release.yml must run `gh api user` to validate RELEASE_PLEASE_TOKEN auth"
-
-    assert release =~ "Validate RELEASE_PLEASE_TOKEN",
-           "release.yml must carry the token-validity guard step"
-
-    assert release =~ ~s(gh api "repos/${GH_REPO}"),
-           "release.yml token guard must confirm the fine-grained PAT can access the selected repository"
-
-    refute release =~ ~s(gh api "repos/${GH_REPO}/actions/permissions"),
-           "the Actions settings endpoint requires Administration:read and must not reject the least-privilege token"
-
-    assert release =~ "The later workflow dispatch is the actual",
-           "release.yml must state that only the real dispatch proves Actions:write"
-
-    # The original footgun token line stays byte-identical — the guard is
-    # additive, not a rewrite of how the token is consumed.
-    assert release =~ "token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}",
-           "the original `secrets.RELEASE_PLEASE_TOKEN || github.token` line must stay unchanged"
-
-    # The secret must never be echoed: no `echo`/`printf` line may interpolate the
-    # token's env var value. (The guard reads it via env: and checks exit codes.)
-    refute release =~ ~r/(echo|printf)[^\n]*\$\{?GH_TOKEN/,
-           "release.yml must never echo the RELEASE_PLEASE_TOKEN value"
+  test "release credentials use explicit App admission with a legacy rollout", %{release: release} do
+    assert release =~ "uses: ./.github/actions/repository-credential"
+    assert release =~ "app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}"
+    assert release =~ "app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}"
+    assert release =~ "legacy-token: ${{ secrets.RELEASE_PLEASE_TOKEN }}"
+    assert release =~ "token: ${{ steps.release_credential.outputs.token }}"
+    refute release =~ "secrets.BRANCH_PROTECTION_PAT"
+    refute release =~ "secrets.RELEASE_PLEASE_TOKEN ||"
+    {admission, _} = :binary.match(release, "id: release_credential")
+    {operation, _} = :binary.match(release, "name: Run Release Please")
+    assert admission < operation
+    refute release =~ ~r/(echo|printf)[^\n]*\$\{?GH_TOKEN/
   end
 
   test "the token guard is a STEP, not a new top-level job / required check name",
@@ -143,6 +129,57 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
 
     refute release =~ "name: Validate RELEASE_PLEASE_TOKEN Job",
            "the token guard must not surface as a new job/check name"
+  end
+
+  test "App tokens use the reviewed per-role subset, one repository and post-job revocation" do
+    action = YamlElixir.read_from_file!(".github/actions/repository-credential/action.yml")
+    mint = Enum.find(action["runs"]["steps"], &(&1["id"] == "mint"))
+
+    assert mint["uses"] ==
+             "actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510"
+
+    assert mint["if"] == "steps.select.outputs.source == 'app'"
+    grants = mint["with"]
+    assert grants["owner"] == "${{ github.repository_owner }}"
+    assert grants["repositories"] == "${{ github.event.repository.name }}"
+    assert grants["skip-token-revoke"] == false
+
+    assert grants["permission-administration"] ==
+             "${{ inputs.profile == 'protection' && 'write' || '' }}"
+
+    assert grants["permission-issues"] == "${{ inputs.profile == 'release' && 'write' || '' }}"
+
+    for grant <- ~w(permission-contents permission-pull-requests) do
+      assert grants[grant] == "${{ inputs.profile != 'protection' && 'write' || '' }}"
+    end
+
+    refute Map.has_key?(grants, "permission-actions")
+    refute Map.has_key?(grants, "permission-checks")
+  end
+
+  test "release and protection use separate configuration; dispatch and checks keep job authority" do
+    merge = YamlElixir.read_from_file!(".github/workflows/release-please-automerge.yml")
+    steps = merge["jobs"]["automerge"]["steps"]
+    assert hd(steps)["with"]["ref"] == "main"
+    assert hd(steps)["with"]["persist-credentials"] == false
+    auth = Enum.find(steps, &(&1["id"] == "merge_credential"))
+    assert auth["with"]["profile"] == "merge"
+    assert auth["with"]["app-client-id"] == "${{ vars.RELEASE_APP_CLIENT_ID }}"
+
+    dispatch =
+      Enum.find(steps, &(&1["name"] == "Dispatch trusted release workflow for exact merge ref"))
+
+    assert dispatch["env"]["GH_TOKEN"] == "${{ github.token }}"
+    assert dispatch["run"] =~ "--field recovery_ref=\"$MERGE_SHA\""
+
+    protection = YamlElixir.read_from_file!(".github/workflows/branch-protection-apply.yml")
+    steps = protection["jobs"]["reassert-protection"]["steps"]
+    auth = Enum.find(steps, &(&1["id"] == "protection_credential"))
+    assert auth["with"]["profile"] == "protection"
+    assert auth["with"]["app-client-id"] == "${{ vars.PROTECTION_APP_CLIENT_ID }}"
+    assert auth["with"]["app-private-key"] == "${{ secrets.PROTECTION_APP_PRIVATE_KEY }}"
+    refute Map.has_key?(auth["with"], "job-token")
+    assert hd(steps)["with"]["ref"] == "main"
   end
 
   test "Release Please PR maintenance gets one bounded retry, never a publish retry",

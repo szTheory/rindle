@@ -70,10 +70,14 @@ def workflow_groups(script):
     for command in (*independent,'bash scripts/ci/test_collect_inbox.sh'):
         if lines.count(command)!=1:raise ValueError('exactly one independent harness command required: '+command)
     legacy='\n'.join(line for line in lines if line not in independent)
-    isolated='\n'.join(line for line in lines if line in independent)
+    isolated='\n'.join(line for line in lines if line in independent and line!=baseline)
+    # Observed runner timings left this group at the deadline while readiness
+    # finished at 202s. Its independent baseline harness took 11s; keep it with
+    # readiness so all three groups retain margin inside the same 240s budget.
+    readiness='bash scripts/ci/test_readiness_fixtures.sh\n'+baseline
     return [('Existing CI contract harnesses',['bash','-euo','pipefail','-c',legacy]),
-            ('Incident, baseline and inbox contracts',['bash','-euo','pipefail','-c',isolated]),
-            ('Exact-head readiness fixtures',['bash','scripts/ci/test_readiness_fixtures.sh'])]
+            ('Incident and inbox contracts',['bash','-euo','pipefail','-c',isolated]),
+            ('Readiness and baseline contracts',['bash','-euo','pipefail','-c',readiness])]
 
 
 def main():

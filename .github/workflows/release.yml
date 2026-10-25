@@ -52,48 +52,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      # D-06b: validate RELEASE_PLEASE_TOKEN BEFORE Run Release Please. The token
-      # line below reads `secrets.RELEASE_PLEASE_TOKEN || github.token` — a
-      # present-but-INVALID secret WINS the `||`, so github.token never engages
-      # and release-please dies on an opaque "Bad credentials" (or, worse, stalls
-      # silently post-merge). This is exactly what cut the 0.3.2 publish.
-      #
-      # The emptiness check lives INSIDE the run body (secret read via env: only,
-      # never inline-interpolated or echoed — V14 / T-113-04). Pitfall 5: a
-      # step-level `if: secrets.* != ''` may not evaluate on all runners and would
-      # risk a new actionlint finding; the bar is ZERO new findings.
-      - name: Validate RELEASE_PLEASE_TOKEN (fail loud, don't silently fall through ||)
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ -z "${GH_TOKEN:-}" ]; then
-            echo "RELEASE_PLEASE_TOKEN is not set; Run Release Please will rely on github.token. Skipping validation."
-            exit 0
-          fi
-
-          # Auth check: does the token authenticate at all?
-          if ! gh api user >/dev/null 2>&1; then
-            echo "::error::RELEASE_PLEASE_TOKEN is present but INVALID (expired/revoked). release.yml uses 'secrets.RELEASE_PLEASE_TOKEN || github.token' — a present-but-bad secret WINS the '||' so github.token never engages, and Run Release Please dies on 'Bad credentials' (or stalls post-merge). Rotate the secret (fine-grained PAT with contents:write + pull-requests:write, or a GitHub App installation token) then re-run."
-            exit 1
-          fi
-
-          # Repository-selection check: prove this fine-grained PAT is scoped to
-          # the repository it must operate on. Do not probe actions/permissions:
-          # that settings endpoint requires Administration:read and falsely
-          # rejects the intended least-privilege Actions:read/write token.
-          if ! gh api "repos/${GH_REPO}" >/dev/null 2>&1; then
-            echo "::error::RELEASE_PLEASE_TOKEN authenticates but cannot access ${GH_REPO} — add this repository to the fine-grained PAT selection, then re-run."
-            exit 1
-          fi
-
-          # GitHub does not expose fine-grained PAT grants through a safe token
-          # introspection endpoint. The later workflow dispatch is the actual
-          # non-ambiguous proof of Actions:write.
-          echo "RELEASE_PLEASE_TOKEN validated (auth + repository access)."
+      - name: Select and admit Release Please credential
+        id: release_credential
+        uses: ./.github/actions/repository-credential
+        with:
+          profile: release
+          app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          other-app-client-id: ${{ vars.PROTECTION_APP_CLIENT_ID }}
+          legacy-token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          job-token: ${{ github.token }}
 
       # Release Please's PR operation is idempotent, but its history walk makes
       # many GitHub API calls. Retry it once when GitHub returns a transient 5xx
@@ -104,7 +72,7 @@ jobs:
         continue-on-error: true
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          token: ${{ steps.release_credential.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           skip-github-release: true
@@ -114,14 +82,14 @@ jobs:
         if: ${{ steps.release_primary.outcome == 'failure' }}
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          token: ${{ steps.release_credential.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           skip-github-release: true
 
       - name: Fail if Release Please made no progress
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
+          GH_TOKEN: ${{ steps.release_credential.outputs.token }}
           GH_REPO: ${{ github.repository }}
         run: bash scripts/maintainer/check_release_please_progress.sh
 
@@ -364,7 +332,7 @@ jobs:
 
       - name: Ensure GitHub release exists for dispatch publish
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         working-directory: ${{ steps.release_source.outputs.project_root }}
         shell: bash
@@ -587,12 +555,23 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Select and admit label reconciliation credential
+        id: label_credential
+        uses: ./.github/actions/repository-credential
+        with:
+          profile: release
+          app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          other-app-client-id: ${{ vars.PROTECTION_APP_CLIENT_ID }}
+          legacy-token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          job-token: ${{ github.token }}
+
       # This state repair needs only the runner's preinstalled gh CLI. Keep it
       # ahead of optional ledger-tool setup so a transient Beam/Hex failure
       # cannot leave a publicly verified release stuck at `pending` again.
       - name: Reconcile Release Please state after public verification
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          GH_TOKEN: ${{ steps.label_credential.outputs.token }}
           GH_REPO: ${{ github.repository }}
           RELEASE_SHA: ${{ needs.gate-ci-green.outputs.release_sha }}
         run: bash scripts/maintainer/reconcile_release_please_label.sh
@@ -618,9 +597,20 @@ jobs:
           PUBLIC_VERIFY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: bash scripts/maintainer/update_release_train_baseline.sh "$VERSION"
 
+      - name: Mint baseline credential immediately before protected landing
+        id: baseline_credential
+        uses: ./.github/actions/repository-credential
+        with:
+          profile: release
+          app-client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          other-app-client-id: ${{ vars.PROTECTION_APP_CLIENT_ID }}
+          legacy-token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          job-token: ${{ github.token }}
+
       - name: Land baseline through required CI
         env:
-          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.BRANCH_PROTECTION_PAT || github.token }}
+          GH_TOKEN: ${{ steps.baseline_credential.outputs.token }}
           BASELINE_CHECKS_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.publish.outputs.release_version }}

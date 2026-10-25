@@ -43,8 +43,8 @@ class Groups(unittest.TestCase):
         groups=g.workflow_groups('\n'.join(commands))
         self.assertEqual(len(groups),3)
         self.assertEqual(groups[0][1][-1],'bash a.sh\nbash scripts/ci/test_collect_inbox.sh\nbash b.sh')
-        self.assertEqual(groups[1][1],['bash','-euo','pipefail','-c','\n'.join(line for line in independent if 'test_collect_inbox.sh' not in line)])
-        self.assertEqual(groups[2][1],['bash','scripts/ci/test_readiness_fixtures.sh'])
+        self.assertEqual(groups[1][1],['bash','-euo','pipefail','-c','\n'.join(line for line in independent if 'test_collect_inbox.sh' not in line and 'test_land_release_train_baseline.py' not in line)])
+        self.assertEqual(groups[2][1],['bash','-euo','pipefail','-c','bash scripts/ci/test_readiness_fixtures.sh\npython3 scripts/ci/test_land_release_train_baseline.py'])
         for command in independent:
             for broken in ([line for line in commands if line!=command],commands+[command]):
                 with self.assertRaises(ValueError):g.workflow_groups('\n'.join(broken))
@@ -53,7 +53,9 @@ class Groups(unittest.TestCase):
         body=yaml.split("python3 scripts/ci/run_script_test_groups.py <<'HARNESSES'\n",1)[1].split('\n          HARNESSES',1)[0]
         declared=[line.strip() for line in body.splitlines()]
         groups=g.workflow_groups('\n'.join(declared))
-        observed=groups[0][1][-1].splitlines()+groups[1][1][-1].splitlines()
+        self.assertEqual(groups[2][1][:4],['bash','-euo','pipefail','-c'])
+        self.assertEqual(groups[2][1][-1].splitlines()[0],'bash scripts/ci/test_readiness_fixtures.sh')
+        observed=groups[0][1][-1].splitlines()+groups[1][1][-1].splitlines()+groups[2][1][-1].splitlines()[1:]
         self.assertCountEqual(observed,declared)
         self.assertEqual(len(observed),len(set(observed)))
 unittest.main(argv=['groups'],verbosity=1)
