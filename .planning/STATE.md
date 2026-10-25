@@ -4,18 +4,18 @@ milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
 status: executing
 stopped_at: Phase 139 Plans 00–06 verified; Plan 07 awaits authorized PR 163 merge and live prerequisites
-last_updated: "2026-10-23T15:42:00Z"
-state_head: 9ebf92ad
+last_updated: "2026-10-25T17:33:51.254Z"
+last_activity: 2026-10-25
+last_activity_desc: 7/8 plans complete; Proof and Package Consumer passed on 624a4155. Repeated Azure FFmpeg download failures and manually closed Nightly incident replay are repaired locally; final-head CI and merged-main acceptance remain pending.
+state_head: c02d992f99b48e14a6a6bbfc130f8de0cec0bbc9
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 233
   completed_plans: 232
-last_activity: 2026-10-23
-current_phase_name: Exact-Head Readiness Closure
 current_phase: 139
+current_phase_name: Exact-Head Readiness Closure
 current_plan: 139-07
-last_activity_desc: "7/8 plans complete; Proof and Package Consumer passed on 624a4155. Repeated Azure FFmpeg download failures and manually closed Nightly incident replay are repaired locally; final-head CI and merged-main acceptance remain pending."
 ---
 
 ## Project Reference
@@ -139,3 +139,14 @@ Protection and release settings are unchanged; no terminal acceptance has run.
 Last session: 2026-10-23T15:42:00Z
 Stopped at: Phase 139 Plans 00–06 complete; prerequisite repairs inline before Plan 07
 Resume file: None
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
+| 261025-grp | Fix readiness Hex 2.6 cache compatibility | 2026-10-25 | b7b6fc4e | Verified | [261025-grp-fix-readiness-hex-2-6-cache-compatibilit](./quick/261025-grp-fix-readiness-hex-2-6-cache-compatibilit/) |
+| 261025-isb | Review PR 178 CI and prepare for merge | 2026-10-25 | c02d992f | Verified | [261025-isb-review-pr-178-ci-and-prepare-for-merge](./quick/261025-isb-review-pr-178-ci-and-prepare-for-merge/) |
+
+Last activity: 2026-10-25 - Completed quick task 261025-grp: Fix readiness Hex 2.6 cache compatibility. No READY credit.
+
+Last activity: 2026-10-25 - Completed quick task 261025-isb: Review PR 178 CI and prepare for merge; no code findings, no READY credit.

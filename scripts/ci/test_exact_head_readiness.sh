@@ -14,11 +14,31 @@ Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs")
 ExUnit.start(seed: 0)
 
 Code.require_file("scripts/ci/readiness_fixture.exs")
+Code.require_file("scripts/ci/test_readiness_hex_audit.exs")
 
 defmodule ReadinessPolicyTest do
   use ExUnit.Case, async: false
   alias Rindle.ExactHeadReadiness, as: V
   alias ReadinessFixture, as: F
+
+  test "reviewed Hex versions retain every immutable security and lock gate" do
+    locks = Map.new([{"root", "mix.lock"}, {"examples/adoption_demo", "examples/adoption_demo/mix.lock"}], fn {scope, path} -> {scope, File.read!(path)} end)
+    for version <- ["2.5.1", "2.6.0"] do
+      payloads = Enum.map(F.hex_payloads(), &Map.put(&1, "hex_version", version))
+      assert V.validate_hex(payloads, locks) == %{"ok" => true}
+      for {field, value} <- [{"online", false}, {"https_verified", false}, {"registry_signature_verification", false}, {"lock_sha256", String.duplicate("0", 64)}, {"packages", []}, {"database", []}] do
+        [first | rest] = payloads
+        assert V.validate_hex([Map.put(first, field, value) | rest], locks)["ok"] == false
+      end
+      [first | rest] = payloads
+      retired = update_in(first, ["packages"], fn [p | ps] -> [Map.put(p, "retired", true) | ps] end)
+      refute V.validate_hex([retired | rest], locks)["ok"]
+    end
+    for version <- ["2.5.0", "2.6.1", "2.6.0-dev", "3.0.0", nil] do
+      payloads = Enum.map(F.hex_payloads(), &Map.put(&1, "hex_version", version))
+      refute V.validate_hex(payloads, locks)["ok"]
+    end
+  end
 
   test "complete immutable fixture passes through actual CLI and writes scope without requirement credit" do
     {root, m} = F.fixture()

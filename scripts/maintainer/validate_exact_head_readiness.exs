@@ -879,7 +879,8 @@ defmodule Rindle.ExactHeadReadiness do
       {:ok, expected} = Rindle.ReadinessHexAudit.lock_packages(lock)
 
       ensure!(
-        audit["schema"] == "rindle-readiness-hex-v1" and audit["hex_version"] == "2.5.1" and
+        audit["schema"] == "rindle-readiness-hex-v1" and
+          Rindle.ReadinessHexAudit.supported_version?(audit["hex_version"]) and
           audit["online"] === true and
           audit["registry_signature_verification"] === true and audit["https_verified"] === true and
           audit["lock_sha256"] == sha256(lock),
