@@ -834,6 +834,8 @@ jobs:
         uses: ./.github/actions/setup-minio
 
       - name: Run release preflight
+        # Common source/package/docs checks run once; every profile proof remains below.
+        if: matrix.profile == 'image'
         env:
           MIX_ENV: dev
         run: bash scripts/release_preflight.sh

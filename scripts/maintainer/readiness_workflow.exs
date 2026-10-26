@@ -355,6 +355,7 @@ defmodule Rindle.ReadinessWorkflow do
     do: String.ends_with?(String.downcase(text), String.downcase(value))
 
   defp call(_name, _args), do: fail("condition_function")
+  defp variable("matrix.profile", c), do: Map.fetch!(c, "profile")
   defp variable("github.repository", c), do: Map.fetch!(c, "repository")
   defp variable("github.event_name", c), do: Map.fetch!(c, "event")
   defp variable("github.ref", c), do: "refs/heads/" <> Map.fetch!(c, "branch")
