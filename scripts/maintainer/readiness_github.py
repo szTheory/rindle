@@ -52,6 +52,26 @@ class GitHub:
         return 'repos/' + self.repo + '/' + suffix
 
     def get(self, path, binary=False, limit=MAX_BYTES):
+        # Every physical attempt uses the existing recorder and global budgets.
+        # Only transient HTTP responses retry; absent visibility never becomes empty.
+        for attempt in range(3):
+            before = len(self.calls)
+            try:
+                return self._get_once(path, binary=binary, limit=limit)
+            except NotReady as exc:
+                transient = (str(exc) == 'remote_unavailable' and
+                             len(self.calls) == before + 1 and
+                             self.calls[-1]['status'] in (502, 503, 504) and
+                             self.calls[-1]['headers'].get('x-ratelimit-remaining') != '0' and
+                             'retry-after' not in self.calls[-1]['headers'])
+                if not transient or attempt == 2:
+                    raise
+                delay = 2 ** attempt
+                require(len(self.calls) < self.max_calls and
+                        time.monotonic() + delay < self.deadline, 'remote_budget_exhausted')
+                time.sleep(delay)
+
+    def _get_once(self, path, binary=False, limit=MAX_BYTES):
         require(type(limit) is int and 0<limit<=256_000_000 and (binary or limit==MAX_BYTES), 'remote_limit_policy')
         require(time.monotonic() < self.deadline and len(self.calls) < self.max_calls, 'remote_budget_exhausted')
         require(not path.startswith('/') and not urlsplit(path).scheme and '\\' not in path,

@@ -90,3 +90,23 @@ PR #192 uses the same conditional post-landing contract as #190. Its required
 closed/merged state is validated by a fresh individual lookup after protected
 delivery. While #192 remains open, the live validator must reject its terminal
 row. No future merge SHA, successful CI result, or requirement credit is asserted.
+
+## Read-only source transport recovery
+
+After #192 landed, the production current-main collector retained HTTP 502
+responses from two historical Actions jobs endpoints. A direct endpoint recheck
+recovered, but the next full collection hit a different 502. These observations
+are availability failures and grant no empty-source or readiness credit.
+
+The GET-only transport now permits at most three attempts for HTTP 502/503/504,
+retaining every response within shared call and time limits. The complete
+remote-inventory owner has a 600-GET cap for both observations, including retries;
+the generic default remains 400 and its 600-second deadline is unchanged. A live
+first observation required 228 GETs, and an executable large-history regression
+reproduced exhaustion of the old owner cap before the second read completed.
+Authentication, visibility, rate limits, server cooldown instructions, malformed
+evidence and retry exhaustion still fail closed. No write or workflow dispatch
+is replayed. This changes a readiness control file, so the final candidate must
+include this repair and obtain its own full main CI and real scheduled Nightly.
+Keep #189 unmerged until successful validated acceptance; all earlier failed
+collections and the older candidates remain historical.

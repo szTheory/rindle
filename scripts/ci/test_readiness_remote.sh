@@ -3,6 +3,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$root"
 export PYTHONDONTWRITEBYTECODE=1
+python3 scripts/ci/test_readiness_github.py
 python3 - "$root" <<'PY'
 import atexit,base64,copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,hashlib,functools,time
 from unittest.mock import patch
@@ -157,6 +158,35 @@ class Remote(unittest.TestCase):
         self.assertEqual(result['sources']['remote-inventory']['source']['normalized']['ledger_sha256'],c.digest(c.canonical(ledger)))
         self.assertEqual(os.stat(collector.private).st_mode&0o777,0o700)
         self.assertEqual(os.stat(collector.private/'api/0001-response').st_mode&0o777,0o600)
+    def test_large_history_keeps_both_full_observations(self):
+        expanded=copy.deepcopy(ledger)
+        for number in range(2000,2200):
+            expanded['items'].append({'kind':'issue','number':number,'disposition':'retain',
+                'rationale':'Retained completed fixture history',
+                'terminal':{'state':'closed','merged':False,'state_reason':'completed'}})
+            self.put(prefix+'issues/'+str(number),{'number':number,'state':'closed',
+                'state_reason':'completed','repository_url':'https://api.github.com/repos/'+repo})
+        self.subject_file(c.LEDGER,c.canonical(expanded))
+        code,value,collector=self.collect(full=True)
+        self.assertEqual(code,0,value)
+        records=[c.read_json(p) for p in collector.private.glob('api/*-request.json')]
+        self.assertGreater(len(records),400)
+        for number in range(2000,2200):
+            self.assertEqual(sum(r['path']==prefix+'issues/'+str(number) for r in records),2)
+    def test_history_beyond_owner_cap_stays_incomplete(self):
+        expanded=copy.deepcopy(ledger)
+        for number in range(3000,3300):
+            expanded['items'].append({'kind':'issue','number':number,'disposition':'retain',
+                'rationale':'Retained completed fixture history',
+                'terminal':{'state':'closed','merged':False,'state_reason':'completed'}})
+            self.put(prefix+'issues/'+str(number),{'number':number,'state':'closed',
+                'state_reason':'completed','repository_url':'https://api.github.com/repos/'+repo})
+        self.subject_file(c.LEDGER,c.canonical(expanded))
+        code,value,collector=self.collect(full=True)
+        self.assertEqual(code,1)
+        self.assertEqual(value['reason'],'remote_budget_exhausted')
+        self.assertEqual(len(list(collector.private.glob('api/*-request.json'))),600)
+        self.assertFalse((collector.portable/'sources.json').exists())
     def test_issues_endpoint_pr_is_not_counted_as_issue(self):
         code,_,collector=self.collect();self.assertEqual(code,0)
         source=c.read_json(collector.portable/'sources.json')['sources']['remote-inventory']['source']['normalized']['sources']
