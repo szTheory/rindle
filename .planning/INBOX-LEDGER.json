@@ -710,11 +710,16 @@
       }
     },
     {
-      "disposition": "retain",
-      "head_sha": "681b786d821650c55ca198b7edfb44cdccd22338",
+      "disposition": "supersede",
       "kind": "pr",
       "number": 144,
-      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump phoenix_live_view from 1.2.10 to 1.2.13. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
+      "rationale": "Original LiveView1.2.13 Dependabot PR is actually closed/unmerged at681b786d; current replacement is PR187. Fresh individual lookup observed2026-10-26. No dependency upgrade or readiness credit.",
+      "successor": 187,
+      "terminal": {
+        "state": "closed",
+        "merged": false,
+        "state_reason": null
+      }
     },
     {
       "disposition": "retain",
@@ -835,6 +840,45 @@
       "disposition": "retain",
       "rationale": "Retain the actual scheduled Nightly failure on11196b5f.174 repaired the observed1.18/28 serialization failure, full main is green, and manual40134255679 supplies immediate feedback only. Actual newest successful scheduled evidence and bot-owned incident lifecycle must qualify the final source; retaining this issue gives no passing Nightly or READY credit. Retain incident history across automated closure; require a fresh completed-issue lookup when absent. This policy grants no fix, CI, scheduled or READY credit; all independent qualification gates remain mandatory.",
       "terminal_policy": "observe-retained-issue-v1"
+    },
+    {
+      "kind": "pr",
+      "number": 180,
+      "disposition": "merge",
+      "rationale": "Actual guarded squasha1be562599c770789bce313812b938b90c2b78e4 after refreshed heada53c1421 and successful full CI40366144902. Only RELEASE-TRAIN.md changed. Publish/public_verify jobs40220786199 and exact release CI40220783864 substantiate already-published0.4.13; old baseline/harness failure remains preserved. No new publish, dependency or READY credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 185,
+      "disposition": "retain",
+      "head_sha": "8b87661fe4bba1b58559b7e0bb29582a7e9897c2",
+      "rationale": "Release Please owns patch0.4.14 and its three version/changelog files. Latest completed CI40263479602 failed CI Script Tests; no green delivery is asserted. do-not-merge holds automated release while139 acceptance remains unfinished; do not merge, publish, dispatch release, bump manually, or infer release authority from synthetic readiness."
+    },
+    {
+      "kind": "pr",
+      "number": 187,
+      "disposition": "retain",
+      "head_sha": "a6d7c40e9f7d8514696f21e523ffee1fb70821b8",
+      "rationale": "LiveView1.2.13 lock refresh also changes cowboy2.20/cowlib2.21, phoenix1.8.16, phoenix_pubsub2.4.1, phoenix_template1.1.0 and elixir_make0.10.1. CI40320385984 failed required Elixir1.15/OTP26 Quality and optional-dependency compilation: cowlib cow_capsule.erl:67 syntax error, plus phoenix_template requires Elixir~>1.16. Retain for bounded supported-toolchain lock repair and new exact-head proof, without widening support or merging red CI. Replaces closed PR144; no upgrade/readiness credit."
+    },
+    {
+      "kind": "pr",
+      "number": 188,
+      "disposition": "retain",
+      "head_sha": "538f7c633fbd5d52df4d2e27ad4d3496e0ced997",
+      "rationale": "setup-beam1.24.1 pin refresh changes ci.yml and readiness-retention.yml, a snapshot CONTROL_PATHS producer file. CI40320421560 failed both Quality cells on exact live-residue allowlist counts/canonical regeneration. do-not-merge until successful validated139 acceptance (or explicit candidate replacement plus compatible actual scheduled proof); then narrowly update exact action-pin allowances and rerun unchanged policy/CI gates. No control-byte exception or unchanged retry."
+    },
+    {
+      "kind": "pr",
+      "number": 189,
+      "disposition": "retain",
+      "head_sha": "8699c2c548e8658fa84a14150e2dc40304b43435",
+      "rationale": "Docs-truth fail-closed guard repair passed exact-head CI40354516652 on8699c2c5, including CI Summary; prior canonical shard-order failure and local repair remain preserved. Keep draft and do-not-merge until successful validated139 acceptance, or explicit owner candidate replacement and its compatible actual scheduled proof. validate_exact_head_readiness.exs changes snapshot CONTROL_PATHS. Green PR CI does not remove this hold or grant READY credit."
     }
   ],
   "landings": [
