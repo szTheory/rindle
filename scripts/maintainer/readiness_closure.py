@@ -42,14 +42,16 @@ def object_bytes(root,ref):
 
 def semantic(packet):
     value=copy.deepcopy(packet['source']['normalized'])
+    value.pop('authority_main_sha',None)
     if 'sources' in value:
         for source in value['sources'].values():source.pop('observation_interval',None)
     return {'normalized':value,'query':packet['source'].get('query'),'policy':packet['source'].get('policy')}
 
 
 class Closure:
-    def __init__(self,repo,output,manifest=None,fixture=None,deadline=9600):
+    def __init__(self,repo,output,manifest=None,fixture=None,deadline=9600,subject=None,snapshot=False):
         self.repo=repo;self.output=Path(output).resolve();self.original=Path(manifest).resolve() if manifest else None
+        self.candidate=subject;self.snapshot=snapshot
         self.fixture=fixture;self.mode='fixture' if fixture is not None else 'execution'
         self.deadline=time.monotonic()+deadline;self.sequence=0;self.subject=None;self.local_output=None
         self.run_id=secrets.token_hex(16);self.started=now();self.proposed=None;self.objects={};self.index=None
@@ -106,7 +108,9 @@ class Closure:
         code,raw=self.command(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr],45,
             env={**self.env,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1'})
         require(code==0,'validator_unavailable')
-        self.policy=json_bytes(raw.decode().splitlines()[-1]);self.tool_sha=digest((ROOT/POLICY_FILE).read_bytes())
+        self.policy=json_bytes(raw.decode().splitlines()[-1])
+        if self.snapshot:self.policy['policy']='rindle-snapshot-v2'
+        self.tool_sha=digest((ROOT/POLICY_FILE).read_bytes())
 
     def remote_main(self):
         if self.index:
@@ -119,6 +123,19 @@ class Closure:
             value=value['object']['sha']
         require(isinstance(value,str) and re.fullmatch(r'[0-9a-f]{40}',value),'main_unavailable')
         return value
+
+    def check_main(self):
+        if not self.snapshot:
+            current=self.remote_main();require(current==self.subject,'main_changed');return current
+        from readiness_subject import observe
+        if self.index:
+            current=self.remote_main()
+            value=read_json(self.fixture_path('snapshot_'+current))
+            require(value.get('current_main_sha')==current and value.get('subject_sha')==self.subject,'snapshot_subject_mismatch')
+        else:value=observe(self.api,self.subject)
+        ref=self.store_object('subject/'+secrets.token_hex(8)+'.json',canonical(value))
+        self.subject_observations=getattr(self,'subject_observations',[])+[ref]
+        return value['current_main_sha']
 
     def verify_root(self):
         if self.index:return
@@ -155,7 +172,7 @@ class Closure:
         else:
             self.local_output=self.private/'local-qualification'
             code,_=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'qualify','--repo',self.repo,
-                '--subject',self.subject,'--output',str(self.local_output)],7500)
+                '--subject',self.subject,'--output',str(self.local_output)]+(['--snapshot'] if self.snapshot else []),7500)
             if code:
                 attempt=read_json(self.local_output/'attempt.json') if (self.local_output/'attempt.json').is_file() else {}
                 raise NotReady(attempt.get('reason','local_qualification_failed'))
@@ -185,7 +202,7 @@ class Closure:
         else:
             output=self.private/(kind+'-'+position)
             script='collect_readiness_runs.sh' if kind=='runs' else 'collect_readiness_remote.sh'
-            code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)],210 if kind=='runs' else 630)
+            code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)]+(['--snapshot'] if self.snapshot else []),210 if kind=='runs' else 630)
             if code:
                 value=read_json(output/'verdict.json') if (output/'verdict.json').is_file() else {}
                 raise NotReady(value.get('reason','remote_collection_failed'))
@@ -212,16 +229,25 @@ class Closure:
         started=now();before=self.adoption_facts();after=self.adoption_facts();require(before==after,'adoption_changed')
         root=self.private/('adoption-'+position);root.mkdir(mode=0o700)
         normalized={'repository':self.repo,'subject_sha':self.subject,**before};observations=[]
+        extra=[]
+        if self.snapshot:
+            normalized.update(authority_main_sha=self.authority_sha,authoritative_files={})
+            for relative,raw in self.authority_bytes.items():
+                path=root/'authority'/relative;write_new(path,raw);ref=reference(root,path)
+                normalized['authoritative_files'][relative]=ref;extra.append(ref)
         for side in ('before','after'):
             path=root/('observations/adoption-'+position+'-'+side+'.json');write_new(path,normalized);observations.append(reference(root,path))
-        packet={'references':observations,'source':{'complete':True,'authenticated':True,'query':'local authoritative requirements/project/release state; two reads',
+        packet={'references':observations+extra,'source':{'complete':True,'authenticated':True,'query':('authenticated current-main authoritative inputs; two reads' if self.snapshot else 'local authoritative requirements/project/release state; two reads'),
             'pages':1,'policy':self.policy['policy'],'normalized':normalized,'observation_interval':{'started_at':started,'completed_at':now()},
             'observations':observations,'before_sha256':observations[0]['sha256'],'after_sha256':observations[1]['sha256']}}
         return {'adoption-parity':(packet,root)}
 
     def adoption_facts(self):
-        from readiness_adoption import check
-        return check(ROOT)
+        from readiness_adoption import check,check_bytes,INPUTS
+        if not self.snapshot:return check(ROOT)
+        from readiness_subject import current_authority
+        self.authority_sha,self.authority_bytes=current_authority(self.api,INPUTS)
+        return check_bytes(self.authority_bytes)
 
     def collect(self,position):
         value={**self.producer_sources('runs',position),**self.producer_sources('remote',position),**self.adoption(position)}
@@ -296,38 +322,54 @@ class Closure:
             self.reserve()
             result['initial_attempt']=reference(self.output,self.output/'initial-attempt.json')
             for sig in handlers:signal.signal(sig,interrupt)
+            if self.original:
+                existing=read_json(self.original)
+                inferred=existing.get('policy')=='rindle-snapshot-v2'
+                require(not self.snapshot or inferred,'snapshot_policy_mismatch')
+                require(self.candidate is None or self.candidate==existing.get('subject_sha'),'snapshot_subject_mismatch')
+                self.snapshot=inferred
+                self.candidate=existing.get('subject_sha')
+            if self.snapshot:
+                require(isinstance(self.candidate,str) and re.fullmatch(r'[0-9a-f]{40}',self.candidate),'snapshot_subject_required')
+                self.subject=self.candidate
             self.stage='metadata';self.metadata()
-            self.stage='main';main=self.remote_main()
+            self.stage='main';main=self.check_main() if self.snapshot else self.remote_main()
+            self.observed_main_before=main
             if self.original:
                 manifest=read_json(self.original);original_bytes=self.original.read_bytes();self.subject=manifest.get('subject_sha')
                 require(manifest.get('repository')==self.repo and manifest.get('evidence_mode')==self.mode,'manifest_subject_or_mode')
-                require(main==self.subject,'main_changed');self.verify_root();self.copy_manifest_graph(self.original.parent,manifest)
+                if not self.snapshot:require(main==self.subject,'main_changed')
+                self.verify_root();self.copy_manifest_graph(self.original.parent,manifest)
                 write_new(self.portable/'manifest.json',original_bytes)
                 self.validate(self.portable/'manifest.json')
-            else:self.subject=main;self.verify_root()
+            else:
+                if not self.snapshot:self.subject=main
+                self.verify_root()
             result['subject_sha']=self.subject
             self.stage='initial_remote';before=self.collect('before')
             if not self.original:self.stage='local';manifest=self.local()
             require(manifest.get('validator_sha256')==self.tool_sha and manifest.get('policy')==self.policy['policy'],'tool_identity')
             self.stage='final_remote';after=self.collect('after')
             require(all(semantic(before[id][0])==semantic(after[id][0]) for id in self.policy['mutable']),'mutable_source_changed')
-            self.stage='final_main';require(self.remote_main()==self.subject,'main_changed');self.verify_root()
+            self.stage='final_main';self.observed_main_after=self.check_main();self.verify_root()
             interval={'started_at':self.started,'completed_at':self.timestamp()}
             if self.original:
                 prefix='refresh/'+self.run_id+'/'
                 envelope={key:manifest[key] for key in ('repository','subject_sha','policy','validator_sha256')}
-                envelope.update(schema_version=1,manifest_sha256=digest(original_bytes),remote_main_before=self.subject,remote_main_after=self.subject,
+                envelope.update(schema_version=1,manifest_sha256=digest(original_bytes),remote_main_before=self.observed_main_before,remote_main_after=self.observed_main_after,
                     observation_interval=interval,proofs=self.receipts(manifest,after,prefix),adoption=after['adoption-parity'][0]['source']['normalized']['adoption'],verdict='ready')
+                if self.snapshot:envelope['snapshot_subjects']=[self.subject_observations[0],self.subject_observations[-1]]
                 self.proposed=self.portable/'refresh-envelope.proposed.json';write_new(self.proposed,envelope)
                 validation=self.validate(self.portable/'manifest.json',self.proposed)
                 final=self.portable/'refresh-envelope.json'
             else:
-                manifest.update(state='complete',observation_interval=interval,remote_main_before=self.subject,remote_main_after=self.subject,
+                manifest.update(state='complete',observation_interval=interval,remote_main_before=self.observed_main_before,remote_main_after=self.observed_main_after,
                     adoption=after['adoption-parity'][0]['source']['normalized']['adoption'])
+                if self.snapshot:manifest['snapshot_subjects']=[self.subject_observations[0],self.subject_observations[-1]]
                 manifest['proofs']+=self.receipts(manifest,after)
                 self.proposed=self.portable/'manifest.proposed.json';write_new(self.proposed,manifest)
                 validation=self.validate(self.proposed);final=self.portable/'manifest.json'
-            require(self.remote_main()==self.subject,'main_changed');self.verify_root()
+            result['current_main_at_completion']=self.check_main();self.verify_root()
             if self.original:
                 require(self.original.read_bytes()==original_bytes and (self.portable/'manifest.json').read_bytes()==original_bytes,'manifest_bytes_changed')
                 self.copy_manifest_graph(self.original.parent,manifest)
@@ -358,10 +400,12 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation',choices=['close','refresh']);parser.add_argument('--repo',required=True)
     parser.add_argument('--output',required=True);parser.add_argument('--manifest');parser.add_argument('--fixture')
+    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--subject')
     args=parser.parse_args(argv)
     try:
         require((args.operation=='refresh')==(args.manifest is not None),'refresh_requires_manifest')
-        return Closure(args.repo,args.output,args.manifest,args.fixture).run()
+        require(args.snapshot or args.subject is None,'snapshot_flag_required')
+        return Closure(args.repo,args.output,args.manifest,args.fixture,subject=args.subject,snapshot=args.snapshot).run()
     except (NotReady,OSError,ValueError) as exc:
         print('not_ready: '+(str(exc) if isinstance(exc,NotReady) else 'closure_unavailable'));return 1
 

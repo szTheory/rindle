@@ -1,0 +1,29 @@
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 24.552s
+
+OK
+candidate_ready: validated_candidate
+not_ready: mutable_source_changed
+not_ready: cleanup_failed
+not_ready: object_digest_changed
+not_ready: validator_proof_outcome
+not_ready: invalid_closure_fixture
+not_ready: cleanup_failed
+not_ready: main_changed
+not_ready: main_changed
+not_ready: cleanup_failed
+not_ready: source_registry_incomplete
+not_ready: scheduled_run_missing
+not_ready: local_subject_or_mode
+not_ready: mutable_source_changed
+not_ready: closure_command_timeout
+not_ready: manifest_bytes_changed
+candidate_ready: validated_refresh
+not_ready: main_changed
+not_ready: mutable_source_changed
+not_ready: validator_refresh_inventory
+not_ready: validator_refresh_inventory
+not_ready: closure_unavailable
+not_ready: source_subject_or_mode
+PASS exact-head closure: 32 candidate/immutable-refresh fixtures; no READY credit

@@ -62,9 +62,12 @@ def prepare(manifest_path,output,environment=None):
     try:
         manifest_path=Path(manifest_path).resolve();manifest=read_json(manifest_path)
         repo,subject=manifest['repository'],manifest['subject_sha']
+        snapshot=manifest.get('policy')=='rindle-snapshot-v2'
+        producer_head=environment.get('GITHUB_SHA','')
         run=environment.get('GITHUB_RUN_ID','');attempt=environment.get('GITHUB_RUN_ATTEMPT','')
         require(environment.get('GITHUB_ACTIONS')=='true' and environment.get('GITHUB_REPOSITORY')==repo and
-            environment.get('GITHUB_SHA')==subject and environment.get('GITHUB_REF')=='refs/heads/main' and
+            (producer_head==subject if not snapshot else
+             re.fullmatch(r'[0-9a-f]{40}',producer_head) and environment.get('EXPECTED_SUBJECT')==subject and environment.get('ACCEPTANCE_MODE')=='snapshot') and environment.get('GITHUB_REF')=='refs/heads/main' and
             environment.get('GITHUB_EVENT_NAME')=='workflow_dispatch' and environment.get('GITHUB_WORKFLOW')==WORKFLOW_NAME and
             environment.get('GITHUB_WORKFLOW_REF')==repo+'/'+WORKFLOW+'@refs/heads/main' and
             re.fullmatch(r'[1-9][0-9]{0,19}',run) and re.fullmatch(r'[1-9][0-9]{0,9}',attempt),'producer_context_unavailable')
@@ -87,11 +90,12 @@ def prepare(manifest_path,output,environment=None):
         nonce=secrets.token_hex(8)
         archive_name=f'rindle-readiness-archive-{run}-{attempt}-{nonce}'
         sidecar_name=f'rindle-readiness-digest-{run}-{attempt}-{nonce}'
-        sidecar={'schema':SIDECAR_SCHEMA,'repository':repo,'subject_sha':subject,'workflow':WORKFLOW,'workflow_name':WORKFLOW_NAME,
+        sidecar={'schema':'rindle-readiness-producer-digest-v2' if snapshot else SIDECAR_SCHEMA,'repository':repo,'subject_sha':subject,'workflow':WORKFLOW,'workflow_name':WORKFLOW_NAME,
             'run_id':int(run),'run_attempt':int(attempt),'event':'workflow_dispatch','branch':'main','evidence_mode':manifest['evidence_mode'],
             'archive_artifact_name':archive_name,'sidecar_artifact_name':sidecar_name,'archive_file':ARCHIVE_FILE,
             'manifest_sha256':digest(objects['manifest.json']),'archive_sha256':digest(archive.read_bytes()),'created_at':now(),
             'requirements_credit':False}
+        if snapshot:sidecar['producer_head_sha']=producer_head
         write_new(output/SIDECAR_FILE,sidecar)
         value={'schema_version':1,'verdict':'prepared','repository':repo,'subject_sha':subject,'evidence_mode':manifest['evidence_mode'],
             'requirements_credit':False,'archive':reference(output,archive),'sidecar':reference(output,output/SIDECAR_FILE),
@@ -193,7 +197,9 @@ def retrieve(repo,run,attempt,destination,fixture=None):
             require('sha256:'+digest(raw)==expected,'artifact_transport_digest');return raw
         sidecar_raw=download(sidecar_artifact,2_000_000);sidecar_bytes=zip_member(sidecar_raw,SIDECAR_FILE,1_000_000);sidecar=json_bytes(sidecar_bytes)
         mode='fixture' if fixture is not None else 'execution'
-        require(sidecar.get('schema')==SIDECAR_SCHEMA and sidecar.get('repository')==repo and sidecar.get('subject_sha')==identity['head_sha'] and
+        snapshot=sidecar.get('schema')=='rindle-readiness-producer-digest-v2'
+        require(sidecar.get('schema') in (SIDECAR_SCHEMA,'rindle-readiness-producer-digest-v2') and sidecar.get('repository')==repo and
+            (sidecar.get('producer_head_sha')==identity['head_sha'] and re.fullmatch(r'[0-9a-f]{40}',sidecar.get('subject_sha','')) if snapshot else sidecar.get('subject_sha')==identity['head_sha']) and
             sidecar.get('run_id')==run and sidecar.get('run_attempt')==attempt and sidecar.get('workflow')==WORKFLOW and sidecar.get('workflow_name')==WORKFLOW_NAME and
             sidecar.get('event')=='workflow_dispatch' and sidecar.get('branch')=='main' and sidecar.get('evidence_mode')==mode and
             sidecar.get('sidecar_artifact_name')==sidecar_artifact['name'] and sidecar.get('archive_file')==ARCHIVE_FILE,'producer_sidecar_identity')
@@ -205,17 +211,24 @@ def retrieve(repo,run,attempt,destination,fixture=None):
         require(digest(archive)==sidecar.get('archive_sha256'),'producer_archive_digest')
         bundle=staging/'bundle';bundle.mkdir(mode=0o700);manifest,objects=unpack(archive,bundle)
         require(digest(objects['manifest.json'])==sidecar.get('manifest_sha256'),'producer_manifest_digest')
-        require(manifest.get('repository')==repo and manifest.get('subject_sha')==identity['head_sha'] and manifest.get('evidence_mode')==mode and manifest.get('state')=='complete','bundle_manifest_identity')
+        require(manifest.get('repository')==repo and manifest.get('subject_sha')==sidecar['subject_sha'] and manifest.get('evidence_mode')==mode and manifest.get('state')=='complete','bundle_manifest_identity')
+        require(snapshot==(manifest.get('policy')=='rindle-snapshot-v2'),'bundle_policy_identity')
+        if snapshot:
+            from readiness_subject import observe,CONTROL_PATHS
+            observe(api,sidecar['subject_sha'])
+            for path in CONTROL_PATHS:
+                require(api.contents(path,identity['head_sha'])==(ROOT/path).read_bytes(),'producer_policy_mismatch')
         scan_public(objects,os.environ)
         after,_=api.get(api.path('actions/runs/'+str(run)));require(run_identity(after,repo,run,attempt)==identity,'producer_attempt_changed')
         write_new(staging/ARCHIVE_FILE,archive);write_new(staging/SIDECAR_FILE,sidecar_bytes)
-        locator={'schema':'rindle-readiness-durable-locator-v1','repository':repo,'subject_sha':identity['head_sha'],'run_id':run,'run_attempt':attempt,
+        locator={'schema':'rindle-readiness-durable-locator-v1','repository':repo,'subject_sha':sidecar['subject_sha'],'run_id':run,'run_attempt':attempt,
             'workflow':WORKFLOW,'workflow_name':WORKFLOW_NAME,'archive_artifact_id':archives[0]['id'],'sidecar_artifact_id':sidecar_artifact['id'],
             'archive_artifact_digest':archives[0]['digest'],'sidecar_artifact_digest':sidecar_artifact['digest'],
             'producer_sidecar_sha256':digest(sidecar_bytes),'archive_sha256':sidecar['archive_sha256'],'manifest_sha256':sidecar['manifest_sha256'],
             'manifest_path':'bundle/manifest.json','archive_path':ARCHIVE_FILE,'sidecar_path':SIDECAR_FILE,
             'evidence_mode':mode,'bytes_verified':True,'requirements_credit':False,'storage_scope':'fixture_only' if fixture is not None else 'durable_maintainer_host',
             'retrieved_at':now()}
+        if snapshot:locator['producer_head_sha']=identity['head_sha']
         write_new(staging/'locator.json',locator)
         for path in staging.rglob('*'):
             if path.is_file():

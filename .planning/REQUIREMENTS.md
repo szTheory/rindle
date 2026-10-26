@@ -63,8 +63,14 @@ completion credit.
 
 ### Exact-Head Closure
 
+October25 policy amendment: READY-01–05 acceptance may certify an explicitly selected
+previously-main snapshot under `rindle-snapshot-v2`. All local/Actions evidence binds to
+that fixed SHA; current remote-source and authority facts stay fresh. Completion records
+must name the historical subject, interval and durable locator; later main gains no credit.
+No requirement is closed by this policy amendment or its implementation fixtures.
+
 - [ ] **READY-01**: One isolated exact-head checkout passes supported toolchains, formatting, compilation, Credo, Dialyzer, Doctor, coverage, security, docs, package, generated-consumer, twin, and repository-hygiene gates.
-- [ ] **READY-02**: Current exact-head `main` CI and Nightly are green and branch-protection requirements match the tested workflow topology.
+- [ ] **READY-02**: The selected authenticated previously-main snapshot's full push-main CI and real scheduled Nightly are green and branch-protection requirements match the tested workflow topology.
 - [ ] **READY-03**: Every open remote item and advisory has a current evidence-backed disposition, with no undispositioned release blocker.
 - [ ] **READY-04**: One fail-closed readiness manifest rejects missing, stale, partial, skipped-as-green, foreign-SHA, unclean, or unexplained evidence.
 - [ ] **READY-05**: Milestone closure leaves the named independent Phoenix pilot requirement open and makes no real-adopter or 1.0 claim.

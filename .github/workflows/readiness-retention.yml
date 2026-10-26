@@ -5,9 +5,15 @@ on:
   workflow_dispatch:
     inputs:
       expected_subject:
-        description: Exact authenticated main SHA selected by the durable controller
+        description: Exact authenticated main or previously-main snapshot SHA
         required: true
         type: string
+      acceptance_mode:
+        description: Candidate identity policy
+        required: true
+        default: current-main
+        type: choice
+        options: [current-main, snapshot]
       request_id:
         description: Unique controller request nonce
         required: true
@@ -18,7 +24,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: readiness-retention
+  group: readiness-retention-${{ inputs.expected_subject }}
   cancel-in-progress: false
 
 jobs:
@@ -35,6 +41,7 @@ jobs:
       MIX_ENV: test
       ERL_FLAGS: '+S 4:4'
       GH_TOKEN: ${{ secrets.READINESS_READ_TOKEN }}
+      ACCEPTANCE_MODE: ${{ inputs.acceptance_mode }}
       EXPECTED_SUBJECT: ${{ inputs.expected_subject }}
       REQUEST_ID: ${{ inputs.request_id }}
     steps:
@@ -43,9 +50,19 @@ jobs:
           fetch-depth: 0
       - name: Bind dispatch to main and require private-source read credentials
         run: |
-          test "$GITHUB_SHA" = "$EXPECTED_SUBJECT"
           test -n "$GH_TOKEN"
           [[ "$REQUEST_ID" =~ ^[0-9a-f]{32}$ ]]
+          [[ "$EXPECTED_SUBJECT" =~ ^[0-9a-f]{40}$ ]]
+          if [ "$ACCEPTANCE_MODE" = snapshot ]; then
+            # Authenticate with trusted default-branch code before executing the candidate.
+            python3 scripts/maintainer/readiness_acceptance.py admit-snapshot \
+              --snapshot --subject "$EXPECTED_SUBJECT" --repo "$GITHUB_REPOSITORY" \
+              --output "$RUNNER_TEMP/readiness-admission"
+            git checkout --detach "$EXPECTED_SUBJECT"
+          else
+            test "$ACCEPTANCE_MODE" = current-main
+            test "$GITHUB_SHA" = "$EXPECTED_SUBJECT"
+          fi
           test "$(git rev-parse HEAD)" = "$EXPECTED_SUBJECT"
       - uses: erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93 # v1.24.0
         with:
@@ -66,8 +83,14 @@ jobs:
           (cd examples/adoption_demo && npx playwright install-deps chromium)
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - name: Collect exact-main candidate
-        run: bash scripts/maintainer/exact_head_readiness.sh close --repo "$GITHUB_REPOSITORY" --output "$RUNNER_TEMP/readiness-candidate"
+      - name: Collect authenticated candidate
+        run: |
+          candidate_args=()
+          if [ "$ACCEPTANCE_MODE" = snapshot ]; then
+            candidate_args=(--snapshot --subject "$EXPECTED_SUBJECT")
+          fi
+          bash scripts/maintainer/exact_head_readiness.sh close --repo "$GITHUB_REPOSITORY" \
+            --output "$RUNNER_TEMP/readiness-candidate" "${candidate_args[@]}"
       - name: Prepare redacted archive and separate producer digests
         id: prepare
         run: bash scripts/maintainer/retain_readiness_bundle.sh prepare --manifest "$RUNNER_TEMP/readiness-candidate/portable/manifest.json" --output "$RUNNER_TEMP/readiness-upload"

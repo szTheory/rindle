@@ -12,21 +12,17 @@ on:
     types: [opened, synchronize, reopened, labeled]
   workflow_dispatch:
 
-# Serialize runs per-workflow + per-ref so a new push to a PR
-# branch supersedes its own in-flight run, while every other branch (and the
-# push:main / release run) gets an independent serialization queue.
-#   - cancel-in-progress is TRUE only for pull_request events: a stale PR run is
-#     abandoned to save runner minutes and sharpen the PR signal.
-#   - For push:main and workflow_dispatch it evaluates FALSE, so those runs
-#     SERIALIZE and are NEVER cancelled. This is load-bearing for the release
-#     coupling: `release.yml gate-ci-green` keys off the push:main `ci.yml` run
-#     `conclusion`; cancelling a main run would destroy the full-matrix evidence
-#     that the Hex publish gate depends on.
-# Reads only the trusted `github.event_name` context (no PR title/body/branch
-# string interpolated into a shell) — no injection surface added.
+# Keep PR supersession separate from the main release-evidence queue. A label
+# event on an already-merged PR has github.ref == refs/heads/main, so ref alone
+# lets that PR cancel an in-flight main run (incident CI 40223229145).
+# PR numbers keep open and merged PR events in their own groups. The ref- prefix
+# also isolates main from merged PRs that still execute the old workflow. Only
+# open PRs cancel earlier runs; push:main and workflow_dispatch on main share a
+# ref group with cancellation disabled, preserving the exact-SHA release proof.
+# These expressions use event metadata only; nothing is interpolated into a shell.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('ref-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.pull_request.state == 'open' }}
 
 env:
   MIX_ENV: test
@@ -525,7 +521,9 @@ jobs:
     runs-on: ubuntu-22.04
     # Merge-blocking docs parity + operator proof tests.
     # See RUNNING.md `## CI lane severity` for the full matrix.
-    needs: [quality, optional-dependencies]
+    # Proof owns its checkout, services and compile; Quality passes no artifact here.
+    # The final CI Summary still requires both jobs to succeed.
+    needs: [optional-dependencies]
     env:
       MIX_ENV: test
       RINDLE_AV_USE_CGROUPS: "false"
@@ -836,6 +834,8 @@ jobs:
         uses: ./.github/actions/setup-minio
 
       - name: Run release preflight
+        # Common source/package/docs checks run once; every profile proof remains below.
+        if: matrix.profile == 'image'
         env:
           MIX_ENV: dev
         run: bash scripts/release_preflight.sh

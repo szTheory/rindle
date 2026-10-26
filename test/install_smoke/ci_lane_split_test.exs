@@ -1,3 +1,5 @@
+Code.require_file("../../scripts/maintainer/readiness_workflow.exs", __DIR__)
+
 defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   @moduledoc """
   CI lane-topology regression lock (trigger split, matrix and lane
@@ -73,23 +75,23 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   # ------------------------------------------------------------------
-  # Concurrency — stale PR runs cancel; push:main/dispatch serialize.
+  # Concurrency — open PRs supersede; merged PR labels cannot cancel main.
   # ------------------------------------------------------------------
-  test "ci.yml has a top-level concurrency block keyed on workflow + ref", %{ci: ci} do
+  test "PR numbers isolate merged PR label events from the main ref group", %{ci: ci} do
     assert ci =~ "concurrency:",
            "ci.yml must declare a top-level concurrency block"
 
-    assert ci =~ "group: ${{ github.workflow }}-${{ github.ref }}",
-           "concurrency group must key on github.workflow + github.ref so each ref serializes independently"
+    assert ci =~
+             "group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('ref-{0}', github.ref) }}",
+           "PR identity must precede ref; the ref- namespace must also isolate main from historical PR workflows"
   end
 
-  test "cancel-in-progress is true ONLY for pull_request events", %{ci: ci} do
-    # The exact shipped expression: cancellation fires on PR, evaluates false on
-    # push:main / workflow_dispatch (which then SERIALIZE and are never cancelled —
-    # load-bearing for release.yml gate-ci-green reading the push:main conclusion).
+  test "only open PRs cancel; main pushes and manual main runs serialize", %{ci: ci} do
+    # Release automation labels merged PRs after publication. They must neither
+    # share main's group nor request cancellation inside their own PR group.
     assert ci =~
-             "cancel-in-progress: ${{ github.event_name == 'pull_request' }}",
-           "cancel-in-progress must be true ONLY for pull_request — push:main/dispatch must never cancel"
+             "cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.pull_request.state == 'open' }}",
+           "only open pull_request events may cancel earlier runs"
 
     # Guard against the footgun: a bare `cancel-in-progress: true` would
     # cancel push:main runs and destroy the full-matrix release evidence.
@@ -136,6 +138,35 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
 
     refute yaml_keys_only(full) =~ "continue-on-error",
            "package-consumer-full must have NO continue-on-error key — a failed leg must make the push:main conclusion non-success so the release gate blocks"
+  end
+
+  test "common preflight runs on exactly one full-matrix profile", %{ci: ci} do
+    {profiles, preflight, consumer} = full_matrix_commands(ci)
+    assert profiles == ["video", "image", "tus", "mux", "gcs"]
+    assert preflight["run"] == "bash scripts/release_preflight.sh"
+    assert consumer["run"] == "bash scripts/install_smoke.sh ${{ matrix.profile }}"
+    assert Enum.filter(profiles, &preflight_applies?(preflight, &1)) == ["image"]
+
+    {results, calls} = execute_matrix_fixture(profiles, preflight, consumer, "none")
+    assert Enum.all?(results, fn {_profile, status} -> status == 0 end)
+    assert Enum.count(calls, &(&1 == "preflight")) == 1
+    assert Enum.sort(Enum.reject(calls, &(&1 == "preflight"))) == Enum.sort(profiles)
+  end
+
+  test "preflight and every profile failure keep the full main workflow non-green", %{ci: ci} do
+    {profiles, preflight, consumer} = full_matrix_commands(ci)
+
+    for failure <- ["preflight" | profiles] do
+      {results, calls} = execute_matrix_fixture(profiles, preflight, consumer, failure)
+      failed_profile = if failure == "preflight", do: "image", else: failure
+
+      assert Enum.filter(results, fn {_profile, status} -> status != 0 end) == [
+               {failed_profile, 1}
+             ]
+
+      assert Enum.count(calls, &(&1 == "preflight")) == 1
+      if failure == "preflight", do: refute("image" in calls)
+    end
   end
 
   test "ci-summary needs the lean package-consumer but OMITS package-consumer-full",
@@ -230,6 +261,15 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
     contract = job_block(ci, "contract")
     refute contract =~ "`needs: quality` waits"
     assert contract =~ "Starts independently from the quality matrix"
+  end
+
+  @tag :required_job_topology
+  test "Proof overlaps Quality and both remain required by the final gate", %{ci: ci} do
+    assert job_needs(ci, "proof") == ["optional-dependencies"]
+    assert "proof" in job_needs(ci, "ci-summary")
+    assert "quality" in job_needs(ci, "ci-summary")
+    assert job_block(ci, "ci-summary") =~ "if: always()"
+    refute job_block(ci, "proof") =~ "continue-on-error: true"
   end
 
   @tag :required_job_topology
@@ -485,6 +525,73 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   defp job_block(ci, job) do
     [_, block] = Regex.run(~r/\n  #{Regex.escape(job)}:\n(.*?)(?=\n  [a-z][a-z0-9-]*:\n|\z)/s, ci)
     block
+  end
+
+  defp full_matrix_commands(ci) do
+    {:ok, _} = Application.ensure_all_started(:yamerl)
+    [workflow] = :yamerl_constr.string(ci, str_node_as_binary: true)
+    get = fn fields, key -> fields |> List.keyfind(key, 0) |> elem(1) end
+    job = workflow |> get.("jobs") |> get.("package-consumer-full")
+    profiles = job |> get.("strategy") |> get.("matrix") |> get.("profile")
+    steps = get.(job, "steps") |> Enum.map(&Map.new/1)
+    [preflight] = Enum.filter(steps, &(&1["name"] == "Run release preflight"))
+
+    [consumer] =
+      Enum.filter(
+        steps,
+        &(&1["name"] == "Run built-artifact package-consumer proof against MinIO")
+      )
+
+    assert Enum.find_index(steps, &(&1 == preflight)) < Enum.find_index(steps, &(&1 == consumer))
+    refute Map.has_key?(preflight, "continue-on-error")
+    refute Map.has_key?(consumer, "continue-on-error")
+    refute Map.has_key?(consumer, "if")
+    {profiles, preflight, consumer}
+  end
+
+  defp preflight_applies?(preflight, profile) do
+    Rindle.ReadinessWorkflow.condition(Map.fetch!(preflight, "if"), %{"profile" => profile})
+  end
+
+  # Execute the actual workflow command strings against owned shell stand-ins.
+  # This proves orchestration/failure propagation; package behavior stays in its real suites.
+  defp execute_matrix_fixture(profiles, preflight, consumer, failure) do
+    dir =
+      Path.join(
+        System.tmp_dir!(),
+        "rindle_preflight_matrix_#{System.unique_integer([:positive])}"
+      )
+
+    File.mkdir_p!(Path.join(dir, "scripts"))
+    on_exit(fn -> File.rm_rf!(dir) end)
+    trace = Path.join(dir, "calls")
+
+    File.write!(
+      Path.join(dir, "scripts/release_preflight.sh"),
+      ~S(printf 'preflight\n' >> "$TRACE"; test "$FAILURE" != preflight)
+    )
+
+    File.write!(
+      Path.join(dir, "scripts/install_smoke.sh"),
+      ~S(printf '%s\n' "$1" >> "$TRACE"; test "$FAILURE" != "$1")
+    )
+
+    results =
+      Enum.map(profiles, fn profile ->
+        commands = if preflight_applies?(preflight, profile), do: [preflight["run"]], else: []
+        commands = commands ++ [String.replace(consumer["run"], "${{ matrix.profile }}", profile)]
+
+        {_, status} =
+          System.cmd("bash", ["-euo", "pipefail", "-c", Enum.join(commands, "\n")],
+            cd: dir,
+            env: [{"TRACE", trace}, {"FAILURE", failure}],
+            stderr_to_stdout: true
+          )
+
+        {profile, status}
+      end)
+
+    {results, trace |> File.read!() |> String.split("\n", trim: true)}
   end
 
   defp job_needs(ci, job) do

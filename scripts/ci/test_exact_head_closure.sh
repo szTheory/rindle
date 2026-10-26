@@ -9,8 +9,25 @@ python3 - "$root" <<'PY'
 import copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,time,signal
 from unittest.mock import patch
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
+sys.path.insert(0,str(root/'scripts/ci'))
+from readiness_validator_fixture import ValidatorFixture
 import readiness_closure as c
 repo='szTheory/rindle';sha='a'*40
+
+class ValidatorWorkerTest(unittest.TestCase):
+    def worker(self):
+        worker=ValidatorFixture();self.addCleanup(worker.close);return worker
+    def test_malformed_request_cannot_be_green(self):
+        worker=self.worker()
+        with self.assertRaises(AssertionError):worker.request({'not':'argv'})
+        self.assertIsNotNone(worker.child.poll())
+    def test_dead_worker_cannot_be_green(self):
+        worker=self.worker();self.assertEqual(os.getpgid(worker.child.pid),os.getpgrp());worker.stop()
+        with self.assertRaises((AssertionError,BrokenPipeError)):worker.request([])
+    def test_deadline_stops_owned_worker_and_cannot_be_green(self):
+        worker=self.worker()
+        with self.assertRaisesRegex(AssertionError,'deadline'):worker.request([],timeout=0)
+        self.assertIsNotNone(worker.child.poll())
 
 class ClosureTest(unittest.TestCase):
     @classmethod
@@ -41,6 +58,11 @@ IO.puts(Jason.encode!(%{base: base}))
             shutil.rmtree(cls.shared)
             raise AssertionError(result.stdout+result.stderr)
         cls.base=pathlib.Path(json.loads(result.stdout.decode().splitlines()[-1])['base'])
+        if os.environ.get('RINDLE_READINESS_FRESH_VALIDATOR')!='1':
+            cls.validator=ValidatorFixture();cls.addClassCleanup(cls.validator.close)
+            original=c.Closure.command
+            adapter=patch.object(c.Closure,'command',lambda owner,argv,seconds,**kwargs: cls.validator.command(original,owner,argv,seconds,**kwargs))
+            adapter.start();cls.addClassCleanup(adapter.stop)
     @classmethod
     def tearDownClass(cls):shutil.rmtree(cls.shared)
     def setUp(self):
@@ -85,6 +107,19 @@ IO.puts(Jason.encode!(%{base: base}))
         manifest=c.read_json(owner.portable/'manifest.json');self.assertEqual(len(manifest['proofs']),23)
         self.assertEqual(c.read_json(owner.output/'candidate-validation.json')['verdict'],'ready')
         self.assertEqual(c.read_json(owner.output/'initial-attempt.json')['verdict'],'not_ready')
+    def test_validator_worker_does_not_retain_previous_graph_state(self):
+        worker=ValidatorFixture();self.addCleanup(worker.close)
+        manifest=self.fixture/'data/baseline-manifest.json';before=manifest.read_bytes()
+        outputs=[]
+        for position,corrupt in enumerate([False,True,False]):
+            if corrupt:
+                value=json.loads(before);value['subject_sha']='b'*40;manifest.write_bytes(c.canonical(value))
+            else:manifest.write_bytes(before)
+            verdict=self.tmp/('worker-'+str(position)+'.json')
+            code,_=worker.request(['--manifest',str(manifest),'--root',str(manifest.parent),'--verdict',str(verdict)])
+            self.assertEqual(code,1 if corrupt else 0)
+            outputs.append(verdict.read_bytes())
+        self.assertEqual(outputs[0],outputs[2]);self.assertEqual(manifest.read_bytes(),before)
     def test_main_changed_after_collections(self):
         self.config['main_sequence']=[sha,'b'*40];self.reject('main_changed')
     def test_main_changed_after_validator_cannot_publish_candidate(self):
