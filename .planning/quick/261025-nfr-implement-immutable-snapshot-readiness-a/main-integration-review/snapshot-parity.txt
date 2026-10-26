@@ -1,0 +1,10 @@
+.......................not_ready: cleanup_failed
+....
+----------------------------------------------------------------------
+Ran 27 tests in 22.291s
+
+OK
+candidate_ready: validated_candidate
+candidate_ready: validated_refresh
+candidate_ready: validated_refresh
+not_ready: acceptance_policy_mismatch

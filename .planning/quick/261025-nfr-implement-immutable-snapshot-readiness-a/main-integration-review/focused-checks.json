@@ -1,0 +1,61 @@
+{
+  "closure-parity": {
+    "exit_code": 0,
+    "seconds": 34.628,
+    "command": [
+      "bash",
+      "scripts/ci/test_exact_head_closure.sh"
+    ]
+  },
+  "snapshot-parity": {
+    "exit_code": 0,
+    "seconds": 22.48,
+    "command": [
+      "bash",
+      "scripts/ci/test_readiness_snapshot.sh"
+    ]
+  },
+  "lane": {
+    "exit_code": 0,
+    "seconds": 1.929,
+    "command": [
+      "mix",
+      "run",
+      "--no-start",
+      "-e",
+      "Mix.start(); Mix.env(:test); ExUnit.start(seed: 0); Code.require_file(\"test/install_smoke/ci_lane_split_test.exs\"); Code.require_file(\"test/async_safety_guard_test.exs\")"
+    ]
+  },
+  "residue": {
+    "exit_code": 0,
+    "seconds": 4.702,
+    "command": [
+      "mix",
+      "run",
+      "--no-start",
+      "scripts/maintainer/scan_live_residue.exs",
+      "--check",
+      "--require-no-pending",
+      "all"
+    ]
+  },
+  "hygiene": {
+    "exit_code": 0,
+    "seconds": 2.906,
+    "command": [
+      "bash",
+      "scripts/maintainer/repo_hygiene_check.sh",
+      "--ci"
+    ]
+  },
+  "retention-actionlint": {
+    "exit_code": 0,
+    "seconds": 0.013,
+    "command": [
+      "actionlint",
+      "-color",
+      "-shellcheck=",
+      ".github/workflows/readiness-retention.yml"
+    ]
+  }
+}

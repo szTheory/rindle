@@ -3,7 +3,7 @@ status: passed
 verification_mode: inline
 scope: implementation-fixtures
 covered_files: [".github/workflows/readiness-retention.yml", ".planning/quick/261025-nfr-implement-immutable-snapshot-readiness-a/261025-nfr-PLAN.md", ".planning/quick/261025-nfr-implement-immutable-snapshot-readiness-a/261025-nfr-SUMMARY.md", "RUNNING.md", "guides/readiness_evidence.md", "scripts/ci/readiness_fixture.exs", "scripts/ci/readiness_validator_fixture.exs", "scripts/ci/readiness_validator_fixture.py", "scripts/ci/test_exact_head_closure.sh", "scripts/ci/test_readiness_fixtures.sh", "scripts/ci/test_readiness_snapshot.py", "scripts/ci/test_readiness_snapshot.sh", "scripts/maintainer/collect_readiness_remote.py", "scripts/maintainer/collect_readiness_runs.py", "scripts/maintainer/exact_head_readiness.py", "scripts/maintainer/readiness_acceptance.py", "scripts/maintainer/readiness_adoption.py", "scripts/maintainer/readiness_closure.py", "scripts/maintainer/readiness_retention.py", "scripts/maintainer/readiness_subject.py", "scripts/maintainer/validate_exact_head_readiness.exs"]
-covered_digest: "v3:sha256:5e07ee09462a0719f730ae40abf2d9cd70f8ed3ec16baa93cc0bd0e3767c1ede"
+covered_digest: "v3:sha256:7bb3fb3d426bf12efb29e88e1f0abaaaffb3dca90bc95109b74d7c5070c38770"
 ---
 # Quick261025-nfr verification
 
@@ -52,3 +52,22 @@ the initial report is preserved there byte-for-byte as `initial-verification.txt
 The old verification.json remains historical. GitHub CI on the new head remains
 required before protected delivery. No retry of the unchanged timeout, timeout
 increase, merge, live readiness acceptance or requirement closure occurred.
+
+## Current-main integration review — quick261025-v8q
+
+The original report above is historical; its exact bytes are retained in
+`main-integration-review/previous-verification.txt`. Merging delivered main08872439
+changed RUNNING.md and the approved CI guard, so the old fingerprint was stale.
+Fresh verification covers the integrated source; no snapshot policy logic changed.
+
+All349 readiness cases pass in127s. The actual three script groups pass in
+126.801s/81.813s/146.622s under unchanged240s. Fresh CLI parity passes32 closure
+and27 snapshot cases;29 lane/async cases pass. Residue scan has zero pending
+entries; hygiene reports10PASS/1Hex-indexWARN/0BLOCK. Retention actionlint,
+changed Python/Bash syntax and five changed Elixir formatting checks pass.
+
+The canonical covered-input fingerprint was recomputed after these checks.
+Source/evidence hashes and raw logs are retained in main-integration-review/.
+Final pushed-head native CI is still required before protected delivery. Historical
+fixture receipts are unchanged; no live READY, scheduled-proof or phase acceptance
+credit. The separate delivery-review task owns final CI/feedback observation.
