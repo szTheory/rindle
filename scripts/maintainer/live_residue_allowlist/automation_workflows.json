@@ -45,22 +45,6 @@
     {
       "path": ".github/workflows/ci.yml",
       "class": "planning-path",
-      "text": "runner_invariant=$(grep -A3 \"parent-death subprocess\" .planning/PROJECT.md)",
-      "count": 1,
-      "reason_class": "policy",
-      "reason": "Mandatory docs-truth guard reads maintained policy input and fails on matches or read errors."
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "planning-path",
-      "text": "if grep -q \"FFmpex + MuonTrap\" .planning/PROJECT.md; then",
-      "count": 1,
-      "reason_class": "policy",
-      "reason": "Mandatory docs-truth guard reads maintained policy input and fails on matches or read errors."
-    },
-    {
-      "path": ".github/workflows/ci.yml",
-      "class": "planning-path",
       "text": "bash scripts/maintainer/validate_inbox_ledger.sh --offline --ledger .planning/INBOX-LEDGER.json",
       "count": 1,
       "reason_class": "policy",
@@ -73,6 +57,22 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "This CI step reads a maintained planning document or ledger as its input."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "class": "planning-path",
+      "text": "if grep -q \"FFmpex + MuonTrap\" .planning/PROJECT.md; then",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Mandatory docs-truth guard reads maintained policy input and fails on matches or read errors."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "class": "planning-path",
+      "text": "runner_invariant=$(grep -A3 \"parent-death subprocess\" .planning/PROJECT.md)",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Mandatory docs-truth guard reads maintained policy input and fails on matches or read errors."
     },
     {
       "path": ".github/workflows/ci.yml",

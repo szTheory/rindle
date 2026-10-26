@@ -67,6 +67,38 @@
       "reason": "The test writes this planning artifact into a disposable fixture repository to exercise the automation-first checker; it is not a live planning reference."
     },
     {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "planning-path",
+      "text": "if content, do: File.write!(Path.join(dir, \".planning/PROJECT.md\"), content)",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "requirement-id",
+      "text": "assert output =~ \"TRUTH-01-OK\"",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "requirement-id",
+      "text": "refute output =~ \"TRUTH-01-OK\"",
+      "count": 2,
+      "reason_class": "fixture",
+      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
+    },
+    {
+      "path": "test/install_smoke/ci_lane_split_test.exs",
+      "class": "requirement-id",
+      "text": "|> Enum.filter(&(&1[\"name\"] == \"TRUTH-01 docs-truth guard (PROJECT.md invariant 13)\"))",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
+    },
+    {
       "path": "test/install_smoke/ci_timing_automation_test.exs",
       "class": "milestone-ref",
       "text": "jq -cn --arg sha \"${GH_REMOTE_SHA:-$GH_EXPECTED_SHA}\" '{state:\"OPEN\",isDraft:true,headRefName:\"codex/v1.25-maintainer-craft\",headRefOid:$sha}'",
@@ -521,38 +553,6 @@
       "count": 1,
       "reason_class": "contract",
       "reason": "Asserted alternative mirrors the version reference in the shipped streaming guide; the assertion literal must match the guide text."
-    },
-    {
-      "path": "test/install_smoke/ci_lane_split_test.exs",
-      "class": "requirement-id",
-      "text": "assert output =~ \"TRUTH-01-OK\"",
-      "count": 1,
-      "reason_class": "fixture",
-      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
-    },
-    {
-      "path": "test/install_smoke/ci_lane_split_test.exs",
-      "class": "requirement-id",
-      "text": "refute output =~ \"TRUTH-01-OK\"",
-      "count": 2,
-      "reason_class": "fixture",
-      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
-    },
-    {
-      "path": "test/install_smoke/ci_lane_split_test.exs",
-      "class": "requirement-id",
-      "text": "|> Enum.filter(&(&1[\"name\"] == \"TRUTH-01 docs-truth guard (PROJECT.md invariant 13)\"))",
-      "count": 1,
-      "reason_class": "fixture",
-      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
-    },
-    {
-      "path": "test/install_smoke/ci_lane_split_test.exs",
-      "class": "planning-path",
-      "text": "if content, do: File.write!(Path.join(dir, \".planning/PROJECT.md\"), content)",
-      "count": 1,
-      "reason_class": "fixture",
-      "reason": "Executes the actual shipped workflow guard against per-test temporary policy fixtures; sentinel and step identity assertions cannot grant readiness and never read live planning files."
     }
   ]
 }
