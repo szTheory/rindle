@@ -1284,6 +1284,17 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 196,
+      "disposition": "merge",
+      "rationale": "Conditional post-landing contract for this retained-head ledger refresh: a fresh individual lookup must prove PR #196 actually closed and merged after successful exact-head required CI and green parent main. This is a required terminal state, not a current merge or future CI assertion. While this PR remains open, live validation must reject the terminal mismatch. Only the reviewed pins/rationales for retained PR145/146/187 change; main dependency pins and all existing advisory/landing/exception records remain intact. PR #189 stays draft and unmerged until successful validated acceptance. No READY, upgrade or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [

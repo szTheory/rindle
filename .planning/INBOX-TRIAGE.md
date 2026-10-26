@@ -189,3 +189,8 @@ locks, supported toolchains, all prior landing/advisory/exception records and
 PR #189's strict acceptance hold remain intact. A fresh full collection still
 has to prove both complete observations agree after protected delivery; the
 single-inventory draft check grants no acceptance credit.
+
+PR #196's own conditional terminal record follows the existing post-landing
+contract. It must fail live validation while open, and only a fresh individual
+closed/merged lookup after protected delivery can satisfy it. No future source
+SHA or CI result is embedded.
