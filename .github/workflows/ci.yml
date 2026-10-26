@@ -93,8 +93,19 @@ jobs:
         run: |
           set -euo pipefail
           grep -q "MuonTrap is the sole subprocess runner on every platform" .planning/PROJECT.md
-          ! grep -q "FFmpex + MuonTrap" .planning/PROJECT.md
-          ! grep -A3 "parent-death subprocess" .planning/PROJECT.md | grep -q "Rambo on macOS"
+          if grep -q "FFmpex + MuonTrap" .planning/PROJECT.md; then
+            echo "Forbidden subprocess-runner combination" >&2
+            exit 1
+          else
+            test "$?" -eq 1
+          fi
+          runner_invariant=$(grep -A3 "parent-death subprocess" .planning/PROJECT.md)
+          if grep -q "Rambo on macOS" <<< "$runner_invariant"; then
+            echo "Forbidden subprocess runner in invariant region" >&2
+            exit 1
+          else
+            test "$?" -eq 1
+          fi
           echo "TRUTH-01-OK"
 
       - name: Set up Elixir

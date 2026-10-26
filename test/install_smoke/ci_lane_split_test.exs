@@ -140,6 +140,58 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
            "package-consumer-full must have NO continue-on-error key — a failed leg must make the push:main conclusion non-success so the release gate blocks"
   end
 
+  @tag :tmp_dir
+  @tag :docs_truth_guard
+  test "docs truth accepts valid current wording and scopes historical Rambo text", %{
+    ci: ci,
+    tmp_dir: dir
+  } do
+    valid = "MuonTrap is the sole subprocess runner on every platform\nparent-death subprocess\n"
+
+    for {name, content} <- [{"valid", valid}, {"historical", "Rambo on macOS\n" <> valid}] do
+      assert {output, 0} = run_docs_truth_fixture(ci, Path.join(dir, name), content)
+      assert output =~ "TRUTH-01-OK"
+    end
+  end
+
+  @tag :tmp_dir
+  @tag :docs_truth_guard
+  test "docs truth rejects missing and forbidden invariant wording", %{ci: ci, tmp_dir: dir} do
+    valid = "MuonTrap is the sole subprocess runner on every platform\nparent-death subprocess\n"
+
+    for {name, content} <- [
+          {"missing-file", nil},
+          {"missing-positive", "parent-death subprocess\n"},
+          {"missing-region", "MuonTrap is the sole subprocess runner on every platform\n"},
+          {"deprecated-combination", valid <> "FFmpex + MuonTrap\n"},
+          {"deprecated-runner", valid <> "Rambo on macOS\n"}
+        ] do
+      {output, status} = run_docs_truth_fixture(ci, Path.join(dir, name), content)
+      refute status == 0, "guard accepted #{name}: #{output}"
+      refute output =~ "TRUTH-01-OK"
+    end
+  end
+
+  @tag :tmp_dir
+  @tag :docs_truth_guard
+  test "docs truth fails closed on each grep read error", %{ci: ci, tmp_dir: dir} do
+    valid = "MuonTrap is the sole subprocess runner on every platform\nparent-death subprocess\n"
+
+    for {pattern, index} <-
+          Enum.with_index([
+            "MuonTrap is the sole subprocess runner on every platform",
+            "FFmpex + MuonTrap",
+            "parent-death subprocess",
+            "Rambo on macOS"
+          ]) do
+      {output, status} =
+        run_docs_truth_fixture(ci, Path.join(dir, Integer.to_string(index)), valid, pattern)
+
+      refute status == 0, "guard ignored grep error for #{pattern}: #{output}"
+      refute output =~ "TRUTH-01-OK"
+    end
+  end
+
   test "common preflight runs on exactly one full-matrix profile", %{ci: ci} do
     {profiles, preflight, consumer} = full_matrix_commands(ci)
     assert profiles == ["video", "image", "tus", "mux", "gcs"]
@@ -525,6 +577,48 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   defp job_block(ci, job) do
     [_, block] = Regex.run(~r/\n  #{Regex.escape(job)}:\n(.*?)(?=\n  [a-z][a-z0-9-]*:\n|\z)/s, ci)
     block
+  end
+
+  # Read the shipped workflow; all planning paths below are owned temporary fixtures.
+  defp run_docs_truth_fixture(ci, dir, content, grep_error \\ "") do
+    {:ok, _} = Application.ensure_all_started(:yamerl)
+    [workflow] = :yamerl_constr.string(ci, str_node_as_binary: true)
+    get = fn fields, key -> fields |> List.keyfind(key, 0) |> elem(1) end
+
+    [step] =
+      workflow
+      |> get.("jobs")
+      |> get.("quality")
+      |> get.("steps")
+      |> Enum.map(&Map.new/1)
+      |> Enum.filter(&(&1["name"] == "TRUTH-01 docs-truth guard (PROJECT.md invariant 13)"))
+
+    refute Map.has_key?(step, "if")
+    refute Map.has_key?(step, "continue-on-error")
+    File.mkdir_p!(Path.join(dir, ".planning"))
+    if content, do: File.write!(Path.join(dir, ".planning/PROJECT.md"), content)
+    File.mkdir_p!(Path.join(dir, "bin"))
+    grep = Path.join(dir, "bin/grep")
+
+    File.write!(grep, ~S"""
+    #!/usr/bin/env bash
+    for arg in "$@"; do
+      if [ -n "$GREP_ERROR_PATTERN" ] && [ "$arg" = "$GREP_ERROR_PATTERN" ]; then exit 2; fi
+    done
+    exec "$REAL_GREP" "$@"
+    """)
+
+    File.chmod!(grep, 0o700)
+
+    System.cmd("bash", ["-e", "-o", "pipefail", "-c", Map.fetch!(step, "run")],
+      cd: dir,
+      env: [
+        {"PATH", Path.join(dir, "bin") <> ":" <> System.fetch_env!("PATH")},
+        {"REAL_GREP", System.find_executable("grep")},
+        {"GREP_ERROR_PATTERN", grep_error}
+      ],
+      stderr_to_stdout: true
+    )
   end
 
   defp full_matrix_commands(ci) do
