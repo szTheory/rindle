@@ -84,3 +84,9 @@ feedback or a scheduled receipt on the older subject cannot supply that proof.
 Keep PR #189 draft and unmerged until successful validated Phase 139 acceptance.
 READY-01–05, independent pilots, deferred numeric speed, and historical verification
 debt stay unchanged. This repair creates no 139-07-SUMMARY or acceptance producer.
+
+
+PR #192 uses the same conditional post-landing contract as #190. Its required
+closed/merged state is validated by a fresh individual lookup after protected
+delivery. While #192 remains open, the live validator must reject its terminal
+row. No future merge SHA, successful CI result, or requirement credit is asserted.

@@ -1044,6 +1044,17 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 192,
+      "disposition": "merge",
+      "rationale": "Conditional post-landing contract for this ledger-only PR: a fresh individual lookup must prove PR #192 actually closed and merged after successful exact-head required CI and green parent main. This specifies the required terminal state and asserts no current merge or future CI result. While #192 remains open, live validation must reject this terminal mismatch. The actual Bandit landing is separately bound to PR #191 and its completed main run. No READY or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [
