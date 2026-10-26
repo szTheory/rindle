@@ -1,0 +1,14 @@
+Rindle repo hygiene report (ci)
+[PASS] release versions: mix.exs, manifest, and top changelog entry all point at 0.4.13
+[PASS] release train ledger: RELEASE-TRAIN.md preserves the standing train contract
+[PASS] development train: DEVELOPMENT-TRAIN.md defines milestone branch shape
+[PASS] release-please config: elixir release policy intact
+[PASS] release automation: automerge workflow and skip-github-release present
+[PASS] ci gate: release workflow does not bypass CI failures
+[PASS] automation-first validation: [automation-first] automation-first contract passed for /private/tmp/rindle-snapshot-readiness-261025-nfr/.planning/phases/139-exact-head-readiness-closure
+[PASS] hex baseline: mix.exs (0.4.13) ahead of baseline (0.4.12) until publish completes
+[WARN] hex.pm index: could not read Hex.pm latest version for comparison
+[PASS] artifact ledger: validate_artifact_ledger: ok (offline, 3332 files, 46 classes)
+[PASS] tracked junk: no tracked junk or ignored files
+Summary: 10 PASS, 1 WARN, 0 BLOCK
+Result: proceed with caution

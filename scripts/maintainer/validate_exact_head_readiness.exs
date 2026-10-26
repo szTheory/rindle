@@ -7,6 +7,32 @@ unless Code.ensure_loaded?(Rindle.ReadinessWorkflow),
 defmodule Rindle.ExactHeadReadiness do
   @moduledoc false
   @policy "rindle-exact-head-v1"
+  @snapshot_policy "rindle-snapshot-v2"
+  @snapshot_controls ~w(scripts/maintainer/readiness_subject.py
+    scripts/maintainer/validate_exact_head_readiness.exs
+    scripts/maintainer/exact_head_readiness.py
+    scripts/maintainer/readiness_acceptance.py
+    scripts/maintainer/readiness_closure.py
+    scripts/maintainer/readiness_retention.py
+    scripts/maintainer/readiness_adoption.py
+    scripts/maintainer/collect_readiness_runs.py
+    scripts/maintainer/collect_readiness_remote.py
+    scripts/maintainer/readiness_github.py
+    scripts/maintainer/readiness_workflow.exs
+    scripts/maintainer/readiness_process.py
+    scripts/maintainer/readiness_hex_audit.exs
+    scripts/maintainer/exact_head_readiness.sh
+    scripts/maintainer/retain_readiness_bundle.sh
+    scripts/maintainer/qualify_generated_consumer.exs
+    .github/workflows/readiness-retention.yml)
+  @snapshot_control_digests Map.new(@snapshot_controls, fn path ->
+                              {path,
+                               :crypto.hash(
+                                 :sha256,
+                                 File.read!(Path.expand("../..", __DIR__) <> "/" <> path)
+                               )
+                               |> Base.encode16(case: :lower)}
+                            end)
   @workflow_helper_sha :crypto.hash(
                          :sha256,
                          File.read!(Path.join(__DIR__, "readiness_workflow.exs"))
@@ -34,7 +60,8 @@ defmodule Rindle.ExactHeadReadiness do
   @release_guard "198172f4e655c3b25990943329c38382a6fe753134d58fe378e1afdb66acb8c2"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
-  @inputs @credential_inputs ++
+  @inputs ~w(scripts/maintainer/readiness_subject.py scripts/maintainer/validate_exact_head_readiness.exs) ++
+            @credential_inputs ++
             ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
     .github/workflows/ci.yml .github/workflows/nightly.yml .github/workflows/release.yml
     config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json
@@ -90,6 +117,7 @@ defmodule Rindle.ExactHeadReadiness do
   @digests ~w(package_tar_sha256 package_metadata_sha256 package_tree_sha256)
   @toolchain %{"otp" => "27.3.4.15", "elixir" => "1.17.3-otp-27", "node" => "20.18.1"}
 
+  def snapshot_controls, do: @snapshot_controls
   def input_paths, do: @inputs
   def command_prefix(id), do: Map.fetch!(@commands, id)
   def policy, do: @policy
@@ -112,7 +140,7 @@ defmodule Rindle.ExactHeadReadiness do
       "repository" => m["repository"],
       "subject_sha" => m["subject_sha"],
       "manifest_sha256" => context[:manifest_sha256],
-      "policy" => @policy,
+      "policy" => m["policy"],
       "validator_sha256" => context[:validator_sha256],
       "evidence_scope" => m["evidence_mode"],
       "requirements_credit" => false,
@@ -146,9 +174,71 @@ defmodule Rindle.ExactHeadReadiness do
     _error -> cli_failure([], "io_failure", "could not load or write evidence")
   end
 
+  defp subject_sha?(value), do: is_binary(value) and Regex.match?(~r/\A[0-9a-f]{40}\z/, value)
+
+  defp validate_snapshot_subjects!(record, m, c) do
+    refs = record["snapshot_subjects"]
+
+    ensure!(
+      is_list(refs) and length(refs) == 2 and unique_paths?(refs),
+      "snapshot_identity",
+      "two candidate observations required"
+    )
+
+    Enum.zip(refs, [record["remote_main_before"], record["remote_main_after"]])
+    |> Enum.each(fn {ref, current} ->
+      value = decode!(object!(ref, c))
+      push = value["push_run"]
+      comparison = value["comparison"]
+
+      ensure!(
+        subject_sha?(current) and value["schema"] == "rindle-readiness-snapshot-subject-v2" and
+          value["authenticated"] === true and value["requirements_credit"] === false and
+          value["repository"] == m["repository"] and value["subject_sha"] == m["subject_sha"] and
+          value["current_main_sha"] == current and
+          value["protected_main"] == %{"name" => "main", "protected" => true, "sha" => current},
+        "snapshot_identity",
+        "protected-main candidate observation differs"
+      )
+
+      ensure!(
+        is_map(comparison) and comparison["status"] in ["ahead", "identical"] and
+          comparison["base"] == m["subject_sha"] and comparison["merge_base"] == m["subject_sha"] and
+          comparison["head"] == current,
+        "snapshot_ancestry",
+        "candidate must remain reachable from main"
+      )
+
+      ensure!(
+        is_map(push) and positive?(push["id"]) and positive?(push["run_attempt"]) and
+          push["head_sha"] == m["subject_sha"] and push["head_branch"] == "main" and
+          push["event"] == "push" and push["name"] == "CI" and
+          push["path"] == ".github/workflows/ci.yml" and
+          push["status"] == "completed" and push["conclusion"] == "success",
+        "snapshot_provenance",
+        "candidate needs actual push-main provenance"
+      )
+
+      ensure!(
+        value["control_identity"] == @snapshot_control_digests and
+          value["control_identity"] == Map.take(m["input_identity"], @snapshot_controls) and
+          Enum.all?(@snapshot_controls, &sha?(value["control_identity"][&1])),
+        "snapshot_policy",
+        "candidate control bytes differ"
+      )
+
+      ensure!(
+        time!(value["observed_at"]) >= time!(record["observation_interval"]["started_at"]) and
+          time!(value["observed_at"]) <= time!(record["observation_interval"]["completed_at"]),
+        "stale_observation",
+        "candidate observation outside invocation"
+      )
+    end)
+  end
+
   defp validate_manifest!(m, c) do
     ensure!(is_map(m) and m["schema_version"] == 1, "schema", "manifest schema_version must be 1")
-    ensure!(m["policy"] == @policy, "policy", "unknown validator policy")
+    ensure!(m["policy"] in [@policy, @snapshot_policy], "policy", "unknown validator policy")
 
     ensure!(
       m["validator_sha256"] == c[:validator_sha256],
@@ -178,11 +268,16 @@ defmodule Rindle.ExactHeadReadiness do
       "full subject SHA required"
     )
 
-    ensure!(
-      m["remote_main_before"] == m["subject_sha"] and m["remote_main_after"] == m["subject_sha"],
-      "main_changed",
-      "main differs from subject"
-    )
+    if m["policy"] == @snapshot_policy do
+      validate_snapshot_subjects!(m, m, c)
+    else
+      ensure!(
+        m["remote_main_before"] == m["subject_sha"] and
+          m["remote_main_after"] == m["subject_sha"],
+        "main_changed",
+        "main differs from subject"
+      )
+    end
 
     ensure!(m["toolchain"] == @toolchain, "toolchain", "unsupported resolved toolchain")
 
@@ -444,7 +539,7 @@ defmodule Rindle.ExactHeadReadiness do
     )
 
     ensure!(
-      s["policy"] == @policy and is_map(s["normalized"]),
+      s["policy"] == r["policy"] and is_map(s["normalized"]),
       "source_identity",
       "normalized source absent"
     )
@@ -549,11 +644,33 @@ defmodule Rindle.ExactHeadReadiness do
       "adoption-parity" ->
         validate_adoption!(n["adoption"])
 
+        paths =
+          ~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)
+
         expected =
-          Map.take(
-            m["input_identity"],
-            ~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)
-          )
+          if m["policy"] == @snapshot_policy do
+            files = n["authoritative_files"]
+
+            ensure!(
+              is_map(files) and Enum.sort(Map.keys(files)) == Enum.sort(paths) and
+                subject_sha?(n["authority_main_sha"]),
+              "adoption_authority",
+              "live authority absent"
+            )
+
+            Map.new(files, fn {path, ref} ->
+              ensure!(
+                ref in r["references"],
+                "adoption_authority",
+                "live authority reference absent"
+              )
+
+              object!(ref, c)
+              {path, ref["sha256"]}
+            end)
+          else
+            Map.take(m["input_identity"], paths)
+          end
 
         ensure!(
           n["adoption_policy"] == "rindle-synthetic-adoption-v1" and
@@ -832,11 +949,28 @@ defmodule Rindle.ExactHeadReadiness do
       )
     end)
 
-    ensure!(
-      i["ledger_sha256"] == m["input_identity"][".planning/INBOX-LEDGER.json"],
-      "remote_inventory",
-      "ledger identity differs"
-    )
+    if m["policy"] == @snapshot_policy do
+      ref = i["ledger_file"]
+
+      ensure!(
+        is_map(ref) and ref in references and ref["sha256"] == i["ledger_sha256"] and
+          subject_sha?(i["authority_main_sha"]),
+        "remote_inventory",
+        "live ledger identity absent"
+      )
+
+      ensure!(
+        decode!(object!(ref, c))["repo"] == m["repository"],
+        "remote_inventory",
+        "live ledger repository differs"
+      )
+    else
+      ensure!(
+        i["ledger_sha256"] == m["input_identity"][".planning/INBOX-LEDGER.json"],
+        "remote_inventory",
+        "ledger identity differs"
+      )
+    end
 
     database = sources["hex"]["database"]
 
@@ -953,11 +1087,16 @@ defmodule Rindle.ExactHeadReadiness do
       ensure!(e[key] == m[key], "refresh_identity", "#{key}: refresh identity differs")
     end)
 
-    ensure!(
-      e["remote_main_before"] == m["subject_sha"] and e["remote_main_after"] == m["subject_sha"],
-      "main_changed",
-      "refresh main advanced"
-    )
+    if m["policy"] == @snapshot_policy do
+      validate_snapshot_subjects!(e, m, c)
+    else
+      ensure!(
+        e["remote_main_before"] == m["subject_sha"] and
+          e["remote_main_after"] == m["subject_sha"],
+        "main_changed",
+        "refresh main advanced"
+      )
+    end
 
     validate_interval!(e["observation_interval"])
 

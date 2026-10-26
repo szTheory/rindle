@@ -213,9 +213,10 @@ class OwnedServices:
 class Qualification:
     evidence_mode = 'execution'
 
-    def __init__(self, root, output, repo, subject, deadline_seconds=7200):
+    def __init__(self, root, output, repo, subject, deadline_seconds=7200, snapshot=False):
         self.root, self.output = Path(root).resolve(), Path(output).absolute()
         self.repo, self.subject = repo, subject
+        self.snapshot = snapshot
         self.run_id = secrets.token_hex(16)
         self.deadline = time.monotonic() + deadline_seconds
         self.workspace = None
@@ -319,6 +320,7 @@ class Qualification:
         self.checked(['bash', PREFLIGHT], cwd=self.root, budget=180)
         self.workspace = Path(tempfile.mkdtemp(prefix='rindle-readiness-source-'+self.run_id+'-')).resolve() / 'source'
         self.checked(['git','clone','--no-checkout','--depth','1','--branch','main',f'https://github.com/{self.repo}.git',str(self.workspace)],cwd=self.root)
+        self.checked(['git','fetch','--no-tags','origin',self.subject],cwd=self.workspace)
         # This mutation is confined to the new disposable clone; the user's checkout is untouched.
         self.checked(['git', 'checkout', '--detach', self.subject])
         self.checked(['git', 'branch', '-f', 'main', self.subject])
@@ -345,6 +347,7 @@ class Qualification:
                 'commands: Map.new(v.required_proofs() -- v.mutable_proofs(), &{&1, v.command_prefix(&1)})}))')
         _, data = self.checked(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr], env={**self.env, 'RINDLE_EXACT_HEAD_LIBRARY_ONLY': '1'})
         self.policy = json.loads(data.decode().splitlines()[-1])
+        if self.snapshot:self.policy['policy']='rindle-snapshot-v2'
         self.checked(['npm','ci'],cwd=self.workspace/'examples/adoption_demo',budget=600)
         self.checked(['npx','playwright','install','chromium'],cwd=self.workspace/'examples/adoption_demo',budget=600)
         require(digest((self.workspace/'scripts/maintainer/exact_head_readiness.py').read_bytes()) == digest(Path(__file__).read_bytes()), 'collector_subject_mismatch')
@@ -603,6 +606,9 @@ class Qualification:
             write_new(path, r)
             refs.append({**reference(self.portable,path), 'id': item['id']})
         m['proofs'] = refs
+        if self.snapshot:
+            m.update(remote_main_before=self.observed_main_before,remote_main_after=self.observed_main_after,
+                     snapshot_subjects=[self.subject_observations[0],self.subject_observations[-1]])
         if hasattr(self,'prerequisites'):
             m['prerequisites']=self.prerequisites
         write_new(self.portable/'manifest.json', m)
@@ -623,10 +629,23 @@ class Qualification:
             for sig, handler in handlers.items():
                 signal.signal(sig, handler)
 
+    def check_subject(self):
+        if not self.snapshot:
+            require(self.remote_main() == self.subject, 'main_changed')
+            return self.subject
+        from readiness_github import GitHub
+        from readiness_subject import observe
+        api=GitHub(self.repo,self.private/('subject-api-'+secrets.token_hex(8)),
+            budget=max(1,min(300,self.deadline-time.monotonic())))
+        value=observe(api,self.subject,self.root)
+        path=self.portable/('subject-'+secrets.token_hex(8)+'.json');write_new(path,value)
+        self.subject_observations=getattr(self,'subject_observations',[])+[reference(self.portable,path)]
+        return value['current_main_sha']
+
     def run_reserved(self):
         reason = None
         try:
-            require(self.remote_main() == self.subject, 'main_changed')
+            self.observed_main_before=self.check_subject()
             self.checkout()
             self.prepare()
             self.upstream()
@@ -635,7 +654,7 @@ class Qualification:
                 print('QUALIFY ' + proof_id, flush=True)
                 self.current_proof = proof_id
                 self.gate(proof_id, argv)
-            require(self.remote_main() == self.subject, 'main_changed')
+            self.observed_main_after=self.check_subject()
         except Exception as exc:
             reason = str(exc) if isinstance(exc, NotReady) else 'qualification_unavailable'
         finally:
@@ -652,7 +671,7 @@ class Qualification:
             return 1
         try:
             self.deadline=time.monotonic()+45
-            require(self.remote_main() == self.subject, 'main_changed')
+            self.observed_main_after=self.check_subject()
             return self.finalize()
         except (NotReady, OSError, ValueError, KeyError, TypeError) as exc:
             reason = str(exc) if isinstance(exc, NotReady) else 'qualification_finalize_failed'
@@ -700,7 +719,7 @@ def cleanup_existing(root, output):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
-    if argv and argv[0] in ('verify-subject','accept','claim-status'):
+    if argv and argv[0] in ('verify-subject','admit-snapshot','accept','claim-status'):
         from readiness_acceptance import main as acceptance_main
         return acceptance_main(argv)
     if argv and argv[0] in ('close','refresh'):
@@ -713,6 +732,7 @@ def main(argv=None):
     qualify = subs.add_parser('qualify')
     qualify.add_argument('--repo', required=True)
     qualify.add_argument('--subject', required=True)
+    qualify.add_argument('--snapshot', action='store_true')
     qualify.add_argument('--output', type=Path, required=True)
     cleanup = subs.add_parser('cleanup')
     cleanup.add_argument('--output',type=Path,required=True)
@@ -720,7 +740,7 @@ def main(argv=None):
     try:
         if args.operation=='cleanup':
             return cleanup_existing(ROOT,args.output)
-        return Qualification(ROOT, args.output, args.repo, args.subject).run()
+        return Qualification(ROOT, args.output, args.repo, args.subject, snapshot=args.snapshot).run()
     except (NotReady, OSError, ValueError) as exc:
         print('not_ready: ' + (str(exc) if isinstance(exc, NotReady) else 'qualification_unavailable'), file=sys.stderr)
         return 1

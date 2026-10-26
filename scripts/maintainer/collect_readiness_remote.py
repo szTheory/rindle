@@ -28,9 +28,11 @@ def stable_records(values, id_key):
 
 
 class RemoteCollector:
-    def __init__(self,repo,subject,output,fixture=None,only=None):
+    def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False):
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
         self.repo,self.subject,self.output=repo,subject,Path(output).resolve()
+        self.snapshot=snapshot
+        self.policy_name='rindle-snapshot-v2' if snapshot else POLICY
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
         self.output.mkdir(mode=0o700,parents=True)
         self.portable=self.output/'portable';self.private=self.output/'restricted'
@@ -42,6 +44,10 @@ class RemoteCollector:
         self.current_source="repository"
 
     def main(self):
+        if self.snapshot:
+            from readiness_subject import observe
+            self.snapshot_binding=observe(self.api,self.subject)
+            return self.snapshot_binding['current_main_sha']
         value,_=self.api.get(self.api.path('git/ref/heads/main'))
         require(value.get('ref')=='refs/heads/main' and value.get('object',{}).get('type')=='commit' and
                 value['object'].get('sha')==self.subject,'main_changed')
@@ -52,7 +58,7 @@ class RemoteCollector:
                 type(metadata.get('id')) is int,'repository_identity')
         self.metadata=metadata;self.api.repo_id=metadata['id'];self.main()
         self.current_source='ledger'
-        raw=self.api.contents(LEDGER,self.subject)
+        raw=self.api.contents(LEDGER,self.snapshot_binding['current_main_sha'] if self.snapshot else self.subject)
         self.ledger=json_bytes(raw);self.ledger_sha=digest(raw)
         require(self.ledger.get('repo')==self.repo,'ledger_repository')
         self.ledger_path=self.private/'ledger.json';write_new(self.ledger_path,raw)
@@ -366,7 +372,12 @@ class RemoteCollector:
         if self.only is None:
             metadata,_=self.api.get('repos/'+self.repo)
             require(metadata.get('id')==self.metadata['id'] and metadata.get('permissions',{}).get('admin') is True,'advisory_visibility_changed')
-        require(digest(self.api.contents(LEDGER,self.subject))==self.ledger_sha,'ledger_changed')
+        if self.snapshot:
+            from readiness_subject import current_authority
+            self.authority_sha,authority=current_authority(self.api,[LEDGER])
+            require(digest(authority[LEDGER])==self.ledger_sha,'ledger_changed')
+        else:
+            require(digest(self.api.contents(LEDGER,self.subject))==self.ledger_sha,'ledger_changed')
         self.current_source="issues"
         issues,pulls=self.issues()
         if self.only=='issues':
@@ -420,11 +431,16 @@ class RemoteCollector:
                                'public-signed-registry' if name=='hex' else 'authenticated-complete-GET')
             normalized={'repository':self.repo,'subject_sha':self.subject,'ledger_sha256':self.ledger_sha,'sources':sources,
                 'snapshot_guarantee':'two-bounded-reads; no cross-endpoint atomicity'}
+            if self.snapshot:
+                ledger_file=self.portable/'authority/INBOX-LEDGER.json'
+                write_new(ledger_file,self.ledger_path.read_bytes())
+                normalized.update(authority_main_sha=self.authority_sha,ledger_file=reference(self.portable,ledger_file))
+                extra_refs.append(reference(self.portable,ledger_file))
             refs=[]
             for position in ('before','after'):
                 path=self.portable/'observations'/('remote-'+position+'.json');write_new(path,normalized);refs.append(reference(self.portable,path))
             source={'complete':True,'authenticated':True,'query':'GET all pages; distinct sources; two bounded reads; actual disposition validator',
-                'pages':len(self.api.calls),'policy':POLICY,'normalized':normalized,'observation_interval':interval,
+                'pages':len(self.api.calls),'policy':self.policy_name,'normalized':normalized,'observation_interval':interval,
                 'before_sha256':refs[0]['sha256'],'after_sha256':refs[1]['sha256'],'observations':refs}
             write_new(self.portable/'sources.json',{'repository':self.repo,'subject_sha':self.subject,'evidence_mode':verdict['evidence_mode'],
                 'requirements_credit':False,'observation_interval':interval,'sources':{'remote-inventory':{'source':source,'references':refs+extra_refs}},
@@ -446,10 +462,10 @@ class RemoteCollector:
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo',required=True);parser.add_argument('--subject',required=True);parser.add_argument('--output',required=True)
-    parser.add_argument('--fixture');parser.add_argument('--only',choices=['issues'])
+    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--fixture');parser.add_argument('--only',choices=['issues'])
     args=parser.parse_args()
     try:
-        return RemoteCollector(args.repo,args.subject,args.output,args.fixture,args.only).run()
+        return RemoteCollector(args.repo,args.subject,args.output,args.fixture,args.only,args.snapshot).run()
     except NotReady as exc:print('not_ready: '+str(exc));return 1
 
 if __name__=='__main__':raise SystemExit(main())

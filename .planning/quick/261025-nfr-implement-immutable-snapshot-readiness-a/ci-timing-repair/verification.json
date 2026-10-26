@@ -1,0 +1,58 @@
+{
+  "schema": "rindle-ci-timing-repair-v1",
+  "observed_at": "2026-10-25T22:09:24.545563+00:00",
+  "source_commit": "cef1d8191e7cddd49e1d1f8ddaf222b61988199f",
+  "failure_run": 40237130793,
+  "failure_job": 121300974681,
+  "cause": "Unchanged shared 240s group deadline terminated readiness and incident groups; no failed assertion before termination. No unchanged retry.",
+  "repair": "Test-only suite-owned actual validator; fresh graph per request. No production policy, timeout, command inventory or proof coverage change.",
+  "files": {
+    "scripts/ci/readiness_validator_fixture.exs": "2bf285930a8099a3859a6e548dab66b6b9cd5108d928396abef3c6ba076f6933",
+    "scripts/ci/readiness_validator_fixture.py": "2686cc523f57cab5017656774128df3d272eaa5649d53dc8e2435bdbe698a574",
+    "scripts/ci/test_exact_head_closure.sh": "9754a049d7c285f27e4df4630663fa0100d225fd4c1a236c62e2f1933e697865",
+    "scripts/ci/test_readiness_snapshot.py": "10de3eae336c1ac17ee8abd3f84a30246afec0cafe6c9412c60e0bdc7ce8cb6e"
+  },
+  "readiness_cases": 349,
+  "original_cases_retained": 345,
+  "new_worker_safety_cases": 4,
+  "readiness_elapsed_seconds": 100,
+  "shared_budget_seconds": 240,
+  "script_groups": [
+    {
+      "name": "Existing CI contract harnesses",
+      "exit_code": 0,
+      "state": "completed",
+      "elapsed_seconds": 92.299
+    },
+    {
+      "name": "Incident and inbox contracts",
+      "exit_code": 0,
+      "state": "completed",
+      "elapsed_seconds": 49.847
+    },
+    {
+      "name": "Readiness and baseline contracts",
+      "exit_code": 0,
+      "state": "completed",
+      "elapsed_seconds": 117.015
+    }
+  ],
+  "closure_local_fresh_seconds": 24.552,
+  "closure_local_batched_seconds": 17.253,
+  "closure_parity_cases": 32,
+  "snapshot_parity_cases": 27,
+  "closure_shuffle_seed": 139,
+  "parity": "Every original validator request in both selected suites compared actual fresh CLI exit and verdict bytes; A/bad-B/A state check, malformed request, dead worker and bounded timeout checks pass. CLI, signal, deadline, archive and disposal paths retained.",
+  "limits": "Local single-pair timing, not CI speed or p95 evidence. Full group timing includes contention; GitHub must validate new head. One earlier timing trial was discarded after editing a running shell harness; final retained trials ran unchanged files.",
+  "requirements_credit": false,
+  "evidence": {
+    "full-script-groups.txt": "a7b8da303e0e9eb28eebc34baca4bbc581da9c0b453c7d3438f599104835fcb9",
+    "closure-parity.txt": "6aed8d365677f0a03d11ca2773ed4072959b653b496c28504016ab753b7783e8",
+    "closure-fresh.txt": "531e2b878d87659dd71c85d4d2e58f3cf738870db2aa0f9f22e5b8992451237b",
+    "closure-batched.txt": "1544cf05fa3edd00b64cf5fc2ecf088dbc64ad9d9d22aedffd06789054ac552b",
+    "closure-shuffled.txt": "e163251deb7e799a392fc5e16241cb918db80ae71cc147f51be803ed9f9e7579",
+    "snapshot-parity.txt": "bae47a6e8ff1905d9b21d9aa83ca58f5f05ab4c5af1d1c736521f908ea163997",
+    "residue.txt": "caa3fa53b20a55d1454f3a2bc9d3acc9e7a38d39207d6d6785559abe1530f016",
+    "hygiene.txt": "dc5108ee1e3bd8e911bffce76668f66375681a6d68384d5a6cb4d24081a8d78a"
+  }
+}

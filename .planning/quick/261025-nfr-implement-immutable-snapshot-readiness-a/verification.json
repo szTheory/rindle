@@ -1,0 +1,32 @@
+{
+  "schema": "rindle-quick-verification-v1",
+  "quick_id": "261025-nfr",
+  "observed_at": "2026-10-25T21:21:26.523716+00:00",
+  "source_commit": "e285e9d0723a5d056f330fdf4761e1efc0b8b4bf",
+  "source_tree": "05e1129ab91f1cca59a900d44efddbc79ccaef3d",
+  "files": {
+    ".github/workflows/readiness-retention.yml": "9974a0e3c757436a52d7ca1c5e2bccfcd1aa764c72ecd43ea10465fa79b91cc9",
+    "RUNNING.md": "6893753288dc7f17b9dd07b954d2f1340ce31410cd84430647b107409c0b2b6f",
+    "guides/readiness_evidence.md": "1a8ca0b4a60560c6b156e584c2063fc84cb140ac11b0c4e7d61ae8746dbe8eae",
+    "scripts/ci/readiness_fixture.exs": "8e736972935a97d1a1b890b69ffcfd5c2cc14ee397ab7a3f2fef9b01ddd814a0",
+    "scripts/ci/test_readiness_fixtures.sh": "f16b239beb1eb7ffaa1f2274ae886168b3b989d06d4bbed7aa9d05ae67233b0a",
+    "scripts/ci/test_readiness_snapshot.py": "3156e9fb352b2882f4de7818cc6ee78e2d5a21893f9a307cd429465ff9eb1f8c",
+    "scripts/ci/test_readiness_snapshot.sh": "42bae54dc89fbb105916d2af3fa9ed5404ef2251b4457c5e2e626aaf9ca52921",
+    "scripts/maintainer/collect_readiness_remote.py": "6e97604160a0834c2d9fd342cc8d342712e6bb390bc1a4146105549dd8f0113a",
+    "scripts/maintainer/collect_readiness_runs.py": "6971e045ac5f5f5c9386d2a023890fbad8eaae9c950f54c44e5410588a75e287",
+    "scripts/maintainer/exact_head_readiness.py": "99c51a526c9de97c167c7383a47a30bc43602590560aa156f65d79a5d69004bf",
+    "scripts/maintainer/readiness_acceptance.py": "780f83998dbe3bf834a9f27082aaa8e4a938ceb804ed033269e8bc596eee271a",
+    "scripts/maintainer/readiness_adoption.py": "03b19d3761898cfd3e6a36bf8fba74902aae8ee01e54e8c394a163bf20efb272",
+    "scripts/maintainer/readiness_closure.py": "fc7b76e1fa0b8186799ebdfd88a3d5ffb8628cc66876a15f80da5e6bc06a9f8e",
+    "scripts/maintainer/readiness_retention.py": "359a110811a0fbea4f33006ada71a484ccd4dfae3fd594a16ee2298c352a3ae6",
+    "scripts/maintainer/readiness_subject.py": "d624d4fcafeca02c3074f8da828e534c09025358adc06594b731084fa0c1dfe2",
+    "scripts/maintainer/validate_exact_head_readiness.exs": "4513058826ac7059a8fe9a79e430a36cb55e866110f5a20de7d5b8e92131dfc5"
+  },
+  "readiness_cases": 345,
+  "new_snapshot_cases": 27,
+  "readiness_elapsed_seconds": 105,
+  "readiness_budget_seconds": 240,
+  "group_harness_cases": 8,
+  "requirements_credit": false,
+  "live_acceptance_started": false
+}

@@ -2,6 +2,7 @@
 """Authoritative synthetic-only adoption parity; no independent pilot or release grant."""
 import argparse
 import copy
+import json
 from pathlib import Path
 import re
 
@@ -46,6 +47,14 @@ def check(root=ROOT,classification=None):
         path=root/relative
         require(path.is_file() and not path.is_symlink() and path.stat().st_size<=2_000_000,'adoption_authority_unavailable')
         snapshots[relative]=path.read_bytes()
+    result=check_bytes(snapshots,classification)
+    require(all((root/p).read_bytes()==raw for p,raw in snapshots.items()),'adoption_authority_changed')
+    return result
+
+
+def check_bytes(snapshots,classification=None):
+    classification=copy.deepcopy(SYNTHETIC if classification is None else classification)
+    require(classification==SYNTHETIC and set(snapshots)==set(INPUTS),'adoption_inflation')
     requirements=snapshots[INPUTS[0]].decode();project=snapshots[INPUTS[1]].decode()
     for id in ('PILOT-01','PILOT-02'):
         lines=[line for line in requirements.splitlines() if re.match(r'^- (?:\[[ xX]\] )?\*\*'+id+r'\*\*:',line)]
@@ -57,9 +66,9 @@ def check(root=ROOT,classification=None):
     current_project=project.split('\n## Previous Milestone:',1)[0]
     require(not positive_release_claim(current_project) and not positive_release_claim(requirements),'one_point_zero_authority')
     version=re.search(r'@version\s+"([^"]+)"',snapshots['mix.exs'].decode())
-    release=read_json(root/'.release-please-manifest.json')
+    release=json.loads(snapshots['.release-please-manifest.json'])
     require(version and pre_major(version[1]) and release.get('.')==version[1],'one_point_zero_authority')
-    config=read_json(root/'release-please-config.json')
+    config=json.loads(snapshots['release-please-config.json'])
     def intents(value):
         if isinstance(value,dict):
             for key,item in value.items():
@@ -68,7 +77,6 @@ def check(root=ROOT,classification=None):
         elif isinstance(value,list):
             for item in value:yield from intents(item)
     require(all(pre_major(v) for v in intents(config)),'one_point_zero_authority')
-    require(all((root/p).read_bytes()==raw for p,raw in snapshots.items()),'adoption_authority_changed')
     return {'adoption':classification,'authoritative_inputs':{p:digest(raw) for p,raw in snapshots.items()},
             'adoption_policy':'rindle-synthetic-adoption-v1'}
 

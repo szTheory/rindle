@@ -1,5 +1,14 @@
 # Rindle
 
+**Snapshot acceptance amendment (2026-10-25):** The user approved versioned immutable
+previously-main snapshot acceptance. The opt-in `rindle-snapshot-v2` path binds local,
+CI and real scheduled Nightly evidence to one authenticated candidate while main may
+advance. Current private-source/inbox/protection and adoption/release authority remain
+fresh requirements. Producer-head and evidence-subject identities are separate. Results
+are historical snapshot readiness only; independent pilots, 1.0 and publication retain
+all existing gates. Implementation fixtures grant no READY credit. READY-01–05 remain
+Pending until an actual terminal live acceptance with retained verified bytes succeeds.
+
 ## Current Milestone: v1.26 Pre-Adopter Readiness & Quality Consolidation
 
 **Goal:** Make Rindle demonstrably clean, elegant, reproducible, resilient, and ready for its first

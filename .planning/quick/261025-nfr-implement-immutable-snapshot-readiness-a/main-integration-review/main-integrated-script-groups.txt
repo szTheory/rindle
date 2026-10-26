@@ -1,0 +1,1016 @@
+::group::Existing CI contract harnesses
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.162}, {"name": "1", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.16}], "exit_code": 0, "requirements_credit": false}
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": 7, "state": "completed", "elapsed_seconds": 0.057}, {"name": "1", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.273}], "exit_code": 1, "requirements_credit": false}
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.159}, {"name": "1", "exit_code": 3, "state": "completed", "elapsed_seconds": 0.05}], "exit_code": 1, "requirements_credit": false}
+.::group::first
+::endgroup::
+::group::second
+::endgroup::
+::group::last
+::endgroup::
+{"groups": [{"name": "first", "exit_code": 7, "state": "completed", "elapsed_seconds": 0.057}, {"name": "second", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.055}, {"name": "last", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.27}], "exit_code": 1, "requirements_credit": false}
+.::group::0
+::endgroup::
+::group::1
+::endgroup::
+{"groups": [{"name": "0", "exit_code": -15, "state": "terminated", "elapsed_seconds": 0.11}, {"name": "1", "exit_code": -15, "state": "terminated", "elapsed_seconds": 0.11}, {"reason": "CI harness group budget exhausted"}], "exit_code": 1, "requirements_credit": false}
+.::group::finished
+::endgroup::
+::group::slow
+::endgroup::
+{"groups": [{"name": "finished", "exit_code": 0, "state": "completed", "elapsed_seconds": 0.057}, {"name": "slow", "exit_code": -15, "state": "terminated", "elapsed_seconds": 1.004}, {"reason": "CI harness group budget exhausted"}], "exit_code": 1, "requirements_credit": false}
+..
+----------------------------------------------------------------------
+Ran 8 tests in 2.014s
+
+OK
+PASS: all CI groups awaited; every command retained, failure and bounded disposal remain nonpassing
+ok   — fork: repo-gated jobs skipped, rest success → pass (exit 0)
+ok   — all jobs success → pass (exit 0)
+ok   — all jobs skipped → pass (exit 0)
+ok   — one job failure → fail (exit 1)
+ok   — one job cancelled → fail (exit 1)
+ok   — failure alongside a skip → fail (exit 1)
+—
+passed: 6  failed: 0
+ok   — exact declared jobs with executed applicable successes and visible exemption (exit 0, verdict green)
+ok   — all applicable jobs executed successfully (exit 0, verdict green)
+ok   — repository-gated skip is explicit not-run (exit 0, verdict green)
+ok   — inapplicable successful no-op remains visibly not-run (exit 0, verdict green)
+ok   — GitHub needs outputs coexist with the result envelope (exit 0, verdict green)
+ok   — applicable failure is red (exit 1, verdict red)
+ok   — applicable cancelled is red (exit 1, verdict red)
+ok   — applicable skipped is red (exit 1, verdict red)
+ok   — applicable unknown is red (exit 1, verdict red)
+ok   — applicable timed_out is red (exit 1, verdict red)
+ok   — applicable action_required is red (exit 1, verdict red)
+ok   — applicable neutral is red (exit 1, verdict red)
+ok   — applicable stale is red (exit 1, verdict red)
+ok   — failed inapplicable job stays red (exit 1, verdict red)
+ok   — cancelled inapplicable job stays red (exit 1, verdict red)
+ok   — missing declared job is red (exit 1, verdict red)
+ok   — unexpected observed job is red (exit 1, verdict red)
+ok   — missing observed result is red (exit 1, verdict red)
+ok   — non-string observed result is red (exit 1, verdict red)
+ok   — missing applicable is red (exit 1, verdict red)
+ok   — missing applicability_rule is red (exit 1, verdict red)
+ok   — missing execution is red (exit 1, verdict red)
+ok   — missing reason is red (exit 1, verdict red)
+ok   — always job requires applicable boolean true (false) (exit 1, verdict red)
+ok   — always job requires applicable boolean true (null) (exit 1, verdict red)
+ok   — always job requires applicable boolean true ("true") (exit 1, verdict red)
+ok   — always job requires applicable boolean true (1) (exit 1, verdict red)
+ok   — applicable success requires passed execution (not-run) (exit 1, verdict red)
+ok   — applicable success requires passed execution (skipped) (exit 1, verdict red)
+ok   — applicable success requires passed execution (missing) (exit 1, verdict red)
+ok   — applicable success requires passed execution (unknown) (exit 1, verdict red)
+ok   — applicable success requires passed execution (empty) (exit 1, verdict red)
+ok   — applicable success rejects an exemption reason (exit 1, verdict red)
+ok   — always rule cannot claim inapplicability (exit 1, verdict red)
+ok   — unknown applicability rule is red (exit 1, verdict red)
+ok   — gated applicable job requires passed execution (exit 1, verdict red)
+ok   — inapplicable job requires not-run execution (exit 1, verdict red)
+ok   — inapplicable job requires an allowlisted reason (exit 1, verdict red)
+ok   — inapplicable job rejects empty reason (exit 1, verdict red)
+ok   — applicable skipped job cannot borrow an exemption reason (exit 1, verdict red)
+ok   — empty needs is red (exit 1, verdict red)
+ok   — empty policy is red (exit 1, verdict red)
+ok   — needs array is red (exit 1, verdict red)
+ok   — policy array is red (exit 1, verdict red)
+ok   — malformed needs is red (exit 1, verdict red)
+ok   — malformed policy is red (exit 1, verdict red)
+ok   — absent NEEDS_JSON is red (exit 1, verdict red)
+ok   — absent NIGHTLY_POLICY_JSON is red (exit 1, verdict red)
+ok   — all red job diagnostics render before exit
+—
+passed: 49  failed: 0
+ok   — head commit reported CI Summary -> applies
+ok   — [skip ci] head with no check-runs, parent reported -> applies
+ok   — context only beyond lookback window -> refuses
+ok   — commit list unreadable -> refuses
+ok   — check-runs unreadable -> refuses
+ok   — --force bypasses the guard
+6 passed, 0 failed
+..............
+----------------------------------------------------------------------
+Ran 14 tests in 1.867s
+
+OK
+ok   - issues-only inventory: exit 0 and file written
+ok   - issues-only inventory: schema, repo, 40-hex main_sha
+ok   - issues-only inventory: collected_at from INBOX_NOW_EPOCH
+ok   - issues-only inventory: exactly two issues, PR filtered, sorted
+ok   - issues-only inventory: shell-metachar title was not executed
+ok   - issues-only inventory: no mutations or unexpected gh calls
+ok   - auth failure: non-zero exit and no output file
+ok   - auth failure: no mutations or unexpected gh calls
+ok   - page2 failure: non-zero exit and no output file
+ok   - page2 failure: no mutations or unexpected gh calls
+ok   - failure leaves no temp inventory behind
+ok   - unknown flag exits 64
+ok   - PR inventory: exit 0 and file written
+ok   - duplicate check-runs: latest completed_at wins (success, superseded_count 1, foreign app ignored)
+ok   - no check-runs: conclusion null with reason no_check_runs
+ok   - unknown mergeable: stays "unknown" after bounded retries, not coerced
+ok   - unknown mergeable: exactly 3 bounded reads
+ok   - mergeable_state behind sets behind true
+ok   - lock_delta parse: two packages with from/to, garbage ignored
+ok   - manifest_files: mix.exs, mix.lock, workflows, package*.json only
+ok   - PR fields: author, base, head_sha, title kept verbatim
+ok   - prs sorted by number
+ok   - terminal include 93: closed, merged false, kind pr
+ok   - terminal include 77: merged true
+ok   - terminal include 88: issue with state_reason completed
+ok   - retained issue observation keeps actual open state without inventing closure
+ok   - protection 200: source protection, strict true, enforce_admins false (booleans)
+ok   - main_ci: latest push run with completed failures exclude unfinished jobs
+ok   - PR inventory: no mutations or unexpected gh calls
+ok   - PR title with shell metacharacters was not executed
+ok   - protection 403: branches-partial with strict/enforce_admins "unreadable" (never booleans)
+ok   - protection 403: no mutations or unexpected gh calls
+ok   - protection and branches both failing: source unreadable
+ok   - 5xx on protection: abort with no output file
+ok   - 5xx on main CI jobs: abort with no output file
+ok   - malformed issues response: abort with no output file
+ok   - hex.audit findings: collector exits 0
+ok   - hex.audit findings: hex_audit_root status findings
+ok   - hex.audit findings: three root findings, ignored false, source hex_audit
+ok   - hex.audit runs with ignores emptied (root)
+ok   - demo audit uses scratch MIX_DEPS_PATH/MIX_BUILD_PATH, never the caller's
+ok   - demo audit clean when fake demo audit is clean
+ok   - deps_audit second opinion recorded
+ok   - actions recorded not-applicable
+ok   - hex.audit findings: no mutations or unexpected gh calls
+ok   - hex.audit clean: status clean and no findings
+ok   - hex.audit exit 1 with no section marker: abort, no output file
+ok   - Ignored advisories section: findings tagged ignored true (exit 0 still findings)
+ok   - demo findings carry scope examples/adoption_demo
+ok   - demo deps.get failure records unreadable with reason (never clean)
+ok   - --skip-demo-audit records unreadable with reason skipped
+ok   - --skip-demo-audit never touches the demo project
+ok   - a lock file changing during collection aborts with no output file
+ok   - deps.audit findings recorded as second opinion
+ok   - deps.audit successful exit cannot hide a Git refresh error
+ok   - deps.audit refresh error: no mutations or unexpected gh calls
+ok   - deps.audit error detection reads complete output before the diagnostic tail
+ok   - deps.audit early error: no mutations or unexpected gh calls
+ok   - deps.audit refresh failure stays unreadable alongside cached findings
+ok   - deps.audit error with findings: no mutations or unexpected gh calls
+ok   - alerts 403 'disabled for this repository' -> source_disabled; vulnerability-alerts 404 -> source_disabled; no zero count
+ok   - alerts 403 missing scope -> unreadable (never source_disabled); vulnerability-alerts 403 -> unreadable
+ok   - alerts 404 -> unreadable with http and message
+ok   - vulnerability-alerts 204 and alerts 200 -> enabled, open alerts become dependabot findings
+ok   - GitHub-side advisory sources: no mutations or unexpected gh calls
+ok   - 5xx on dependabot alerts: abort with no output file
+ok   - --hex-package records the first released version per package
+ok   - unknown --hex-package aborts with no output file
+ok   - all job pages: unfinished jobs separated from terminal failures
+ok   - paginated job states: no mutations or unexpected gh calls
+ok   - collector derives actual terminal attribution and passing CI
+ok   - collected landing evidence: no mutations or unexpected gh calls
+ok   - collector derives repair from real range and both CI sources
+ok   - collected demo repair: no mutations or unexpected gh calls
+ok   - unknown repair policy aborts without inventory
+ok   - unknown demo repair: no mutations or unexpected gh calls
+ok   - unbound landing CI aborts without output
+ok   - unbound landing CI: no mutations or unexpected gh calls
+ok   - unreadable terminal files abort without output
+ok   - unreadable terminal files: no mutations or unexpected gh calls
+ok   - tripwire flags: api -X POST repos/x
+ok   - tripwire flags: api --method=PUT repos/x
+ok   - tripwire flags: api -f a=b repos/x
+ok   - tripwire flags: pr merge 1
+ok   - tripwire flags: issue close 2
+ok   - tripwire flags: run rerun 3
+ok   - tripwire flags: api -XDELETE repos/x
+ok   - tripwire allows GET and read-only verbs
+ok   - clock falls back to date -u +%s
+
+collect_inbox harness: 89 passed, 0 failed
+validate_inbox_ledger: ok (offline)
+ok   - trace: committed trace passes offline
+ok   - trace: one traced change passes offline
+ok   - trace: sha256 altered
+ok   - trace: subject_sha altered
+ok   - trace: candidate id list altered
+ok   - trace: schema altered
+ok   - trace: candidate_id outside the pinned ids
+ok   - trace: intent style
+ok   - trace: empty proof
+ok   - trace: empty files
+ok   - trace: blank detector
+ok   - trace: pr not an integer
+ok   - trace: pr integer accepted
+ok   - trace: anchor missing a key
+ok   - trace: duplicate change id
+ok   - trace: anchor still present in the baseline
+ok   - trace: changes not an array
+ok   - trace: every reason reported in one run
+ok   - trace: missing trace file
+ok   - trace: invalid JSON trace
+ok   - trace: unknown flag is a usage error
+ok   - trace: missing mode is a usage error
+ok   - trace: verify-source rejects a different file
+ok   - trace --base: anchor removed since base passes
+ok   - trace --base: anchor absent at base
+ok   - trace --base: unknown ref is rejected
+ok   - trace: shell substitution text is data, never executed
+ok   - boundary: comment-only lib change passes
+ok   - boundary: empty change passes
+ok   - boundary: non-release workflow change passes
+ok   - boundary: aliases comment in mix.exs passes
+ok   - boundary: migration edit
+ok   - boundary: new migration
+ok   - boundary: migration moved out
+ok   - boundary: mix.lock
+ok   - boundary: CHANGELOG.md
+ok   - boundary: release-please-config.json
+ok   - boundary: .release-please-manifest.json
+ok   - boundary: release workflow
+ok   - boundary: new release workflow
+ok   - boundary: public surface fixture
+ok   - boundary: telemetry contract test
+ok   - boundary: mix.exs @version
+ok   - boundary: mix.exs dep line
+ok   - boundary: mix.exs package files
+ok   - boundary: uncommitted mix.lock edit
+ok   - boundary: every reason reported in one run
+ok   - boundary: base that moved on is compared at the merge base
+ok   - boundary: unknown base ref
+ok   - boundary: missing base is a usage error
+ok   - boundary: option-shaped base is a usage error
+ok   - boundary: path text is data, never executed
+
+52 passed, 0 failed
+validate_readability_trace: ok (offline)
+ok   - partition: clean fixture exits 0
+ok   - partition: file no class covers is uncovered
+ok   - adjacency: overlapping classes double-classify
+ok   - adjacency: identical pathspecs double-classify, never merge
+ok   - partition: exclude carves a sub-tree out of a class
+ok   - empty: class matching no tracked file is stale
+ok   - empty: no classes rejected
+ok   - empty: class with no pathspecs rejected
+ok   - empty: exclude-only pathspecs rejected (would match the whole tree)
+ok   - empty: short-form exclude-only pathspecs rejected
+ok   - pathspecs: unanchored wildcard exclude rejected
+ok   - schema: wrong schema id rejected
+ok   - identity: duplicate class id rejected
+ok   - ordering: all reasons reported in one run, sorted by rule then path
+ok   - idempotency: second run yields identical output and leaves git status unchanged
+ok   - concurrency: two concurrent runs both exit 0 with identical output
+ok   - fields: missing authority rejected
+ok   - fields: authority outside the vocabulary rejected
+ok   - fields: missing consumer rejected
+ok   - fields: empty consumer on a retained class rejected
+ok   - fields: untracked consumer path rejected
+ok   - fields: package outside shipped|excluded rejected
+ok   - fields: disposition outside retain|delete|ignore rejected
+ok   - fields: missing reason rejected
+ok   - regenerate: generated class without regenerate rejected
+ok   - regenerate: regenerate on a non-generated class rejected
+ok   - regenerate: unvetted hygiene command rejected
+ok   - regenerate: drift_check none needs a reason
+ok   - regenerate: drift_check none with a reason accepts any command
+ok   - regenerate: untracked drift path rejected
+ok   - injection: shell text in a hygiene command is rejected and never executed
+ok   - injection: no file created by ledger text
+ok   - package: shipped class outside the mix.exs files list rejected
+ok   - package: excluded class inside the mix.exs files list rejected
+ok   - package: unreadable mix.exs files list is a reject, never a pass
+ok   - ignore: effective .gitignore line missing from ignore_rules rejected
+ok   - ignore: rule listed twice rejected
+ok   - ignore: rule that no tracked .gitignore has rejected
+ok   - ignore: produced_by required
+ok   - ignore: tracked file matched by an ignore rule rejected
+ok   - junk: tracked file matching a junk pattern rejected
+ok   - junk: exclude-only junk pattern rejected
+ok   - roots: verification root without an ignore rule rejected
+ok   - roots: absolute verification root rejected
+ok   - settled: delete class with an empty consumer list is accepted
+ok   - settled: --require-settled rejects a delete class
+ok   - retained receipt: archiving the receipt prints exactly one retained receipt line and no stale class line
+ok   - retained receipt: class without immutable-receipt authority rejected
+ok   - retained receipt: missing identity rejected
+ok   - archive simulation: only the retained receipt is left in the phases directory
+ok   - archive simulation: archiving every other phase directory stays green
+ok   - archive simulation: archiving the live retained receipt prints exactly the retained receipt line
+ok   - cli: no arguments exits 64
+ok   - cli: missing --offline exits 64
+ok   - cli: unknown flag exits 64
+ok   - cli: --ledger defaults to the committed ledger under --root
+ok   - cli: malformed ledger rejected
+ok   - live: committed ledger partitions the repository
+
+58 passed, 0 failed
+validate_artifact_ledger: ok (offline, 3357 files, 46 classes)
+ok   - clean clone on main equal to origin/main: safe
+ok   - clean clone: the vetted generator ran as argv and mix ci did not run without --with-mix-ci
+ok   - release-prep on a clean clone: safe
+ok   - unreachable remote: BLOCK fetch
+ok   - unreachable remote in release-prep: BLOCK fetch
+ok   - --ci does not fetch: unreachable remote is not a BLOCK
+ok   - feature branch: BLOCK branch
+ok   - detached HEAD: BLOCK branch, never PASS HEAD
+ok   - origin has a newer commit: BLOCK head vs origin behind=1
+ok   - local unpushed commit: BLOCK head vs origin ahead=1
+ok   - RINDLE_HYGIENE_BRANCH selects the expected branch
+ok   - unknown argument: usage exit 64
+ok   - --ci with --with-mix-ci: usage exit 64
+ok   - committed .DS_Store: BLOCK tracked junk
+ok   - committed .DS_Store under --ci: BLOCK tracked junk
+ok   - committed file an ignore rule matches: BLOCK tracked junk
+ok   - committed file matching a ledger junk pattern only: BLOCK tracked junk
+ok   - generator rewrites a drift path: BLOCK generated drift
+ok   - generator rewrites a drift path in release-prep: BLOCK generated drift
+ok   - generator creates an untracked file beside a drift path: BLOCK generated drift
+ok   - --ci skips generated drift (brandbook-tokens proves it on PRs)
+ok   - --ci runs no generator
+ok   - unverified branch: generators are not run
+ok   - unverified branch runs no generator
+ok   - ledger lists an unvetted generator command: BLOCK generated drift
+ok   - unvetted ledger command is data: not executed
+ok   - mix ci exits non-zero: BLOCK mix ci
+ok   - mix ci exits 0 with two of three sentinels: BLOCK mix ci incomplete
+ok   - mix ci with every sentinel: PASS mix ci, log not printed
+ok   - release-prep with mix ci: PASS mix ci
+ok   - verification leaves an untracked file: BLOCK post-verification residue
+ok   - verification writes under _build/: no residue BLOCK
+ok   - verification leaves an ignored file outside the roots: BLOCK post-verification residue
+ok   - SIGTERM during mix ci: exits 143 promptly, no log left in TMPDIR, checkout unchanged
+ok   - publish race under --ci: WARN hex baseline, exit 0
+ok   - publish race under --release-prep: BLOCK hex baseline
+ok   - before publish under --ci: PASS hex baseline
+
+37 passed, 0 failed
+ok   - two green SHAs with safe hygiene pass
+ok   - newest scheduled Nightly on a descendant is observed, unrelated runs skipped
+ok   - observed Nightly records its head SHA and conclusion
+ok   - every gh call is api -X GET (pass case)
+ok   - a failed push run fails naming the SHA and ci_push failure
+ok   - an in-progress run (null conclusion) fails as ci_push pending
+ok   - no push run for a SHA fails as ci_push missing
+ok   - the newest push run for a SHA is the one judged
+ok   - CI Summary failure on a green run fails as ci_summary failure
+ok   - a fix: subject fails as releasing subject
+ok   - a feat(scope): subject fails as releasing subject
+ok   - a hygiene log without the safe line fails naming hygiene
+ok   - hygiene exit 1 fails naming hygiene
+ok   - no scheduled Nightly on a descendant is pending and the verdict still passes
+ok   - every gh call is api -X GET (nightly case)
+ok   - fake gh rejects gh run rerun and api -X POST with exit 97
+ok   - a collector built to call gh run rerun is caught
+ok   - an unknown flag exits 64
+ok   - a missing --shas-file exits 64
+ok   - a --repo outside OWNER/NAME exits 64 before any gh call
+ok   - a SHA line that is not 40-character hex exits 64 before any gh call
+
+collect_phase_gate_evidence harness: 21 passed, 0 failed
+::endgroup::
+::group::Incident and inbox contracts
+ok   — manual closure history records recovery on its original closed incident
+ok   — manual closure history recovery is mutation-idempotent
+ok   — manual closure checkpoint records recovery on its original closed incident
+ok   — manual closure checkpoint recovery is mutation-idempotent
+ok   — manual closure red fails before mutation or retry
+ok   — manual closure wrong-owner fails before mutation or retry
+ok   — red-A/green-B history opens, updates, and closes exactly once
+ok   — same complete log replay is mutation-idempotent
+ok   — repeated green with no incident is an unmarked no-op
+ok   — delayed middle artifact is retried before mutation
+ok   — missing middle artifact fails before issue mutation
+ok   — duplicate event artifact fails before issue mutation
+ok   — malformed event fails before issue mutation
+ok   — foreign repository event fails before issue mutation
+ok   — run/artifact identity mismatch fails before issue mutation
+ok   — historical event SHA mismatch fails before issue mutation
+ok   — foreign high-watermark SHA fails before issue mutation
+ok   — duplicate marker ownership fails closed
+ok   — simultaneous open incidents fail closed
+ok   — workflow-run API failure performs no issue mutation
+ok   — stale mutation preimage restarts full replay
+ok   — uncertain mutation outcome restarts and converges
+ok   — bounded uncertain mutation exhaustion fails without skipping
+ok   — lagging issue list after a mutation does not duplicate the create
+ok   — mutation never visible fails closed without a second create
+ok   — both scheduled attempts replay as distinct ordered events
+ok   — a missing earlier attempt fails before incident mutation
+ok   — expired evidence before authenticated checkpoint permits replay
+ok   — expired evidence after checkpoint fails before mutation
+ok   — tampered checkpoint fails before mutation
+ok   — concurrent issue-history advancement invalidates checkpoint
+ok   — repository retention cap below 14 days fails before mutation
+ok   — edit to pre-checkpoint issue body still invalidates checkpoint
+ok   — backdated marker at or before the checkpoint cursor still invalidates checkpoint
+ok   — unmarked issue created after the checkpoint still invalidates checkpoint
+ok   — forged post-checkpoint marker with the wrong action fails before mutation
+ok   — post-checkpoint marker for a run with no verdict event fails before mutation
+ok   — post-checkpoint marker for an attempt with no verdict event fails before mutation
+ok   — issue opened after the checkpoint by a run that died before checkpointing converges
+ok   — issue opened after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+ok   — update after the checkpoint by a run that died before checkpointing converges
+ok   — update after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+ok   — close after the checkpoint by a run that died before checkpointing converges
+ok   — close after the checkpoint by a run that died before checkpointing converges: re-run from the same checkpoint is mutation-idempotent
+ok   — checkpoint inside expiry safety margin fails before mutation
+ok   — near-expiry checkpoint advances through active high-watermark
+ok   — genesis adopts the legacy open incident and closes it citing the green run
+ok   — genesis adopts the legacy open incident and closes it citing the green run: re-run on the same run is mutation-idempotent
+ok   — genesis adopts the legacy open incident and updates it citing the red run
+ok   — genesis adopts the legacy open incident and updates it citing the red run: re-run on the same run is mutation-idempotent
+ok   — genesis with duplicate legacy open incidents fails closed
+ok   — genesis with an unlabelled open incident fails closed
+ok   — genesis with a mutation marker before the genesis run fails closed
+ok   — a missing verdict artifact after genesis still fails closed
+—
+passed: 54  failed: 0
+ok   - live: clean fixtures exit 0
+ok   - live: missing PR 105 rejected
+ok   - live: missing issue 42 rejected
+ok   - live: duplicate issue 42 rejected
+ok   - live: repo mismatch rejected
+ok   - live: all problems reported in one run
+ok   - live: stale PR head rejected
+ok   - live: inventory older than bound rejected
+ok   - live: custom --max-age-seconds accepted
+ok   - live: inventory from the future rejected
+ok   - live: wrong inventory schema rejected
+ok   - live: item for non-open number without terminal rejected
+ok   - live: terminal merged mismatch rejected
+ok   - live: terminal without inventory lookup rejected
+ok   - live: terminal on a still-open item rejected
+ok   - history: still-open retained issue accepted
+ok   - history: fresh completed issue lookup accepted
+ok   - history: duplicate individual lookup rejected
+ok   - history: unknown closure reason rejected
+ok   - history: missing individual lookup rejected
+ok   - history: wrong issue lookup rejected
+ok   - history: unlisted but open lookup rejected
+ok   - history: unplanned closure rejected
+ok   - history: merged result rejected for issue
+ok   - history: policy cannot apply to PR
+ok   - history: policy cannot override fixed terminal
+ok   - history: policy cannot apply to close disposition
+ok   - history: unknown policy rejected
+ok   - live: supersede without successor rejected
+ok   - live: supersede with successor accepted
+ok   - live: defer without gate rejected
+ok   - live: defer without trigger rejected
+ok   - live: defer trigger outside vocabulary rejected
+ok   - live: unknown disposition rejected
+ok   - live: pending defer accepted
+ok   - live: fired date trigger rejected
+ok   - live: misspelled trigger type rejected
+ok   - live: hex_version_gte satisfied by hex_latest rejected
+ok   - live: gh_issue_closed satisfied rejected
+ok   - live: unevaluable trigger rejected
+ok   - live: merge with failing CI Summary rejected
+ok   - live: merge behind main rejected
+ok   - live: merge behind main with pending_action rebase accepted
+ok   - live: lock delta outside group_packages rejected
+ok   - live: unknown pending_action rejected
+ok   - live: inventory finding without ledger record rejected
+ok   - live: resolved record still reported rejected
+ok   - live: expired exception rejected
+ok   - live: exception missing trigger rejected
+ok   - live: open advisory record rejected
+ok   - live: ledger record no longer reported and not resolved rejected
+ok   - live: ignored finding needs an exception
+ok   - live: ignored finding with unexpired exception accepted
+ok   - live: fired exception trigger rejected
+ok   - live: bad reachability enum rejected
+ok   - live: dependabot disabled without ledger source record rejected
+ok   - live: dependabot disabled with empty rationale rejected
+ok   - live: dependabot ledger status mismatch rejected
+ok   - live: dependabot enabled needs no ledger record
+ok   - live: hex_audit_root unreadable rejected
+ok   - live: hex_audit_demo unreadable rejected
+ok   - live: twin pass rejected
+ok   - live: non-pass gate rejected
+ok   - live: lock_delta outside group_packages rejected
+ok   - live: merge_sha not 40-hex rejected
+ok   - offline: clean ledger exit 0
+ok   - offline: open advisories and pending actions exit 0
+ok   - offline: unknown disposition rejected
+ok   - offline: missing rationale rejected
+ok   - offline: PR item without head_sha rejected
+ok   - offline: unknown trigger type rejected
+ok   - offline: wrong schema id rejected
+ok   - offline: advisory missing path rejected
+ok   - offline: risk_group without group_packages rejected
+ok   - offline: twin pass landing rejected
+ok   - offline: empty landings accepted
+ok   - offline: reads no clock
+ok   - cli: no arguments exits 64
+ok   - cli: neither --offline nor --inventory exits 64
+ok   - cli: --offline with --inventory exits 64
+ok   - cli: unknown flag exits 64
+ok   - cli: malformed ledger JSON rejected
+ok   - cli: missing ledger file rejected
+ok   - print-collector-args: one --include per terminal/closed-trigger number and --hex-package per version trigger
+ok   - history: collector flags include individual issue lookup
+ok   - merged: matching fresh landing accepted
+ok   - merged: deleted landing rejected
+ok   - merged: ledger boolean cannot hide lock change
+ok   - merged: duplicate landing rejected
+ok   - merged: missing source filenames rejected
+ok   - merged: fresh proof missing rejected
+ok   - merged: duplicate fresh proof rejected
+ok   - merged: fabricated CI run rejected
+ok   - merged: foreign merge SHA rejected
+ok   - merged: lock delta mismatch rejected
+ok   - merged: group mismatch rejected
+ok   - merged: package group mismatch rejected
+ok   - merged: failed proof rejected
+ok   - merged: wrong evidence SHA rejected
+ok   - merged: verified descendant accepted
+ok   - merged: descendant without equivalence rejected
+ok   - merged: source-changing descendant rejected
+ok   - merged: malformed descendant SHA rejected offline
+ok   - merged: explicit verified Cohort repair accepted with original failure
+ok   - merged: repair cannot hide original failure
+ok   - merged: repair cannot cover library changes
+ok   - merged: repair cannot omit actual config change
+ok   - merged: additional original failure cannot qualify
+ok   - merged: missing original source cannot qualify
+ok   - merged: unknown repair policy cannot qualify
+ok   - merged: forged repair differs from fresh proof
+ok   - merged: repaired CI must be wholly successful
+ok   - merged: repair cannot substitute planning equivalence
+ok   - ledger text is data: shell and trigger injection not executed
+
+114 passed, 0 failed
+ok   — clean group: exit 0
+ok   — clean group: verdict pass and attributable
+ok   — clean group: schema tag
+ok   — clean group: delta shows from/to per package
+ok   — clean group: mix_exs_changed false
+ok   — clean group: all gates pass
+ok   — clean group: twin is the not-applicable literal
+ok   — clean group: twin never reported as pass
+ok   — clean group: main-only lanes are mapped to package_consumer
+ok   — clean group: unrelated job has no gate
+ok   — clean group: run recorded
+ok   — clean group: no mutations or unexpected gh calls
+ok   — extra package in delta: exit 1
+ok   — extra package: attributable false
+ok   — extra package: no mutations or unexpected gh calls
+ok   — mix.exs also edited: exit 1
+ok   — mix.exs edit: flagged
+ok   — merge commit rejected: exit 1
+ok   — actions group, workflow-only commit: exit 0
+ok   — actions group: attributable with empty delta
+ok   — actions group, commit that changes mix.lock: exit 1
+ok   — actions group lock change: attribution failed
+ok   — Adoption Demo E2E absent: exit 1
+ok   — absent E2E: package_consumer missing
+ok   — no Quality leg (prefix unmatched): exit 1
+ok   — no Quality leg: supported_toolchain missing
+ok   — Smoke job does not stand in for exact E2E name: exit 1
+ok   — missing Smoke: package_consumer missing
+ok   — red on landing, green on baseline: exit 1
+ok   — regression: class and gate
+ok   — regression: baseline recorded
+ok   — regression: no mutations or unexpected gh calls
+ok   — red on both runs: exit 3
+ok   — inherited_red: class and gate
+ok   — inherited_red: baseline conclusion kept
+ok   — red with no baseline given is a regression: exit 1
+ok   — Contract red, baseline green: exit 1
+ok   — Contract red: public_contract fail
+ok   — run in progress: exit 75
+ok   — no run for the SHA: exit 75
+ok   — 75 paths: no mutations or unexpected gh calls
+ok   — baseline mode: gates only: exit 0
+ok   — baseline mode: attribution skipped
+ok   — baseline mode: gates evaluated
+ok   — packages without group is a usage error: exit 64
+ok   — no arguments: exit 64
+ok   — disallowed lock path: exit 64
+ok   — non-hex sha: exit 64
+ok   — --out writes the evidence file atomically
+ok   — --out leaves no temp files
+ok   — planning-only descendant accepted: exit 0
+ok   — descendant preserves original merge and explicit equivalence
+ok   — descendant evidence: no mutations or unexpected gh calls
+ok   — reversed descendant range rejected: exit 1
+ok   — unrelated descendant range rejected: exit 1
+ok   — descendant changing mix.lock rejected: exit 1
+ok   — reverted mix.lock still rejected: exit 1
+ok   — descendant changing mix.exs rejected: exit 1
+ok   — reverted mix.exs still rejected: exit 1
+ok   — descendant changing lib/rindle.ex rejected: exit 1
+ok   — reverted lib/rindle.ex still rejected: exit 1
+ok   — descendant changing .github/workflows/ci.yml rejected: exit 1
+ok   — reverted .github/workflows/ci.yml still rejected: exit 1
+ok   — descendant changing .planning/tools/check.py rejected: exit 1
+ok   — reverted .planning/tools/check.py still rejected: exit 1
+ok   — descendant changing .planning/config.json rejected: exit 1
+ok   — reverted .planning/config.json still rejected: exit 1
+ok   — explicit demo repair accepts only the repaired passing source: exit 0
+ok   — repair retains original regression and distinct evidence identity
+ok   — explicit demo repair: no mutations or unexpected gh calls
+ok   — demo source repair remains forbidden without explicit mode: exit 1
+ok   — repair requires explicit group, package and evidence source: exit 64
+ok   — planning alone cannot pretend to repair a demo regression: exit 1
+ok   — demo repair changing mix.lock rejected: exit 1
+ok   — demo repair reverted mix.lock still rejected: exit 1
+ok   — demo repair changing mix.exs rejected: exit 1
+ok   — demo repair reverted mix.exs still rejected: exit 1
+ok   — demo repair changing examples/adoption_demo/mix.lock rejected: exit 1
+ok   — demo repair reverted examples/adoption_demo/mix.lock still rejected: exit 1
+ok   — demo repair changing examples/adoption_demo/mix.exs rejected: exit 1
+ok   — demo repair reverted examples/adoption_demo/mix.exs still rejected: exit 1
+ok   — demo repair changing lib/rindle.ex rejected: exit 1
+ok   — demo repair reverted lib/rindle.ex still rejected: exit 1
+ok   — demo repair changing .github/workflows/ci.yml rejected: exit 1
+ok   — demo repair reverted .github/workflows/ci.yml still rejected: exit 1
+ok   — demo repair changing docker/Dockerfile.cohort-demo rejected: exit 1
+ok   — demo repair reverted docker/Dockerfile.cohort-demo still rejected: exit 1
+ok   — demo repair changing scripts/ci/cohort_demo_smoke.sh rejected: exit 1
+ok   — demo repair reverted scripts/ci/cohort_demo_smoke.sh still rejected: exit 1
+ok   — demo repair changing .planning/config.json rejected: exit 1
+ok   — demo repair reverted .planning/config.json still rejected: exit 1
+ok   — demo repair config cannot become a symlink: exit 1
+ok   — demo repair must retain its actual config change: exit 1
+ok   — demo repair rejects green-original: exit 1
+ok   — demo repair rejects wrong-failure: exit 1
+ok   — demo repair rejects additional-failure: exit 1
+ok   — demo repair rejects cancelled-original: exit 1
+ok   — demo repair rejects incomplete-original: exit 1
+ok   — demo repair rejects failed-repair: exit 1
+ok   — retained original and repair responses use the same repair proof: exit 0
+ok   — retained repair performs no extra GitHub transport
+ok   — retained repair cannot escape transport for missing original data: exit 64
+ok   — original responses require an explicit paired repair operation: exit 64
+ok   — retained repair rejects a foreign original source: exit 1
+ok   — retained repair rejects malformed original jobs: exit 1
+ok   — invalid retained original data cannot escape transport
+ok   — retained demo repair: no mutations or unexpected gh calls
+ok   — foreign CI identity rejected: head_sha="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": exit 1
+ok   — foreign CI identity rejected: event="workflow_dispatch": exit 1
+ok   — foreign CI identity rejected: head_branch="other": exit 1
+ok   — foreign CI identity rejected: repository.full_name="foreign/repo": exit 1
+ok   — foreign CI identity rejected: path=".github/workflows/other.yml": exit 1
+ok   — retained GET inputs share the attribution/CI gate: exit 0
+ok   — retained inputs preserve exact run identity
+ok   — retained inputs perform no additional GitHub calls
+ok   — unpaired retained inputs reject: exit 64
+ok   — retained inputs cannot shadow baseline transport: exit 64
+ok   — malformed retained jobs reject: exit 1
+ok   — tripwire flags: api -X POST x
+ok   — tripwire flags: api --method=PUT x
+ok   — tripwire flags: api -f a=b x
+ok   — tripwire flags: api -XDELETE x
+ok   — tripwire flags: pr merge 1
+ok   — tripwire flags: run rerun 1
+ok   — script has no write-method flag
+ok   — script reads no .planning/phases path
+
+dep_landing_evidence harness: 126 passed, 0 failed
+::endgroup::
+::group::Readiness and baseline contracts
+Running ExUnit with seed: 0, max_cases: 8
+
+...........................................................not_ready: duplicate_json_key: duplicate JSON object key
+.ready: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+.not_ready: unsafe_path: symlinks and special files forbidden
+not_ready: unsafe_path: relative confined path required
+not_ready: unsafe_path: relative confined path required
+not_ready: io_failure: missing, unreadable or malformed evidence
+........
+Finished in 6.7 seconds (0.1s on load, 0.00s async, 6.6s sync)
+69 tests, 0 failures
+PASS: exact-head readiness CLI, immutable graph, negative-case count >= 40; refresh graph and path confinement
+...not_ready: main_changed
+.QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+..QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+.QUALIFY format
+not_ready: command_timeout
+.QUALIFY format
+not_ready: qualification_unavailable
+.owned cleanup observed; original readiness attempt remains unchanged
+QUALIFY format
+not_ready: qualification_unavailable
+.not_ready: cleanup_failed
+.QUALIFY format
+not_ready: qualification_unavailable
+..QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+....local qualification complete; readiness remains not_ready until remote closure
+QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+.local qualification complete; readiness remains not_ready until remote closure
+QUALIFY format
+QUALIFY compile
+QUALIFY credo
+QUALIFY dialyzer-fresh
+QUALIFY dialyzer-restored
+QUALIFY coverage
+QUALIFY security
+QUALIFY docs
+QUALIFY contracts
+QUALIFY package
+QUALIFY generated-consumer
+QUALIFY doctor
+QUALIFY twin-recovery
+QUALIFY inbox-ledger
+QUALIFY contributor-bootstrap
+QUALIFY async-isolation
+QUALIFY release-truth
+QUALIFY hygiene
+......local qualification complete; readiness remains not_ready until remote closure
+QUALIFY format
+not_ready: qualification_interrupted
+.
+----------------------------------------------------------------------
+Ran 25 tests in 16.537s
+
+OK
+PASS: exact-head qualification full-gate fixture assertions; exact archive/metadata/payload identities, owned cleanup and nonpassing failure paths
+........................................................
+----------------------------------------------------------------------
+Ran 56 tests in 31.949s
+
+OK
+not_ready: remote_unavailable
+not_ready: protection_drift
+collected: remote_sources_collected
+not_ready: incident_artifact_digest
+not_ready: incident_artifact_unsafe
+not_ready: attempt_changed
+not_ready: latest_attempt_not_green
+collected: remote_sources_collected
+collected: remote_sources_collected
+collected: remote_sources_collected
+not_ready: inventory_count_limit
+not_ready: job_inventory
+not_ready: incident_artifact_identity
+not_ready: unavailable_json
+not_ready: foreign_next_page
+not_ready: incident_policy
+not_ready: workflow_policy_drift
+not_ready: historical_timing_receipt_changed
+not_ready: incident_identity
+not_ready: protection_binding_unavailable
+not_ready: attempt_changed
+not_ready: main_changed
+not_ready: job_inventory
+not_ready: job_inventory
+not_ready: incomplete_pages
+not_ready: job_inventory
+not_ready: job_inventory
+not_ready: newer_run_observed
+not_ready: latest_attempt_not_green
+not_ready: latest_attempt_not_green
+not_ready: pagination_query_drift
+not_ready: scheduled_run_missing
+not_ready: job_identity
+not_ready: protection_drift
+not_ready: remote_forbidden
+not_ready: remote_rate_limited
+not_ready: workflow_policy_drift
+not_ready: job_outcome
+collected: remote_sources_collected
+not_ready: protection_drift
+not_ready: unavailable_json
+not_ready: incident_policy
+collected: remote_sources_collected
+not_ready: incident_identity
+not_ready: job_identity
+not_ready: protection_drift
+not_ready: workflow_identity
+PASS readiness runs: 56 CI/scheduled/protection/topology fixtures; no READY credit
+.....................................................................
+----------------------------------------------------------------------
+Ran 69 tests in 19.788s
+
+OK
+collected: remote_dispositions_collected
+not_ready: advisory_visibility_unproved
+not_ready: pagination_query_drift
+collected: remote_dispositions_collected
+not_ready: advisory_visibility_changed
+not_ready: remote_state_changed
+not_ready: remote_state_changed
+not_ready: ledger_reconciliation_failed
+not_ready: incomplete_pages
+collected: remote_dispositions_collected
+not_ready: landing_evidence_unavailable
+collected: remote_dispositions_collected
+not_ready: landing_evidence_unavailable
+not_ready: remote_forbidden
+not_ready: remote_forbidden
+not_ready: ambiguous_inventory_identity
+not_ready: ledger_reconciliation_failed
+not_ready: unavailable_json
+collected: remote_dispositions_collected
+not_ready: ledger_reconciliation_failed
+not_ready: landing_evidence_unavailable
+collected: remote_dispositions_collected
+not_ready: ledger_reconciliation_failed
+collected: remote_dispositions_collected
+not_ready: hex_source_unavailable
+not_ready: hex_source_identity
+not_ready: remote_state_changed
+not_ready: hex_lock_coverage
+not_ready: hex_identity
+collected: remote_dispositions_collected
+not_ready: check_attempt_identity
+not_ready: ledger_changed
+not_ready: remote_state_changed
+not_ready: main_changed
+not_ready: ledger_reconciliation_failed
+not_ready: fixture_response_missing
+not_ready: advisory_visibility_unproved
+not_ready: check_attempt_unavailable
+not_ready: issue_terminal_mismatch
+not_ready: issue_undispositioned
+not_ready: ledger_reconciliation_failed
+collected: remote_dispositions_collected
+not_ready: fixture_response_map_invalid
+not_ready: incomplete_pages
+not_ready: incomplete_pages
+not_ready: incomplete_pages
+collected: remote_dispositions_collected
+collected: remote_dispositions_collected
+not_ready: remote_unavailable
+collected: remote_dispositions_collected
+not_ready: remote_rate_limited
+not_ready: remote_unavailable
+not_ready: ledger_shape_invalid
+not_ready: issue_terminal_mismatch
+collected: remote_dispositions_collected
+collected: remote_dispositions_collected
+not_ready: remote_state_changed
+collected: remote_dispositions_collected
+collected: remote_dispositions_collected
+not_ready: ledger_reconciliation_failed
+not_ready: remote_unauthorized
+not_ready: pull_undispositioned
+not_ready: remote_unavailable
+not_ready: lock_inventory_unavailable
+not_ready: ci_summary_workflow_identity
+PASS readiness remote: 69 issue/disposition/privacy fixtures; no READY credit
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 24.308s
+
+OK
+candidate_ready: validated_candidate
+not_ready: mutable_source_changed
+not_ready: cleanup_failed
+not_ready: object_digest_changed
+not_ready: validator_proof_outcome
+not_ready: invalid_closure_fixture
+not_ready: cleanup_failed
+not_ready: main_changed
+not_ready: main_changed
+not_ready: cleanup_failed
+not_ready: source_registry_incomplete
+not_ready: scheduled_run_missing
+not_ready: local_subject_or_mode
+not_ready: mutable_source_changed
+not_ready: closure_command_timeout
+not_ready: manifest_bytes_changed
+candidate_ready: validated_refresh
+not_ready: main_changed
+not_ready: mutable_source_changed
+not_ready: validator_refresh_inventory
+not_ready: validator_refresh_inventory
+not_ready: closure_unavailable
+not_ready: source_subject_or_mode
+PASS exact-head closure: 32 candidate/immutable-refresh fixtures; no READY credit
+...............................
+----------------------------------------------------------------------
+Ran 31 tests in 3.088s
+
+OK
+PASS: producer sidecar, completed attempt identity, durable byte verification, private canaries and adverse retention fixtures
+...................
+----------------------------------------------------------------------
+Ran 19 tests in 0.182s
+
+OK
+PASS readiness adoption: 19 actual-state/synthetic-rejection fixtures; no READY credit
+.....................
+----------------------------------------------------------------------
+Ran 21 tests in 12.815s
+
+OK
+not_ready: output_must_be_new_external_directory
+not_ready: main_changed
+not_ready: unavailable_json
+not_ready: producer_sidecar_missing_or_ambiguous
+not_ready: validator_refresh_inventory
+not_ready: durable_subject_or_mode
+PASS: merged-subject inventory, durable acceptance join, fresh current/historical claims and no fixture credit
+.......................not_ready: cleanup_failed
+....
+----------------------------------------------------------------------
+Ran 27 tests in 7.126s
+
+OK
+candidate_ready: validated_candidate
+candidate_ready: validated_refresh
+candidate_ready: validated_refresh
+not_ready: acceptance_policy_mismatch
+PASS: all cheap readiness fixtures in 127s (240s fixture budget within existing 5-minute CI seam)
+test_all_configured_contexts_are_required (__main__.LandingTest) ... ok
+test_failures_never_report_a_landing (__main__.LandingTest) ... ok
+test_frozen_head_mismatch_rejects (__main__.LandingTest) ... ok
+test_invalid_version_rejects (__main__.LandingTest) ... ok
+test_missing_checks_reader_rejects_before_any_write (__main__.LandingTest) ... ok
+test_non_main_checkout_rejects (__main__.LandingTest) ... ok
+test_push_rejection_never_creates_pr (__main__.LandingTest) ... ok
+test_queued_then_green_then_actually_merged (__main__.LandingTest) ... ok
+test_staged_ledger_rejects_before_network (__main__.LandingTest) ... ok
+test_unchanged_needs_no_pr_or_merge (__main__.LandingTest) ... ok
+test_unexpected_file_rejects_before_network (__main__.LandingTest) ... ok
+test_unrelated_release_sha_rejects (__main__.LandingTest) ... ok
+test_version_mismatch_rejects (__main__.LandingTest) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 19.120s
+
+OK
+::endgroup::
+{"groups": [{"name": "Existing CI contract harnesses", "exit_code": 0, "state": "completed", "elapsed_seconds": 126.801}, {"name": "Incident and inbox contracts", "exit_code": 0, "state": "completed", "elapsed_seconds": 81.813}, {"name": "Readiness and baseline contracts", "exit_code": 0, "state": "completed", "elapsed_seconds": 146.622}], "exit_code": 0, "requirements_credit": false}

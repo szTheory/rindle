@@ -29,13 +29,16 @@ executable validators, rather than trusting a planning status or checkbox alone.
 ## Implementation Decisions
 
 ### Revision and verdict authority
-- **D-01:** Qualify the final post-merge `main` SHA after all intended tracked implementation,
-  workflow, documentation, and planning changes have landed through the existing PR train. A PR-head
-  pass is preparation, not proof for a different merge commit.
-- **D-02:** Resolve `refs/heads/main` from the authoritative remote before qualification and again
-  immediately before the terminal verdict. Both must equal the declared subject. Any advancement,
-  including a documentation-only commit, invalidates the claim of current-head readiness; old proof
-  remains historical evidence for its original SHA.
+- **D-01 (amended 2026-10-25):** Qualify an explicit immutable previously-main SHA
+  containing the intended implementation and versioned snapshot policy after protected PR
+  delivery. Require actual push-main provenance, current protected-main ancestry and matching
+  executing controller/policy bytes. An arbitrary PR/fork commit is ineligible.
+- **D-02 (amended 2026-10-25):** Keep the accepted candidate fixed while main advances.
+  Record authenticated main observations separately; every local proof, CI/Nightly run,
+  producer digest and artifact byte remains candidate-bound. Refresh mutable current
+  security, inbox ledger, effective protection and adoption/release authority. Missing or
+  changed facts fail closed. A different candidate requires a new immutable attempt.
+  Snapshot verdicts are historical only and never assert current-head readiness.
 - **D-03:** Store the terminal manifest and its receipts outside the tested source tree. Do not commit
   a manifest into the revision it claims to certify, hash the manifest into itself, or silently exempt
   closure/checkmark commits from exact-head binding. Later archival pointers must explicitly describe
@@ -79,11 +82,11 @@ executable validators, rather than trusting a planning status or checkbox alone.
 - **D-11:** Require the complete successful `ci.yml` / `CI` execution for `event=push`, branch `main`,
   and the exact subject, including applicable main-only jobs. Preserve `CI Summary` as the sole
   required PR context; its success alone cannot replace full main/release proof.
-- **D-12:** Prefer and require a qualifying real scheduled Nightly on the closing subject for this
+- **D-12:** Prefer and require a qualifying real scheduled Nightly on the selected previously-main snapshot for this
   phase's final closure path, exercising the existing scheduled incident policy without inventing an
   incident. Dispatch remains useful diagnostic/rehearsal evidence and never substitutes for scheduled
   incident recovery. READY-02 alone does not specify an event; choosing the scheduled path avoids
-  ambiguity with upstream EVID-04 at the acknowledged cost of waiting for the next eligible run.
+  ambiguity with upstream EVID-04 without substituting a manual event. Main advancement does not reset a candidate that already has this actual scheduled proof; a candidate without it remains ineligible.
 - **D-13:** Bind workflow identity, repository, event, branch, SHA, run ID, attempt, and complete expected
   job set. Discover runs without success-only filtering and select the newest eligible execution
   deterministically. A later failure, pending run, or changed attempt cannot be hidden behind an older
@@ -269,3 +272,14 @@ executable validators, rather than trusting a planning status or checkbox alone.
 - The later Doctor migration-ledger todo was assigned to Phase 139 by PROJECT.md and STATE.md;
   it is planned in 139-00 and is outside the earlier deferred recovery-matrix scope.
 </deferred>
+
+## Versioned snapshot implementation amendment — 2026-10-25
+
+User invoked `$gsd-quick --full` for the referenced snapshot design and selected All clear.
+The explicit `--snapshot --subject FULL_SHA` path uses `rindle-snapshot-v2`; the legacy
+current-main path remains distinct. D-20 producer run identity now records producer main
+SHA separately from the admitted evidence subject. Admission executes trusted main code
+before candidate checkout, retains candidate-specific non-cancelling concurrency and
+verifies both identities at retrieval. All D-03/D-04/D-11–14/D-16/D-17/D-23–25 byte,
+event, freshness, disposal, retention and synthetic-only boundaries remain required.
+No live acceptance, credentials, merge or publication is authorized by fixture success.

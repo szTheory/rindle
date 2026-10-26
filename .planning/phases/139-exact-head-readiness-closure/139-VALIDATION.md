@@ -47,12 +47,12 @@ The first task of each plan creates its own fixture driver before that command i
 | 139-05 T1–T2 | `bash scripts/ci/test_exact_head_closure.sh` | 139-05 T1 | nonzero exit or missing bounded-wait or refreshed-receipt graph assertion |
 | 139-06 T1 | `bash scripts/ci/test_readiness_retention.sh` | 139-06 T1 | nonzero exit or missing run-bound sidecar/archive/manifest byte-check assertion |
 | 139-06 T2 | `bash scripts/ci/test_readiness_adoption.sh` and `bash scripts/ci/test_readiness_acceptance.sh` | 139-06 T2 | nonzero exit or missing synthetic-rejection or historical-metadata/current-head parity assertion |
-| 139-07 T1 | `bash scripts/maintainer/exact_head_readiness.sh verify-subject --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR-subject"` | 139-06 T2 | nonzero exit, missing tracked Phase 139 change, dirty checkout, or local/remote SHA mismatch |
-| 139-07 T2 | `bash scripts/maintainer/exact_head_readiness.sh accept --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"` | 139-06 T2 | nonzero exit, non-ready terminal verdict, incomplete live input, changed main, missing producer sidecar, invalid refresh envelope, or missing verified durable copy; normal post-task metadata is then subject/interval qualified and checked by `claim-status` |
+| 139-07 T1 | `bash scripts/maintainer/exact_head_readiness.sh verify-subject --snapshot --subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR-subject"` | 139-06 T2 | nonzero exit, missing tracked Phase 139 change, dirty checkout, arbitrary PR/fork ancestry, candidate substitution or policy mismatch |
+| 139-07 T2 | `bash scripts/maintainer/exact_head_readiness.sh accept --snapshot --subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"` | 139-06 T2 | nonzero exit, non-ready terminal verdict, incomplete fresh live input, substituted candidate, missing producer sidecar, invalid refresh envelope, or missing verified durable copy; normal post-task metadata is then subject/interval qualified and checked by `claim-status` |
 | 139-01–06 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after each plan's SUMMARY.md is written, before its metadata commit | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks summary closeout and commit |
 | 139-07 post-summary and final metadata closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after 139-07-SUMMARY.md and REQUIREMENTS/ROADMAP/STATE edits plus `claim-status` parity, before `git_commit_metadata` | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks metadata closeout and commit |
 
-Terminal automated acceptance: after all tracked implementation, workflow, documentation, and planning changes are merged, Plan 07 runs `verify-subject` and then `accept` from the restricted durable maintainer host with an external evidence directory. `accept` triggers a matching main workflow run, waits for upload, retrieves the exact run/attempt producer digest sidecar and archive, verifies retained archive and manifest bytes, validates the subject-preserving refresh envelope against new mutable receipt bytes and authoritative adoption parity, and checks the final machine-readable ready verdict. A nonzero exit, `not_ready`, changed main, missing scheduled Nightly, incomplete upstream acceptance, or absent verified local copy leaves READY-01–05 open. Only after actual acceptance may normal GSD summary/requirement/progress metadata record historical completion, qualified by accepted SHA and observation interval. Its later commit cannot inherit current-head readiness; `claim-status` proves this in a negative fixture and on any advanced main. The controller has bounded waiting; fixture checks and a candidate `close` verdict are implementation progress only.
+Terminal automated acceptance: after all tracked implementation, workflow, documentation, and planning changes are merged, Plan 07 runs `verify-subject` and then `accept` for one explicit authenticated previously-main snapshot from its clean checkout on the restricted durable maintainer host with an external evidence directory. `accept` triggers a matching main workflow run, waits for upload, retrieves the exact run/attempt producer digest sidecar and archive, verifies retained archive and manifest bytes, validates the subject-preserving refresh envelope against new mutable receipt bytes and authoritative adoption parity, and checks the final machine-readable ready verdict. A nonzero exit, `not_ready`, candidate substitution, missing scheduled Nightly, incomplete upstream acceptance, or absent verified local copy leaves READY-01–05 open. Only after actual acceptance may normal GSD summary/requirement/progress metadata record historical completion, qualified by accepted SHA and observation interval. Its later commit cannot inherit current-head readiness; `claim-status` proves this in a negative fixture and on any advanced main. The controller has bounded waiting; fixture checks and a candidate `close` verdict are implementation progress only.
 
 The automation-first closeout check validates active planning-artifact edits; it does not create or refresh an exact-head readiness verdict. Keep Plan 07's accepted SHA, interval and locator as historical metadata when that metadata later reaches main.
 
@@ -80,6 +80,16 @@ irreversible-action authorization cannot satisfy a requirement. Unavailable live
 - [ ] No three consecutive tasks omit automated verification.
 - [ ] All missing references have earlier creation tasks.
 - [ ] Focused feedback duration measured; no watch-mode commands.
-- [ ] Actual terminal proof validated on final merged main subject.
+- [ ] Actual terminal proof validated on explicit admitted previously-main snapshot subject.
 
 Planning review does not establish execution success or requirement completion.
+
+## Snapshot policy v2 regressions
+
+`bash scripts/ci/test_readiness_snapshot.sh` executes actual validator, closure, refresh,
+retention retrieval and terminal controller paths with main advancing. It rejects PR-only
+provenance, wrong repository/candidate, non-ancestry, unprotected main, failed latest
+attempt, stale subject observations, changed authority and policy bytes, and substituted
+producer identity. Fixture-ready results carry zero acceptance credit. The full existing
+fixture suite remains mandatory, including private-source denial, skipped jobs, manual
+Nightly, cleanup, archive substitution and immutable metadata negatives.

@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "scope": "main-integration-fixtures-only",
+  "previous_head": "681a6728704f59ed082ccc987d8f609346f762ef",
+  "merged_main": "08872439410a2e4f3e18a367cd390f8a35de78e0",
+  "covered_digest": "v3:sha256:7bb3fb3d426bf12efb29e88e1f0abaaaffb3dca90bc95109b74d7c5070c38770",
+  "readiness_cases": 349,
+  "readiness_seconds": 127,
+  "group_seconds": [
+    126.801,
+    81.813,
+    146.622
+  ],
+  "closure_parity_cases": 32,
+  "snapshot_parity_cases": 27,
+  "lane_async_cases": 29,
+  "source_sha256": {
+    ".github/workflows/readiness-retention.yml": "9974a0e3c757436a52d7ca1c5e2bccfcd1aa764c72ecd43ea10465fa79b91cc9",
+    "scripts/ci/readiness_fixture.exs": "8e736972935a97d1a1b890b69ffcfd5c2cc14ee397ab7a3f2fef9b01ddd814a0",
+    "scripts/ci/readiness_validator_fixture.exs": "2bf285930a8099a3859a6e548dab66b6b9cd5108d928396abef3c6ba076f6933",
+    "scripts/ci/readiness_validator_fixture.py": "2686cc523f57cab5017656774128df3d272eaa5649d53dc8e2435bdbe698a574",
+    "scripts/ci/test_exact_head_closure.sh": "9754a049d7c285f27e4df4630663fa0100d225fd4c1a236c62e2f1933e697865",
+    "scripts/ci/test_readiness_fixtures.sh": "f16b239beb1eb7ffaa1f2274ae886168b3b989d06d4bbed7aa9d05ae67233b0a",
+    "scripts/ci/test_readiness_snapshot.py": "10de3eae336c1ac17ee8abd3f84a30246afec0cafe6c9412c60e0bdc7ce8cb6e",
+    "scripts/ci/test_readiness_snapshot.sh": "42bae54dc89fbb105916d2af3fa9ed5404ef2251b4457c5e2e626aaf9ca52921",
+    "scripts/maintainer/collect_readiness_remote.py": "6e97604160a0834c2d9fd342cc8d342712e6bb390bc1a4146105549dd8f0113a",
+    "scripts/maintainer/collect_readiness_runs.py": "6971e045ac5f5f5c9386d2a023890fbad8eaae9c950f54c44e5410588a75e287",
+    "scripts/maintainer/exact_head_readiness.py": "99c51a526c9de97c167c7383a47a30bc43602590560aa156f65d79a5d69004bf",
+    "scripts/maintainer/readiness_acceptance.py": "780f83998dbe3bf834a9f27082aaa8e4a938ceb804ed033269e8bc596eee271a",
+    "scripts/maintainer/readiness_adoption.py": "03b19d3761898cfd3e6a36bf8fba74902aae8ee01e54e8c394a163bf20efb272",
+    "scripts/maintainer/readiness_closure.py": "fc7b76e1fa0b8186799ebdfd88a3d5ffb8628cc66876a15f80da5e6bc06a9f8e",
+    "scripts/maintainer/readiness_retention.py": "359a110811a0fbea4f33006ada71a484ccd4dfae3fd594a16ee2298c352a3ae6",
+    "scripts/maintainer/readiness_subject.py": "d624d4fcafeca02c3074f8da828e534c09025358adc06594b731084fa0c1dfe2",
+    "scripts/maintainer/validate_exact_head_readiness.exs": "526e45f9745b98d1724ccf1cf7cc5828c044fce807cfd7d81288e37291555bb5"
+  },
+  "evidence_sha256": {
+    "snapshot-parity.txt": "052f856330545df5cac6f58efd5345b921142aca88361db0917ba864de575a04",
+    "previous-verification.txt": "8026835d1ee5c8fa9356964964b2de4abe31f9f3e47790e14db42024e4ea5672",
+    "retention-actionlint.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "hygiene.txt": "40e76cb63d2d1559438bede5b088f5e5d5cb773c8f657f3785b4fd1d0aa232cd",
+    "lane.txt": "f457d62997abe6b00c6f469d8d8b44c843229c5de386cde72c2ff86ea3981e55",
+    "focused-checks.json": "028800f44d53cec41b98bd1d15c3fd39b21e947151587e425c6a334f3c57838b",
+    "main-integrated-script-groups.txt": "d16922061c6745cad823d75d316e4c80d2257d2b897f9081ec2d88db3154a8a7",
+    "closure-parity.txt": "a0ba651604ff0f207da578fb58a545ee8ce381a9961c70be9fba2f0444af3e35",
+    "residue.txt": "caa3fa53b20a55d1454f3a2bc9d3acc9e7a38d39207d6d6785559abe1530f016"
+  },
+  "requirements_credit": false,
+  "final_head_ci": "required_before_delivery"
+}
