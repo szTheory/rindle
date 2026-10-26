@@ -110,3 +110,8 @@ is replayed. This changes a readiness control file, so the final candidate must
 include this repair and obtain its own full main CI and real scheduled Nightly.
 Keep #189 unmerged until successful validated acceptance; all earlier failed
 collections and the older candidates remain historical.
+
+
+PR #193 has a conditional closed/merged row requiring a fresh individual lookup
+following protected delivery, as #190 and #192 do. The row must reject live
+validation while #193 is open. It predicts no future SHA, CI result or credit.
