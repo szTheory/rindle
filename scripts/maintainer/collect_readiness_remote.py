@@ -406,7 +406,9 @@ class RemoteCollector:
         def interrupt(_sig,_frame):raise NotReady('collection_interrupted')
         for sig in handlers:signal.signal(sig,interrupt)
         try:
-            self.api=GitHub(self.repo,self.private/'api',self.fixture,budget=600)
+            # Two complete inventories of retained history can exceed the generic
+            # 400-GET default. Keep a finite owner cap, including retry attempts.
+            self.api=GitHub(self.repo,self.private/'api',self.fixture,budget=600,max_calls=600)
             self.initialize();before=self.observations();after=self.observations();self.main()
             require(before==after,'remote_state_changed')
             interval={'started_at':started,'completed_at':now()}

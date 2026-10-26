@@ -1055,6 +1055,17 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 193,
+      "disposition": "merge",
+      "rationale": "Conditional post-landing contract for the bounded GET recovery and complete-history transport repair: a fresh individual lookup must prove PR #193 actually closed and merged after successful exact-head required CI and green parent main. The code retains every physical GET attempt, caps transient recovery at three attempts, and keeps complete-source, visibility and temporal validation mandatory. No merge SHA or future CI result is asserted. While this PR is open, live validation must reject the terminal mismatch. Final readiness needs a new compatible repaired actual-main candidate and its own scheduled proof; PR #189 stays held. No READY or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [

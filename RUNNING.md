@@ -488,6 +488,15 @@ candidate's controller/policy bytes to match the executing tools. An arbitrary P
 or a pre-policy commit is ineligible. Main may advance during qualification and refresh;
 its observed SHA remains distinct from the fixed evidence subject.
 
+The GitHub GET transport makes at most three attempts for HTTP 502/503/504, with
+one- and two-second backoff inside the existing call and time budgets. Every
+attempt's response remains in restricted evidence and consumes the shared call
+budget. Authentication, visibility, rate limits, server cooldown instructions,
+malformed evidence and exhausted retries fail closed.
+The complete remote-inventory owner allows at most 600 physical GETs for both
+observations, including retained historical lookups and retries, within its
+unchanged 600-second deadline. Other clients keep the 400-GET default.
+
 `accept` repeats admission, dispatches `readiness-retention.yml` on main with a unique
 request nonce and waits at most 200 minutes for the matching successful first attempt.
 The trusted main workflow admits the candidate before checking out or executing it.
