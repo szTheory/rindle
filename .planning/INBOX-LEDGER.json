@@ -879,6 +879,17 @@
       "disposition": "retain",
       "head_sha": "8699c2c548e8658fa84a14150e2dc40304b43435",
       "rationale": "Docs-truth fail-closed guard repair passed exact-head CI40354516652 on8699c2c5, including CI Summary; prior canonical shard-order failure and local repair remain preserved. Keep draft and do-not-merge until successful validated139 acceptance, or explicit owner candidate replacement and its compatible actual scheduled proof. validate_exact_head_readiness.exs changes snapshot CONTROL_PATHS. Green PR CI does not remove this hold or grant READY credit."
+    },
+    {
+      "kind": "pr",
+      "number": 190,
+      "disposition": "merge",
+      "rationale": "Conditional post-landing contract for this ledger-only PR: acceptance requires a fresh individual lookup to confirm PR190 actually closed/merged after successful exact-head required CI and green parent main. This row specifies the required landing state, not an assertion that the currently open PR has merged. While190 remains open, live validation must reject this terminal mismatch. Preserve968113aa snapshot controls and all prior receipts; no READY or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [

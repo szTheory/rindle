@@ -40,3 +40,9 @@ scheduled proof. Fresh complete live collection is still required after landing;
 this table, PR approvals and green implementation fixtures grant no READY credit.
 
 PR180 merged at2026-10-26T17:23:26Z asa1be562599c770789bce313812b938b90c2b78e4. Main push CI must finish green before the next merge.
+
+PR190's own ledger row specifies a conditional post-landing state (`closed`,
+`merged: true`). It is not a current merge receipt: the live validator must reject
+that row while190 is open. Only a fresh individual lookup after its protected
+landing can satisfy it. This avoids embedding the commit's own SHA into itself
+and adds no policy exemption or approval-based readiness credit.
