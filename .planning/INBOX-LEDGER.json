@@ -464,6 +464,198 @@
       "locked": "1.13.1",
       "fix_version": "1.14.0",
       "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65625",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65626",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65627",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65628",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65629",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65630",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65631",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65632",
+      "package": "jose",
+      "scope": "root",
+      "path": [
+        "jose"
+      ],
+      "reachability": "optional-dep",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65625",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65626",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65627",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65628",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65629",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65630",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65631",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-65632",
+      "package": "jose",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "jose"
+      ],
+      "reachability": "runtime",
+      "locked": "1.11.12",
+      "fix_version": "1.11.13",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -1010,7 +1202,7 @@
       "number": 189,
       "disposition": "retain",
       "head_sha": "8699c2c548e8658fa84a14150e2dc40304b43435",
-      "rationale": "Docs-truth fail-closed guard repair passed exact-head CI40354516652 on8699c2c5, including CI Summary; prior canonical shard-order failure and local repair remain preserved. Keep draft and do-not-merge until successful validated139 acceptance, or explicit owner candidate replacement and its compatible actual scheduled proof. validate_exact_head_readiness.exs changes snapshot CONTROL_PATHS. Green PR CI does not remove this hold or grant READY credit."
+      "rationale": "Docs-truth fail-closed guard repair passed exact-head CI40354516652 on8699c2c5, including CI Summary; prior canonical shard-order failure and local repair remain preserved. Keep draft and do-not-merge until successful validated139 acceptance. The maintainer explicitly preserves this hold through candidate replacement and its compatible actual scheduled proof. validate_exact_head_readiness.exs changes snapshot CONTROL_PATHS. Green PR CI does not remove this hold or grant READY credit."
     },
     {
       "kind": "pr",
@@ -1061,6 +1253,21 @@
       "number": 193,
       "disposition": "merge",
       "rationale": "Conditional post-landing contract for the bounded GET recovery and complete-history transport repair: a fresh individual lookup must prove PR #193 actually closed and merged after successful exact-head required CI and green parent main. The code retains every physical GET attempt, caps transient recovery at three attempts, and keeps complete-source, visibility and temporal validation mandatory. No merge SHA or future CI result is asserted. While this PR is open, live validation must reject the terminal mismatch. Final readiness needs a new compatible repaired actual-main candidate and its own scheduled proof; PR #189 stays held. No READY or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
+    },
+    {
+      "kind": "pr",
+      "number": 194,
+      "disposition": "merge",
+      "risk_group": "jose-security",
+      "group_packages": [
+        "jose"
+      ],
+      "rationale": "Actual protected squash 1216b96286bc4b1ee82c869f3916d19fe9086d51 after full exact-head PR CI 40404235605 passed on dc269c4b. Only root/demo JOSE lock tuples change from 1.11.12 to 1.11.13. Both landing records bind this source to complete green main CI 40406173123, including the unchanged supported Elixir1.15/OTP26 and Elixir1.17/OTP27 gates. Fresh signed root/demo audits have no JOSE findings; three existing test-only cowlib exceptions remain unchanged. Eight JOSE advisories were published during this prerequisite repair and are recorded in each affected scope. Historical source and failure receipts remain intact. No READY or publication credit.",
       "terminal": {
         "state": "closed",
         "merged": true,
@@ -1505,6 +1712,56 @@
           "from": "1.13.1",
           "package": "bandit",
           "to": "1.14.0"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 194,
+      "group": "jose-security",
+      "group_packages": [
+        "jose"
+      ],
+      "lock": "mix.lock",
+      "merge_sha": "1216b96286bc4b1ee82c869f3916d19fe9086d51",
+      "ci_run_id": 40406173123,
+      "baseline_run_id": 40401556184,
+      "subject": "build(deps): patch root and demo JOSE advisories (#194)",
+      "lock_delta": [
+        {
+          "from": "1.11.12",
+          "package": "jose",
+          "to": "1.11.13"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 194,
+      "group": "jose-security",
+      "group_packages": [
+        "jose"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "1216b96286bc4b1ee82c869f3916d19fe9086d51",
+      "ci_run_id": 40406173123,
+      "baseline_run_id": 40401556184,
+      "subject": "build(deps): patch root and demo JOSE advisories (#194)",
+      "lock_delta": [
+        {
+          "from": "1.11.12",
+          "package": "jose",
+          "to": "1.11.13"
         }
       ],
       "gates": {

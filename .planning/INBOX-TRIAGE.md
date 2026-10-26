@@ -29,7 +29,7 @@ or template gate replaces the repository's actual CI and policy requirements.
 | [185](https://github.com/szTheory/rindle/pull/185) | Retain Release Please's0.4.14 intent with `do-not-merge`. | Three expected version/changelog files; CI40263479602 failed Script Tests. No release/publication dispatch is authorized by this triage. Reconsider after validated139 acceptance and fresh CI. |
 | [187](https://github.com/szTheory/rindle/pull/187) | Retain the dependency candidate for a bounded compatibility repair. | CI40320385984 failed both Elixir1.15/OTP26 compilation paths: cowlib2.21 uses syntax rejected by OTP26; phoenix_template1.1 also requires Elixir~>1.16. The seven-package delta is broader than its LiveView-only title. Require compatible locked transitive versions and exact-head CI; do not widen support. |
 | [188](https://github.com/szTheory/rindle/pull/188) | Retain and `do-not-merge` during snapshot acceptance. | setup-beam1.24.1 changes both ci.yml and producer readiness-retention.yml (CONTROL_PATHS). CI40320421560 failed both Quality cells on exact residue allowance/regeneration drift. Repair narrowly after acceptance or explicitly replace the candidate and scheduled proof. |
-| [189](https://github.com/szTheory/rindle/pull/189) | Retain draft with `do-not-merge`, despite green CI. | CI40354516652 and CI Summary passed on8699c2c5. Validator semantic-pin change modifies CONTROL_PATHS. Merge requires successful validated139 acceptance or an explicit owner candidate replacement with compatible actual scheduled proof. |
+| [189](https://github.com/szTheory/rindle/pull/189) | Retain draft with `do-not-merge`, despite green CI. | CI40354516652 and CI Summary passed on8699c2c5. Validator semantic-pin change modifies CONTROL_PATHS. Merge requires successful validated139 acceptance. Candidate replacement and its actual scheduled proof do not remove this hold. |
 
 Old PR144 is actually closed/unmerged and replaced by187. Its terminal record is
 reconciled from a fresh individual lookup; retained145/146 heads remain unchanged.
@@ -115,3 +115,42 @@ collections and the older candidates remain historical.
 PR #193 has a conditional closed/merged row requiring a fresh individual lookup
 following protected delivery, as #190 and #192 do. The row must reject live
 validation while #193 is open. It predicts no future SHA, CI result or credit.
+
+
+## 2026-10-26 newly published JOSE security prerequisite repair
+
+During the live recheck after PR #193, OSV published eight JOSE advisories at
+19:52–19:54 UTC, each affecting root and demo JOSE 1.11.12. Protected
+[PR #194](https://github.com/szTheory/rindle/pull/194) changed only those two lock
+tuples to the official fixed version, 1.11.13. Manifests, transitive tuples,
+the historical twin lock, readiness controls and exceptions are unchanged.
+Exact-head PR CI 40404235605 passed on `dc269c4b`. Actual squash
+`1216b96286bc4b1ee82c869f3916d19fe9086d51` then passed complete push-main CI
+40406173123 on its first attempt: 22 successful jobs and the expected Mux soak
+skip, including all five full package profiles.
+
+The production dependency landing collector returns `pass` independently for
+root and demo, using this exact source/run and green baseline 40401556184 at
+`cf5d66da`. Both receipts attribute only JOSE 1.11.12→1.11.13 and pass the
+supported-toolchain, public-contract and package-consumer gates. The ledger
+records both actual landings and all 16 resolved scope records. A negative
+control still rejects all 16 resolved declarations against the retained old
+vulnerable inventory. Earlier failed receipts and the three existing test-only
+cowlib exceptions are unchanged.
+
+Fresh signed-registry audits cover 67 root and 49 demo packages with no JOSE
+finding; the demo audit is clear and root retains only those three reviewed
+findings. Native verification passes 3 doctests and 1,769 tests (zero failures,
+87 excluded, 4 skipped), 44 demo tests, and 42 package-evidence parity tests with
+zero failures. Initial shared PostgreSQL exhaustion and missing host pkg-config
+diagnostics remain retained; pkgconf 3.0.9 supplies the missing native tool.
+Diagnostic source edits were restored. The owned temporary server is stopped
+and repair-only databases are removed. Pre-existing databases, settings and dirty
+maintainer work are preserved.
+
+The maintainer's latest instruction keeps PR #189 draft and unmerged until
+successful validated Phase 139 acceptance, including through candidate replacement
+and its scheduled proof. This updates only its rationale; disposition/head stay
+the same. The final repaired source still needs fresh admission, complete live
+sources and its own actual scheduled Nightly. No READY, pilot, publication,
+credential or historical-verdict credit is granted, and no 139-07-SUMMARY exists.
