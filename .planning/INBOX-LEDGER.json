@@ -332,6 +332,138 @@
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
       "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-108525",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-109584",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-108529",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-110314",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-110499",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-111101",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-111103",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-113436",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-114213",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-114216",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
+    },
+    {
+      "id": "EEF-CVE-2026-115269",
+      "package": "bandit",
+      "scope": "examples/adoption_demo",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "locked": "1.13.1",
+      "fix_version": "1.14.0",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -890,6 +1022,28 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "issue",
+      "number": 186,
+      "disposition": "retain",
+      "terminal_policy": "observe-retained-issue-v1",
+      "rationale": "Retain the rolling release-train drift incident with a fresh individual terminal lookup after automated recovery. The current drift predicate finds existing Release Please PR #185, which remains intentionally do-not-merge while Phase 139 acceptance is unfinished. No credential failure, publication authority, issue closure or READY credit is inferred. Preserve the original failed scheduled run 40288396231; the next ordinary drift check owns actual closure."
+    },
+    {
+      "kind": "pr",
+      "number": 191,
+      "disposition": "merge",
+      "risk_group": "demo-bandit-security",
+      "group_packages": [
+        "bandit"
+      ],
+      "rationale": "Actual protected squash 30ca1aeb4a6a02234729dc724f97065d102b36c9 after full PR CI 40388240821 passed on fc20817b. Only the demo Bandit lock tuple changes from 1.13.1 to 1.14.0. The landing record binds this exact merged source to complete green push-main CI 40390405720. A signed Hex audit of all 49 demo packages reports zero advisories or retired packages; old candidate 968113aa remains immutable and vulnerable. No READY or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [
@@ -1304,6 +1458,31 @@
           "from": "2.2.0",
           "package": "plug_crypto",
           "to": "2.2.1"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 191,
+      "group": "demo-bandit-security",
+      "group_packages": [
+        "bandit"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "30ca1aeb4a6a02234729dc724f97065d102b36c9",
+      "ci_run_id": 40390405720,
+      "baseline_run_id": 40371876552,
+      "subject": "build(deps): patch demo Bandit security advisories (#191)",
+      "lock_delta": [
+        {
+          "from": "1.13.1",
+          "package": "bandit",
+          "to": "1.14.0"
         }
       ],
       "gates": {
