@@ -1047,17 +1047,17 @@
     },
     {
       "disposition": "retain",
-      "head_sha": "8c3552928153a9280e77e15a89b6eb8499c18810",
+      "head_sha": "023ab015c4ad6f2bafac4a43e41cac5a31f9234c",
       "kind": "pr",
       "number": 145,
-      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump oban from 2.21.1 to 2.24.2. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
+      "rationale": "Retain the separate Oban 2.24.2 lock candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406514940 passed on 023ab015; the only dependency delta remains Oban 2.21.1\u21922.24.2. Current main keeps 2.21.1. This is not an actual dependency landing, and separate dependency-delivery work and post-merge evidence remain outstanding. No upgrade or READY credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "70eb4e590fa63dc7f7699d450f98239fe4d39d9a",
+      "head_sha": "b3205ebc68afba6c14751c09a8c1302b5182368c",
       "kind": "pr",
       "number": 146,
-      "rationale": "Retain separate dependency candidate at actual current head: build(deps): bump muontrap from 1.7.0 to 1.8.0. Pins remain unchanged. Require its own exact-head CI, package-consumer/adopter and landing decision before merging; no readiness credit."
+      "rationale": "Retain the separate MuonTrap 1.8.0 candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406492180 passed on b3205ebc. Root-lock changes are MuonTrap 1.7.0\u21921.8.0 and elixir_make 0.10.0\u21920.10.1; main pins remain unchanged. Separate dependency-delivery work and actual landing proof remain outstanding. No upgrade, CI-speed or READY credit."
     },
     {
       "disposition": "merge",
@@ -1187,8 +1187,8 @@
       "kind": "pr",
       "number": 187,
       "disposition": "retain",
-      "head_sha": "a6d7c40e9f7d8514696f21e523ffee1fb70821b8",
-      "rationale": "LiveView1.2.13 lock refresh also changes cowboy2.20/cowlib2.21, phoenix1.8.16, phoenix_pubsub2.4.1, phoenix_template1.1.0 and elixir_make0.10.1. CI40320385984 failed required Elixir1.15/OTP26 Quality and optional-dependency compilation: cowlib cow_capsule.erl:67 syntax error, plus phoenix_template requires Elixir~>1.16. Retain for bounded supported-toolchain lock repair and new exact-head proof, without widening support or merging red CI. Replaces closed PR144; no upgrade/readiness credit."
+      "head_sha": "bd31f07bd43aa627964ccb2929d54666ad6b75be",
+      "rationale": "Retain the rebased LiveView 1.2.13 candidate on bd31f07b for bounded supported-toolchain repair. Its seven-package root-lock delta still includes cowboy 2.20/cowlib 2.21, phoenix 1.8.16, phoenix_pubsub 2.4.1, phoenix_template 1.1.0 and elixir_make 0.10.1. Fresh CI 40406494126 fails Quality and optional-dependency compilation on supported Elixir 1.15 / OTP 26. Earlier CI40320385984 remains historical; no claim that it tested this new head. Require compatible locked transitive versions and fresh exact-head proof without widening support or merging red CI. No upgrade or READY credit."
     },
     {
       "kind": "pr",

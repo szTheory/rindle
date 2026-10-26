@@ -32,7 +32,8 @@ or template gate replaces the repository's actual CI and policy requirements.
 | [189](https://github.com/szTheory/rindle/pull/189) | Retain draft with `do-not-merge`, despite green CI. | CI40354516652 and CI Summary passed on8699c2c5. Validator semantic-pin change modifies CONTROL_PATHS. Merge requires successful validated139 acceptance. Candidate replacement and its actual scheduled proof do not remove this hold. |
 
 Old PR144 is actually closed/unmerged and replaced by187. Its terminal record is
-reconciled from a fresh individual lookup; retained145/146 heads remain unchanged.
+reconciled from a fresh individual lookup. At that review, retained145/146 heads
+matched the then-current inventory; later rebases are recorded below.
 No debt, requirement, exception or original failed receipt is cleared by triage.
 That review preserved the then-selected968113aa snapshot. A ledger-only
 main advance preserves compatible control bytes. The subsequent Bandit security
@@ -159,3 +160,32 @@ PR #195 uses the existing conditional post-landing contract: its required
 closed/merged state is satisfied only by a fresh individual lookup after actual
 protected landing. While the PR is open, live validation must reject that terminal
 mismatch. No future merge SHA or CI result is embedded in the ledger.
+
+
+## 2026-10-26 retained dependency head reconciliation
+
+The complete live collection on repaired main `48c080b4` rejected three stale
+retained head pins. Its actual signed audits and other reconciliation checks
+reported no remaining Bandit or JOSE mismatch. The original failure is retained.
+Fresh individual PR lookups and complete lock-file deltas were reviewed before
+updating any disposition. All three candidates remain open and retained.
+
+| PR | Actual new head | Complete root-lock delta | Fresh CI / disposition |
+|---|---|---|---|
+|145|`023ab015c4ad6f2bafac4a43e41cac5a31f9234c`|Oban 2.21.1→2.24.2|40406514940 passed; retain separate upgrade, with no landing or READY credit.|
+|146|`b3205ebc68afba6c14751c09a8c1302b5182368c`|MuonTrap 1.7.0→1.8.0 and elixir_make 0.10.0→0.10.1|40406492180 passed; retain separate upgrade, with no landing, CI-speed or READY credit.|
+|187|`bd31f07bd43aa627964ccb2929d54666ad6b75be`|LiveView 1.2.13 plus cowboy 2.20, cowlib 2.21, elixir_make 0.10.1, phoenix 1.8.16, phoenix_pubsub 2.4.1 and phoenix_template 1.1.0|40406494126 fails both supported Elixir 1.15 / OTP 26 compilation paths; retain for bounded compatibility repair.|
+
+All three new heads were created at 21:41 UTC on the JOSE-patched base
+`1216b962`, before ledger PR #195 was opened. That timing and base are consistent
+with Dependabot's documented [conflict rebase behavior](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/manage-dependabot-prs)
+after the root-lock repair. This is an inference from the observed commits;
+no bot configuration or candidate branch was changed. The new PR #187 failure
+again reports `cow_capsule.erl:67` syntax errors and phoenix_template's Elixir
+`~> 1.16` requirement. Its earlier failed run remains historical evidence.
+
+Only the three exact head pins and their reviewed rationales change. Main's
+locks, supported toolchains, all prior landing/advisory/exception records and
+PR #189's strict acceptance hold remain intact. A fresh full collection still
+has to prove both complete observations agree after protected delivery; the
+single-inventory draft check grants no acceptance credit.
