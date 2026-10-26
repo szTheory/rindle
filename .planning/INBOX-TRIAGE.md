@@ -154,3 +154,8 @@ and its scheduled proof. This updates only its rationale; disposition/head stay
 the same. The final repaired source still needs fresh admission, complete live
 sources and its own actual scheduled Nightly. No READY, pilot, publication,
 credential or historical-verdict credit is granted, and no 139-07-SUMMARY exists.
+
+PR #195 uses the existing conditional post-landing contract: its required
+closed/merged state is satisfied only by a fresh individual lookup after actual
+protected landing. While the PR is open, live validation must reject that terminal
+mismatch. No future merge SHA or CI result is embedded in the ledger.

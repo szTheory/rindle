@@ -1273,6 +1273,17 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 195,
+      "disposition": "merge",
+      "rationale": "Conditional post-landing contract for this ledger-only PR: a fresh individual lookup must prove PR #195 actually closed and merged after successful exact-head required CI and green parent main. This specifies the required terminal state and asserts no current merge or future CI result. While #195 remains open, live validation must reject this terminal mismatch. Both actual JOSE dependency landings are separately bound to PR #194 and complete main CI40406173123. PR #189 stays draft and unmerged until successful validated acceptance. No READY or publication credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [
