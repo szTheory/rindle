@@ -42,9 +42,9 @@ class Groups(unittest.TestCase):
         commands=['bash a.sh',*independent,'bash b.sh']
         groups=g.workflow_groups('\n'.join(commands))
         self.assertEqual(len(groups),3)
-        self.assertEqual(groups[0][1][-1],'bash a.sh\nbash scripts/ci/test_collect_inbox.sh\nbash b.sh')
+        self.assertEqual(groups[0][1][-1],'bash a.sh\npython3 scripts/ci/test_land_release_train_baseline.py\nbash scripts/ci/test_collect_inbox.sh\nbash b.sh')
         self.assertEqual(groups[1][1],['bash','-euo','pipefail','-c','\n'.join(line for line in independent if 'test_collect_inbox.sh' not in line and 'test_land_release_train_baseline.py' not in line)])
-        self.assertEqual(groups[2][1],['bash','-euo','pipefail','-c','bash scripts/ci/test_readiness_fixtures.sh\npython3 scripts/ci/test_land_release_train_baseline.py'])
+        self.assertEqual(groups[2][1],['bash','-euo','pipefail','-c','bash scripts/ci/test_readiness_fixtures.sh'])
         for command in independent:
             for broken in ([line for line in commands if line!=command],commands+[command]):
                 with self.assertRaises(ValueError):g.workflow_groups('\n'.join(broken))

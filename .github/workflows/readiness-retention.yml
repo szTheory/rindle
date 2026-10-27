@@ -39,6 +39,7 @@ jobs:
       sidecar-digest: ${{ steps.sidecar.outputs.artifact-digest }}
     env:
       MIX_ENV: test
+      PYTHONDONTWRITEBYTECODE: '1'
       ERL_FLAGS: '+S 4:4'
       GH_TOKEN: ${{ secrets.READINESS_READ_TOKEN }}
       ACCEPTANCE_MODE: ${{ inputs.acceptance_mode }}

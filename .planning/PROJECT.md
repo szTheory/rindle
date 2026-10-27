@@ -7,7 +7,11 @@ real scheduled operational health under identical reviewed controls, and fresh
 current security/inbox/protection/adoption authority. Main may advance after
 capture. Snapshot-source hygiene retains protected-main admission and generator/artifact/residue checks; ordinary release prep still requires current main. Manual qualification cannot recover scheduled incidents. Historical v2
 receipts remain immutable under their original verifier; they cannot opt into v3.
-Producer-head and evidence-subject identities remain separate. Results are
+Producer-head and evidence-subject identities remain separate. Producer runs bind
+to the authenticated fixed workflow ID/path and owned request title, rather than
+using an evaluated run name as workflow authority. Public controller and existing
+retention-job bootstrap disable bytecode before imports to preserve clean source.
+Results are
 historical snapshot readiness only; independent pilots, 1.0 and publication retain
 all existing gates. No new dependency, workflow or recurring job is introduced.
 READY-01–05 remain Pending and PR189 remains held until actual terminal live

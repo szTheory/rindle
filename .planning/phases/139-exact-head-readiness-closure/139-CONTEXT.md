@@ -333,3 +333,36 @@ current-tip behavior; snapshot hygiene asserts no release or current-main eligib
 Adding the hygiene controller to the mirrored control/input registry requires a new
 admitted post-delivery source. Preserve the completed 61131fd2 diagnostic proofs; do
 not relabel them. The independent operational Nightly control identity is unchanged.
+
+### Actual producer boundary repairs (2026-10-27)
+
+The first actual v3 terminal attempt on f2e9fbaf preserved `not_ready` with zero
+credit: its owned producer run40447986047/1 reports evaluated run-name text in
+the run API `name`, unlike the static workflow metadata name. Bind discovery and
+retrieval to the authenticated active workflow ID/path, preserving exact owned
+request title, repository, source, event, branch, attempt and artifact verification.
+The producer then failed clean-checkout admission before native qualification.
+Direct admission imports reproduce six untracked bytecode files with Linux cache
+behavior; macOS redirects its default cache outside the checkout. Disable bytecode
+in the public wrapper and existing retention job before imports, without adding
+ignore rules or relaxing cleanliness. Only this environment setting changes the
+existing retention workflow; production Nightly and permissions stay unchanged.
+Controller identity changes require a new post-delivery source. Preserve the
+failed terminal and run; never relabel its passing prerequisite diagnostics.
+
+The first producer-repair CI passed readiness fixtures in237s but terminated the
+subsequent independent11s baseline harness at the unchanged240s shared deadline.
+Measured existing/incident groups finished218s/220s. Keep all commands and three
+workers; move the baseline into existing contracts in its original declared order,
+without extending timeouts or skipping tests. This is execution ordering only;
+production Nightly, proof criteria and the shared deadline remain unchanged.
+
+A second Linux run still exhausted240s in existing contracts while readiness232s
+and incident236s passed; reordering alone did not provide enough shared CPU margin.
+Confine one normal/dirty-CPU/dirty-I/O scheduler to the existing parser-only Mix
+adapter and verify actual counts after preparation. Native qualification remains
+four-scheduler. A complete direct-binary local grouped comparison passed at
+107s/51s/118s versus126s/59s/129s; these are diagnostic observations, not deferred
+CI target credit or proof of Linux headroom. Fresh full Linux CI is required.
+The existing actual-validator fixture-worker pattern is a researched fallback if
+reducing parser VM startup contention is insufficient; no new worker is introduced.

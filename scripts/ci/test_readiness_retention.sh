@@ -27,7 +27,7 @@ class Retention(unittest.TestCase):
     def setUp(self):
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-retention-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
         self.sidecar=r.read_json(self.prepared/r.SIDECAR_FILE);self.archive=(self.prepared/r.ARCHIVE_FILE).read_bytes()
-        self.run={'id':123,'run_attempt':2,'repository':{'full_name':repo},'path':r.WORKFLOW,'name':r.WORKFLOW_NAME,'event':'workflow_dispatch','head_branch':'main','head_sha':sha,'status':'completed','conclusion':'success'}
+        self.run={'id':123,'run_attempt':2,'repository':{'full_name':repo},'path':r.WORKFLOW,'name':'Readiness '+('d'*32),'workflow_id':901,'event':'workflow_dispatch','head_branch':'main','head_sha':sha,'status':'completed','conclusion':'success'}
         self.responses={};self.sync()
     def tearDown(self):shutil.rmtree(self.tmp)
     def zipped(self,name,data):
@@ -39,7 +39,7 @@ class Retention(unittest.TestCase):
         def artifact(id,name,data):return {'id':id,'name':name,'expired':False,'digest':'sha256:'+r.digest(data),'workflow_run':{'id':123,'head_sha':sha,'repository_id':7,'head_repository_id':7}}
         self.artifacts=[artifact(9,self.sidecar['sidecar_artifact_name'],sz),artifact(10,self.sidecar['archive_artifact_name'],az)]
         def row(body):return [{'status':200,'body':body}]
-        self.responses={'repos/'+repo:row({'id':7,'full_name':repo}), 'repos/'+repo+'/actions/runs/123':row(self.run), 'repos/'+repo+'/actions/runs/123/attempts/2':row(self.run), 'repos/'+repo+'/actions/runs/123/artifacts?per_page=100':row({'total_count':2,'artifacts':self.artifacts}), 'repos/'+repo+'/actions/artifacts/9/zip':[{'status':200,'base64':base64.b64encode(sz).decode()}], 'repos/'+repo+'/actions/artifacts/10/zip':[{'status':200,'base64':base64.b64encode(az).decode()}]}
+        self.responses={'repos/'+repo:row({'id':7,'full_name':repo}), 'repos/'+repo+'/actions/workflows/readiness-retention.yml':row({'id':901,'name':r.WORKFLOW_NAME,'path':r.WORKFLOW,'state':'active'}), 'repos/'+repo+'/actions/runs/123':row(self.run), 'repos/'+repo+'/actions/runs/123/attempts/2':row(self.run), 'repos/'+repo+'/actions/runs/123/artifacts?per_page=100':row({'total_count':2,'artifacts':self.artifacts}), 'repos/'+repo+'/actions/artifacts/9/zip':[{'status':200,'base64':base64.b64encode(sz).decode()}], 'repos/'+repo+'/actions/artifacts/10/zip':[{'status':200,'base64':base64.b64encode(az).decode()}]}
     def retrieve(self):
         self.responses['repos/'+repo+'/actions/runs/123/artifacts?per_page=100'][0]['body']['total_count']=len(self.artifacts)
         (self.fixture/'responses.json').write_bytes(r.canonical(self.responses))
@@ -59,6 +59,18 @@ class Retention(unittest.TestCase):
     def test_failed_run(self):self.run['conclusion']='failure';self.reject('producer_not_completed_successfully')
     def test_wrong_current_attempt(self):self.run['run_attempt']=3;self.reject('producer_identity')
     def test_wrong_repository(self):self.run['repository']['full_name']='foreign/repo';self.reject('producer_identity')
+    def test_static_display_name_is_not_workflow_authority(self):
+        self.run['name']=r.WORKFLOW_NAME;self.run['workflow_id']=902;self.reject('producer_identity')
+    def test_dynamic_run_name_with_authenticated_workflow_id(self):
+        self.assertTrue(self.retrieve()['bytes_verified'])
+    def test_foreign_workflow_path(self):
+        self.run['path']='.github/workflows/foreign.yml';self.reject('producer_identity')
+    def test_foreign_workflow_metadata(self):
+        self.responses['repos/'+repo+'/actions/workflows/readiness-retention.yml'][0]['body']['path']='.github/workflows/foreign.yml';self.reject('producer_workflow_identity')
+    def test_workflow_id_changes_during_download(self):
+        path='repos/'+repo+'/actions/workflows/readiness-retention.yml'
+        self.responses[path].append({'status':200,'body':{'id':902,'name':r.WORKFLOW_NAME,'path':r.WORKFLOW,'state':'active'}})
+        self.reject('producer_workflow_changed')
     def test_attempt_changes_during_download(self):
         other={**self.run,'run_attempt':3};self.responses['repos/'+repo+'/actions/runs/123'].append({'status':200,'body':other});self.reject('producer_identity')
     def test_wrong_sidecar_attempt(self):self.sidecar['run_attempt']=1;self.sync();self.reject('producer_sidecar_identity')
