@@ -6,7 +6,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export ASDF_ERLANG_VERSION="${ASDF_ERLANG_VERSION:-27.3.4.15}"
 export ASDF_ELIXIR_VERSION="${ASDF_ELIXIR_VERSION:-1.17.3-otp-27}"
 python3 - "$root" <<'PY'
-import copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,time,signal
+import contextlib,copy,io,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest,time,signal
 from unittest.mock import patch
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
 sys.path.insert(0,str(root/'scripts/ci'))
@@ -137,6 +137,21 @@ IO.puts(Jason.encode!(%{base: base}))
             raise c.NotReady('local_qualification_failed')
         with patch.object(owner,'collect',side_effect=broken_collect):self.assertEqual(owner.run(),1)
         self.assertEqual(c.read_json(owner.output/'verdict.json')['reason'],'cleanup_failed')
+
+    def test_actual_local_failure_forwards_bounded_redacted_diagnostics_and_original_reason(self):
+        owner=c.Closure(repo,self.tmp/'local-failure',fixture=self.fixture)
+        owner.reserve();owner.index=None;owner.subject=sha;owner.env['FIXTURE_TOKEN']='fixture-secret-token'
+        local=owner.private/'local-qualification';local.mkdir()
+        c.write_new(local/'attempt.json',{'reason':'command_failed','requirements_credit':False})
+        raw=b'old-prefix'+b'x'*17000+b'fixture-secret-token\n::error::untrusted child'
+        output=io.StringIO()
+        with patch.object(owner,'command',return_value=(7,raw)),contextlib.redirect_stdout(output):
+            with self.assertRaisesRegex(c.NotReady,'command_failed'):owner.local()
+        text=output.getvalue();tail=json.loads(text.removeprefix('LOCAL_QUALIFICATION_FAILURE '))
+        self.assertLessEqual(len(tail),16384);self.assertNotIn('old-prefix',tail)
+        self.assertNotIn('fixture-secret-token',text);self.assertIn('[REDACTED]',text)
+        self.assertEqual(len(text.splitlines()),1);self.assertFalse(text.startswith('::'))
+        self.assertFalse(c.read_json(local/'attempt.json')['requirements_credit'])
     def test_one_valid_newer_ci_source_defeats_stale_candidate(self):
         self.mutate_source('runs','ci-main',lambda n:n.update(run_id=11,latest_run_id=11));self.reject('mutable_source_changed')
     def test_missing_mutable_source(self):

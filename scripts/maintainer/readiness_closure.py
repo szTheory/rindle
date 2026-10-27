@@ -2,6 +2,7 @@
 """Finite candidate closure and immutable same-subject refresh. No release authority."""
 import argparse
 import copy
+import json
 import os
 from pathlib import Path
 import re
@@ -12,7 +13,7 @@ import subprocess
 import sys
 import time
 
-from exact_head_readiness import ROOT, POLICY_FILE, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new, atomic
+from exact_head_readiness import ROOT, POLICY_FILE, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new, atomic, redact
 from readiness_github import GitHub, json_bytes
 from readiness_process import popen_owned, stop_owned
 
@@ -175,9 +176,10 @@ class Closure:
             path=self.fixture_path('local_manifest');manifest=read_json(path);root=path.parent
         else:
             self.local_output=self.private/'local-qualification'
-            code,_=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'qualify','--repo',self.repo,
+            code,raw=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'qualify','--repo',self.repo,
                 '--subject',self.subject,'--output',str(self.local_output)]+(['--snapshot'] if self.snapshot else []),7500)
             if code:
+                print('LOCAL_QUALIFICATION_FAILURE ' + json.dumps(redact(raw,self.env)[-16384:].decode(errors='replace')),flush=True)
                 attempt=read_json(self.local_output/'attempt.json') if (self.local_output/'attempt.json').is_file() else {}
                 raise NotReady(attempt.get('reason','local_qualification_failed'))
             root=self.local_output/'portable';manifest=read_json(root/'manifest.json')

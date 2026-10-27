@@ -649,6 +649,11 @@ explicit historical scope; unqualified checked requirements or completion rows f
 | `unqualified_readiness_metadata` | Qualify historical completion with SHA, interval and terminal locator; rerun `claim-status`. |
 | local gate / cleanup failure | Inspect restricted diagnostics; `exact_head_readiness.sh cleanup --output ORIGINAL_LOCAL_OUTPUT` retries only owned resources and preserves the original failed attempt. Start a new qualification after repair. |
 
+Failed native commands also emit a bounded, redacted diagnostic with their command,
+exit status and output tail. Candidate closure forwards this diagnostic to the
+producer job log even when collection fails before artifact upload. Raw command
+logs remain restricted; a diagnostic never grants readiness credit.
+
 Historical prerequisite reports are checked as committed delivery records. Their
 old covered fingerprints and original timing debt are preserved; they provide no
 current READY credit. The current qualifier reruns all eighteen local gates and

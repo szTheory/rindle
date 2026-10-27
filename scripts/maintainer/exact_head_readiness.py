@@ -298,11 +298,24 @@ class Qualification:
                   'observation_interval': {'started_at': stamp, 'completed_at': now()},
                   'output': reference(self.portable, output)}
         write_new(raw_path.with_suffix('.json'), record)
+        if timed_out:
+            self.report_command_failure(record, data, env or self.env)
         require(not timed_out, 'command_timeout')
         return record, data
 
+    def report_command_failure(self, record, data, env):
+        # Redact complete values before truncation; JSON escaping keeps child output
+        # from becoming runner log commands. Private raw logs remain private.
+        safe = lambda value: redact(value.encode(), env).decode(errors='replace')
+        detail = {key: record[key] for key in ('state', 'exit_code', 'duration_ms')}
+        detail['argv'] = [safe(str(arg))[:1024] for arg in record['argv'][:32]]
+        detail['output_tail'] = redact(data, env)[-8192:].decode(errors='replace')
+        print('QUALIFICATION_COMMAND_FAILURE ' + json.dumps(detail, sort_keys=True), flush=True)
+
     def checked(self, argv, **kwargs):
         record, data = self.command(argv, **kwargs)
+        if record['exit_code'] != 0:
+            self.report_command_failure(record, data, kwargs.get('env') or self.env)
         require(record['exit_code'] == 0, 'command_failed')
         return record, data
 
