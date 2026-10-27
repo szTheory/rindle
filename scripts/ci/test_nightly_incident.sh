@@ -104,6 +104,7 @@ make_fake_gh() {
     '    *"actions/workflows/nightly.yml/runs"*) jq -cn --slurpfile page "${state}/runs.json" '\''[$page[0]]'\'' ;;' \
     '    *"actions/artifacts"*)' \
     '      n="$(counter artifact_reads)"' \
+    '      if [ -f "${state}/artifact-pages-${n}.json" ]; then cat "${state}/artifact-pages-${n}.json"; exit 0; fi' \
     '      source="${state}/artifacts.json"' \
     '      [ ! -f "${state}/artifacts-${n}.json" ] || source="${state}/artifacts-${n}.json"' \
     '      jq -cn --slurpfile page "${source}" '\''[$page[0]]'\'' ' \
@@ -317,6 +318,55 @@ delayed_artifact_case() {
   else
     record "delayed middle artifact is retried before mutation" false "exit=${got}; $(<"${output}")"
   fi
+  rm -rf "${temp}"
+}
+
+artifact_inventory_case() {
+  local mode="$1" persistent="${2:-false}" temp output got=0 bad reads expected=2
+  temp="$(new_fixture)"
+  output="${temp}/output"
+  # One green run keeps these acquisition tests independent of issue replay.
+  jq '.workflow_runs = [.workflow_runs[-1]]' "${temp}/state/runs.json" >"${temp}/state/runs.next"
+  mv "${temp}/state/runs.next" "${temp}/state/runs.json"
+  write_artifacts "${temp}/state/artifacts.json" green-only
+  bad="${temp}/state/artifacts-1.json"
+  case "${mode}" in
+    duplicate) jq '.artifacts += [.artifacts[0]]' "${temp}/state/artifacts.json" >"${bad}" ;;
+    conflicting-duplicate) jq '.artifacts += [(.artifacts[0] | .name="untrusted-payload-must-not-be-logged")]' "${temp}/state/artifacts.json" >"${bad}" ;;
+    row) jq '.artifacts += ["untrusted-payload-must-not-be-logged"]' "${temp}/state/artifacts.json" >"${bad}" ;;
+    workflow) jq '.artifacts[0].workflow_run="untrusted-payload-must-not-be-logged"' "${temp}/state/artifacts.json" >"${bad}" ;;
+    retention) jq '.artifacts[0].expires_at="untrusted-payload-must-not-be-logged"' "${temp}/state/artifacts.json" >"${bad}" ;;
+    envelope) printf '[{"artifacts":null}]\n' >"${temp}/state/artifact-pages-1.json" ;;
+    *) return 1 ;;
+  esac
+  if [ "${persistent}" = true ]; then
+    expected=3
+    if [ "${mode}" = envelope ]; then
+      cp "${temp}/state/artifact-pages-1.json" "${temp}/state/artifact-pages-2.json"
+      cp "${temp}/state/artifact-pages-1.json" "${temp}/state/artifact-pages-3.json"
+    else
+      cp "${bad}" "${temp}/state/artifacts.json"
+    fi
+  fi
+  run_manager "${temp}" "${output}" || got=$?
+  reads="$(<"${temp}/state/artifact_reads")"
+  local ok=false
+  if [ "${persistent}" = false ]; then
+    if [ "${got}" -eq 0 ] && [ "${reads}" -eq "${expected}" ] &&
+      [ -f "${temp}/state/checkpoint-output.json" ]; then ok=true; fi
+  elif [ "${got}" -ne 0 ] && [ "${reads}" -eq "${expected}" ] &&
+    [ ! -f "${temp}/state/checkpoint-output.json" ] && ! grep -q 'run download' "${temp}/calls"; then
+    ok=true
+  fi
+  # Invalid metadata never reaches checkpoint/event downloads or issue mutation.
+  if [ -f "${temp}/state/mutation_attempts" ] || grep -q 'untrusted-payload' "${output}"; then ok=false; fi
+  if [ "${persistent}" = false ]; then
+    local first_download second_read
+    first_download="$(awk '/run download/ {print NR; exit}' "${temp}/calls")"
+    second_read="$(awk '/actions\/artifacts/ {n++; if(n==2) {print NR; exit}}' "${temp}/calls")"
+    if [ -z "${first_download}" ] || [ "${first_download}" -le "${second_read}" ]; then ok=false; fi
+  fi
+  record "artifact inventory ${mode}, persistent=${persistent}, exact bounded refetch" "${ok}" "exit=${got} reads=${reads}; $(<"${output}")"
   rm -rf "${temp}"
 }
 
@@ -718,6 +768,12 @@ manual_closed_case wrong-owner
 three_overlap_case
 green_no_incident_case
 delayed_artifact_case
+for inventory_mode in duplicate conflicting-duplicate row workflow retention envelope; do
+  artifact_inventory_case "${inventory_mode}"
+done
+for inventory_mode in duplicate row envelope; do
+  artifact_inventory_case "${inventory_mode}" true
+done
 fail_closed_case "missing middle artifact fails before issue mutation" missing
 fail_closed_case "duplicate event artifact fails before issue mutation" duplicate
 fail_closed_case "malformed event fails before issue mutation" malformed
