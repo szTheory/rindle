@@ -10,10 +10,14 @@ MODE="local"
 RUN_MIX_CI=0
 REMOTE="${RINDLE_HYGIENE_REMOTE:-origin}"
 EXPECTED_BRANCH="${RINDLE_HYGIENE_BRANCH:-main}"
+SNAPSHOT_SUBJECT=""
+SNAPSHOT_REPO=""
+SNAPSHOT_EVIDENCE=""
 
 usage() {
   cat <<'EOF'
 Usage: repo_hygiene_check.sh [--ci | --release-prep] [--with-mix-ci]
+       repo_hygiene_check.sh --snapshot-subject FULL_SHA --repo OWNER/REPO [--snapshot-evidence DIR]
 
 Checks whether the repo is in a disciplined release-prep state.
 
@@ -30,6 +34,10 @@ Modes:
                   ahead of the RELEASE-TRAIN baseline record is WARN here, BLOCK elsewhere.
   --with-mix-ci   Also run the full `mix ci` alias and require its completion
                   sentinels (slow; default and --release-prep only).
+  --snapshot-subject  Qualify an authenticated previously-main source instead of
+                  current-tip release eligibility. Requires --repo; preserves all
+                  source, generator, artifact and residue checks. No release credit.
+  --snapshot-evidence  New external directory retaining admission/API evidence.
 
 Environment:
   RINDLE_HYGIENE_ROOT    checkout to check (default: git rev-parse --show-toplevel)
@@ -38,7 +46,8 @@ Environment:
 EOF
 }
 
-for arg in "$@"; do
+while [[ "$#" -gt 0 ]]; do
+  arg="$1"
   case "$arg" in
     --ci)
       MODE="ci"
@@ -48,6 +57,15 @@ for arg in "$@"; do
       ;;
     --with-mix-ci)
       RUN_MIX_CI=1
+      ;;
+    --snapshot-subject | --repo | --snapshot-evidence)
+      [[ "$#" -ge 2 ]] || { usage >&2; exit 64; }
+      case "$arg" in
+        --snapshot-subject) SNAPSHOT_SUBJECT="$2" ;;
+        --repo) SNAPSHOT_REPO="$2" ;;
+        --snapshot-evidence) SNAPSHOT_EVIDENCE="$2" ;;
+      esac
+      shift
       ;;
     -h | --help)
       usage
@@ -59,7 +77,17 @@ for arg in "$@"; do
       exit 64
       ;;
   esac
+  shift
 done
+
+if [[ -n "$SNAPSHOT_SUBJECT$SNAPSHOT_REPO$SNAPSHOT_EVIDENCE" ]]; then
+  if [[ "$MODE" == "ci" || ! "$SNAPSHOT_SUBJECT" =~ ^[0-9a-f]{40}$ ||
+        ! "$SNAPSHOT_REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
+    echo "Snapshot hygiene requires a full SHA and --repo, and cannot be combined with --ci" >&2
+    exit 64
+  fi
+  MODE="snapshot"
+fi
 
 if [[ "$MODE" == "ci" && "$RUN_MIX_CI" == "1" ]]; then
   echo "--with-mix-ci cannot be combined with --ci" >&2
@@ -313,6 +341,35 @@ check_branch() {
     fi
   else
     record_result "BLOCK" "head vs origin" "HEAD is behind=$behind ahead=$ahead of $REMOTE/$EXPECTED_BRANCH"
+  fi
+}
+
+# This is separate from ordinary release prep: never pretend an older source is
+# the current remote tip. Authenticate its actual protected-main provenance with
+# the same versioned controller used by acceptance before running repository code.
+check_snapshot_source() {
+  local source_root head evidence
+  source_root="$(cd "$SCRIPT_DIR/../.." && pwd -P)"
+  head="$(git rev-parse HEAD)"
+  if [[ "$(pwd -P)" != "$source_root" || "$head" != "$SNAPSHOT_SUBJECT" || "$FETCH_OK" != "1" ||
+        -n "$(git status --porcelain)" ]]; then
+    record_result "BLOCK" "snapshot source" "checkout/controller/source identity or fetch differs"
+    return 0
+  fi
+  evidence="${SNAPSHOT_EVIDENCE:-$WORK/snapshot-admission}"
+  if PYTHONDONTWRITEBYTECODE=1 python3 "$SCRIPT_DIR/readiness_acceptance.py" admit-snapshot --snapshot \
+      --subject "$SNAPSHOT_SUBJECT" --repo "$SNAPSHOT_REPO" --output "$evidence" \
+      >"$WORK/snapshot-admission.log" 2>&1 &&
+      jq -e --arg sha "$SNAPSHOT_SUBJECT" --arg repo "$SNAPSHOT_REPO" '
+        .schema == "rindle-readiness-snapshot-subject-v3" and .repository == $repo and
+        .subject_sha == $sha and .authenticated == true and .requirements_credit == false and
+        (.current_main_sha | type == "string" and test("^[0-9a-f]{40}$"))
+      ' "$evidence/subject.json" >/dev/null 2>&1; then
+    HEAD_VERIFIED=1
+    record_result "PASS" "snapshot source" "authenticated previously-main $SNAPSHOT_SUBJECT; current main $(jq -r .current_main_sha "$evidence/subject.json")"
+    record_result "PASS" "snapshot CI" "actual successful push-main provenance for $SNAPSHOT_SUBJECT"
+  else
+    record_result "BLOCK" "snapshot source" "protected-main admission failed; see retained admission evidence"
   fi
 }
 
@@ -598,15 +655,19 @@ else
     SNAPSHOT_OK=1
   fi
   check_fetch
-  check_branch
+  if [[ "$MODE" == "snapshot" ]]; then check_snapshot_source; else check_branch; fi
   check_working_tree
-  repo_owned_checks
-  check_latest_ci
-  check_artifact_ledger
-  check_tracked_junk
-  check_generated_drift
-  if [[ "$RUN_MIX_CI" == "1" ]]; then
-    check_mix_ci
+  if [[ "$MODE" == "snapshot" && "$HEAD_VERIFIED" != "1" ]]; then
+    record_result "BLOCK" "snapshot checks" "repository execution refused without admitted source"
+  else
+    repo_owned_checks
+    if [[ "$MODE" != "snapshot" ]]; then check_latest_ci; fi
+    check_artifact_ledger
+    check_tracked_junk
+    check_generated_drift
+    if [[ "$RUN_MIX_CI" == "1" ]]; then
+      check_mix_ci
+    fi
   fi
   check_residue
 fi
@@ -625,4 +686,8 @@ if [[ "$WARN_COUNT" -gt 0 ]]; then
   exit 0
 fi
 
-echo "Result: safe to start release prep"
+if [[ "$MODE" == "snapshot" ]]; then
+  echo "Result: snapshot source hygiene verified; no current-main or release eligibility"
+else
+  echo "Result: safe to start release prep"
+fi

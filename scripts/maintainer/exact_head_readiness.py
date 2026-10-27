@@ -459,6 +459,10 @@ class Qualification:
         elif proof_id == 'inbox-ledger':
             # The dedicated remote collector owns current inventory and visibility; this is the tracked policy shape gate.
             argv = argv + ['--ledger', '.planning/INBOX-LEDGER.json', '--offline']
+        elif proof_id == 'hygiene' and self.snapshot:
+            self.hygiene_admission=self.private/'hygiene-admission'
+            argv=argv+['--snapshot-subject',self.subject,'--repo',self.repo,
+                       '--snapshot-evidence',str(self.hygiene_admission)]
         elif proof_id == 'contributor-bootstrap':
             self.bootstrap = self.private/'bootstrap.json'
             argv = argv + ['--receipt', str(self.bootstrap), '--subject-sha', self.subject]
@@ -531,6 +535,10 @@ class Qualification:
             dest=self.portable/'upstream/async.jsonl'; write_new(dest,self.async_report.read_bytes()); extras.append(reference(self.portable,dest))
         elif proof_id == 'hygiene':
             require(re.search(rb'Summary: [0-9]+ PASS, 0 WARN, 0 BLOCK', raw) is not None, 'hygiene_warning')
+            if self.snapshot:
+                path=self.portable/'upstream/hygiene-subject.json'
+                write_new(path,(self.hygiene_admission/'subject.json').read_bytes())
+                extras.append(reference(self.portable,path))
         self.receipts.append({'id': proof_id, 'command': record, 'references': extras})
 
     def cleanup(self):

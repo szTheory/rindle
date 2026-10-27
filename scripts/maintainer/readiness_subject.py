@@ -6,6 +6,7 @@ from exact_head_readiness import ROOT, NotReady, digest, now, require
 
 POLICY = 'rindle-snapshot-v3'
 CONTROL_PATHS = (
+    'scripts/maintainer/repo_hygiene_check.sh',
     'scripts/maintainer/readiness_nightly.exs',
     'scripts/maintainer/readiness_nightly_capture.py',
     'scripts/maintainer/readiness_subject.py',
