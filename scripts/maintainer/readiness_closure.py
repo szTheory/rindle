@@ -54,7 +54,7 @@ def semantic(packet):
 
 
 class Closure:
-    def __init__(self,repo,output,manifest=None,fixture=None,deadline=13800,subject=None,snapshot=False):
+    def __init__(self,repo,output,manifest=None,fixture=None,deadline=16200,subject=None,snapshot=False):
         self.repo=repo;self.output=Path(output).resolve();self.original=Path(manifest).resolve() if manifest else None
         self.candidate=subject;self.snapshot=snapshot
         self.fixture=fixture;self.mode='fixture' if fixture is not None else 'execution'

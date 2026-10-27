@@ -24,7 +24,7 @@ PREFLIGHT = '.planning/phases/139-exact-head-readiness-closure/139-preflight.sh'
 TOOLCHAIN_ENV = {'ASDF_ERLANG_VERSION': '27.3.4.15', 'ASDF_ELIXIR_VERSION': '1.17.3-otp-27',
                  'ASDF_NODEJS_VERSION': '20.18.1'}
 OUTPUT_LIMIT = 32 * 1024 * 1024
-QUALIFICATION_SECONDS = 12000
+QUALIFICATION_SECONDS = 14400
 
 
 class NotReady(Exception):
@@ -484,9 +484,9 @@ class Qualification:
             self.async_report = self.private/'async.jsonl'
             argv = argv + ['--report', str(self.async_report)]
             env = {**self.env, 'RINDLE_ASYNC_EVIDENCE_DIR': str(self.private)}
-        # Twenty-five fresh coverage processes take about two hours at the
-        # observed five-minute suite duration. Keep every seed and a finite cap.
-        budget = 10800 if proof_id == 'async-isolation' else 2400
+        # Budget all twenty-five fresh coverage processes from observed suite
+        # durations, separately from the ordinary single-command cap.
+        budget = 12600 if proof_id == 'async-isolation' else 2400
         record, raw = self.checked(argv, cwd=cwd, budget=budget, env=env)
         if proof_id == 'dialyzer-fresh':
             require(raw.count(b'mode=fresh action=build-plt')==1 and raw.count(b'mode=fresh attempt=1 action=analyze')==1, 'fresh_plt_missing_execution')

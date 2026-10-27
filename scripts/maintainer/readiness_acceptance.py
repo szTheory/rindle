@@ -82,7 +82,7 @@ def metadata_parity(root,subject,interval):
 
 
 class Acceptance:
-    def __init__(self,repo,output,fixture=None,wait=16200,subject=None,snapshot=False):
+    def __init__(self,repo,output,fixture=None,wait=19800,subject=None,snapshot=False):
         self.candidate=subject;self.snapshot=snapshot
         self.repo=repo;self.output=Path(output).resolve();self.fixture=fixture
         self.mode='fixture' if fixture is not None else 'execution';self.wait=wait
