@@ -366,3 +366,28 @@ four-scheduler. A complete direct-binary local grouped comparison passed at
 CI target credit or proof of Linux headroom. Fresh full Linux CI is required.
 The existing actual-validator fixture-worker pattern is a researched fallback if
 reducing parser VM startup contention is insufficient; no new worker is introduced.
+
+### Fine-grained Dependabot permission identity (2026-10-27)
+
+Actual producer40462191283/1 reached fresh private-source validation, then refused
+`dependabot_visibility_unproved` after the successful alert GET. The verifier used
+the invented API key `dependabot_alerts`; GitHub documents `vulnerability_alerts`
+for the display label Dependabot alerts. Correct only that key. Require actual
+successful authorized GETs, complete pages and the documented read/write signal;
+missing, unrelated or malformed permissions remain unproved, and401/403 remain
+failures. No token, permission, exception, workflow or alert state changes. The
+failed terminal and producer remain immutable with zero credit. This controller
+change requires a new delivered/admitted source, rather than reinterpreting the
+failed eb814ef8 attempt. Production Nightly controls remain unchanged.
+
+The later metadata-only main run40461846541 again hit240s: incident239s passed,
+existing/readiness groups were stopped. The single-scheduler configuration was
+insufficient under runner variance. Reuse the already existing test-only validator
+worker for the actual pure topology, Nightly-control, remote-validation and Hex
+functions; patch only Runs/Remote fixture callers. Retain fresh subprocess CLI
+integration, explicit success/rejection parity for all four operation families,
+unknown-operation fail-closed/reap checks, complete API reads and all assertions.
+One worker per suite stays in its enclosing group, with strict framing, the same
+45s policy deadline and2MiB policy-output bound, cleanup and no automatic fallback.
+Production collectors, credential scope, native gates, three groups and240s bound
+remain unchanged. No persistent production service or dependency is introduced.
