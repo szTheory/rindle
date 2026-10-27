@@ -801,6 +801,24 @@ if GeneratedAppHelper.profile_enabled?(:image) and
       assert report.lifecycle_proved?
     end
 
+    @tag :doctor_cli
+    test "fresh Doctor CLI loads the generated host and inspects its migrated schemas",
+         %{report: report} do
+      result =
+        Rindle.InstallSmoke.GeneratedApp.CommandRunner.run(
+          report.generated_app_root,
+          ["mix", "rindle.doctor"],
+          Map.to_list(report.package_evidence_context.execution_env),
+          timeout_ms: 60_000
+        )
+
+      assert result.exit_code == 0, result.output
+      assert result.output =~ "Environment checks passed"
+      assert result.output =~ "[OK] doctor.migrations.pending"
+      assert result.output =~ "[OK] doctor.oban_jobs.ready"
+      assert result.output =~ "[OK] doctor.rindle_schema.ready"
+    end
+
     test "generated Phoenix app runs host plus Rindle migrations explicitly and proves the canonical presigned PUT lifecycle",
          %{report: report} do
       assert_host_owned_migrations!(report)
