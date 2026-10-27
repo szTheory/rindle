@@ -5,7 +5,7 @@
 push-main CI and full same-source Nightly via dispatch or schedule), independent
 real scheduled operational health under identical reviewed controls, and fresh
 current security/inbox/protection/adoption authority. Main may advance after
-capture. Manual qualification cannot recover scheduled incidents. Historical v2
+capture. Snapshot-source hygiene retains protected-main admission and generator/artifact/residue checks; ordinary release prep still requires current main. Manual qualification cannot recover scheduled incidents. Historical v2
 receipts remain immutable under their original verifier; they cannot opt into v3.
 Producer-head and evidence-subject identities remain separate. Results are
 historical snapshot readiness only; independent pilots, 1.0 and publication retain

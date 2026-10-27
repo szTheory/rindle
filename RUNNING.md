@@ -534,6 +534,22 @@ Scheduled health covers the daily 07:27 UTC slot by slot +60m and requires termi
 completion by actual run creation +120m, including initial/downstream queues. A newer
 pending run is Unknown immediately. Changed controls, expired/stale evidence or a
 real incident can still require authentic scheduled recovery; candidate tests do not.
+The snapshot qualifier also invokes explicit snapshot-source hygiene. It authenticates
+that source against protected main, retains its admission record, and runs the same
+artifact/generator/cleanliness/residue checks. A compatible metadata merge does not
+force this source to become the newest main tip. Ordinary `--release-prep` remains
+strict current-tip release preparation. For a standalone source diagnostic:
+
+```bash
+bash scripts/maintainer/repo_hygiene_check.sh \
+  --snapshot-subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle \
+  --snapshot-evidence NEW_EXTERNAL_HYGIENE_ADMISSION
+```
+
+This mode reports snapshot-source hygiene only; it grants no current-main or release
+eligibility. Failed admission refuses repository execution, and the terminal graph
+requires the retained admission to match the candidate, policy controls and clock.
+
 Historical v2 evidence stays with its original verifier/source and cannot gain v3
 semantics through refresh. Select a new admitted source after controller changes.
 Mutable inventories, security visibility, effective protection, inbox ledger and

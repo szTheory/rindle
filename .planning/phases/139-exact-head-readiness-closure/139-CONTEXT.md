@@ -318,3 +318,18 @@ Keep existing same-source/input/policy proof reuse and fresh mutable refresh. Th
 retained-intent rebase rule is a separate optional follow-up, outside this amendment's
 acceptance. No new dependency, service, workflow, release trigger or credential grant.
 PR189 stays held and READY-01–05 remain Pending until automated live terminal acceptance.
+
+### Snapshot hygiene enablement
+
+Native-gate review found the older qualifier still called current-tip release hygiene,
+which would reject an admitted source after a necessary ledger-only main advance.
+The v3 qualifier must use the explicit authenticated snapshot-source hygiene mode.
+Preserve actual fetch and protected-main ancestry, exact local HEAD/control bytes,
+cleanliness, generator/artifact checks, warning refusal and observed residue. Retain
+that gate's actual source-admission JSON in the portable graph and validate its SHA,
+repository, push provenance, controls and observation interval. Unknown/foreign/dirty
+source refuses repository execution. Ordinary default/`--release-prep` keeps its strict
+current-tip behavior; snapshot hygiene asserts no release or current-main eligibility.
+Adding the hygiene controller to the mirrored control/input registry requires a new
+admitted post-delivery source. Preserve the completed 61131fd2 diagnostic proofs; do
+not relabel them. The independent operational Nightly control identity is unchanged.

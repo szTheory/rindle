@@ -56,6 +56,10 @@ def upgrade(root,record,manifest,prefix):
         for receipt in expanded:
             receipt['policy']=subject.POLICY
             id=receipt['id']
+            if id=='hygiene':
+                receipt['command']['argv']+=['--snapshot-subject',SHA,'--repo',REPO,'--snapshot-evidence','/external/hygiene-admission']
+                receipt['references'].append(put(root,prefix+'hygiene-subject.json',
+                    binding(NEXT,manifest['input_identity'],receipt['observation_interval']['started_at'])))
             if 'source' in receipt:
                 source=receipt['source'];source['policy']=subject.POLICY;n=source['normalized']
                 if id=='remote-inventory':
@@ -299,6 +303,30 @@ class Graph(unittest.TestCase):
         m=q.read_json(self.bundle/'manifest.json');m['proofs']=[r for r in m['proofs'] if r['id']!='scheduled-incident-health']
         put(self.bundle,'manifest.json',m)
         with self.assertRaisesRegex(q.NotReady,'proof_inventory'):self.validate()
+
+    def test_snapshot_hygiene_cannot_use_unqualified_release_prep(self):
+        m=q.read_json(self.bundle/'manifest.json');ref=next(r for r in m['proofs'] if r['id']=='hygiene')
+        receipt=q.read_json(self.bundle/ref['path']);receipt['command']['argv']=receipt['command']['argv'][:3]
+        m['proofs']=[{**put(self.bundle,ref['path'],receipt),'id':ref['id']} if r['id']==ref['id'] else r for r in m['proofs']]
+        put(self.bundle,'manifest.json',m)
+        with self.assertRaisesRegex(q.NotReady,'hygiene_subject'):self.validate()
+
+    def test_snapshot_hygiene_rejects_missing_retained_admission(self):
+        m=q.read_json(self.bundle/'manifest.json');ref=next(r for r in m['proofs'] if r['id']=='hygiene')
+        receipt=q.read_json(self.bundle/ref['path'])
+        receipt['references']=[r for r in receipt['references'] if not r['path'].endswith('/hygiene-subject.json')]
+        m['proofs']=[{**put(self.bundle,ref['path'],receipt),'id':ref['id']} if r['id']==ref['id'] else r for r in m['proofs']]
+        put(self.bundle,'manifest.json',m)
+        with self.assertRaisesRegex(q.NotReady,'hygiene_subject'):self.validate()
+
+    def test_snapshot_hygiene_rejects_foreign_retained_admission(self):
+        m=q.read_json(self.bundle/'manifest.json');ref=next(r for r in m['proofs'] if r['id']=='hygiene')
+        receipt=q.read_json(self.bundle/ref['path']);admission=next(r for r in receipt['references'] if r['path'].endswith('/hygiene-subject.json'))
+        value=q.read_json(self.bundle/admission['path']);value['subject_sha']='f'*40
+        receipt['references']=[put(self.bundle,admission['path'],value) if r['path']==admission['path'] else r for r in receipt['references']]
+        m['proofs']=[{**put(self.bundle,ref['path'],receipt),'id':ref['id']} if r['id']==ref['id'] else r for r in m['proofs']]
+        put(self.bundle,'manifest.json',m)
+        with self.assertRaisesRegex(q.NotReady,'hygiene_subject'):self.validate()
 
     def test_foreign_health_repository_fails_even_with_matching_controls(self):
         self.mutate_proof('scheduled-incident-health',lambda n:n['health_run'].update(repository='fork/rindle'))

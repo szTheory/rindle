@@ -11,7 +11,7 @@ defmodule Rindle.ExactHeadReadiness do
   @moduledoc false
   @policy "rindle-exact-head-v1"
   @snapshot_policy "rindle-snapshot-v3"
-  @snapshot_controls ~w(scripts/maintainer/readiness_nightly_capture.py scripts/maintainer/readiness_nightly.exs scripts/maintainer/readiness_subject.py
+  @snapshot_controls ~w(scripts/maintainer/repo_hygiene_check.sh scripts/maintainer/readiness_nightly_capture.py scripts/maintainer/readiness_nightly.exs scripts/maintainer/readiness_subject.py
     scripts/maintainer/validate_exact_head_readiness.exs
     scripts/maintainer/exact_head_readiness.py
     scripts/maintainer/readiness_acceptance.py
@@ -65,7 +65,8 @@ defmodule Rindle.ExactHeadReadiness do
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
   @snapshot_mutable ~w(ci-main nightly-qualification scheduled-incident-health protection remote-inventory adoption-parity)
   @inputs Enum.uniq(
-            ~w(scripts/maintainer/readiness_nightly_capture.py) ++
+            ~w(scripts/maintainer/repo_hygiene_check.sh) ++
+              ~w(scripts/maintainer/readiness_nightly_capture.py) ++
               Rindle.ReadinessNightly.control_paths() ++
               ~w(scripts/maintainer/readiness_nightly.exs scripts/maintainer/readiness_subject.py scripts/maintainer/validate_exact_head_readiness.exs) ++
               @credential_inputs ++
@@ -492,6 +493,55 @@ defmodule Rindle.ExactHeadReadiness do
     ensure!(command["output"] in r["references"], "unbound_reference", "command output not bound")
     validate_identity!(r["tool_identity"], "tool_identity")
     validate_cleanup!(r["cleanup"])
+
+    if r["policy"] == @snapshot_policy and r["id"] == "hygiene",
+      do: validate_hygiene_subject!(r, c)
+  end
+
+  defp validate_hygiene_subject!(r, c) do
+    suffix = Enum.drop(r["command"]["argv"], length(command_prefix("hygiene")))
+
+    ensure!(
+      match?(["--snapshot-subject", _, "--repo", _, "--snapshot-evidence", _], suffix) and
+        Enum.at(suffix, 1) == r["subject_sha"] and Enum.at(suffix, 3) == r["repository"],
+      "hygiene_subject",
+      "snapshot hygiene arguments differ"
+    )
+
+    refs = Enum.filter(r["references"], &String.ends_with?(&1["path"], "/hygiene-subject.json"))
+    ensure!(length(refs) == 1, "hygiene_subject", "retained hygiene admission absent")
+    value = refs |> hd() |> object!(c) |> decode!()
+    current = value["current_main_sha"]
+
+    ensure!(
+      value["schema"] == "rindle-readiness-snapshot-subject-v3" and
+        value["repository"] == r["repository"] and value["subject_sha"] == r["subject_sha"] and
+        value["authenticated"] === true and value["requirements_credit"] === false and
+        subject_sha?(current) and
+        value["protected_main"] == %{"name" => "main", "protected" => true, "sha" => current} and
+        value["comparison"]["status"] in ["ahead", "identical"] and
+        value["comparison"]["base"] == r["subject_sha"] and
+        value["comparison"]["merge_base"] == r["subject_sha"] and
+        value["comparison"]["head"] == current and
+        value["control_identity"] == @snapshot_control_digests and
+        value["control_identity"] == Map.take(r["input_identity"], @snapshot_controls),
+      "hygiene_subject",
+      "snapshot hygiene admission differs"
+    )
+
+    push = value["push_run"]
+
+    ensure!(
+      positive?(push["id"]) and positive?(push["run_attempt"]) and
+        push["head_sha"] == r["subject_sha"] and
+        push["head_branch"] == "main" and push["event"] == "push" and push["name"] == "CI" and
+        push["path"] == ".github/workflows/ci.yml" and push["status"] == "completed" and
+        push["conclusion"] == "success" and
+        time!(value["observed_at"]) >= time!(r["observation_interval"]["started_at"]) and
+        time!(value["observed_at"]) <= time!(r["observation_interval"]["completed_at"]),
+      "hygiene_subject",
+      "hygiene provenance or clock differs"
+    )
   end
 
   defp valid_command_args?(id, argv) do
@@ -503,6 +553,9 @@ defmodule Rindle.ExactHeadReadiness do
 
       {"package", ["--output", path]} ->
         absolute_argument?(path)
+
+      {"hygiene", ["--snapshot-subject", sha, "--repo", repo, "--snapshot-evidence", path]} ->
+        subject_sha?(sha) and is_binary(repo) and absolute_argument?(path)
 
       {"inbox-ledger", ["--ledger", ".planning/INBOX-LEDGER.json", "--offline"]} ->
         true

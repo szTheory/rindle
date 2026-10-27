@@ -37,6 +37,7 @@ EOF
 # --- fake binaries ---------------------------------------------------------------------------
 BIN="${ROOT_TMP}/bin"
 mkdir -p "${BIN}"
+export HYGIENE_FIXTURE_REAL_PYTHON="$(command -v python3)"
 
 cat >"${BIN}/mix" <<'FAKE_MIX'
 #!/usr/bin/env bash
@@ -94,7 +95,13 @@ case "${1-}" in
   auth) exit 0 ;;
   run)
     case "${2-}" in
-      list) echo '[{"conclusion":"success","status":"completed","url":"https://example.invalid/run/1"}]'; exit 0 ;;
+      list)
+        if [ "${FAKE_GH_CI:-success}" = pending ]; then
+          echo '[{"conclusion":null,"status":"in_progress","url":"https://example.invalid/run/2"}]'
+        else
+          echo '[{"conclusion":"success","status":"completed","url":"https://example.invalid/run/1"}]'
+        fi
+        exit 0 ;;
     esac
     ;;
 esac
@@ -105,7 +112,38 @@ echo "$*" >>"${FAKE_DIR}/mutations"
 exit 0
 FAKE_GH
 
-chmod +x "${BIN}/mix" "${BIN}/node" "${BIN}/gh"
+# Admission is a tested read-only Python boundary. This seam isolates the real
+# Bash/git/generator behavior; snapshot identity/API negatives also run through
+# the actual controller in test_readiness_snapshot.py. No fixture grants credit.
+cat >"${BIN}/python3" <<'FAKE_PY'
+#!/usr/bin/env bash
+set -eu
+if [[ "${1:-}" == */readiness_acceptance.py && "${2:-}" == admit-snapshot ]]; then
+  printf '%s\n' "$*" >>"${FAKE_DIR}/admission.log"
+  [[ "${FAKE_SNAPSHOT_ADMIT:-ok}" != fail ]] || exit 1
+  shift 2
+  subject=""; repo=""; output=""
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      --subject) subject="$2"; shift ;;
+      --repo) repo="$2"; shift ;;
+      --output) output="$2"; shift ;;
+    esac
+    shift
+  done
+  if [[ "${FAKE_SNAPSHOT_ADMIT:-ok}" == foreign ]]; then subject="0000000000000000000000000000000000000000"; fi
+  mkdir -p "$output"
+  current="$(git rev-parse refs/remotes/origin/main)"
+  jq -n --arg subject "$subject" --arg repo "$repo" --arg current "$current" \
+    '{schema:"rindle-readiness-snapshot-subject-v3",subject_sha:$subject,repository:$repo,
+      current_main_sha:$current,authenticated:true,requirements_credit:false}' >"$output/subject.json"
+  echo snapshot_admitted
+  exit 0
+fi
+exec "$HYGIENE_FIXTURE_REAL_PYTHON" "$@"
+FAKE_PY
+
+chmod +x "${BIN}/mix" "${BIN}/node" "${BIN}/gh" "${BIN}/python3"
 
 # --- seed tree -------------------------------------------------------------------------------
 # A minimal maintainer tree: version files, train documents, release workflows, a stub
@@ -154,6 +192,9 @@ EOF
   printf '# Development train\n\nBranch shape: milestone/vNEXT-short-slug\n' >"${d}/.planning/DEVELOPMENT-TRAIN.md"
   printf '#!/usr/bin/env bash\necho "automation-first contract: ok"\n' >"${d}/scripts/maintainer/automation_first_contract.sh"
   chmod +x "${d}/scripts/maintainer/automation_first_contract.sh"
+  cp "$SCRIPT" "${d}/scripts/maintainer/repo_hygiene_check.sh"
+  cp "${HERE}/../maintainer/readiness_acceptance.py" "${d}/scripts/maintainer/readiness_acceptance.py"
+  cp "${HERE}/../maintainer/validate_artifact_ledger.sh" "${d}/scripts/maintainer/validate_artifact_ledger.sh"
   printf 'console.log("fixture generator");\n' >"${d}/brandbook/src/sync-admin-css.mjs"
   printf '.rindle-admin { color: black; }\n' >"${d}/priv/static/rindle_admin/rindle-admin.css"
   cat >"${d}/.gitignore" <<'EOF'
@@ -226,7 +267,7 @@ run_hygiene() {
   (
     cd "${C}/work" &&
       RINDLE_HYGIENE_ROOT="${C}/work" FAKE_DIR="${C}/fake" TMPDIR="${C}/tmpdir" \
-        PATH="${BIN}:${PATH}" bash "${SCRIPT}" "$@"
+        PATH="${BIN}:${PATH}" bash "${HYGIENE_SCRIPT_UNDER_TEST:-$SCRIPT}" "$@"
   ) >"${C}/out" 2>&1 || RC=$?
 }
 
@@ -321,6 +362,58 @@ git_q -C "${C}/other" push -q origin main
 run_hygiene
 expect "origin has a newer commit: BLOCK head vs origin behind=1" 1 \
   present "[BLOCK] head vs origin: HEAD is behind=1 ahead=0"
+
+new_case
+snapshot_sha="$(git -C "${C}/work" rev-parse HEAD)"
+git_q clone -q "${C}/origin.git" "${C}/other"
+commit_in "${C}/other" "metadata advancement" .planning/metadata-note.md
+git_q -C "${C}/other" push -q origin main
+HYGIENE_SCRIPT_UNDER_TEST="${C}/work/scripts/maintainer/repo_hygiene_check.sh" FAKE_GH_CI=pending \
+  run_hygiene --release-prep --snapshot-subject "$snapshot_sha" --repo fixture/rindle --snapshot-evidence "${C}/retained-admission"
+expect "admitted snapshot survives metadata advancement and newer pending main CI" 0 \
+  present "Rindle repo hygiene report (snapshot)" present "[PASS] snapshot source" \
+  present "[PASS] snapshot CI" present "[PASS] generated drift" absent "[WARN]" absent "[BLOCK]" \
+  present "no current-main or release eligibility"
+if [[ -f "${C}/retained-admission/subject.json" && -s "${C}/fake/admission.log" ]]; then
+  ok "snapshot admission is retained separately from source checkout"
+else bad "snapshot admission was not retained"; fi
+
+new_case
+snapshot_sha="$(git -C "${C}/work" rev-parse HEAD)"
+HYGIENE_SCRIPT_UNDER_TEST="${C}/work/scripts/maintainer/repo_hygiene_check.sh" FAKE_SNAPSHOT_ADMIT=fail \
+  run_hygiene --snapshot-subject "$snapshot_sha" --repo fixture/rindle
+expect "failed protected-main admission refuses repository execution" 1 \
+  present "[BLOCK] snapshot source" present "repository execution refused" absent "[PASS] generated drift"
+if [[ ! -s "${C}/fake/node.log" ]]; then ok "failed admission never runs generators"; else bad "failed admission executed generator"; fi
+
+new_case
+snapshot_sha="$(git -C "${C}/work" rev-parse HEAD)"
+HYGIENE_SCRIPT_UNDER_TEST="${C}/work/scripts/maintainer/repo_hygiene_check.sh" FAKE_SNAPSHOT_ADMIT=foreign \
+  run_hygiene --snapshot-subject "$snapshot_sha" --repo fixture/rindle
+expect "foreign admission subject fails closed" 1 present "[BLOCK] snapshot source" absent "[PASS] generated drift"
+
+new_case
+snapshot_sha="$(git -C "${C}/work" rev-parse HEAD)"
+commit_in "${C}/work" "unpublished local change" lib/local.txt
+HYGIENE_SCRIPT_UNDER_TEST="${C}/work/scripts/maintainer/repo_hygiene_check.sh" \
+  run_hygiene --snapshot-subject "$snapshot_sha" --repo fixture/rindle
+expect "snapshot request cannot substitute another local HEAD" 1 present "checkout/controller/source identity" absent "[PASS] generated drift"
+
+new_case
+snapshot_sha="$(git -C "${C}/work" rev-parse HEAD)"
+echo dirty >>"${C}/work/lib/fixture.ex"
+HYGIENE_SCRIPT_UNDER_TEST="${C}/work/scripts/maintainer/repo_hygiene_check.sh" \
+  run_hygiene --snapshot-subject "$snapshot_sha" --repo fixture/rindle
+expect "dirty snapshot refuses repository execution" 1 present "checkout/controller/source identity" absent "[PASS] generated drift"
+
+new_case
+snapshot_sha="$(git -C "${C}/work" rev-parse HEAD)"
+run_hygiene --snapshot-subject "$snapshot_sha" --repo fixture/rindle
+expect "snapshot controller must belong to the checked source root" 1 present "checkout/controller/source identity"
+
+new_case
+run_hygiene --ci --snapshot-subject 0000000000000000000000000000000000000000 --repo fixture/rindle
+expect "snapshot and CI-only modes cannot mix" 64 present "cannot be combined"
 
 new_case
 commit_in "${C}/work" "local change" lib/local.txt

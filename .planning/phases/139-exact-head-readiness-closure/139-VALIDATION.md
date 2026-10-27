@@ -102,3 +102,10 @@ manual recovery substitution, optional-provider forgery and old-policy substitut
 fail. Existing full graph/retrieval/terminal tests exercise both new required proofs.
 Optional retained-intent semantics are not a core acceptance criterion. Nightly's
 production bytes and all release/credential boundaries remain unchanged.
+
+Snapshot hygiene additionally runs `bash scripts/ci/test_repo_hygiene_check.sh`:
+real temporary Git repositories prove compatible metadata advancement succeeds only
+with admitted exact source, while default release-prep behind/ahead checks remain
+strict. Failed/foreign/dirty identity refuses generators; admission remains retained.
+The actual graph validator rejects absent/foreign hygiene admission and an unqualified
+release-prep command under v3. This enablement grants no readiness by itself.
