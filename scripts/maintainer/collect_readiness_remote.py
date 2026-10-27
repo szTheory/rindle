@@ -32,7 +32,7 @@ class RemoteCollector:
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
         self.repo,self.subject,self.output=repo,subject,Path(output).resolve()
         self.snapshot=snapshot
-        self.policy_name='rindle-snapshot-v2' if snapshot else POLICY
+        self.policy_name='rindle-snapshot-v3' if snapshot else POLICY
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
         self.output.mkdir(mode=0o700,parents=True)
         self.portable=self.output/'portable';self.private=self.output/'restricted'

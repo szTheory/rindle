@@ -4,8 +4,10 @@ from urllib.parse import urlencode
 
 from exact_head_readiness import ROOT, NotReady, digest, now, require
 
-POLICY = 'rindle-snapshot-v2'
+POLICY = 'rindle-snapshot-v3'
 CONTROL_PATHS = (
+    'scripts/maintainer/readiness_nightly.exs',
+    'scripts/maintainer/readiness_nightly_capture.py',
     'scripts/maintainer/readiness_subject.py',
     'scripts/maintainer/validate_exact_head_readiness.exs',
     'scripts/maintainer/exact_head_readiness.py',
@@ -71,7 +73,7 @@ def observe(api, subject, root=ROOT):
         require((root / path).is_file() and not (root / path).is_symlink() and
                 raw == (root / path).read_bytes(), 'snapshot_policy_mismatch')
         controls[path] = digest(raw)
-    return {'schema': 'rindle-readiness-snapshot-subject-v2', 'repository': api.repo,
+    return {'schema': 'rindle-readiness-snapshot-subject-v3', 'repository': api.repo,
             'subject_sha': subject, 'current_main_sha': current, 'observed_at': now(),
             'authenticated': True, 'protected_main': {'name': 'main', 'protected': True, 'sha': current},
             'comparison': {'status': comparison['status'], 'base': subject, 'merge_base': subject, 'head': current},

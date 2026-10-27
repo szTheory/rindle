@@ -56,7 +56,7 @@ defmodule ReadinessFixture do
            root,
            "inputs/#{&1}",
            if(
-             &1 in V.snapshot_controls() or
+             &1 in V.snapshot_controls() or &1 in Rindle.ReadinessNightly.control_paths() or
                &1 in [
                  ".github/workflows/ci.yml",
                  ".github/workflows/nightly.yml",

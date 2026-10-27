@@ -21,7 +21,7 @@ with concrete test paths, creation dependencies, and observable failure signals 
 | Existing quick regression | `bash scripts/ci/test_nightly_summary_gate.sh` |
 | New focused checks | Created by the first implementation tasks; exact paths finalized with plans |
 | Full local verification | `mix ci` on the committed supported toolchain |
-| Terminal acceptance | Plan 07 `verify-subject` then `accept` on the accepted merged main after all implementation and planning changes, with actual isolated qualification, live main CI, scheduled Nightly, protection, complete remote inventories, producer-digest-verified post-upload durable copy, validated refresh envelope and adoption parity; later GSD metadata is explicitly historical |
+| Terminal acceptance | Plan 07 `verify-subject` then `accept` on the accepted merged main after all implementation and planning changes, with actual isolated qualification, live main CI, same-source Nightly qualification, independent real scheduled incident health, protection, complete remote inventories, producer-digest-verified post-upload durable copy, validated refresh envelope and adoption parity; later GSD metadata is explicitly historical |
 | Feedback budget | Focused pure fixtures target <60 seconds; measure during implementation |
 
 ## Sampling Rate
@@ -52,14 +52,14 @@ The first task of each plan creates its own fixture driver before that command i
 | 139-01–06 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after each plan's SUMMARY.md is written, before its metadata commit | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks summary closeout and commit |
 | 139-07 post-summary and final metadata closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after 139-07-SUMMARY.md and REQUIREMENTS/ROADMAP/STATE edits plus `claim-status` parity, before `git_commit_metadata` | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks metadata closeout and commit |
 
-Terminal automated acceptance: after all tracked implementation, workflow, documentation, and planning changes are merged, Plan 07 runs `verify-subject` and then `accept` for one explicit authenticated previously-main snapshot from its clean checkout on the restricted durable maintainer host with an external evidence directory. `accept` triggers a matching main workflow run, waits for upload, retrieves the exact run/attempt producer digest sidecar and archive, verifies retained archive and manifest bytes, validates the subject-preserving refresh envelope against new mutable receipt bytes and authoritative adoption parity, and checks the final machine-readable ready verdict. A nonzero exit, `not_ready`, candidate substitution, missing scheduled Nightly, incomplete upstream acceptance, or absent verified local copy leaves READY-01–05 open. Only after actual acceptance may normal GSD summary/requirement/progress metadata record historical completion, qualified by accepted SHA and observation interval. Its later commit cannot inherit current-head readiness; `claim-status` proves this in a negative fixture and on any advanced main. The controller has bounded waiting; fixture checks and a candidate `close` verdict are implementation progress only.
+Terminal automated acceptance: after all tracked implementation, workflow, documentation, and planning changes are merged, Plan 07 runs `verify-subject` and then `accept` for one explicit authenticated previously-main snapshot from its clean checkout on the restricted durable maintainer host with an external evidence directory. `accept` triggers a matching main workflow run, waits for upload, retrieves the exact run/attempt producer digest sidecar and archive, verifies retained archive and manifest bytes, validates the subject-preserving refresh envelope against new mutable receipt bytes and authoritative adoption parity, and checks the final machine-readable ready verdict. A nonzero exit, `not_ready`, candidate substitution, missing candidate Nightly qualification or scheduled health, incomplete upstream acceptance, or absent verified local copy leaves READY-01–05 open. Only after actual acceptance may normal GSD summary/requirement/progress metadata record historical completion, qualified by accepted SHA and observation interval. Its later commit cannot inherit current-head readiness; `claim-status` proves this in a negative fixture and on any advanced main. The controller has bounded waiting; fixture checks and a candidate `close` verdict are implementation progress only.
 
 The automation-first closeout check validates active planning-artifact edits; it does not create or refresh an exact-head readiness verdict. Keep Plan 07's accepted SHA, interval and locator as historical metadata when that metadata later reaches main.
 
 | Requirement | Automated proof | New infrastructure |
 |-------------|-----------------|--------------------|
 | READY-01 | Exact tool/input and subject identity, all gates executed, archive/payload binding, clean initial/final checkout, cleanup and residue rejection | Isolated runner and receipt fixtures |
-| READY-02 | Full exact-head push-main CI and scheduled Nightly attempts, newest eligible run, complete topology-derived matrix/event job sets, effective protection parity | Read-only collector and fake API regressions with omitted-job negatives |
+| READY-02 | Full exact-head push-main CI and Nightly qualification plus independent authentic scheduled health, newest eligible run, complete topology-derived matrix/event job sets, effective protection parity | Read-only collector and fake API regressions with omitted-job negatives |
 | READY-03 | Complete per-source pagination/visibility, current dispositions, missing historical items, independent Hex audit, two bounded observations | Upstream contract adapter and inventory fixtures |
 | READY-04 | Finite schema, required/duplicate/unknown proof IDs, raw byte digests, crash/timeout/unfinished manifest, mutable drift, original manifest to refresh-envelope to new receipt graph | Pure manifest validator and adversarial fixtures |
 | READY-05 | Live authoritative requirements/release/adoption state rejects PILOT-01/02 or real-adopter/1.0 claims from synthetic evidence | Automated parity wired into close/refresh/accept, plus mutated-real-state fixtures |
@@ -84,7 +84,7 @@ irreversible-action authorization cannot satisfy a requirement. Unavailable live
 
 Planning review does not establish execution success or requirement completion.
 
-## Snapshot policy v2 regressions
+## Snapshot policy v3 regressions
 
 `bash scripts/ci/test_readiness_snapshot.sh` executes actual validator, closure, refresh,
 retention retrieval and terminal controller paths with main advancing. It rejects PR-only
@@ -93,3 +93,12 @@ attempt, stale subject observations, changed authority and policy bytes, and sub
 producer identity. Fixture-ready results carry zero acceptance credit. The full existing
 fixture suite remains mandatory, including private-source denial, skipped jobs, manual
 Nightly, cleanup, archive substitution and immutable metadata negatives.
+
+The 2026-10-27 user-approved amendment adds explicit bounded `capture-nightly`,
+manual strict step/topology verification, distinct scheduled subject/control identity,
+retained verdict/checkpoint authentication and complete incident parity. Fake clocks
+exercise missing/queued/stalled schedule deadlines; newer failure/pending execution,
+manual recovery substitution, optional-provider forgery and old-policy substitution
+fail. Existing full graph/retrieval/terminal tests exercise both new required proofs.
+Optional retained-intent semantics are not a core acceptance criterion. Nightly's
+production bytes and all release/credential boundaries remain unchanged.

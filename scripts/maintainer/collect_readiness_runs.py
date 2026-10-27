@@ -9,6 +9,7 @@ import re
 import subprocess
 import tempfile
 import zipfile
+import datetime as dt
 from urllib.parse import urlencode
 
 from exact_head_readiness import ROOT, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new
@@ -40,7 +41,7 @@ class Collector:
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
         self.repo,self.subject,self.output=repo,subject,Path(output).resolve()
         self.snapshot=snapshot
-        self.policy_name='rindle-snapshot-v2' if snapshot else POLICY
+        self.policy_name='rindle-snapshot-v3' if snapshot else POLICY
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
         self.output.mkdir(mode=0o700,parents=True)
         self.portable=self.output/'portable';self.portable.mkdir(mode=0o700)
@@ -83,16 +84,20 @@ class Collector:
             'deferral':reference(self.portable,self.portable/'inputs'/paths[-2]),
             'original_qualification':reference(self.portable,self.portable/'inputs'/paths[-1])}
 
-    def latest(self,workflow,event):
-        query=urlencode({'head_sha':self.subject,'event':event,'branch':'main','per_page':100})
+    def latest(self,workflow,event,subject='candidate',missing=True):
+        subject=self.subject if subject=='candidate' else subject
+        filters={'event':event,'branch':'main','per_page':100}
+        if subject is not None:filters={'head_sha':subject,**filters}
+        query=urlencode(filters)
         values=self.api.pages('actions/workflows/'+workflow+'/runs?'+query,'workflow_runs',cap=999)
         # Validate every returned item; a server/query mismatch is never silently filtered away.
         for run in values:
-            require(run.get('head_sha')==self.subject and run.get('event')==event and run.get('head_branch')=='main' and
+            require((subject is None or run.get('head_sha')==subject) and re.fullmatch(r'[0-9a-f]{40}',run.get('head_sha','')) and run.get('event')==event and run.get('head_branch')=='main' and
                 run.get('repository',{}).get('full_name')==self.repo and run.get('name')==('CI' if event=='push' else 'Nightly') and
                 run.get('path')=='.github/workflows/'+workflow and isinstance(run.get('id'),int) and
                 isinstance(run.get('run_attempt'),int) and run['id']>0 and run['run_attempt']>0 and
                 isinstance(run.get('created_at'),str),'workflow_identity')
+        if not values and not missing:return None
         require(values,'scheduled_run_missing' if event=='schedule' else 'ci_run_missing')
         require(len({r['id'] for r in values})==len(values),'duplicate_run')
         return max(values,key=lambda r:(r['created_at'],r['id']))
@@ -105,22 +110,31 @@ class Collector:
         require(value.get('status')=='completed' and value.get('conclusion')=='success','latest_attempt_not_green')
         return value
 
-    def incident(self,run):
+    def incident(self,run,role='nightly-scheduled',key='incident'):
         artifacts=self.api.pages('actions/runs/'+str(run['id'])+'/artifacts?per_page=100','artifacts')
-        name=f"nightly-incident-verdict-{run['id']}-{run['run_attempt']}"
+        prefix='nightly-incident-verdict' if key=='incident' else 'nightly-incident-replay-checkpoint'
+        leaf='nightly-incident-verdict.json' if key=='incident' else 'nightly-incident-checkpoint.json'
+        name=f"{prefix}-{run['id']}-{run['run_attempt']}"
         matches=[a for a in artifacts if a.get('name')==name]
         require(len(matches)==1,'incident_artifact_missing')
         artifact=matches[0]
         require(artifact.get('expired') is False and isinstance(artifact.get('id'),int) and artifact['id']>0 and
-                artifact.get('workflow_run',{}).get('id')==run['id'] and artifact['workflow_run'].get('head_sha')==self.subject,
+                artifact.get('workflow_run',{}).get('id')==run['id'] and artifact['workflow_run'].get('head_sha')==run['head_sha'],
                 'incident_artifact_identity')
+        if self.snapshot:
+            require(isinstance(artifact.get('expires_at'),str) and
+                dt.datetime.fromisoformat(artifact['expires_at'].replace('Z','+00:00')) >=
+                dt.datetime.fromisoformat(self.observed_at.replace('Z','+00:00'))+dt.timedelta(hours=1),'incident_artifact_expiring')
         raw,_=self.api.get(self.api.path('actions/artifacts/'+str(artifact['id'])+'/zip'),binary=True)
         expected=artifact.get('digest')
+        if self.snapshot:
+            require(isinstance(expected,str) and re.fullmatch(r'sha256:[0-9a-f]{64}',expected),
+                    'incident_artifact_digest_unavailable')
         require(expected is None or expected=='sha256:'+digest(raw),'incident_artifact_digest')
         try:
             with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                 items=archive.infolist()
-                require(len(items)==1 and items[0].filename=='nightly-incident-verdict.json' and
+                require(len(items)==1 and items[0].filename==leaf and
                         items[0].file_size<=1024*1024 and not items[0].is_dir() and
                         (items[0].external_attr>>16)&0o170000 != 0o120000,'incident_artifact_unsafe')
                 data=archive.read(items[0])
@@ -130,32 +144,105 @@ class Collector:
         if not path.exists():write_new(path,raw)
         require(path.read_bytes()==raw,'artifact_changed')
         ref=reference(self.portable,path)
-        if ref not in self.artifacts.setdefault('nightly-scheduled',[]):self.artifacts['nightly-scheduled'].append(ref)
-        return {'incident':json_bytes(data),'incident_artifact':ref,'incident_artifact_id':artifact['id'],'incident_artifact_sha256':digest(raw)}
+        if ref not in self.artifacts.setdefault(role,[]):self.artifacts[role].append(ref)
+        return {key:json_bytes(data),key+'_artifact':ref,key+'_artifact_id':artifact['id'],key+'_artifact_sha256':digest(raw),**({key+'_artifact_expires_at':artifact['expires_at']} if self.snapshot else {})}
 
-    def run_observation(self,workflow,event):
-        run=self.latest(workflow,event);self.detail(run,event)
+    def qualification_run(self):
+        runs=[r for event in ('schedule','workflow_dispatch')
+              if (r:=self.latest('nightly.yml',event,missing=False)) is not None]
+        require(runs,'nightly_qualification_missing')
+        return max(runs,key=lambda r:(r['created_at'],r['id']))
+
+    def run_observation(self,workflow,event,run=None,role=None,global_schedule=False):
+        run=run or self.latest(workflow,event);self.detail(run,event)
+        role=role or ('ci-main' if event=='push' else 'nightly-scheduled')
         jobs=self.api.pages(f"actions/runs/{run['id']}/attempts/{run['run_attempt']}/jobs?per_page=100",'jobs')
         normalized=[]
         for job in jobs:
             require(job.get('run_id')==run['id'] and job.get('run_attempt')==run['run_attempt'] and
-                    job.get('head_sha')==self.subject,'job_identity')
-            normalized.append({k:job.get(v) for k,v in [('id','id'),('name','name'),('state','status'),('conclusion','conclusion')]})
+                    job.get('head_sha')==run['head_sha'],'job_identity')
+            row={k:job.get(v) for k,v in [('id','id'),('name','name'),('state','status'),('conclusion','conclusion')]}
+            if self.snapshot and workflow=='nightly.yml':
+                row['steps']=[{k:s.get(k) for k in ('name','number','status','conclusion')} for s in job.get('steps',[])]
+            normalized.append(row)
         topology=policy({'operation':'topology','yaml':self.inputs['.github/workflows/'+workflow],
             'context':{'repository':self.repo,'event':event,'branch':'main'}})
-        result={'repository':self.repo,'subject_sha':self.subject,'workflow':workflow,'name':run['name'],
+        result={'repository':self.repo,'subject_sha':run['head_sha'],'workflow':workflow,'name':run['name'],
             'event':event,'branch':'main','run_id':run['id'],'attempt':run['run_attempt'],'state':run['status'],
             'conclusion':run['conclusion'],'expected_jobs':[j['name'] for j in topology['jobs']],
             'jobs':sorted(normalized,key=lambda j:(j['name'],j['id'])),
             'topology_sha256':topology['workflow_sha256'],'topology_resolved':True,
             'latest_run_id':run['id'],'rechecked_attempt':run['run_attempt']}
-        if event=='schedule': result.update(self.incident(run))
+        if self.snapshot and workflow=='nightly.yml':
+            result.update(created_at=run['created_at'],completed_at=run['updated_at'])
+        if event=='schedule': result.update(self.incident(run,role))
         self.detail(run,event)
-        latest=self.latest(workflow,event)
+        latest=(self.latest(workflow,event,subject=None) if global_schedule else
+                self.qualification_run() if role=='nightly-qualification' else self.latest(workflow,event))
         require(latest['id']==run['id'],'newer_run_observed')
         require(all(latest.get(k)==run.get(k) for k in ('run_attempt','status','conclusion','workflow_id')), 'attempt_changed')
-        policy({'operation':'validate','id':'ci-main' if event=='push' else 'nightly-scheduled',
+        policy({'operation':'validate','id':role if role!='scheduled-incident-health' else 'nightly-scheduled',
                 'normalized':result,'inputs':self.inputs})
+        return result
+
+    def incidents(self):
+        # Preserve the existing incident manager's exact gh JSON projection for its
+        # checkpoint digest. REST pagination independently proves inventory/comment
+        # completeness; a CLI truncation cannot manufacture an empty/partial history.
+        rows=self.api.pages('issues?state=all&labels=nightly-failure&per_page=100&sort=created&direction=asc')
+        require(len(rows)<100 and not any('pull_request' in r for r in rows),'incident_inventory_limit')
+        if self.fixture is not None:
+            values=read_json(Path(self.fixture)/'incident-inventory.json')
+        else:
+            result=subprocess.run(['gh','issue','list','--repo',self.repo,'--state','all','--label','nightly-failure',
+                '--limit','100','--json','number,title,state,body,comments'],stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,timeout=35,check=False)
+            require(result.returncode==0 and len(result.stdout)<2*1024*1024,'incident_inventory_unavailable')
+            write_new(self.output/'restricted'/('incidents-'+str(len(self.api.calls))+'.json'),result.stdout)
+            values=json_bytes(result.stdout)
+        require(isinstance(values,list) and len(values)==len(rows) and
+            len({v['number'] for v in values})==len(values),'incident_inventory_incomplete')
+        for row in rows:
+            matches=[v for v in values if v['number']==row.get('number')]
+            require(len(matches)==1,'incident_inventory_incomplete');v=matches[0]
+            require(v['title']==row.get('title') and v['body']==row.get('body') and
+                v['state']==row.get('state','').upper(),'incident_inventory_changed')
+            comments=self.api.pages(f"issues/{row['number']}/comments?per_page=100")
+            require(row.get('comments')==len(comments) and
+                [(s.get('node_id'),s.get('body')) for s in comments]==[(s.get('id'),s.get('body')) for s in v['comments']],
+                'incident_comments_incomplete')
+            for rest,comment in zip(comments,v['comments']):
+                user=rest.get('user') or {};author=comment.get('author') or {}
+                expected=user.get('login','').removesuffix('[bot]')
+                require(author.get('login')==expected and
+                    (expected!='github-actions' or user.get('type')=='Bot'),'incident_author_identity')
+        return values
+
+    def scheduled_health(self):
+        workflow,_=self.api.get(self.api.path('actions/workflows/nightly.yml'))
+        require(workflow.get('state')=='active' and workflow.get('path')=='.github/workflows/nightly.yml',
+            'scheduled_workflow_inactive')
+        run=self.latest('nightly.yml','schedule',subject=None)
+        require(run.get('workflow_id')==workflow.get('id'),'workflow_identity')
+        if run['status']!='completed':
+            age=(dt.datetime.fromisoformat(self.observed_at.replace('Z','+00:00'))-
+                 dt.datetime.fromisoformat(run['created_at'].replace('Z','+00:00'))).total_seconds()
+            raise NotReady('scheduled_health_stalled' if age>=7200 else 'scheduled_health_pending')
+        health=self.run_observation('nightly.yml','schedule',run,'scheduled-incident-health',True)
+        paths=policy({'operation':'nightly-controls'})
+        files={};identity={};witness={}
+        for path in paths:
+            raw=self.api.contents(path,run['head_sha'])
+            target=self.portable/'health-controls'/path
+            if not target.exists():write_new(target,raw)
+            require(target.read_bytes()==raw,'scheduled_health_control_mismatch')
+            ref=reference(self.portable,target);files[path]=ref;witness[path]=digest(raw)
+            identity[path]=digest(self.inputs[path].encode())
+            if ref not in self.artifacts.setdefault('scheduled-incident-health',[]):self.artifacts['scheduled-incident-health'].append(ref)
+        result={'repository':self.repo,'subject_sha':self.subject,'health_run':health,
+            'observed_at':self.observed_at,'control_identity':identity,'health_control_identity':witness,
+            'health_control_files':files,'incidents':self.incidents(),**self.incident(run,'scheduled-incident-health','checkpoint')}
+        policy({'operation':'validate','id':'scheduled-incident-health','normalized':result,'inputs':self.inputs})
         return result
 
     def protection(self):
@@ -200,21 +287,42 @@ class Collector:
         return result
 
     def observations(self):
+        self.current_proof='ci-main'
         result={'ci-main':self.run_observation('ci.yml','push')}
         if self.only!='ci':
-            result['nightly-scheduled']=self.run_observation('nightly.yml','schedule')
+            if self.snapshot:
+                self.current_proof='nightly-qualification'
+                run=self.qualification_run()
+                result['nightly-qualification']=self.run_observation('nightly.yml',run['event'],run,'nightly-qualification')
+                self.current_proof='scheduled-incident-health'
+                result['scheduled-incident-health']=self.scheduled_health()
+            else:
+                self.current_proof='nightly-scheduled'
+                result['nightly-scheduled']=self.run_observation('nightly.yml','schedule')
+            self.current_proof='protection'
             result['protection']=self.protection()
         return result
 
     def run(self):
-        started=now(); verdict={'schema_version':1,'verdict':'not_ready','repository':self.repo,
+        started=now();self.observed_at=started; verdict={'schema_version':1,'verdict':'not_ready','repository':self.repo,
             'subject_sha':self.subject,'evidence_mode':self.mode,'requirements_credit':False}
         try:
             self.api=GitHub(self.repo,self.output/'restricted',self.fixture)
             self.initialize()
+            if self.snapshot and self.only!='ci':
+                for path in policy({'operation':'nightly-controls'}):
+                    if path not in self.inputs:
+                        raw=self.api.contents(path,self.subject);self.inputs[path]=raw.decode()
+                        write_new(self.portable/'inputs'/path,raw)
             before=self.observations();after=self.observations();self.main()
             require(before==after,'source_changed')
             interval={'started_at':started,'completed_at':now()}
+            if self.snapshot and 'scheduled-incident-health' in before:
+                # A collection crossing a deadline cannot keep its earlier clock.
+                self.current_proof='scheduled-incident-health'
+                policy({'operation':'validate','id':'scheduled-incident-health',
+                    'normalized':{**before['scheduled-incident-health'],'observed_at':interval['completed_at']},
+                    'inputs':self.inputs})
             sources={}
             for id,value in before.items():
                 refs=[]
@@ -230,12 +338,15 @@ class Collector:
             verdict.update(verdict='collected',reason='remote_sources_collected',sources=list(sources))
             code=0
         except NotReady as exc:
-            verdict['reason']=str(exc);code=1
+            verdict['reason']=str(exc);verdict['failed_proof']=getattr(self,'current_proof',None);code=1
         except (OSError,ValueError,KeyError,TypeError,IndexError) as exc:
             verdict['reason']='malformed_remote_evidence';code=1
         verdict['observation_interval']={'started_at':started,'completed_at':now()}
         if verdict.get('reason')=='scheduled_run_missing':
-            verdict['next_observation']='next eligible cron 27 7 * * * on the same main subject; dispatch grants no acceptance'
+            verdict['next_observation']=('newest real global cron 27 7 * * * under matching controls; preserve candidate qualification' if self.snapshot else 'next eligible cron 27 7 * * * on the same main subject; dispatch grants no acceptance')
+        if verdict.get('reason')=='nightly_qualification_missing':
+            verdict['next_operation']=['bash','scripts/maintainer/exact_head_readiness.sh','capture-nightly','--repo',self.repo,'--output','NEW_EXTERNAL_CAPTURE']
+            verdict['may_require_new_subject']=True
         write_new(self.output/'verdict.json',verdict)
         print(verdict['verdict']+': '+verdict['reason'])
         return code

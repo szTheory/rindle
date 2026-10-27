@@ -384,6 +384,10 @@ case System.argv() do
 
     result =
       case request["operation"] do
+        "nightly-controls" ->
+          Code.require_file("readiness_nightly.exs", __DIR__)
+          %{"ok" => true, "value" => Rindle.ReadinessNightly.control_paths()}
+
         "topology" ->
           case Rindle.ReadinessWorkflow.derive(request["yaml"], request["context"]) do
             {:ok, value} -> %{"ok" => true, "value" => value}

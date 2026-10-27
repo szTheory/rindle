@@ -1,13 +1,18 @@
 # Rindle
 
-**Snapshot acceptance amendment (2026-10-25):** The user approved versioned immutable
-previously-main snapshot acceptance. The opt-in `rindle-snapshot-v2` path binds local,
-CI and real scheduled Nightly evidence to one authenticated candidate while main may
-advance. Current private-source/inbox/protection and adoption/release authority remain
-fresh requirements. Producer-head and evidence-subject identities are separate. Results
-are historical snapshot readiness only; independent pilots, 1.0 and publication retain
-all existing gates. Implementation fixtures grant no READY credit. READY-01–05 remain
-Pending until an actual terminal live acceptance with retained verified bytes succeeds.
+**Snapshot liveness amendment (2026-10-27, user approved):** The opt-in
+`rindle-snapshot-v3` contract joins exact candidate source qualification (full
+push-main CI and full same-source Nightly via dispatch or schedule), independent
+real scheduled operational health under identical reviewed controls, and fresh
+current security/inbox/protection/adoption authority. Main may advance after
+capture. Manual qualification cannot recover scheduled incidents. Historical v2
+receipts remain immutable under their original verifier; they cannot opt into v3.
+Producer-head and evidence-subject identities remain separate. Results are
+historical snapshot readiness only; independent pilots, 1.0 and publication retain
+all existing gates. No new dependency, workflow or recurring job is introduced.
+READY-01–05 remain Pending and PR189 remains held until actual terminal live
+acceptance with retained verified bytes succeeds. Retained-intent rebase policy
+is a separate optional follow-up and cannot delay this core amendment.
 
 ## Current Milestone: v1.26 Pre-Adopter Readiness & Quality Consolidation
 

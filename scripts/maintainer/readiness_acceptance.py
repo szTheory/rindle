@@ -59,7 +59,7 @@ def verify_subject(api,repo,root=ROOT,subject=None,snapshot=False):
     if not snapshot:require(main_sha(api)==subject,'main_changed')
     record={'schema':'rindle-readiness-merged-subject-v1','repository':repo,'subject_sha':subject,
         'tracked_inventory':inventory,'observed_at':now(),'requirements_credit':False}
-    if snapshot:record.update(schema='rindle-readiness-snapshot-checkout-v2',snapshot_binding=binding)
+    if snapshot:record.update(schema='rindle-readiness-snapshot-checkout-v3',snapshot_binding=binding)
     return record
 
 
@@ -139,7 +139,7 @@ class Acceptance:
             require(locator['subject_sha']==self.subject and locator['evidence_mode']==self.mode and locator['bytes_verified'] is True and
                 locator['storage_scope']==('fixture_only' if self.fixture is not None else 'durable_maintainer_host'),'durable_subject_or_mode')
             manifest_path=self.output/'durable/bundle/manifest.json';manifest=read_json(manifest_path)
-            require((manifest.get('policy')=='rindle-snapshot-v2')==self.snapshot,'acceptance_policy_mismatch')
+            require((manifest.get('policy')=='rindle-snapshot-v3')==self.snapshot,'acceptance_policy_mismatch')
             self.adoption(manifest)
             self.refresh(manifest_path,self.output/'refresh')
             require((self.output/'refresh/portable/manifest.json').read_bytes()==manifest_path.read_bytes(),'original_manifest_changed')
@@ -152,7 +152,7 @@ class Acceptance:
                 'sidecar':'durable/readiness-digest.json','archive':'durable/readiness-evidence.tar.gz',
                 'refresh_manifest':'refresh/portable/manifest.json','refresh_envelope':'refresh/portable/refresh-envelope.json',
                 'validator':'terminal-validation/refresh-validation.json'}.items()}
-            verdict={'schema':'rindle-snapshot-terminal-v2' if self.snapshot else 'rindle-exact-head-terminal-v1','verdict':'fixture_ready' if self.fixture is not None else 'ready',
+            verdict={'schema':'rindle-snapshot-terminal-v3' if self.snapshot else 'rindle-exact-head-terminal-v1','verdict':'fixture_ready' if self.fixture is not None else 'ready',
                 'repository':self.repo,'subject_sha':self.subject,'evidence_mode':self.mode,'requirements_credit':self.fixture is None,
                 'acceptance_scope':'historical','current_main_sha':main_sha(self.api),'current_readiness':False,'observation_interval':interval,'references':references,'run_id':run,'run_attempt':attempt}
             write_new(self.output/'terminal-verdict.json',verdict);atomic(self.output/'attempt.json',verdict);return 0
@@ -174,10 +174,10 @@ def verifier(repo,output,portable,subject):
 
 def stored_bytes(repo,path,fixture):
     path=Path(path).resolve();value=read_json(path);root=path.parent;mode='fixture' if fixture is not None else 'execution'
-    require(value.get('schema') in ('rindle-exact-head-terminal-v1','rindle-snapshot-terminal-v2') and value.get('repository')==repo and
+    require(value.get('schema') in ('rindle-exact-head-terminal-v1','rindle-snapshot-terminal-v3') and value.get('repository')==repo and
         value.get('evidence_mode')==mode and value.get('verdict')==('fixture_ready' if fixture is not None else 'ready') and
         value.get('requirements_credit') is (fixture is None),'terminal_verdict_not_ready')
-    if value['schema']=='rindle-snapshot-terminal-v2':
+    if value['schema']=='rindle-snapshot-terminal-v3':
         require(value.get('acceptance_scope')=='historical' and value.get('current_readiness') is False,'terminal_policy_mismatch')
     interval=value['observation_interval']
     start,end=[dt.datetime.fromisoformat(interval[k].replace('Z','+00:00')) for k in ('started_at','completed_at')]
@@ -191,16 +191,16 @@ def stored_bytes(repo,path,fixture):
         digest(data['archive'])==sidecar.get('archive_sha256')==locator.get('archive_sha256') and
         digest(data['manifest'])==sidecar.get('manifest_sha256')==locator.get('manifest_sha256') and
         digest(data['sidecar'])==locator.get('producer_sidecar_sha256') and data['manifest']==data['refresh_manifest'],'terminal_bytes_mismatch')
-    if value['schema']=='rindle-snapshot-terminal-v2':
+    if value['schema']=='rindle-snapshot-terminal-v3':
         record=read_json(root/refs['subject']['path'])
-        require(record.get('schema')=='rindle-readiness-snapshot-checkout-v2' and
+        require(record.get('schema')=='rindle-readiness-snapshot-checkout-v3' and
             record.get('repository')==repo and record.get('subject_sha')==value['subject_sha'] and
             record.get('snapshot_binding',{}).get('subject_sha')==value['subject_sha'],'terminal_subject_identity')
         require(sidecar.get('schema')=='rindle-readiness-producer-digest-v2' and
             sidecar.get('producer_head_sha')==locator.get('producer_head_sha') and
             re.fullmatch(r'[0-9a-f]{40}',sidecar.get('producer_head_sha','')),'terminal_producer_identity')
     manifest=read_json(root/refs['manifest']['path'])
-    require((value['schema']=='rindle-snapshot-terminal-v2')==(manifest.get('policy')=='rindle-snapshot-v2'),'terminal_policy_mismatch')
+    require((value['schema']=='rindle-snapshot-terminal-v3')==(manifest.get('policy')=='rindle-snapshot-v3'),'terminal_policy_mismatch')
     graph_objects((root/refs['manifest']['path']).parent,manifest)
     require(manifest['subject_sha']==value['subject_sha'] and manifest['evidence_mode']==mode,'terminal_bytes_mismatch')
     return value,manifest
@@ -213,8 +213,8 @@ def claim_status(repo,verdict,output,fixture=None):
     owner=verifier(repo,output/'stored-validation',(source_root/references['refresh_manifest']['path']).parent,value['subject_sha'])
     owner.validate(source_root/references['refresh_manifest']['path'],source_root/references['refresh_envelope']['path'])
     current=main_sha(api)
-    if current!=value['subject_sha'] or value['schema']=='rindle-snapshot-terminal-v2':
-        if value['schema']!='rindle-snapshot-terminal-v2':require(main_sha(api)==current,'main_changed')
+    if current!=value['subject_sha'] or value['schema']=='rindle-snapshot-terminal-v3':
+        if value['schema']!='rindle-snapshot-terminal-v3':require(main_sha(api)==current,'main_changed')
         status='historical_ready';interval=value['observation_interval']
     else:
         require(verify_subject(api,repo)['subject_sha']==current,'main_changed');adoption_check(ROOT,manifest['adoption'])

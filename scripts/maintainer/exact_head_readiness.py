@@ -347,7 +347,7 @@ class Qualification:
                 'commands: Map.new(v.required_proofs() -- v.mutable_proofs(), &{&1, v.command_prefix(&1)})}))')
         _, data = self.checked(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr], env={**self.env, 'RINDLE_EXACT_HEAD_LIBRARY_ONLY': '1'})
         self.policy = json.loads(data.decode().splitlines()[-1])
-        if self.snapshot:self.policy['policy']='rindle-snapshot-v2'
+        if self.snapshot:self.policy['policy']='rindle-snapshot-v3'
         self.checked(['npm','ci'],cwd=self.workspace/'examples/adoption_demo',budget=600)
         self.checked(['npx','playwright','install','chromium'],cwd=self.workspace/'examples/adoption_demo',budget=600)
         require(digest((self.workspace/'scripts/maintainer/exact_head_readiness.py').read_bytes()) == digest(Path(__file__).read_bytes()), 'collector_subject_mismatch')
@@ -719,6 +719,9 @@ def cleanup_existing(root, output):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0]=='capture-nightly':
+        from readiness_nightly_capture import main as capture_main
+        return capture_main(argv[1:])
     if argv and argv[0] in ('verify-subject','admit-snapshot','accept','claim-status'):
         from readiness_acceptance import main as acceptance_main
         return acceptance_main(argv)
