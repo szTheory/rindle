@@ -142,10 +142,14 @@ rewinding active execution or rewriting old fingerprints to green.
 
 ## Immutable snapshot acceptance
 
-Phase139's approved `rindle-snapshot-v2` path fixes an explicit authenticated previously-main
-candidate while ordinary development and PRs continue. Scheduled proof still belongs to
-that candidate; mutable private sources, ledger, protection and authoritative adoption
-facts refresh from current main. Snapshot completion is historical, never current-main
-or publication credit. Do not freeze the train or reset a candidate solely for unrelated
-main movement. Use RUNNING.md's `--snapshot --subject FULL_SHA` commands after the policy
-has landed and the selected candidate has its actual complete CI and scheduled proof.
+Phase139's approved `rindle-snapshot-v3` path fixes an explicit authenticated previously-main
+candidate while ordinary development and PRs continue. Full push-main CI and Nightly
+qualification (dispatch or schedule) belong to that candidate. Independently verified
+real scheduled health keeps its actual execution SHA and matching reviewed operational
+controls. Manual qualification never supplies incident recovery. Mutable private sources,
+ledger, protection and authoritative adoption facts refresh from current main. Snapshot
+completion is historical, never current-main or publication credit. Do not freeze the
+train or reset a candidate solely for compatible main movement. Use RUNNING.md's explicit
+`capture-nightly`, then `--snapshot --subject FULL_SHA` qualification/acceptance commands
+after protected policy delivery and full green main CI. Historical v2 receipts retain
+their original semantics and verifier; the amendment does not grant READY credit.

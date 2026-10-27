@@ -82,11 +82,14 @@ executable validators, rather than trusting a planning status or checkbox alone.
 - **D-11:** Require the complete successful `ci.yml` / `CI` execution for `event=push`, branch `main`,
   and the exact subject, including applicable main-only jobs. Preserve `CI Summary` as the sole
   required PR context; its success alone cannot replace full main/release proof.
-- **D-12:** Prefer and require a qualifying real scheduled Nightly on the selected previously-main snapshot for this
-  phase's final closure path, exercising the existing scheduled incident policy without inventing an
-  incident. Dispatch remains useful diagnostic/rehearsal evidence and never substitutes for scheduled
-  incident recovery. READY-02 alone does not specify an event; choosing the scheduled path avoids
-  ambiguity with upstream EVID-04 without substituting a manual event. Main advancement does not reset a candidate that already has this actual scheduled proof; a candidate without it remains ineligible.
+- **D-12 (amended 2026-10-27, explicit user approval):** Under `rindle-snapshot-v3`,
+  require full exact-candidate Nightly qualification from the newest candidate
+  schedule or workflow_dispatch execution, independently joined with newest real
+  scheduled incident health at its actual SHA under matching reviewed controls.
+  Manual qualification cannot impersonate schedule or recover/close an incident.
+  The prior same-candidate scheduled-only clause remains historical v2 policy.
+  Preserve EVID-04's real scheduled incident recovery semantics. A newer pending,
+  failed or incompatible schedule cannot borrow an older green witness.
 - **D-13:** Bind workflow identity, repository, event, branch, SHA, run ID, attempt, and complete expected
   job set. Discover runs without success-only filtering and select the newest eligible execution
   deterministically. A later failure, pending run, or changed attempt cannot be hidden behind an older
@@ -283,3 +286,35 @@ before candidate checkout, retains candidate-specific non-cancelling concurrency
 verifies both identities at retrieval. All D-03/D-04/D-11–14/D-16/D-17/D-23–25 byte,
 event, freshness, disposal, retention and synthetic-only boundaries remain required.
 No live acceptance, credentials, merge or publication is authorized by fixture success.
+
+## Readiness liveness implementation amendment — 2026-10-27
+
+The user accepted the three-claim recommendation and authorized implementation
+and live validation inline within 139-07. Supersede D-02's universal candidate-bound
+Nightly wording only for the independent scheduled-health proof: that receipt keeps
+its actual execution SHA; every candidate qualification/artifact remains exact-source.
+Keep current-main legacy mode distinct. New collector/controller bytes require a new
+protected green-main source; no old receipt or READY status is rewritten.
+
+Reuse unchanged Nightly workflow bytes. Bind candidate qualification to complete
+matrix/jobs and authenticated required step outcomes, exact strict Summary evaluator
+and enforcement, and actual optional live/skip branches. Initially accept only full
+attempt 1 for v3 Nightly; reject partial reruns. Select the newest candidate execution
+across both allowed events without success filtering. Only explicit `capture-nightly`
+may dispatch; status and collectors stay read-only. Capture uses the API-returned run
+ID, authenticates actual main/ref/source/workflow, bounds proven capture races to
+three attempts, and never retries an ambiguous POST. Preserve owned run evidence.
+
+Scheduled health selects newest global main schedule before success/control filtering.
+Authenticate actual event, full topology, strict-verdict ZIP, checkpoint ZIP and chain,
+complete incident history and matching whole-workflow/transitive control bytes.
+Unresolved incident or checkpoint/history mismatch blocks; do not mutate an incident
+to satisfy readiness. Require a matching daily occurrence by slot 07:27 UTC +60m;
+require completion by run creation +120m including all job queues. A newer pending
+run is Unknown immediately; deadline expiry is a specific failure, never a pass.
+Artifact evidence needs at least one hour of remaining retention at observation.
+
+Keep existing same-source/input/policy proof reuse and fresh mutable refresh. The
+retained-intent rebase rule is a separate optional follow-up, outside this amendment's
+acceptance. No new dependency, service, workflow, release trigger or credential grant.
+PR189 stays held and READY-01–05 remain Pending until automated live terminal acceptance.

@@ -481,7 +481,7 @@ bash scripts/maintainer/exact_head_readiness.sh accept \
   --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"
 ```
 
-`--snapshot --subject FULL_SHA` selects the versioned `rindle-snapshot-v2` policy.
+`--snapshot --subject FULL_SHA` selects the versioned `rindle-snapshot-v3` policy.
 `verify-subject` checks clean local HEAD, declared files and all eight plans, authenticates
 protected-main ancestry and actual successful push-main CI provenance, and requires the
 candidate's controller/policy bytes to match the executing tools. An arbitrary PR ancestor
@@ -506,10 +506,36 @@ The producer runs `close` and uploads separate immutable archive and digest arti
 with missing-file errors, no overwrite and 30-day retention. It never retrieves its own
 output. No candidate snapshot grants merge or publication authority.
 
-Both full CI and real scheduled Nightly must still pass on the candidate, with newest
-attempts, complete jobs and scheduled incident evidence. Manual dispatch never supplies
-scheduled proof. A candidate without scheduled proof remains ineligible; choose a
-snapshot with that actual proof or await its real schedule, without freezing main.
+Snapshot mode uses `rindle-snapshot-v3`: full push-main CI and complete Nightly
+qualification pass on the exact candidate. Nightly qualification may be dispatch or
+schedule; the newest candidate run across both events wins, with complete attempt-1
+jobs, required steps, strict Summary enforcement and actual provider applicability.
+Independently, the newest real global schedule must prove healthy scheduled incident
+operations at its own SHA under identical reviewed controls. It retains its verdict
+and replay-checkpoint ZIPs and complete current incident history. Dispatch never
+supplies scheduled recovery. No later failure/pending run can be hidden by older green.
+
+After the policy PR and full main CI are green, explicitly capture a source/run:
+
+```bash
+bash scripts/maintainer/exact_head_readiness.sh capture-nightly \
+  --repo szTheory/rindle --output NEW_EXTERNAL_CAPTURE
+# capture.json names the actual subject_sha/run_id. Observe that run to completion,
+# use a clean checkout of that subject, then verify-subject and accept as below.
+```
+
+Only this explicit operation dispatches Nightly. It binds the API-returned run ID,
+main branch and actual head, permits at most three proven source-capture races,
+and stops on an ambiguous response without another POST. Compatible later main
+movement does not reset the captured source. The workflow file/name and incident
+write guards are unchanged. Read-only collectors and progress never dispatch.
+
+Scheduled health covers the daily 07:27 UTC slot by slot +60m and requires terminal
+completion by actual run creation +120m, including initial/downstream queues. A newer
+pending run is Unknown immediately. Changed controls, expired/stale evidence or a
+real incident can still require authentic scheduled recovery; candidate tests do not.
+Historical v2 evidence stays with its original verifier/source and cannot gain v3
+semantics through refresh. Select a new admitted source after controller changes.
 Mutable inventories, security visibility, effective protection, inbox ledger and
 adoption/release authority are freshly read from current remote main. Old source does
 not permit old security or disposition facts. Candidate locks remain the audited package
@@ -572,7 +598,11 @@ explicit historical scope; unqualified checked requirements or completion rows f
 | `closing_subject_not_checked_out`, `dirty_closing_checkout`, `phase_inventory_missing` | Land the complete PR train, obtain a clean main checkout, then rerun `verify-subject` into a new directory. |
 | `main_changed` | Legacy current-main mode observed drift. Snapshot mode keeps its admitted candidate fixed; never splice another subject's receipts. |
 | `snapshot_not_main_ancestor`, `snapshot_protection_unproved`, `snapshot_policy_mismatch` | Select an eligible protected-main candidate containing the intended matching policy; arbitrary PRs, forks and old policy are refused. |
-| `scheduled_run_missing`, failed newest scheduled run | Wait for the next successful scheduled Nightly on that same SHA, then rerun `accept`; dispatching Nightly grants no scheduled credit. |
+| `nightly_qualification_missing` | Explicitly capture/observe one full same-source Nightly dispatch; do not wait for per-SHA cron. |
+| `nightly_dispatch_unknown`, `nightly_capture_raced` | Inspect preserved owned runs; ambiguous POST is never retried. Resolve capture before qualification. |
+| `scheduled_run_missing`, `scheduled_health_pending`, `scheduled_health_stalled`, `scheduled_health_stale` | Inspect actual newest operational schedule/incident and await authentic recovery if needed. Preserve candidate proof. Legacy mode still requires same-source schedule. |
+| `scheduled_health_control_mismatch`, `nightly_control_review_required` | Review changed workflow/transitive controls and obtain the matching actual operational witness; do not relabel older proof. |
+| `scheduled_checkpoint_issues`, `scheduled_incident_open`, `incident_artifact_expiring` | Restore authentic retained operational evidence or real scheduled recovery; manual issue closure is not proof. |
 | `pull_undispositioned`, remote inventory drift | Reconcile the executable inbox ledger with every current item, merge it through the PR train, then refresh current dispositions for the same admitted snapshot; policy changes can require a new candidate. |
 | `remote_unauthorized`, `remote_forbidden`, unavailable protection/security source | Restore authorized complete source visibility; do not substitute an empty inventory. |
 | `producer_failed`, `producer_wait_timeout`, absent sidecar/archive | Inspect the matching producer run and its bounded failure; rerun `accept` with a new request and output after repair. |

@@ -1,3 +1,6 @@
+unless Code.ensure_loaded?(Rindle.ReadinessNightly),
+  do: Code.require_file("readiness_nightly.exs", __DIR__)
+
 unless Code.ensure_loaded?(Rindle.ReadinessHexAudit),
   do: Code.require_file("readiness_hex_audit.exs", __DIR__)
 
@@ -7,8 +10,8 @@ unless Code.ensure_loaded?(Rindle.ReadinessWorkflow),
 defmodule Rindle.ExactHeadReadiness do
   @moduledoc false
   @policy "rindle-exact-head-v1"
-  @snapshot_policy "rindle-snapshot-v2"
-  @snapshot_controls ~w(scripts/maintainer/readiness_subject.py
+  @snapshot_policy "rindle-snapshot-v3"
+  @snapshot_controls ~w(scripts/maintainer/readiness_nightly_capture.py scripts/maintainer/readiness_nightly.exs scripts/maintainer/readiness_subject.py
     scripts/maintainer/validate_exact_head_readiness.exs
     scripts/maintainer/exact_head_readiness.py
     scripts/maintainer/readiness_acceptance.py
@@ -60,9 +63,13 @@ defmodule Rindle.ExactHeadReadiness do
   @release_guard "198172f4e655c3b25990943329c38382a6fe753134d58fe378e1afdb66acb8c2"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
-  @inputs ~w(scripts/maintainer/readiness_subject.py scripts/maintainer/validate_exact_head_readiness.exs) ++
-            @credential_inputs ++
-            ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
+  @snapshot_mutable ~w(ci-main nightly-qualification scheduled-incident-health protection remote-inventory adoption-parity)
+  @inputs Enum.uniq(
+            ~w(scripts/maintainer/readiness_nightly_capture.py) ++
+              Rindle.ReadinessNightly.control_paths() ++
+              ~w(scripts/maintainer/readiness_nightly.exs scripts/maintainer/readiness_subject.py scripts/maintainer/validate_exact_head_readiness.exs) ++
+              @credential_inputs ++
+              ~w(mix.exs mix.lock RUNNING.md .dialyzer_ignore.exs
     .github/workflows/ci.yml .github/workflows/nightly.yml .github/workflows/release.yml
     config/ci_required_checks.json .planning/PROJECT.md .planning/REQUIREMENTS.md .planning/INBOX-LEDGER.json
     scripts/maintainer/credo_complexity_baseline.json scripts/maintainer/phase136_evidence_contract.json
@@ -83,6 +90,7 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/async_isolation_evidence.sh scripts/maintainer/built_package_twin.py
     scripts/maintainer/twin_receipt.py scripts/maintainer/twin_cleanup.py
     test/install_smoke/support/generated_app_helper.ex test/install_smoke/support/generated_app/workspace.ex)
+          )
   @commands %{
     "format" => ["mix", "format", "--check-formatted"],
     "compile" => ["mix", "compile", "--warnings-as-errors"],
@@ -121,8 +129,11 @@ defmodule Rindle.ExactHeadReadiness do
   def input_paths, do: @inputs
   def command_prefix(id), do: Map.fetch!(@commands, id)
   def policy, do: @policy
-  def required_proofs, do: @local ++ @mutable
-  def mutable_proofs, do: @mutable
+  def required_proofs(policy \\ @policy), do: @local ++ mutable_proofs(policy)
+
+  def mutable_proofs(policy \\ @policy),
+    do: if(policy == @snapshot_policy, do: @snapshot_mutable, else: @mutable)
+
   def resource_kinds, do: @resources
   def toolchain, do: @toolchain
   def sha256(bytes), do: :crypto.hash(:sha256, bytes) |> Base.encode16(case: :lower)
@@ -192,7 +203,7 @@ defmodule Rindle.ExactHeadReadiness do
       comparison = value["comparison"]
 
       ensure!(
-        subject_sha?(current) and value["schema"] == "rindle-readiness-snapshot-subject-v2" and
+        subject_sha?(current) and value["schema"] == "rindle-readiness-snapshot-subject-v3" and
           value["authenticated"] === true and value["requirements_credit"] === false and
           value["repository"] == m["repository"] and value["subject_sha"] == m["subject_sha"] and
           value["current_main_sha"] == current and
@@ -387,7 +398,7 @@ defmodule Rindle.ExactHeadReadiness do
     ensure!(is_list(refs), "proof_inventory", "proof inventory unavailable")
 
     ensure!(
-      Enum.sort(Enum.map(refs, & &1["id"])) == Enum.sort(required_proofs()),
+      Enum.sort(Enum.map(refs, & &1["id"])) == Enum.sort(required_proofs(m["policy"])),
       "proof_inventory",
       "required/duplicate/unknown proof IDs"
     )
@@ -635,6 +646,54 @@ defmodule Rindle.ExactHeadReadiness do
           object!(m["input_files"][".github/workflows/nightly.yml"], c)
         )
 
+      "nightly-qualification" ->
+        if n["event"] == "schedule",
+          do:
+            validate_archive!(n, "incident", "nightly-incident-verdict.json", r["references"], c)
+
+        validate_qualification!(n, object!(m["input_files"][".github/workflows/nightly.yml"], c))
+
+      "scheduled-incident-health" ->
+        inputs =
+          Map.new(Rindle.ReadinessNightly.control_paths(), fn path ->
+            {path, object!(m["input_files"][path], c)}
+          end)
+
+        Enum.each(n["health_control_files"], fn {path, ref} ->
+          ensure!(
+            ref in r["references"] and
+              sha256(object!(ref, c)) == n["health_control_identity"][path],
+            "scheduled_health_control_mismatch",
+            "witness control reference differs"
+          )
+        end)
+
+        ensure!(
+          Enum.sort(Map.keys(n["health_control_files"])) ==
+            Enum.sort(Rindle.ReadinessNightly.control_paths()),
+          "scheduled_health_control_mismatch",
+          "witness controls incomplete"
+        )
+
+        validate_archive!(
+          n["health_run"],
+          "incident",
+          "nightly-incident-verdict.json",
+          r["references"],
+          c
+        )
+
+        validate_archive!(n, "checkpoint", "nightly-incident-checkpoint.json", r["references"], c)
+
+        ensure!(
+          time!(n["observed_at"]) >= time!(s["observation_interval"]["started_at"]) and
+            time!(n["observed_at"]) <= time!(s["observation_interval"]["completed_at"]),
+          "stale_observation",
+          "health clock outside source observation"
+        )
+
+        validate_health!(n, inputs)
+
       "protection" ->
         validate_protection!(n)
 
@@ -709,6 +768,12 @@ defmodule Rindle.ExactHeadReadiness do
           inputs[".github/workflows/nightly.yml"]
         )
 
+      "nightly-qualification" ->
+        validate_qualification!(normalized, inputs[".github/workflows/nightly.yml"])
+
+      "scheduled-incident-health" ->
+        validate_health!(normalized, inputs)
+
       "protection" ->
         validate_protection!(normalized)
     end
@@ -718,6 +783,59 @@ defmodule Rindle.ExactHeadReadiness do
     _ -> %{"ok" => false, "reason" => "malformed_remote_contract"}
   catch
     {:invalid, id, _detail} -> %{"ok" => false, "reason" => id}
+  end
+
+  defp validate_qualification!(n, yaml) do
+    ensure!(
+      n["event"] in ["workflow_dispatch", "schedule"],
+      "workflow_identity",
+      "qualification event"
+    )
+
+    validate_run!(n, "Nightly", n["event"], "nightly.yml", yaml)
+    Rindle.ReadinessNightly.qualification!(n, yaml)
+  end
+
+  defp validate_health!(n, inputs) do
+    validate_run!(
+      n["health_run"],
+      "Nightly",
+      "schedule",
+      "nightly.yml",
+      inputs[".github/workflows/nightly.yml"]
+    )
+
+    Rindle.ReadinessNightly.health!(n, inputs)
+  end
+
+  defp validate_archive!(n, key, filename, refs, c) do
+    ref = n[key <> "_artifact"]
+
+    ensure!(
+      ref in refs and ref["sha256"] == n[key <> "_artifact_sha256"],
+      "incident_identity",
+      "missing archive"
+    )
+
+    archive = object!(ref, c)
+
+    case :zip.list_dir(archive) do
+      {:ok, [{:zip_comment, _}, {:zip_file, name, info, _, _, _}]} ->
+        stat = File.Stat.from_record(info)
+
+        ensure!(
+          name == String.to_charlist(filename) and stat.size <= 1_048_576 and
+            stat.type == :regular,
+          "incident_identity",
+          "unsafe archive"
+        )
+
+      _ ->
+        throw({:invalid, "incident_identity", "archive inventory"})
+    end
+
+    {:ok, [{_, bytes}]} = :zip.extract(archive, [:memory])
+    ensure!(decode!(bytes) == n[key], "incident_identity", "archive payload differs")
   end
 
   defp validate_run!(r, name, event, workflow, yaml) do
@@ -1110,7 +1228,8 @@ defmodule Rindle.ExactHeadReadiness do
     refs = e["proofs"]
 
     ensure!(
-      is_list(refs) and Enum.sort(Enum.map(refs, & &1["id"])) == Enum.sort(@mutable),
+      is_list(refs) and
+        Enum.sort(Enum.map(refs, & &1["id"])) == Enum.sort(mutable_proofs(m["policy"])),
       "refresh_inventory",
       "all mutable proofs required exactly once"
     )
@@ -1341,7 +1460,7 @@ defmodule Rindle.ExactHeadReadiness do
 
       # Only readiness proof receipts carry graph edges. Committed policy,
       # package data, logs and upstream JSON remain opaque byte objects.
-      if ref["id"] in required_proofs() do
+      if ref["id"] in (@local ++ @mutable ++ @snapshot_mutable) do
         load_objects!(decode!(bytes), root, acc, MapSet.put(visited, path), depth + 1)
       else
         acc

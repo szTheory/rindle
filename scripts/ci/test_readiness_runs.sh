@@ -239,6 +239,81 @@ class Runs(unittest.TestCase):
             '--repo',repo,'--subject',sha,'--output',str(out),'--fixture',str(self.fixture),'--only','ci'],capture_output=True)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr);self.assertEqual(c.read_json(out/'verdict.json')['verdict'],'collected')
 
+
+class SnapshotRuns(unittest.TestCase):
+    def setUp(self):
+        sys.path.insert(0,str(root/'scripts/ci'))
+        from readiness_nightly_fixture import step_rows,jq_hash
+        import readiness_subject
+        self.base=Runs();self.base.setUp();b=self.base
+        self.put,self.body=b.put,b.body
+        self.put(prefix+'branches/main',{'name':'main','protected':True,'commit':{'sha':sha}})
+        comparison='compare/'+sha+'...'+sha
+        self.put(prefix+comparison,{'status':'identical','base_commit':{'sha':sha},'merge_base_commit':{'sha':sha},'url':'https://api.github.com/'+prefix+comparison})
+        paths=set(readiness_subject.CONTROL_PATHS)|set(policy({'operation':'nightly-controls'}))
+        for subject in [sha,'d'*40]:
+            for path in paths:
+                raw=(root/path).read_bytes()
+                self.put(prefix+'contents/'+path+'?ref='+subject,{'type':'file','path':path,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+        self.put(prefix+'actions/workflows/nightly.yml',{'id':120,'path':'.github/workflows/nightly.yml','state':'active'})
+        clock=c.now();day=clock[:10];created=day+'T07:27:00Z';finished=day+'T07:37:00Z'
+        # Freeze only the fixture observation clock, not any production clock.
+        self.clock=day+'T10:00:00Z'
+        run={**b.runs['schedule'],'run_attempt':1,'head_sha':'d'*40,'created_at':created,'updated_at':finished}
+        self.put(prefix+'actions/workflows/nightly.yml/runs?event=schedule&branch=main&per_page=100',{'total_count':1,'workflow_runs':[run]})
+        self.put(b.paths['schedule'],{'total_count':0,'workflow_runs':[]})
+        manual={**run,'id':21,'head_sha':sha,'event':'workflow_dispatch'}
+        self.manual_path=prefix+'actions/workflows/nightly.yml/runs?head_sha='+sha+'&event=workflow_dispatch&branch=main&per_page=100'
+        self.put(self.manual_path,{'total_count':1,'workflow_runs':[manual]})
+        yaml=(root/'.github/workflows/nightly.yml').read_text()
+        for r in [run,manual]:
+            self.put(prefix+f"actions/runs/{r['id']}",r)
+            topology=policy({'operation':'topology','yaml':yaml,'context':{'repository':repo,'event':r['event'],'branch':'main'}})
+            jobs=[{'id':r['id']*100+n,'run_id':r['id'],'run_attempt':1,'head_sha':r['head_sha'],
+                'name':j['name'],'status':'completed','conclusion':'success' if j['applicable'] else 'skipped',
+                'steps':step_rows(yaml,j['job_id']) if j['applicable'] else []} for n,j in enumerate(topology['jobs'])]
+            self.put(prefix+f"actions/runs/{r['id']}/attempts/1/jobs?per_page=100",{'total_count':len(jobs),'jobs':jobs})
+        incident={**b.incident,'sha':'d'*40,'run_attempt':1}
+        checkpoint={'schema':'rindle-nightly-incident-checkpoint-v1','repository':repo,
+            'workflow_ref':repo+'/.github/workflows/nightly.yml@refs/heads/main','last_run_id':20,'last_run_attempt':1,
+            'event_digest':jq_hash(incident),'issue_digest':jq_hash([]),'issue_number':None,'issue_state':None,'previous_chain_digest':'0'*64}
+        checkpoint['chain_digest']=jq_hash({k:v for k,v in checkpoint.items() if k not in ('schema','repository','workflow_ref')})
+        artifacts=[]
+        for id,key,leaf,value in [(300,'nightly-incident-verdict','nightly-incident-verdict.json',incident),(301,'nightly-incident-replay-checkpoint','nightly-incident-checkpoint.json',checkpoint)]:
+            stream=io.BytesIO()
+            with zipfile.ZipFile(stream,'w') as archive:archive.writestr(leaf,c.canonical(value))
+            raw=stream.getvalue()
+            artifacts.append({'id':id,'name':key+'-20-1','expired':False,'expires_at':'2030-01-01T00:00:00Z',
+                'workflow_run':{'id':20,'head_sha':'d'*40},'digest':'sha256:'+c.digest(raw)})
+            b.responses[prefix+f'actions/artifacts/{id}/zip']=[{'status':200,'base64':base64.b64encode(raw).decode()}]
+        self.put(prefix+'actions/runs/20/artifacts?per_page=100',{'total_count':2,'artifacts':artifacts})
+        self.put(prefix+'issues?state=all&labels=nightly-failure&per_page=100&sort=created&direction=asc',[])
+        (b.fixture/'incident-inventory.json').write_bytes(c.canonical([]))
+    def tearDown(self):self.base.tearDown()
+    def collect(self):
+        b=self.base;(b.fixture/'responses.json').write_bytes(c.canonical(b.responses))
+        owner=c.Collector(repo,sha,b.tmp/'out',b.fixture,snapshot=True)
+        with patch.object(c,'now',return_value=self.clock):code=owner.run()
+        return code,c.read_json(owner.output/'verdict.json'),owner
+    def test_dispatch_and_different_source_cron_collect_as_distinct_proofs(self):
+        code,value,owner=self.collect();self.assertEqual(code,0,value)
+        sources=c.read_json(owner.portable/'sources.json')['sources']
+        self.assertEqual(set(sources),{'ci-main','nightly-qualification','scheduled-incident-health','protection'})
+        self.assertEqual(sources['nightly-qualification']['source']['normalized']['subject_sha'],sha)
+        health=sources['scheduled-incident-health']['source']['normalized']
+        self.assertEqual(health['subject_sha'],sha);self.assertEqual(health['health_run']['subject_sha'],'d'*40)
+    def test_newer_failed_dispatch_cannot_use_older_green(self):
+        self.body(self.manual_path)['workflow_runs'][0]['conclusion']='failure'
+        self.body(prefix+'actions/runs/21')['conclusion']='failure'
+        code,value,_=self.collect();self.assertEqual(code,1);self.assertEqual(value['reason'],'latest_attempt_not_green')
+    def test_newer_failed_global_cron_cannot_use_green_candidate(self):
+        path=prefix+'actions/workflows/nightly.yml/runs?event=schedule&branch=main&per_page=100'
+        self.body(path)['workflow_runs'][0]['conclusion']='failure';self.body(prefix+'actions/runs/20')['conclusion']='failure'
+        code,value,_=self.collect();self.assertEqual(code,1);self.assertEqual(value['reason'],'latest_attempt_not_green')
+    def test_missing_candidate_dispatch_is_actionable_without_waiting_for_cron(self):
+        self.put(self.manual_path,{'total_count':0,'workflow_runs':[]})
+        code,value,_=self.collect();self.assertEqual(code,1);self.assertEqual(value['reason'],'nightly_qualification_missing')
+
 class Topology(unittest.TestCase):
     def derive(self,body,event='push'):
         return policy({'operation':'topology','yaml':body,'context':{'repository':repo,'event':event,'branch':'main'}})

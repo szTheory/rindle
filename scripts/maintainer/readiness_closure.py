@@ -43,6 +43,10 @@ def object_bytes(root,ref):
 def semantic(packet):
     value=copy.deepcopy(packet['source']['normalized'])
     value.pop('authority_main_sha',None)
+    if 'health_run' in value:
+        # Each receipt validates this clock against its own observation interval.
+        # Advancing the observation clock alone is not operational state drift.
+        value.pop('observed_at',None)
     if 'sources' in value:
         for source in value['sources'].values():source.pop('observation_interval',None)
     return {'normalized':value,'query':packet['source'].get('query'),'policy':packet['source'].get('policy')}
@@ -104,12 +108,12 @@ class Closure:
                 raise
 
     def metadata(self):
-        expr='Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs"); v=Rindle.ExactHeadReadiness; IO.puts(Jason.encode!(%{policy: v.policy(), proofs: v.required_proofs(), mutable: v.mutable_proofs(), inputs: v.input_paths()}))'
+        selection='"rindle-snapshot-v3"' if self.snapshot else 'v.policy()'
+        expr='Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs"); v=Rindle.ExactHeadReadiness; p='+selection+'; IO.puts(Jason.encode!(%{policy: p, proofs: v.required_proofs(p), mutable: v.mutable_proofs(p), inputs: v.input_paths()}))'
         code,raw=self.command(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr],45,
             env={**self.env,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1'})
         require(code==0,'validator_unavailable')
         self.policy=json_bytes(raw.decode().splitlines()[-1])
-        if self.snapshot:self.policy['policy']='rindle-snapshot-v2'
         self.tool_sha=digest((ROOT/POLICY_FILE).read_bytes())
 
     def remote_main(self):
@@ -205,12 +209,13 @@ class Closure:
             code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)]+(['--snapshot'] if self.snapshot else []),210 if kind=='runs' else 630)
             if code:
                 value=read_json(output/'verdict.json') if (output/'verdict.json').is_file() else {}
+                self.failed_proof=value.get('failed_proof')
                 raise NotReady(value.get('reason','remote_collection_failed'))
             path=output/'portable/sources.json'
         value=read_json(path)
         require(value.get('repository')==self.repo and value.get('subject_sha')==self.subject and value.get('evidence_mode')==self.mode,'source_subject_or_mode')
         if value.get('verdict')=='not_ready':raise NotReady(self.public_reason(value.get('reason')))
-        expected={'ci-main','nightly-scheduled','protection'} if kind=='runs' else {'remote-inventory'}
+        expected=({'ci-main','nightly-qualification','scheduled-incident-health','protection'} if self.snapshot else {'ci-main','nightly-scheduled','protection'}) if kind=='runs' else {'remote-inventory'}
         require(set(value.get('sources',{}))==expected,'source_registry_incomplete')
         if kind=='runs' and self.mode=='execution':
             timing=value.get('numeric_speed',{})
@@ -324,7 +329,7 @@ class Closure:
             for sig in handlers:signal.signal(sig,interrupt)
             if self.original:
                 existing=read_json(self.original)
-                inferred=existing.get('policy')=='rindle-snapshot-v2'
+                inferred=existing.get('policy')=='rindle-snapshot-v3'
                 require(not self.snapshot or inferred,'snapshot_policy_mismatch')
                 require(self.candidate is None or self.candidate==existing.get('subject_sha'),'snapshot_subject_mismatch')
                 self.snapshot=inferred
@@ -383,12 +388,14 @@ class Closure:
             if not self.reserved:raise
             reason=self.public_reason(str(exc)) if isinstance(exc,NotReady) else 'closure_unavailable'
             write_new(self.private/'failure.json',{'exception_type':type(exc).__name__,'diagnostic':str(exc),'stage':self.stage})
-            result.update(reason=reason,failure_reason=reason,stage=self.stage,subject_sha=self.subject,cleanup=self.retry_cleanup())
+            result.update(reason=reason,failure_reason=reason,stage=self.stage,subject_sha=self.subject,
+                failed_proof=getattr(self,'failed_proof',None),cleanup=self.retry_cleanup())
             if self.proposed and self.proposed.is_file():self.proposed.unlink()
             if result['cleanup'].get('state')=='failed':result['reason']='cleanup_failed'
             result['repair_command']=['bash','scripts/maintainer/exact_head_readiness.sh','refresh' if self.original else 'close','--repo',self.repo,'--output','NEW_EXTERNAL_DIRECTORY']
             if self.original:result['repair_command']+=['--manifest',str(self.original)]
-            if reason=='scheduled_run_missing':result['next_observation']='next scheduled Nightly on this same main subject; dispatch grants no acceptance'
+            if self.snapshot:result['repair_command']+=['--snapshot','--subject',self.subject]
+            if reason=='scheduled_run_missing':result['next_observation']=('newest real global schedule under matching controls; preserve candidate proof' if self.snapshot else 'next scheduled Nightly on this same main subject; dispatch grants no acceptance')
             code=1
         finally:
             for sig,handler in handlers.items():signal.signal(sig,handler)
