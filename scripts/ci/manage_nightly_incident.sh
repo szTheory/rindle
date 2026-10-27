@@ -133,14 +133,59 @@ fetch_runs() {
 }
 
 fetch_artifacts() {
-  local pages
-  pages="$(${GH_CLI:-gh} api --paginate --slurp \
-    "repos/${GH_REPO}/actions/artifacts?per_page=100")"
-  jq -e '
+  local pages diagnostics="${workspace}/artifact-diagnostics.json" candidate="${workspace}/artifacts.candidate.json"
+  if ! pages="$(${GH_CLI:-gh} api --paginate --slurp \
+    "repos/${GH_REPO}/actions/artifacts?per_page=100")"; then
+    echo "[manage-nightly-incident] artifact inventory request failed; refetch required" >&2
+    return 1
+  fi
+  if ! jq -e '
     type == "array" and length > 0 and
     all(.[]; type == "object" and (.artifacts | type == "array"))
-  ' >/dev/null <<<"${pages}" || fail "invalid artifact inventory"
-  jq -cS '[.[].artifacts[]]' <<<"${pages}" >"${artifacts_file}"
+  ' >/dev/null 2>&1 <<<"${pages}"; then
+    echo "[manage-nightly-incident] invalid artifact inventory envelope; refetch required" >&2
+    return 1
+  fi
+  jq -cS '[.[].artifacts[]]' <<<"${pages}" >"${candidate}" || return 1
+
+  # Offset pagination can overlap while unrelated uploads change the inventory.
+  # Refetch the whole read rather than deduplicating or trusting partial rows.
+  # Emit only bounded indices, numeric IDs and fixed field codes, never bodies.
+  jq -cS '
+    def positive_id: if type == "number" then . > 0 and floor == . else false end;
+    def retention_ok:
+      try (
+        if ((.name | startswith("nightly-incident-verdict-") or startswith("nightly-incident-replay-checkpoint-")) | not) or .expired then true
+        else
+          (.created_at | type == "string") and (.expires_at | type == "string") and
+          ((.expires_at | fromdateiso8601) - (.created_at | fromdateiso8601) >= 1209300)
+        end
+      ) catch false;
+    {
+      invalid_rows: [to_entries[] | .key as $index | .value |
+        (if type != "object" then ["row_type"] else [
+          (if (.id | positive_id) then empty else "artifact_id" end),
+          (if (.name | type == "string") then empty else "name" end),
+          (if (.expired | type == "boolean") then empty else "expired" end),
+          (if (.workflow_run | type == "object") then
+            (if (.workflow_run.id | positive_id) then empty else "workflow_run_id" end)
+           else "workflow_run_id" end),
+          (if retention_ok then empty else "retention" end)
+        ] end) as $fields |
+        select($fields | length > 0) |
+        {index:$index,id:(if type == "object" and (.id | positive_id) then .id else null end),fields:$fields}
+      ],
+      duplicate_ids: [ .[] | select(type == "object") | .id | select(positive_id) ] |
+        group_by(.) | map(select(length > 1) | .[0])
+    }
+  ' "${candidate}" >"${diagnostics}" || return 1
+  if ! jq -e '.invalid_rows == [] and .duplicate_ids == []' "${diagnostics}" >/dev/null; then
+    echo "[manage-nightly-incident] invalid artifact metadata; refetch required" >&2
+    jq -cS '{invalid_row_count:(.invalid_rows|length),duplicate_id_count:(.duplicate_ids|length),
+      invalid_rows:.invalid_rows[:20],duplicate_ids:.duplicate_ids[:20]}' "${diagnostics}" >&2
+    return 1
+  fi
+  mv "${candidate}" "${artifacts_file}" || return 1
 }
 
 # Genesis: scheduled runs before the first verdict artifact predate the verdict
@@ -165,25 +210,6 @@ compute_genesis() {
 }
 
 prepare_event_index() {
-  jq -e '
-    def retention_ok:
-      if ((.name | startswith("nightly-incident-verdict-") or startswith("nightly-incident-replay-checkpoint-")) | not) or .expired then true
-      else
-        (.created_at | type == "string") and (.expires_at | type == "string") and
-        ((.expires_at | fromdateiso8601) - (.created_at | fromdateiso8601) >= 1209300)
-      end;
-    all(.[];
-      type == "object" and
-      (.id | type == "number" and . > 0 and floor == .) and
-      (.name | type == "string") and
-      (.expired | type == "boolean") and
-      (.workflow_run | type == "object") and
-      (.workflow_run.id | type == "number" and . > 0 and floor == .) and
-      retention_ok
-    ) and
-    ([.[].id] | length == (unique | length))
-  ' "${artifacts_file}" >/dev/null || fail "invalid artifact metadata"
-
   # Expired evidence is tolerated only strictly before the authenticated cursor.
   jq -e --arg prefix 'nightly-incident-verdict-' \
     --argjson high "${CURRENT_RUN_ID}" --argjson high_attempt "${CURRENT_RUN_ATTEMPT}" \
@@ -714,12 +740,13 @@ await_marker() {
 
 fetch_runs
 for ((attempt = 1; attempt <= fetch_attempts; attempt++)); do
-  fetch_artifacts
-  load_checkpoint
-  validate_checkpoint_issue
-  if prepare_event_index; then break; fi
+  if fetch_artifacts; then
+    load_checkpoint
+    validate_checkpoint_issue
+    if prepare_event_index; then break; fi
+  fi
   if [ "${attempt}" -eq "${fetch_attempts}" ]; then
-    fail "canonical verdict artifact coverage incomplete through high-watermark"
+    fail "artifact inventory or canonical verdict coverage incomplete through high-watermark"
   fi
   sleep "${sleep_seconds}"
 done

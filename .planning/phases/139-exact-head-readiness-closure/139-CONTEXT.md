@@ -391,3 +391,22 @@ One worker per suite stays in its enclosing group, with strict framing, the same
 45s policy deadline and2MiB policy-output bound, cleanup and no automatic fallback.
 Production collectors, credential scope, native gates, three groups and240s bound
 remain unchanged. No persistent production service or dependency is introduced.
+
+
+### 2026-10-27 actual scheduled collector repair
+
+Actual schedule40468662976/1 oncc48fa21 passed compute, strict summary and verdict
+publication, then lifecycle122073213512 failed `invalid artifact metadata`.
+The failed inventory was not retained; current complete inventory validates.
+Concurrent-upload pagination overlap is a hypothesis, not a proved root cause.
+The user's instruction to unblock139-07 authorizes a narrow acquisition repair:
+validate the entire artifact inventory before checkpoint reads, refetch invalid
+metadata/duplicate IDs within the existing bounded coverage-read budget, emit
+bounded numeric/field diagnostics, never silently deduplicate. Persistent bad
+metadata and all semantic authentication failures remain fail-closed. This
+supersedes the prior unchanged incident-collector bytes constraint only for this
+repair; it does not change workflow cadence, permissions or readiness criteria.
+A new source and authentic healthy schedule under the new matching control bytes
+are required. PR189 stays held; no READY credit or native acceptance is inferred.
+An extra real cron recovery window, if proposed separately, needs explicit
+approval before merge because the earlier amendment preserved production cadence.
