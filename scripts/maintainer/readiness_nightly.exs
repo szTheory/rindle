@@ -187,7 +187,7 @@ defmodule Rindle.ReadinessNightly do
   defp sorted_json(v), do: Jason.encode!(v)
   defp jq_digest(v), do: sha(sorted_json(v) <> "\n")
 
-  def health!(n, inputs) do
+  def health!(n, inputs, checked_at \\ nil) do
     run = n["health_run"]
 
     check(
@@ -207,9 +207,10 @@ defmodule Rindle.ReadinessNightly do
       "scheduled_health_control_mismatch"
     )
 
-    observed = time(n["observed_at"])
+    clock = checked_at || n["observed_at"]
+    observed = time(clock)
     # Cover the previous daily slot until today's finite creation grace elapses.
-    {:ok, date, _} = DateTime.from_iso8601(n["observed_at"])
+    {:ok, date, _} = DateTime.from_iso8601(clock)
     slot = DateTime.new!(DateTime.to_date(date), ~T[07:27:00], "Etc/UTC") |> DateTime.to_unix()
     required_slot = if observed >= slot + 3600, do: slot, else: slot - 86_400
     created = time(run["created_at"])

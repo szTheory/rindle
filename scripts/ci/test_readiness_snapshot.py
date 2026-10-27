@@ -323,6 +323,20 @@ class Graph(unittest.TestCase):
         self.mutate_proof('scheduled-incident-health',lambda n:n['health_run'].update(completed_at='2026-10-22T09:28:00Z'))
         with self.assertRaisesRegex(q.NotReady,'scheduled_health_stalled'):self.validate()
 
+    def test_crossing_cron_deadline_uses_source_completion_clock(self):
+        self.mutate_proof('scheduled-incident-health',lambda n:n.update(observed_at='2026-10-22T08:26:00Z'))
+        self.mutate_proof('scheduled-incident-health',lambda n:n['health_run'].update(
+            created_at='2026-10-21T07:27:00Z',completed_at='2026-10-21T07:37:00Z'))
+        m=q.read_json(self.bundle/'manifest.json')
+        m['observation_interval']['started_at']='2026-10-22T08:26:00Z'
+        ref=next(r for r in m['proofs'] if r['id']=='scheduled-incident-health')
+        receipt=q.read_json(self.bundle/ref['path'])
+        receipt['observation_interval']['started_at']='2026-10-22T08:26:00Z'
+        receipt['source']['observation_interval']={'started_at':'2026-10-22T08:26:00Z','completed_at':'2026-10-22T08:28:00Z'}
+        m['proofs']=[{**put(self.bundle,ref['path'],receipt),'id':ref['id']} if r['id']==ref['id'] else r for r in m['proofs']]
+        put(self.bundle,'manifest.json',m)
+        with self.assertRaisesRegex(q.NotReady,'scheduled_health_stale'):self.validate()
+
     def test_control_change_invalidates_existing_cron(self):
         self.mutate_proof('scheduled-incident-health',lambda n:n['health_control_identity'].update({'scripts/ci/manage_nightly_incident.sh':'0'*64}))
         with self.assertRaisesRegex(q.NotReady,'scheduled_health_control_mismatch'):self.validate()

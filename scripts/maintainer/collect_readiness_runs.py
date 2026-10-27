@@ -317,6 +317,12 @@ class Collector:
             before=self.observations();after=self.observations();self.main()
             require(before==after,'source_changed')
             interval={'started_at':started,'completed_at':now()}
+            if self.snapshot and 'scheduled-incident-health' in before:
+                # A collection crossing a deadline cannot keep its earlier clock.
+                self.current_proof='scheduled-incident-health'
+                policy({'operation':'validate','id':'scheduled-incident-health',
+                    'normalized':{**before['scheduled-incident-health'],'observed_at':interval['completed_at']},
+                    'inputs':self.inputs})
             sources={}
             for id,value in before.items():
                 refs=[]

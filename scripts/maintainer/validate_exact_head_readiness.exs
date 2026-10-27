@@ -692,7 +692,7 @@ defmodule Rindle.ExactHeadReadiness do
           "health clock outside source observation"
         )
 
-        validate_health!(n, inputs)
+        validate_health!(n, inputs, s["observation_interval"]["completed_at"])
 
       "protection" ->
         validate_protection!(n)
@@ -796,7 +796,7 @@ defmodule Rindle.ExactHeadReadiness do
     Rindle.ReadinessNightly.qualification!(n, yaml)
   end
 
-  defp validate_health!(n, inputs) do
+  defp validate_health!(n, inputs, checked_at \\ nil) do
     validate_run!(
       n["health_run"],
       "Nightly",
@@ -805,7 +805,7 @@ defmodule Rindle.ExactHeadReadiness do
       inputs[".github/workflows/nightly.yml"]
     )
 
-    Rindle.ReadinessNightly.health!(n, inputs)
+    Rindle.ReadinessNightly.health!(n, inputs, checked_at)
   end
 
   defp validate_archive!(n, key, filename, refs, c) do
