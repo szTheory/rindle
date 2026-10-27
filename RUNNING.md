@@ -522,6 +522,9 @@ It never deduplicates rows, and diagnostics contain bounded numeric IDs/indices
 and fixed field codes. A later valid inventory still requires the unchanged
 artifact, event, checkpoint and current-main high-watermark authentication.
 A failed scheduled lifecycle is not recoverable by a manual qualification run.
+CI keeps every harness and the shared240s three-worker budget; the independent
+dependency-landing harness runs after readiness fixtures to leave room for the
+new incident acquisition regressions.
 
 After the policy PR and full main CI are green, explicitly capture a source/run:
 

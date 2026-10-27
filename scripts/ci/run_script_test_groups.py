@@ -61,20 +61,23 @@ def workflow_groups(script):
     # three groups without changing their shared deadline or dropping commands.
     incident='bash scripts/ci/test_nightly_incident.sh'
     baseline='python3 scripts/ci/test_land_release_train_baseline.py'
-    inbox=('bash scripts/ci/test_validate_inbox_ledger.sh',
-           'bash scripts/ci/test_dep_landing_evidence.sh')
+    inbox=('bash scripts/ci/test_validate_inbox_ledger.sh',)
+    landing='bash scripts/ci/test_dep_landing_evidence.sh'
     lines=script.splitlines()
     independent=(incident,*inbox)
     # Collection stays with legacy: incident+collection+ledger+landing exhausted
     # the shared deadline while both other groups had already completed.
-    for command in (*independent,baseline,'bash scripts/ci/test_collect_inbox.sh'):
+    for command in (*independent,landing,baseline,'bash scripts/ci/test_collect_inbox.sh'):
         if lines.count(command)!=1:raise ValueError('exactly one independent harness command required: '+command)
-    legacy='\n'.join(line for line in lines if line not in independent)
+    legacy='\n'.join(line for line in lines if line not in (*independent,landing))
     isolated='\n'.join(line for line in lines if line in independent)
     # Live CI measured readiness at 237s, legacy at 218s and incident at 220s.
     # Keep the independent 11s baseline in legacy, rather than serializing it
     # behind readiness. Preserve all commands, three workers and the 240s bound.
-    readiness='bash scripts/ci/test_readiness_fixtures.sh'
+    # The new acquisition cases exhausted incident+inbox+landing at 240s,
+    # while readiness completed in 193s. Move the independent 32s landing
+    # harness there; preserve all commands, three workers and the same bound.
+    readiness='bash scripts/ci/test_readiness_fixtures.sh\n'+landing
     return [('Existing CI contract harnesses',['bash','-euo','pipefail','-c',legacy]),
             ('Incident and inbox contracts',['bash','-euo','pipefail','-c',isolated]),
             ('Readiness contracts',['bash','-euo','pipefail','-c',readiness])]
