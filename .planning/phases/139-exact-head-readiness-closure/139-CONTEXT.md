@@ -333,3 +333,19 @@ current-tip behavior; snapshot hygiene asserts no release or current-main eligib
 Adding the hygiene controller to the mirrored control/input registry requires a new
 admitted post-delivery source. Preserve the completed 61131fd2 diagnostic proofs; do
 not relabel them. The independent operational Nightly control identity is unchanged.
+
+### Actual producer boundary repairs (2026-10-27)
+
+The first actual v3 terminal attempt on f2e9fbaf preserved `not_ready` with zero
+credit: its owned producer run40447986047/1 reports evaluated run-name text in
+the run API `name`, unlike the static workflow metadata name. Bind discovery and
+retrieval to the authenticated active workflow ID/path, preserving exact owned
+request title, repository, source, event, branch, attempt and artifact verification.
+The producer then failed clean-checkout admission before native qualification.
+Direct admission imports reproduce six untracked bytecode files with Linux cache
+behavior; macOS redirects its default cache outside the checkout. Disable bytecode
+in the public wrapper and existing retention job before imports, without adding
+ignore rules or relaxing cleanliness. Only this environment setting changes the
+existing retention workflow; production Nightly and permissions stay unchanged.
+Controller identity changes require a new post-delivery source. Preserve the
+failed terminal and run; never relabel its passing prerequisite diagnostics.

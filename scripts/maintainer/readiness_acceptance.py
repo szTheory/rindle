@@ -13,7 +13,7 @@ from exact_head_readiness import ROOT, NotReady, atomic, canonical, digest, now,
 from readiness_adoption import check as adoption_check
 from readiness_closure import Closure, object_bytes
 from readiness_github import GitHub
-from readiness_retention import WORKFLOW, WORKFLOW_NAME, durable_path, graph_objects, retrieve, reserve
+from readiness_retention import WORKFLOW, WORKFLOW_NAME, durable_path, graph_objects, retrieve, reserve, workflow_identity
 
 PHASE='.planning/phases/139-exact-head-readiness-closure'
 
@@ -101,6 +101,7 @@ class Acceptance:
         write_new(self.output/'restricted/dispatch.log',result.stdout+result.stderr)
         require(result.returncode==0,'producer_dispatch_failed')
     def producer(self,nonce):
+        workflow=workflow_identity(self.api)
         deadline=time.monotonic()+self.wait
         while time.monotonic()<deadline:
             if not self.snapshot:require(main_sha(self.api)==self.subject,'main_changed')
@@ -110,7 +111,7 @@ class Acceptance:
             require(len(found)<=1,'producer_request_ambiguous')
             if found:
                 run=found[0]
-                require((self.snapshot or run.get('head_sha')==self.subject) and re.fullmatch(r'[0-9a-f]{40}',run.get('head_sha','')) and run.get('path')==WORKFLOW and run.get('name')==WORKFLOW_NAME and
+                require((self.snapshot or run.get('head_sha')==self.subject) and re.fullmatch(r'[0-9a-f]{40}',run.get('head_sha','')) and run.get('path')==WORKFLOW and type(run.get('workflow_id')) is int and run.get('workflow_id')==workflow and run.get('repository',{}).get('full_name')==self.repo and
                     run.get('head_branch')=='main' and run.get('event')=='workflow_dispatch' and
                     type(run.get('id')) is int and type(run.get('run_attempt')) is int and run['run_attempt']==1,'producer_request_identity')
                 if run.get('status')=='completed':

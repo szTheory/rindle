@@ -91,6 +91,7 @@ class API:
     def path(self,p):return 'repos/'+REPO+'/'+p
     def get(self,p):
         if p.endswith('git/ref/heads/main'):return {'ref':'refs/heads/main','object':{'type':'commit','sha':self.main}},{}
+        if p.endswith('actions/workflows/readiness-retention.yml'):return {'id':901,'name':retention.WORKFLOW_NAME,'path':retention.WORKFLOW,'state':'active'},{}
         if p.endswith('branches/main'):return {'name':'main','protected':True,'commit':{'sha':self.main}},{}
         if '/compare/' in p:return {'status':'ahead','base_commit':{'sha':SHA},'merge_base_commit':{'sha':SHA},'url':'https://api.github.com/'+p},{}
         if p.endswith('actions/runs/10'):return copy.deepcopy(self.run),{}
@@ -206,7 +207,7 @@ class Identity(unittest.TestCase):
     def test_producer_lookup_uses_nonce_without_candidate_head_filter(self):
         owner=a.Acceptance(REPO,'/unused',fixture='fixture',subject=SHA,snapshot=True);owner.subject=SHA;api=API(NEXT)
         run={'display_title':'Readiness nonce','id':30,'run_attempt':1,'head_sha':NEXT,'head_branch':'main',
-             'event':'workflow_dispatch','path':a.WORKFLOW,'name':a.WORKFLOW_NAME,'status':'completed','conclusion':'success'}
+             'event':'workflow_dispatch','path':a.WORKFLOW,'name':'Readiness nonce','workflow_id':901,'repository':{'full_name':REPO},'status':'completed','conclusion':'success'}
         queries=[];api.pages=lambda p,*args,**kwargs:(queries.append(p) or [run]);owner.api=api
         self.assertEqual(owner.producer('nonce'),(30,1));self.assertNotIn('head_sha=',queries[0])
 
@@ -478,7 +479,8 @@ class Graph(unittest.TestCase):
         def response(path,value=None,raw=None):
             responses['repos/'+REPO+('/'+path if path else '')]=[{'status':200,'headers':{},**({'base64':base64.b64encode(raw).decode()} if raw is not None else {'body':value})}]
         response('',{'id':7,'full_name':REPO})
-        run={'id':30,'run_attempt':1,'repository':{'full_name':REPO},'path':retention.WORKFLOW,'name':retention.WORKFLOW_NAME,
+        response('actions/workflows/readiness-retention.yml',{'id':901,'name':retention.WORKFLOW_NAME,'path':retention.WORKFLOW,'state':'active'})
+        run={'id':30,'run_attempt':1,'repository':{'full_name':REPO},'path':retention.WORKFLOW,'name':'Readiness '+('d'*32),'workflow_id':901,
             'event':'workflow_dispatch','head_branch':'main','head_sha':NEXT,'status':'completed','conclusion':'success'}
         response('actions/runs/30',run);response('actions/runs/30/attempts/1',run)
         artifacts=[]

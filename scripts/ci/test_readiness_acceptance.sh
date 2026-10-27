@@ -6,7 +6,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export ASDF_ERLANG_VERSION="${ASDF_ERLANG_VERSION:-27.3.4.15}"
 export ASDF_ELIXIR_VERSION="${ASDF_ELIXIR_VERSION:-1.17.3-otp-27}"
 python3 - "$root" <<'PY'
-import copy,json,os,pathlib,shutil,subprocess,sys,tempfile,unittest
+import copy,json,os,pathlib,re,shlex,shutil,subprocess,sys,tempfile,unittest
 from unittest.mock import patch
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
 import readiness_acceptance as a
@@ -16,6 +16,7 @@ class Main:
     def __init__(self,values):self.values=list(values);self.n=0
     def path(self,p):return 'repos/'+repo+'/'+p
     def get(self,p):
+        if p.endswith('actions/workflows/readiness-retention.yml'):return {'id':901,'name':r.WORKFLOW_NAME,'path':r.WORKFLOW,'state':'active'},{}
         value=self.values[min(self.n,len(self.values)-1)];self.n+=1
         return {'ref':'refs/heads/main','object':{'type':'commit','sha':value}},{}
 class Acceptance(unittest.TestCase):
@@ -132,8 +133,53 @@ class Acceptance(unittest.TestCase):
             def pages(self,*args,**kwargs):return []
         owner.api=Runs([sha])
         with self.assertRaisesRegex(a.NotReady,'producer_pending'):owner.producer('nonce')
-        owner.api.pages=lambda *args,**kwargs:[{'display_title':'Readiness nonce','head_sha':sha,'path':a.WORKFLOW,'name':a.WORKFLOW_NAME,'head_branch':'main','event':'workflow_dispatch','id':3,'run_attempt':2}]
+        owner.api.pages=lambda *args,**kwargs:[{'display_title':'Readiness nonce','head_sha':sha,'path':a.WORKFLOW,'name':'Readiness nonce','workflow_id':901,'repository':{'full_name':repo},'head_branch':'main','event':'workflow_dispatch','id':3,'run_attempt':2}]
         with self.assertRaisesRegex(a.NotReady,'producer_request_identity'):owner.producer('nonce')
+    def clean_bootstrap(self,workflow=False):
+        checkout=self.tmp/'bootstrap';scripts=checkout/'scripts/maintainer'
+        shutil.copytree(root/'scripts/maintainer',scripts,ignore=shutil.ignore_patterns('__pycache__'))
+        binary=checkout/'bin';binary.mkdir()
+        python=binary/'python3'
+        python.write_text('#!/bin/sh\nexec '+shlex.quote(sys.executable)+' -X pycache_prefix= "$@"\n');python.chmod(0o700)
+        env={k:v for k,v in os.environ.items() if k not in ('PYTHONDONTWRITEBYTECODE','PYTHONPYCACHEPREFIX')}
+        env['PATH']=str(binary)+os.pathsep+env['PATH']
+        # Force the Linux cache location even on Apple's cache-redirecting Python.
+        plain=['python3',str(scripts/'readiness_acceptance.py'),'admit-snapshot','--help']
+        negative=subprocess.run(plain,cwd=checkout,env=env,capture_output=True,timeout=20)
+        self.assertEqual(negative.returncode,0,negative.stderr)
+        self.assertTrue(list(scripts.rglob('*.pyc')),'negative control must reproduce checkout pollution')
+        for cache in scripts.rglob('__pycache__'):shutil.rmtree(cache)
+        before={p.relative_to(checkout) for p in checkout.rglob('*') if p.is_file()}
+        if workflow:
+            text=(root/'.github/workflows/readiness-retention.yml').read_text()
+            setting=re.search(r"(?m)^      PYTHONDONTWRITEBYTECODE: ['\"]?(1)['\"]?$",text)
+            self.assertIsNotNone(setting,'direct workflow admission must disable bytecode before imports')
+            env['PYTHONDONTWRITEBYTECODE']=setting[1]
+            command=['python3',str(scripts/'readiness_acceptance.py'),'admit-snapshot','--help']
+        else:command=['bash',str(scripts/'exact_head_readiness.sh'),'admit-snapshot','--help']
+        result=subprocess.run(command,cwd=checkout,env=env,capture_output=True,timeout=20)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual({p.relative_to(checkout) for p in checkout.rglob('*') if p.is_file()},before)
+    def test_public_entrypoint_preserves_clean_checkout_without_caller_env(self):self.clean_bootstrap()
+    def test_workflow_direct_admission_preserves_clean_checkout(self):self.clean_bootstrap(workflow=True)
+    def producer_case(self,**changes):
+        owner=a.Acceptance(repo,self.tmp/'out','fixture');owner.subject=sha;owner.api=Main([sha])
+        run={'display_title':'Readiness nonce','name':'Readiness nonce','workflow_id':901,'repository':{'full_name':repo},
+             'head_sha':sha,'path':a.WORKFLOW,'head_branch':'main','event':'workflow_dispatch','id':3,'run_attempt':1,
+             'status':'completed','conclusion':'success',**changes}
+        owner.api.pages=lambda *args,**kwargs:[run]
+        return owner
+    def test_actual_dynamic_run_name_is_accepted(self):
+        self.assertEqual(self.producer_case().producer('nonce'),(3,1))
+    def test_static_name_cannot_spoof_foreign_workflow(self):
+        with self.assertRaisesRegex(a.NotReady,'producer_request_identity'):
+            self.producer_case(name=a.WORKFLOW_NAME,workflow_id=902).producer('nonce')
+    def test_foreign_producer_repository(self):
+        with self.assertRaisesRegex(a.NotReady,'producer_request_identity'):
+            self.producer_case(repository={'full_name':'foreign/repo'}).producer('nonce')
+    def test_foreign_title_is_not_selected(self):
+        with self.assertRaisesRegex(a.NotReady,'producer_pending'):
+            self.producer_case(display_title='Readiness foreign').producer('nonce')
 
 unittest.main(argv=['acceptance'],verbosity=1)
 PY

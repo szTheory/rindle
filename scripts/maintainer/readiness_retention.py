@@ -165,12 +165,20 @@ def graph_objects_from_bytes(objects,manifest):
     return result
 
 
-def run_identity(value,repo,run,attempt):
+def workflow_identity(api):
+    # Run names can be evaluated display text; bind the authenticated workflow instead.
+    value,_=api.get(api.path('actions/workflows/readiness-retention.yml'))
+    require(type(value.get('id')) is int and value['id']>0 and value.get('path')==WORKFLOW and
+        value.get('name')==WORKFLOW_NAME and value.get('state')=='active','producer_workflow_identity')
+    return value['id']
+
+
+def run_identity(value,repo,run,attempt,workflow):
     require(value.get('id')==run and value.get('run_attempt')==attempt and value.get('repository',{}).get('full_name')==repo and
-        value.get('path')==WORKFLOW and value.get('name')==WORKFLOW_NAME and value.get('event')=='workflow_dispatch' and
+        value.get('path')==WORKFLOW and type(value.get('workflow_id')) is int and value.get('workflow_id')==workflow and value.get('event')=='workflow_dispatch' and
         value.get('head_branch')=='main' and re.fullmatch(r'[0-9a-f]{40}',value.get('head_sha','')),'producer_identity')
     require(value.get('status')=='completed' and value.get('conclusion')=='success','producer_not_completed_successfully')
-    return {k:value[k] for k in ('id','run_attempt','head_sha','status','conclusion','path')}
+    return {k:value[k] for k in ('id','run_attempt','head_sha','status','conclusion','path','workflow_id')}
 
 
 def retrieve(repo,run,attempt,destination,fixture=None):
@@ -181,8 +189,9 @@ def retrieve(repo,run,attempt,destination,fixture=None):
     try:
         api=GitHub(repo,staging/'restricted/api',fixture,budget=300)
         metadata,_=api.get('repos/'+repo);require(metadata.get('full_name')==repo and type(metadata.get('id')) is int,'repository_identity');api.repo_id=metadata['id']
-        before,_=api.get(api.path('actions/runs/'+str(run)));identity=run_identity(before,repo,run,attempt)
-        detail,_=api.get(api.path(f'actions/runs/{run}/attempts/{attempt}'));require(run_identity(detail,repo,run,attempt)==identity,'producer_attempt_changed')
+        workflow=workflow_identity(api)
+        before,_=api.get(api.path('actions/runs/'+str(run)));identity=run_identity(before,repo,run,attempt,workflow)
+        detail,_=api.get(api.path(f'actions/runs/{run}/attempts/{attempt}'));require(run_identity(detail,repo,run,attempt,workflow)==identity,'producer_attempt_changed')
         artifacts=api.pages(f'actions/runs/{run}/artifacts?per_page=100','artifacts')
         prefix=f'rindle-readiness-digest-{run}-{attempt}-'
         sidecars=[a for a in artifacts if a.get('name','').startswith(prefix)]
@@ -219,7 +228,8 @@ def retrieve(repo,run,attempt,destination,fixture=None):
             for path in CONTROL_PATHS:
                 require(api.contents(path,identity['head_sha'])==(ROOT/path).read_bytes(),'producer_policy_mismatch')
         scan_public(objects,os.environ)
-        after,_=api.get(api.path('actions/runs/'+str(run)));require(run_identity(after,repo,run,attempt)==identity,'producer_attempt_changed')
+        require(workflow_identity(api)==workflow,'producer_workflow_changed')
+        after,_=api.get(api.path('actions/runs/'+str(run)));require(run_identity(after,repo,run,attempt,workflow)==identity,'producer_attempt_changed')
         write_new(staging/ARCHIVE_FILE,archive);write_new(staging/SIDECAR_FILE,sidecar_bytes)
         locator={'schema':'rindle-readiness-durable-locator-v1','repository':repo,'subject_sha':sidecar['subject_sha'],'run_id':run,'run_attempt':attempt,
             'workflow':WORKFLOW,'workflow_name':WORKFLOW_NAME,'archive_artifact_id':archives[0]['id'],'sidecar_artifact_id':sidecar_artifact['id'],
