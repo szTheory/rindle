@@ -515,6 +515,14 @@ operations at its own SHA under identical reviewed controls. It retains its verd
 and replay-checkpoint ZIPs and complete current incident history. Dispatch never
 supplies scheduled recovery. No later failure/pending run can be hidden by older green.
 
+The incident collector validates a complete repository artifact inventory before
+reading checkpoints. Malformed metadata or duplicate IDs trigger a complete refetch
+within the existing five-read coverage budget; exhaustion fails before mutation.
+It never deduplicates rows, and diagnostics contain bounded numeric IDs/indices
+and fixed field codes. A later valid inventory still requires the unchanged
+artifact, event, checkpoint and current-main high-watermark authentication.
+A failed scheduled lifecycle is not recoverable by a manual qualification run.
+
 After the policy PR and full main CI are green, explicitly capture a source/run:
 
 ```bash
