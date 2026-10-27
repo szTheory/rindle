@@ -2,6 +2,7 @@
 """Finite candidate closure and immutable same-subject refresh. No release authority."""
 import argparse
 import copy
+import json
 import os
 from pathlib import Path
 import re
@@ -12,7 +13,7 @@ import subprocess
 import sys
 import time
 
-from exact_head_readiness import ROOT, POLICY_FILE, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new, atomic
+from exact_head_readiness import ROOT, POLICY_FILE, TOOLCHAIN_ENV, QUALIFICATION_SECONDS, NotReady, canonical, digest, now, read_json, reference, require, write_new, atomic, redact
 from readiness_github import GitHub, json_bytes
 from readiness_process import popen_owned, stop_owned
 
@@ -53,7 +54,7 @@ def semantic(packet):
 
 
 class Closure:
-    def __init__(self,repo,output,manifest=None,fixture=None,deadline=9600,subject=None,snapshot=False):
+    def __init__(self,repo,output,manifest=None,fixture=None,deadline=16200,subject=None,snapshot=False):
         self.repo=repo;self.output=Path(output).resolve();self.original=Path(manifest).resolve() if manifest else None
         self.candidate=subject;self.snapshot=snapshot
         self.fixture=fixture;self.mode='fixture' if fixture is not None else 'execution'
@@ -76,7 +77,7 @@ class Closure:
             self.fixture=Path(self.fixture).resolve();self.index=read_json(self.fixture/'closure.json')
             require(isinstance(self.index,dict) and self.index.get('repository')==self.repo,'invalid_closure_fixture')
             self.started=self.index['observation_interval']['started_at']
-        else:self.api=GitHub(self.repo,self.private/'api',budget=9600)
+        else:self.api=GitHub(self.repo,self.private/'api',budget=max(1,self.deadline-time.monotonic()))
 
     def fixture_path(self,name):
         relative=self.index.get(name)
@@ -175,9 +176,10 @@ class Closure:
             path=self.fixture_path('local_manifest');manifest=read_json(path);root=path.parent
         else:
             self.local_output=self.private/'local-qualification'
-            code,_=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'qualify','--repo',self.repo,
-                '--subject',self.subject,'--output',str(self.local_output)]+(['--snapshot'] if self.snapshot else []),7500)
+            code,raw=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'qualify','--repo',self.repo,
+                '--subject',self.subject,'--output',str(self.local_output)]+(['--snapshot'] if self.snapshot else []),QUALIFICATION_SECONDS+300)
             if code:
+                print('LOCAL_QUALIFICATION_FAILURE ' + json.dumps(redact(raw,self.env)[-16384:].decode(errors='replace')),flush=True)
                 attempt=read_json(self.local_output/'attempt.json') if (self.local_output/'attempt.json').is_file() else {}
                 raise NotReady(attempt.get('reason','local_qualification_failed'))
             root=self.local_output/'portable';manifest=read_json(root/'manifest.json')

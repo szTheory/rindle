@@ -82,7 +82,7 @@ def metadata_parity(root,subject,interval):
 
 
 class Acceptance:
-    def __init__(self,repo,output,fixture=None,wait=12000,subject=None,snapshot=False):
+    def __init__(self,repo,output,fixture=None,wait=19800,subject=None,snapshot=False):
         self.candidate=subject;self.snapshot=snapshot
         self.repo=repo;self.output=Path(output).resolve();self.fixture=fixture
         self.mode='fixture' if fixture is not None else 'execution';self.wait=wait
@@ -117,7 +117,7 @@ class Acceptance:
                 if run.get('status')=='completed':
                     require(run.get('conclusion')=='success','producer_failed');return run['id'],run['run_attempt']
             if self.fixture is not None:raise NotReady('producer_pending')
-            time.sleep(min(10,max(0,deadline-time.monotonic())))
+            time.sleep(min(30,max(0,deadline-time.monotonic())))
         raise NotReady('producer_wait_timeout')
     def refresh(self,manifest,output):
         owner=Closure(self.repo,output,manifest,self.fixture)

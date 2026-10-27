@@ -3,7 +3,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 cd "$root"
 PYTHONDONTWRITEBYTECODE=1 python3 - "$root" <<'PY'
-import gzip, importlib.util, io, json, os, pathlib, shutil, subprocess, sys, tarfile, tempfile, unittest
+import contextlib, gzip, importlib.util, io, json, os, pathlib, shutil, subprocess, sys, tarfile, tempfile, unittest
 from unittest.mock import patch
 root = pathlib.Path(sys.argv[1])
 sys.path.insert(0,str(root/'scripts/maintainer'))
@@ -200,6 +200,33 @@ class QualificationTest(unittest.TestCase):
         self.assertNotIn(b'fixture-secret-token',public)
         self.assertIn(b'[REDACTED]',public)
 
+    def test_checked_failure_reports_real_command_without_secrets_or_runner_commands(self):
+        q=self.controller();q.reserve();q.env['FIXTURE_TOKEN']='fixture-secret-token'
+        output=io.StringIO()
+        argv=[sys.executable,'-c','import os; print("::error::"+os.environ["FIXTURE_TOKEN"]); raise SystemExit(7)']
+        with contextlib.redirect_stdout(output),self.assertRaisesRegex(r.NotReady,'command_failed'):
+            q.checked(argv)
+        text=output.getvalue();detail=json.loads(text.removeprefix('QUALIFICATION_COMMAND_FAILURE '))
+        self.assertEqual(detail['exit_code'],7);self.assertEqual(detail['argv'],argv)
+        self.assertEqual(detail['state'],'completed');self.assertIn('[REDACTED]',text)
+        self.assertNotIn('fixture-secret-token',text);self.assertEqual(len(text.splitlines()),1)
+        self.assertFalse(text.startswith('::'))
+        self.assertEqual(r.read_json(q.private/'command-0001.json')['exit_code'],7)
+
+    def test_redaction_precedes_tail_truncation_and_expected_nonzero_probes_stay_quiet(self):
+        q=self.controller();q.reserve();q.env['FIXTURE_TOKEN']='fixture-secret-token'
+        output=io.StringIO()
+        with contextlib.redirect_stdout(output):
+            record,raw=q.command([sys.executable,'-c','raise SystemExit(2)'])
+        self.assertEqual(record['exit_code'],2);self.assertEqual(output.getvalue(),'')
+        record['argv']=['fixture-secret-token']
+        with contextlib.redirect_stdout(output):
+            q.report_command_failure(record,b'fixture-secret-token'+b'x'*8190,q.env)
+        detail=json.loads(output.getvalue().removeprefix('QUALIFICATION_COMMAND_FAILURE '))
+        self.assertEqual(detail['argv'],['[REDACTED]'])
+        self.assertEqual(detail['output_tail'],(b'[REDACTED]'+b'x'*8190)[-8192:].decode())
+        self.assertLessEqual(len(detail['output_tail']),8192)
+
     def test_green_transport_does_not_hide_wrong_bootstrap_subject(self):
         q=self.controller();q.reserve();q.workspace=self.source
         def fake(argv,**kwargs):
@@ -271,11 +298,23 @@ class QualificationTest(unittest.TestCase):
         q.cleanup=cleanup_after_expiry
         self.assertEqual(q.run(),1)
 
+    def test_seed_matrix_has_a_finite_batch_budget_without_expanding_other_gates(self):
+        q=self.controller();q.reserve();q.workspace=self.source
+        for proof,budget in [('async-isolation',12600),('format',2400)]:
+            with patch.object(q,'checked',side_effect=r.NotReady('probe_reached')) as command:
+                with self.assertRaisesRegex(r.NotReady,'probe_reached'):
+                    r.Qualification.gate(q,proof,metadata['commands'][proof])
+            self.assertEqual(command.call_args.kwargs['budget'],budget)
+        self.assertGreater(q.deadline-r.time.monotonic(),12600)
+
     def test_real_subprocess_deadline_is_terminal(self):
         q=self.controller(); q.reserve()
         q.deadline=__import__('time').monotonic()+0.1
-        with self.assertRaisesRegex(r.NotReady,'command_timeout'):
+        output=io.StringIO()
+        with contextlib.redirect_stdout(output),self.assertRaisesRegex(r.NotReady,'command_timeout'):
             q.command(['python3','-c','import time; time.sleep(60)'])
+        detail=json.loads(output.getvalue().removeprefix('QUALIFICATION_COMMAND_FAILURE '))
+        self.assertEqual(detail['state'],'timeout');self.assertEqual(detail['exit_code'],124)
         self.assertTrue(list(q.private.glob('command-*.txt')))
 
 unittest.main(argv=['qualification'],verbosity=1)

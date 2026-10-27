@@ -28,6 +28,7 @@ defmodule Mix.Tasks.Rindle.Doctor do
   """
 
   use Mix.Task
+  @requirements ["app.config"]
 
   alias Rindle.Ops.RuntimeChecks
 

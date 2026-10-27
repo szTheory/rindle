@@ -24,6 +24,7 @@ PREFLIGHT = '.planning/phases/139-exact-head-readiness-closure/139-preflight.sh'
 TOOLCHAIN_ENV = {'ASDF_ERLANG_VERSION': '27.3.4.15', 'ASDF_ELIXIR_VERSION': '1.17.3-otp-27',
                  'ASDF_NODEJS_VERSION': '20.18.1'}
 OUTPUT_LIMIT = 32 * 1024 * 1024
+QUALIFICATION_SECONDS = 14400
 
 
 class NotReady(Exception):
@@ -213,7 +214,7 @@ class OwnedServices:
 class Qualification:
     evidence_mode = 'execution'
 
-    def __init__(self, root, output, repo, subject, deadline_seconds=7200, snapshot=False):
+    def __init__(self, root, output, repo, subject, deadline_seconds=QUALIFICATION_SECONDS, snapshot=False):
         self.root, self.output = Path(root).resolve(), Path(output).absolute()
         self.repo, self.subject = repo, subject
         self.snapshot = snapshot
@@ -298,11 +299,24 @@ class Qualification:
                   'observation_interval': {'started_at': stamp, 'completed_at': now()},
                   'output': reference(self.portable, output)}
         write_new(raw_path.with_suffix('.json'), record)
+        if timed_out:
+            self.report_command_failure(record, data, env or self.env)
         require(not timed_out, 'command_timeout')
         return record, data
 
+    def report_command_failure(self, record, data, env):
+        # Redact complete values before truncation; JSON escaping keeps child output
+        # from becoming runner log commands. Private raw logs remain private.
+        safe = lambda value: redact(value.encode(), env).decode(errors='replace')
+        detail = {key: record[key] for key in ('state', 'exit_code', 'duration_ms')}
+        detail['argv'] = [safe(str(arg))[:1024] for arg in record['argv'][:32]]
+        detail['output_tail'] = redact(data, env)[-8192:].decode(errors='replace')
+        print('QUALIFICATION_COMMAND_FAILURE ' + json.dumps(detail, sort_keys=True), flush=True)
+
     def checked(self, argv, **kwargs):
         record, data = self.command(argv, **kwargs)
+        if record['exit_code'] != 0:
+            self.report_command_failure(record, data, kwargs.get('env') or self.env)
         require(record['exit_code'] == 0, 'command_failed')
         return record, data
 
@@ -470,7 +484,10 @@ class Qualification:
             self.async_report = self.private/'async.jsonl'
             argv = argv + ['--report', str(self.async_report)]
             env = {**self.env, 'RINDLE_ASYNC_EVIDENCE_DIR': str(self.private)}
-        record, raw = self.checked(argv, cwd=cwd, budget=2400, env=env)
+        # Budget all twenty-five fresh coverage processes from observed suite
+        # durations, separately from the ordinary single-command cap.
+        budget = 12600 if proof_id == 'async-isolation' else 2400
+        record, raw = self.checked(argv, cwd=cwd, budget=budget, env=env)
         if proof_id == 'dialyzer-fresh':
             require(raw.count(b'mode=fresh action=build-plt')==1 and raw.count(b'mode=fresh attempt=1 action=analyze')==1, 'fresh_plt_missing_execution')
             self.fresh_plt=self.plt_inventory()
