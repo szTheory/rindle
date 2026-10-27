@@ -349,3 +349,10 @@ ignore rules or relaxing cleanliness. Only this environment setting changes the
 existing retention workflow; production Nightly and permissions stay unchanged.
 Controller identity changes require a new post-delivery source. Preserve the
 failed terminal and run; never relabel its passing prerequisite diagnostics.
+
+The first producer-repair CI passed readiness fixtures in237s but terminated the
+subsequent independent11s baseline harness at the unchanged240s shared deadline.
+Measured existing/incident groups finished218s/220s. Keep all commands and three
+workers; move the baseline into existing contracts in its original declared order,
+without extending timeouts or skipping tests. This is execution ordering only;
+production Nightly, proof criteria and the shared deadline remain unchanged.

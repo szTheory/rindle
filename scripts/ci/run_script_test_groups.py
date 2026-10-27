@@ -64,20 +64,20 @@ def workflow_groups(script):
     inbox=('bash scripts/ci/test_validate_inbox_ledger.sh',
            'bash scripts/ci/test_dep_landing_evidence.sh')
     lines=script.splitlines()
-    independent=(incident,baseline,*inbox)
+    independent=(incident,*inbox)
     # Collection stays with legacy: incident+collection+ledger+landing exhausted
     # the shared deadline while both other groups had already completed.
-    for command in (*independent,'bash scripts/ci/test_collect_inbox.sh'):
+    for command in (*independent,baseline,'bash scripts/ci/test_collect_inbox.sh'):
         if lines.count(command)!=1:raise ValueError('exactly one independent harness command required: '+command)
     legacy='\n'.join(line for line in lines if line not in independent)
-    isolated='\n'.join(line for line in lines if line in independent and line!=baseline)
-    # Observed runner timings left this group at the deadline while readiness
-    # finished at 202s. Its independent baseline harness took 11s; keep it with
-    # readiness so all three groups retain margin inside the same 240s budget.
-    readiness='bash scripts/ci/test_readiness_fixtures.sh\n'+baseline
+    isolated='\n'.join(line for line in lines if line in independent)
+    # Live CI measured readiness at 237s, legacy at 218s and incident at 220s.
+    # Keep the independent 11s baseline in legacy, rather than serializing it
+    # behind readiness. Preserve all commands, three workers and the 240s bound.
+    readiness='bash scripts/ci/test_readiness_fixtures.sh'
     return [('Existing CI contract harnesses',['bash','-euo','pipefail','-c',legacy]),
             ('Incident and inbox contracts',['bash','-euo','pipefail','-c',isolated]),
-            ('Readiness and baseline contracts',['bash','-euo','pipefail','-c',readiness])]
+            ('Readiness contracts',['bash','-euo','pipefail','-c',readiness])]
 
 
 def main():

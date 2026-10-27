@@ -117,3 +117,9 @@ Linux cache placement on macOS, proves the unconfigured direct admission creates
 bytecode, then proves the public wrapper and workflow environment preserve every
 checkout byte without caller-provided bytecode settings. Full cheap fixtures and
 the residue scanner remain required; no ignored-path expansion is permitted.
+
+`bash scripts/ci/test_script_test_groups.sh` proves every declared harness remains
+once-only under the same three groups and shared deadline, including failure
+propagation, completed/terminated diagnostics, and owned timeout disposal. Run
+the actual workflow-declared groups with the locked parser-only fixture runtime
+to check the baseline no longer follows readiness; live CI remains required.

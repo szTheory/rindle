@@ -649,6 +649,8 @@ fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runti
 it does not run native qualification. CI awaits three independent groups (existing
 contracts, Nightly incident fixtures, readiness fixtures) under a shared four-minute
 bound within the unchanged five-minute job. Any group failure fails the job.
+The independent release-baseline harness runs with existing contracts, so it is
+not serialized after the readiness suite. All declared harnesses still run once.
 `bash scripts/ci/test_script_test_groups.sh`
 checks failure propagation and owned timeout disposal. Existing CI/CI Summary topology
 and release automation authority remain the release train gates.
