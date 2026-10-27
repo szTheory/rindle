@@ -508,6 +508,18 @@ request nonce and waits at most 330 minutes for the matching successful first at
 The trusted main workflow admits the candidate before checking out or executing it.
 The producer SHA can differ from the candidate; both identities remain bound in the v2
 sidecar and verified locator. Candidate-specific concurrency does not cancel running work.
+
+`close` first checks the live sources to reject missing prerequisites early. After
+native qualification it collects a new pair of complete mutable observations close
+together; only this fresh pair supplies acceptance receipts. The initial preflight
+is retained privately and grants no acceptance. A package registry publication
+hours earlier does not invalidate otherwise complete immutable native proof.
+Every source, full signed Hex database, authorization, newest-run and equality
+check still applies to the fresh pair. Changes during that pair fail closed with
+`MUTABLE_COLLECTION_FAILURE` listing only fixed proof/source category names.
+Refresh already has no native qualification gap and keeps its two fresh reads.
+No fixture, failed invocation or partial local manifest grants readiness credit.
+
 The producer runs `close` and uploads separate immutable archive and digest artifacts,
 with missing-file errors, no overwrite and 30-day retention. It never retrieves its own
 output. No candidate snapshot grants merge or publication authority.

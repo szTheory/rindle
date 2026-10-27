@@ -449,7 +449,7 @@ class Graph(unittest.TestCase):
                     sources[ref['id']]={k:receipt[k] for k in ('source','references')}
             value={'repository':REPO,'subject_sha':SHA,'evidence_mode':'fixture','sources':sources}
             put(fixture,'data/'+kind+'.json',value)
-            for side in ['before','after']:config[kind+'_'+side]='data/'+kind+'.json'
+            for side in ['before','join-before','after']:config[kind+'_'+side]='data/'+kind+'.json'
         put(fixture,'closure.json',config)
         return fixture
     def test_actual_closure_finishes_after_main_advances(self):

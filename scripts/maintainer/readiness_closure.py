@@ -361,8 +361,24 @@ class Closure:
             self.stage='initial_remote';before=self.collect('before')
             if not self.original:self.stage='local';manifest=self.local()
             require(manifest.get('validator_sha256')==self.tool_sha and manifest.get('policy')==self.policy['policy'],'tool_identity')
+            if not self.original:
+                # The initial collection is a fail-fast preflight. Immutable native
+                # proof may take hours; acceptance compares two fresh collections
+                # after it, with every original policy and byte check unchanged.
+                self.stage='joining_remote';before=self.collect('join-before')
             self.stage='final_remote';after=self.collect('after')
-            require(all(semantic(before[id][0])==semantic(after[id][0]) for id in self.policy['mutable']),'mutable_source_changed')
+            changed=[id for id in self.policy['mutable'] if semantic(before[id][0])!=semantic(after[id][0])]
+            if changed:
+                detail={'reason':'mutable_source_changed','changed_proofs':sorted(changed)}
+                if 'remote-inventory' in changed:
+                    left=semantic(before['remote-inventory'][0])['normalized'].get('sources',{})
+                    right=semantic(after['remote-inventory'][0])['normalized'].get('sources',{})
+                    names=('issues','pulls','checks','statuses','absent','advisories','dependabot','hex','protection')
+                    detail['changed_remote_sources']=[name for name in names if left.get(name)!=right.get(name)]
+                # Fixed policy names only: private values never enter public logs.
+                print('MUTABLE_COLLECTION_FAILURE '+json.dumps(detail,sort_keys=True),flush=True)
+                result.update({key:value for key,value in detail.items() if key!='reason'})
+                raise NotReady('mutable_source_changed')
             self.stage='final_main';self.observed_main_after=self.check_main();self.verify_root()
             interval={'started_at':self.started,'completed_at':self.timestamp()}
             if self.original:
