@@ -1180,8 +1180,8 @@
       "kind": "pr",
       "number": 185,
       "disposition": "retain",
-      "head_sha": "cc755d0caf501d9d7c415d7c816f64270bf54733",
-      "rationale": "Reviewed the current Release Please-owned patch0.4.14 head after PR197: only .release-please-manifest.json, mix.exs version and CHANGELOG.md change, including the already merged snapshot and liveness fixes. CI40436198353 failed; no green delivery is asserted. Retain the existing do-not-merge hold while139 acceptance remains unfinished. Do not merge, publish, dispatch release, bump manually, or infer release authority from synthetic readiness."
+      "head_sha": "bfa360bff8dee056f7e31761bbff6a120ba2937c",
+      "rationale": "Reviewed the exact current Release Please-owned patch 0.4.14 head after PR205: the complete diff changes only .release-please-manifest.json, mix.exs version, and CHANGELOG.md, including already merged snapshot/liveness fixes and the Doctor/native collection repair. This records head identity and scope; CI remains separately observed. Retain the existing explicit do-not-merge hold pending a separately authorized release decision. Do not merge, publish, dispatch release, bump manually, or infer release or 1.0 authority from synthetic readiness."
     },
     {
       "kind": "pr",
