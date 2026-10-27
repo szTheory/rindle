@@ -1180,8 +1180,8 @@
       "kind": "pr",
       "number": 185,
       "disposition": "retain",
-      "head_sha": "8b87661fe4bba1b58559b7e0bb29582a7e9897c2",
-      "rationale": "Release Please owns patch0.4.14 and its three version/changelog files. Latest completed CI40263479602 failed CI Script Tests; no green delivery is asserted. do-not-merge holds automated release while139 acceptance remains unfinished; do not merge, publish, dispatch release, bump manually, or infer release authority from synthetic readiness."
+      "head_sha": "cc755d0caf501d9d7c415d7c816f64270bf54733",
+      "rationale": "Reviewed the current Release Please-owned patch0.4.14 head after PR197: only .release-please-manifest.json, mix.exs version and CHANGELOG.md change, including the already merged snapshot and liveness fixes. CI40436198353 failed; no green delivery is asserted. Retain the existing do-not-merge hold while139 acceptance remains unfinished. Do not merge, publish, dispatch release, bump manually, or infer release authority from synthetic readiness."
     },
     {
       "kind": "pr",
