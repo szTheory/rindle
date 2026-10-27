@@ -71,7 +71,7 @@ IO.puts(Jason.encode!(%{base: base}))
         self.config={'repository':repo,'subject_sha':sha,'local_manifest':'data/local-manifest.json',
             'observation_interval':{'started_at':'2026-10-22T10:00:00Z','completed_at':'2026-10-22T10:01:00Z'}}
         for kind in ('runs','remote','adoption'):
-            for position in ('before','after'):self.config[kind+'_'+position]='data/'+kind+'-close.json'
+            for position in ('before','join-before','after'):self.config[kind+'_'+position]='data/'+kind+'-close.json'
         self.save()
     def tearDown(self):shutil.rmtree(self.tmp)
     def save(self): (self.fixture/'closure.json').write_bytes(c.canonical(self.config))
@@ -84,7 +84,7 @@ IO.puts(Jason.encode!(%{base: base}))
     def refreshing(self):
         self.config['observation_interval']={'started_at':'2026-10-22T10:02:00Z','completed_at':'2026-10-22T10:03:00Z'}
         for kind in ('runs','remote','adoption'):
-            for position in ('before','after'):self.config[kind+'_'+position]='data/'+kind+'-refresh.json'
+            for position in ('before','join-before','after'):self.config[kind+'_'+position]='data/'+kind+'-refresh.json'
     def reject(self,reason,refresh=False):
         code,value,owner=self.close(refresh);self.assertEqual(code,1);self.assertEqual(value['reason'],reason)
         self.assertEqual(c.read_json(owner.output/'attempt.json')['verdict'],'not_ready')
@@ -120,6 +120,55 @@ IO.puts(Jason.encode!(%{base: base}))
             self.assertEqual(code,1 if corrupt else 0)
             outputs.append(verdict.read_bytes())
         self.assertEqual(outputs[0],outputs[2]);self.assertEqual(manifest.read_bytes(),before)
+    def test_mutable_acceptance_pair_is_fresh_after_native_qualification(self):
+        events=[];collect=c.Closure.collect;local=c.Closure.local
+        def observed(owner,position):
+            events.append(position)
+            packets=collect(owner,position)
+            if position=='before':
+                # This older, valid preflight is useful for fast rejection only.
+                # The fresh pair must supply all accepted mutable receipts.
+                packets=copy.deepcopy(packets)
+                packets['ci-main'][0]['source']['query']='older preflight query'
+            return packets
+        def qualified(owner):
+            events.append('native');return local(owner)
+        with patch.object(c.Closure,'collect',observed),patch.object(c.Closure,'local',qualified):
+            code,value,owner=self.close()
+        self.assertEqual(code,0)
+        self.assertEqual(events,['before','native','join-before','after'])
+        manifest=c.read_json(owner.portable/'manifest.json')
+        ci=next(ref for ref in manifest['proofs'] if ref['id']=='ci-main')
+        self.assertNotEqual(c.read_json(owner.portable/ci['path'])['source']['query'],'older preflight query')
+    def test_outer_changed_categories_are_bounded_and_retained(self):
+        self.mutate_source('runs','ci-main',lambda n:n.update(run_id=11,latest_run_id=11))
+        output=io.StringIO()
+        with contextlib.redirect_stdout(output):owner=self.reject('mutable_source_changed')
+        verdict=c.read_json(owner.output/'verdict.json')
+        self.assertEqual(verdict['changed_proofs'],['ci-main'])
+        lines=[line for line in output.getvalue().splitlines() if line.startswith('MUTABLE_COLLECTION_FAILURE ')]
+        self.assertEqual(len(lines),1)
+        detail=json.loads(lines[0].split(' ',1)[1])
+        self.assertEqual(detail,{'reason':'mutable_source_changed','changed_proofs':['ci-main']})
+    def test_whole_hex_database_change_during_fresh_pair_still_fails_without_private_values(self):
+        def changed(n):
+            for source in n['sources'].values():
+                source['observation_interval']={'started_at':'later','completed_at':'later'}
+            n['sources']['hex']['database_sha256']='PRIVATE-CLOSURE-CANARY'
+        self.mutate_source('remote','remote-inventory',changed)
+        output=io.StringIO()
+        with contextlib.redirect_stdout(output):owner=self.reject('mutable_source_changed')
+        detail=c.read_json(owner.output/'verdict.json')
+        self.assertEqual(detail['changed_proofs'],['remote-inventory'])
+        self.assertEqual(detail['changed_remote_sources'],['hex'])
+        self.assertNotIn('PRIVATE-CLOSURE-CANARY',output.getvalue())
+    def test_refresh_keeps_its_two_fresh_collections_without_native_work(self):
+        self.refreshing();events=[];collect=c.Closure.collect
+        def observed(owner,position):
+            events.append(position);return collect(owner,position)
+        with patch.object(c.Closure,'collect',observed),patch.object(c.Closure,'local',side_effect=AssertionError('native replay')):
+            code,_,_=self.close(True)
+        self.assertEqual(code,0);self.assertEqual(events,['before','after'])
     def test_main_changed_after_collections(self):
         self.config['main_sequence']=[sha,'b'*40];self.reject('main_changed')
     def test_main_changed_after_validator_cannot_publish_candidate(self):
