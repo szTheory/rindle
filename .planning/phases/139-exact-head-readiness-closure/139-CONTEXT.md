@@ -356,3 +356,13 @@ Measured existing/incident groups finished218s/220s. Keep all commands and three
 workers; move the baseline into existing contracts in its original declared order,
 without extending timeouts or skipping tests. This is execution ordering only;
 production Nightly, proof criteria and the shared deadline remain unchanged.
+
+A second Linux run still exhausted240s in existing contracts while readiness232s
+and incident236s passed; reordering alone did not provide enough shared CPU margin.
+Confine one normal/dirty-CPU/dirty-I/O scheduler to the existing parser-only Mix
+adapter and verify actual counts after preparation. Native qualification remains
+four-scheduler. A complete direct-binary local grouped comparison passed at
+107s/51s/118s versus126s/59s/129s; these are diagnostic observations, not deferred
+CI target credit or proof of Linux headroom. Fresh full Linux CI is required.
+The existing actual-validator fixture-worker pattern is a researched fallback if
+reducing parser VM startup contention is insufficient; no new worker is introduced.

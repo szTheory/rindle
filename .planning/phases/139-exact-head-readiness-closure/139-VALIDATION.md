@@ -123,3 +123,9 @@ once-only under the same three groups and shared deadline, including failure
 propagation, completed/terminated diagnostics, and owned timeout disposal. Run
 the actual workflow-declared groups with the locked parser-only fixture runtime
 to check the baseline no longer follows readiness; live CI remains required.
+
+Parser-runtime preparation executes the generated adapter and asserts one normal,
+one dirty CPU and one dirty I/O scheduler despite inherited four-scheduler flags.
+The full exact workflow-declared groups must still finish with all commands and
+assertions retained at the same240s bound. Local scheduler measurements provide
+no deferred CI performance-target or READY credit; Linux CI remains authoritative.

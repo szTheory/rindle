@@ -33,9 +33,14 @@ args=sys.argv[1:]
 if not args or args.pop(0)!='run':raise SystemExit('fixture runtime supports only mix run')
 while args and args[0] in ('--no-start','--no-compile','--no-deps-check'):args.pop(0)
 if not args or args[0].startswith('--'):raise SystemExit('invalid fixture mix run')
+# These parser-only VMs are short-lived and run beside two shell harnesses.
+# Extra scheduler pools add startup/CPU contention without native qualification.
+os.environ['ERL_FLAGS']='+S 1:1 +SDcpu 1:1 +SDio 1'
 os.execv(ELIXIR,[ELIXIR,*LIBS,*args])
 '''.replace('ELIXIR',repr(elixir)).replace('LIBS',repr([x for p in ebins for x in ('-pa',p)]))
 (out/'bin/mix').write_text(script);(out/'bin/mix').chmod(0o700)
 PY
+"$output/bin/mix" run --no-start --no-compile --no-deps-check -e \
+  '1 = System.schedulers_online(); 1 = :erlang.system_info(:dirty_cpu_schedulers_online); 1 = :erlang.system_info(:dirty_io_schedulers)'
 if [ -n "${GITHUB_PATH:-}" ]; then echo "$output/bin" >> "$GITHUB_PATH"; fi
 printf 'PASS: root-lock parser-only fixture runtime at %s/bin\n' "$output"

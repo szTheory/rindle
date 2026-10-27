@@ -645,8 +645,11 @@ the six-case package twin recovery matrix. It needs neither a local GSD install
 nor another machine's temporary matrix directory.
 
 Run `bash scripts/ci/test_readiness_fixtures.sh` for the cheap implementation
-fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runtime;
-it does not run native qualification. CI awaits three independent groups (existing
+fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runtime.
+Its short-lived parser VMs use one normal/dirty-CPU/dirty-I/O scheduler each to
+limit startup contention. Preparation verifies those actual runtime counts.
+Native qualification retains its separate four-scheduler settings.
+CI Script Tests does not run native qualification. CI awaits three independent groups (existing
 contracts, Nightly incident fixtures, readiness fixtures) under a shared four-minute
 bound within the unchanged five-minute job. Any group failure fails the job.
 The independent release-baseline harness runs with existing contracts, so it is
