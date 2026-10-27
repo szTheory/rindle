@@ -6,7 +6,7 @@ export PYTHONDONTWRITEBYTECODE=1
 export ASDF_ERLANG_VERSION="${ASDF_ERLANG_VERSION:-27.3.4.15}"
 export ASDF_ELIXIR_VERSION="${ASDF_ELIXIR_VERSION:-1.17.3-otp-27}"
 python3 - "$root" <<'PY'
-import atexit, base64, copy, functools, io, json, os, pathlib, shutil, subprocess, sys, tempfile, unittest, zipfile
+import atexit, base64, copy, functools, hashlib, io, json, os, pathlib, shutil, subprocess, sys, tempfile, unittest, zipfile
 from unittest.mock import patch
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
 import collect_readiness_runs as c
@@ -52,7 +52,7 @@ class Runs(unittest.TestCase):
         self.put(prefix+'git/ref/heads/main',{'ref':'refs/heads/main','object':{'type':'commit','sha':sha}})
         for relative in ['.github/workflows/ci.yml','.github/workflows/nightly.yml','.github/workflows/release.yml','config/ci_required_checks.json','.planning/phases/136-measured-quality-and-ci-ratchets/136-SPEED-DEFERRAL.json','.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json']:
             raw=(root/relative).read_bytes()
-            self.put(prefix+'contents/'+relative+'?ref='+sha,{'type':'file','path':relative,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+            self.put(prefix+'contents/'+relative+'?ref='+sha,{'type':'file','path':relative,'encoding':'base64','size':len(raw),'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),'content':base64.b64encode(raw).decode()})
         self.runs={};self.paths={};self.jobs={}
         for event,file,id in [('push','ci.yml',10),('schedule','nightly.yml',20)]:
             run={'id':id,'run_attempt':2,'head_sha':sha,'event':event,'head_branch':'main','repository':{'full_name':repo},
@@ -206,7 +206,7 @@ class Runs(unittest.TestCase):
         self.rejected('protection_drift')
     def subject_file(self,relative,text):
         raw=text.encode();path=prefix+'contents/'+relative+'?ref='+sha
-        self.put(path,{'type':'file','path':relative,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+        self.put(path,{'type':'file','path':relative,'encoding':'base64','size':len(raw),'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),'content':base64.b64encode(raw).decode()})
     def test_release_exact_sha_coupling_drift(self):
         relative='.github/workflows/release.yml';self.subject_file(relative,(root/relative).read_text().replace('head_sha: sha,','head_sha: context.sha,'))
         self.rejected('workflow_policy_drift','ci')
@@ -278,7 +278,7 @@ class SnapshotRuns(unittest.TestCase):
         for subject in [sha,'d'*40]:
             for path in paths:
                 raw=(root/path).read_bytes()
-                self.put(prefix+'contents/'+path+'?ref='+subject,{'type':'file','path':path,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+                self.put(prefix+'contents/'+path+'?ref='+subject,{'type':'file','path':path,'encoding':'base64','size':len(raw),'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),'content':base64.b64encode(raw).decode()})
         self.put(prefix+'actions/workflows/nightly.yml',{'id':120,'path':'.github/workflows/nightly.yml','state':'active'})
         clock=c.now();day=clock[:10];created=day+'T07:27:00Z';finished=day+'T07:37:00Z'
         # Freeze only the fixture observation clock, not any production clock.

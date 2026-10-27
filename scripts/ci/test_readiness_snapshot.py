@@ -1,5 +1,6 @@
 """Moving-main integration and negative cases using the actual immutable validator."""
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -499,7 +500,7 @@ class Graph(unittest.TestCase):
         for candidate in [SHA,NEXT]:
             for path in subject.CONTROL_PATHS:
                 raw=(ROOT/path).read_bytes()
-                response('contents/'+path+'?ref='+candidate,{'type':'file','path':path,'encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+                response('contents/'+path+'?ref='+candidate,{'type':'file','path':path,'encoding':'base64','size':len(raw),'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),'content':base64.b64encode(raw).decode()})
         put(fixture,'responses.json',responses)
         return responses
     def test_actual_snapshot_retrieval_authenticates_distinct_producer_and_candidate(self):

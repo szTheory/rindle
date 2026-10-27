@@ -149,7 +149,7 @@ class Remote(unittest.TestCase):
         escaped=escape_log.exists();shutil.rmtree(self.tmp)
         self.assertFalse(escaped,'retained landing proof attempted a hidden GitHub transport')
     def put(self,path,body,status=200,headers=None):self.responses[path]=[{'status':status,'body':copy.deepcopy(body),'headers':headers or {}}]
-    def subject_file(self,path,raw):self.put(prefix+'contents/'+path+'?ref='+sha,{'path':path,'type':'file','encoding':'base64','size':len(raw),'content':base64.b64encode(raw).decode()})
+    def subject_file(self,path,raw):self.put(prefix+'contents/'+path+'?ref='+sha,{'path':path,'type':'file','encoding':'base64','size':len(raw),'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),'content':base64.b64encode(raw).decode()})
     def body(self,path):return self.responses[path][0]['body']
     def collect(self,full=False):
         (self.fixture/'responses.json').write_bytes(c.canonical(self.responses))
@@ -228,7 +228,7 @@ class Remote(unittest.TestCase):
         self.reject('main_changed')
     def test_ledger_changes_even_when_shape_still_valid(self):
         path=prefix+'contents/'+c.LEDGER+'?ref='+sha;self.responses[path].append(copy.deepcopy(self.responses[path][0]))
-        raw=c.canonical({**ledger,'recorded_note':'changed decision'});self.responses[path][1]['body'].update(content=base64.b64encode(raw).decode(),size=len(raw))
+        raw=c.canonical({**ledger,'recorded_note':'changed decision'});self.responses[path][1]['body'].update(content=base64.b64encode(raw).decode(),size=len(raw),sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest())
         self.reject('ledger_changed')
     def test_absent_terminal_pr_is_reobserved(self):
         record=next(r for r in ledger['items'] if r['kind']=='pr' and 'terminal' in r)

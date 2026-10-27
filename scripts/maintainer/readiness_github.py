@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bounded GET-only GitHub evidence transport; fixtures never fall through to network."""
 import base64
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -179,12 +180,27 @@ class GitHub:
 
     def contents(self, relative, subject):
         from urllib.parse import quote
-        body,_=self.get(self.path('contents/'+quote(relative,safe='/')+'?ref='+subject))
-        require(isinstance(body,dict) and body.get('type')=='file' and body.get('path')==relative and
-                body.get('encoding')=='base64' and body.get('size',MAX_BYTES+1)<=MAX_BYTES, 'subject_file_unavailable')
-        try:
-            raw=base64.b64decode(re.sub(r'\s','',body['content']),validate=True)
-        except (KeyError,ValueError) as exc:
-            raise NotReady('subject_file_unavailable') from exc
-        require(len(raw)==body['size'], 'subject_file_incomplete')
-        return raw
+        path=self.path('contents/'+quote(relative,safe='/')+'?ref='+subject)
+        for attempt in range(3):
+            body,headers=self.get(path)
+            require(isinstance(body,dict) and body.get('type')=='file' and body.get('path')==relative and
+                    body.get('encoding')=='base64' and type(body.get('size')) is int and
+                    0<=body['size']<=MAX_BYTES and isinstance(body.get('sha'),str) and
+                    re.fullmatch(r'[0-9a-f]{40}',body['sha']), 'subject_file_unavailable')
+            try:
+                raw=base64.b64decode(re.sub(r'\s','',body['content']),validate=True)
+            except (KeyError,ValueError,TypeError) as exc:
+                raise NotReady('subject_file_unavailable') from exc
+            # Git's blob identity binds the complete decoded bytes, not just size.
+            blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+            reason='subject_file_incomplete' if len(raw)!=body['size'] else 'subject_file_digest_mismatch'
+            if len(raw)==body['size'] and blob==body['sha']:
+                return raw
+            # Reacquire the entire same-ref response. Every attempt is retained by
+            # get() and consumes its existing deadline/call budget; never repair it.
+            if attempt==2 or headers.get('x-ratelimit-remaining')=='0' or 'retry-after' in headers:
+                raise NotReady(reason)
+            delay=2**attempt
+            require(len(self.calls)<self.max_calls and time.monotonic()+delay<self.deadline,
+                    'remote_budget_exhausted')
+            time.sleep(delay)
