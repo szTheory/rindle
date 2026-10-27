@@ -47,6 +47,9 @@ For this bounded maintainer run, use a short-lived fine-grained personal access 
 restricted to `szTheory/rindle`, with these repository permissions set to **read**:
 Actions, Administration (protection/rulesets), Checks, Commit statuses, Contents,
 Dependabot alerts, Issues, Pull requests, and Repository security advisories.
+GitHub's API permission key for Dependabot alerts is `vulnerability_alerts`; the
+authenticated successful GET must carry its expected `read` or `write` permission
+signal. The display label is not an API key. See the [GitHub App permission schema](https://docs.github.com/en/rest/apps/apps).
 Metadata read access is implicit. The account must already have full repository
 advisory visibility; a token cannot grant rights its owner lacks. Provision the value
 directly as the `READINESS_READ_TOKEN` repository Actions secret, never in chat or Git.

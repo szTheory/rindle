@@ -1,7 +1,7 @@
 """Suite-owned actual-validator worker; never imported by production collectors.
 
-Only the immutable validator command is intercepted. CLI, cancellation, deadline,
-archive and owned-process tests continue to use their original external commands.
+Only fixture validator/pure-policy calls are intercepted. Fresh CLI, cancellation,
+deadline, archive and owned-process tests retain their external commands.
 """
 import json
 import os
@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT / 'scripts/maintainer'))
 
 class ValidatorFixture:
     def __init__(self):
+        self.closed = False
         self.errors = tempfile.TemporaryFile()
         # Stay in the suite's process group so the outer CI group deadline also
         # disposes this worker, including between individual test requests.
@@ -38,6 +39,9 @@ class ValidatorFixture:
                 self.child.wait()
 
     def close(self):
+        if self.closed:
+            return
+        self.closed = True
         try:
             self.child.stdin.close()
         except BrokenPipeError:
@@ -50,10 +54,10 @@ class ValidatorFixture:
         self.child.stdout.close()
         self.errors.close()
 
-    def request(self, argv, timeout=90):
+    def exchange(self, payload, timeout, limit):
         deadline = time.monotonic() + timeout
         try:
-            self.child.stdin.write(json.dumps(argv).encode() + b'\n')
+            self.child.stdin.write(json.dumps(payload).encode() + b'\n')
             self.child.stdin.flush()
             with selectors.DefaultSelector() as selector:
                 selector.register(self.child.stdout, selectors.EVENT_READ)
@@ -63,10 +67,9 @@ class ValidatorFixture:
                         prefix = b'RINDLE_TEST_VALIDATOR_RESPONSE '
                         if line.startswith(prefix):
                             value = json.loads(line[len(prefix):])
-                            if (not isinstance(value, dict) or set(value) != {'code'}
-                                    or type(value['code']) is not int or value['code'] not in (0, 1)):
+                            if not isinstance(value, dict):
                                 raise AssertionError('invalid fixture validator response')
-                            return value['code'], ''
+                            return value
                     left = deadline - time.monotonic()
                     if left <= 0 or not selector.select(left):
                         raise AssertionError('fixture validator deadline exhausted')
@@ -74,11 +77,34 @@ class ValidatorFixture:
                     if not chunk:
                         raise AssertionError('fixture validator exited without response')
                     self.pending += chunk
-                    if len(self.pending) > 131072:
+                    if len(self.pending) > limit:
                         raise AssertionError('fixture validator output limit')
         except BaseException:
             self.stop()
             raise
+
+    def request(self, argv, timeout=90):
+        value = self.exchange(argv, timeout, 131072)
+        if (set(value) != {'code'} or type(value['code']) is not int
+                or value['code'] not in (0, 1)):
+            self.stop()
+            raise AssertionError('invalid fixture validator response')
+        return value['code'], ''
+
+    def policy(self, request):
+        from exact_head_readiness import NotReady
+        value = self.exchange({'policy': request}, 45, 2 * 1024 * 1024 + 512)
+        if (set(value) != {'policy', 'policy_bytes'}
+                or type(value['policy_bytes']) is not int
+                or not isinstance(value['policy'], dict)):
+            self.stop()
+            raise AssertionError('invalid fixture policy response')
+        if not 0 <= value['policy_bytes'] < 2 * 1024 * 1024:
+            raise NotReady('policy_unavailable')
+        result = value['policy']
+        if result.get('ok') is not True:
+            raise NotReady(result.get('reason', 'unknown_topology'))
+        return result.get('value')
 
     def command(self, original, owner, argv, seconds, **kwargs):
         prefix = ['mix', 'run', '--no-start', '--no-compile', '--no-deps-check',

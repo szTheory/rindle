@@ -6,21 +6,45 @@ export PYTHONDONTWRITEBYTECODE=1
 export ASDF_ERLANG_VERSION="${ASDF_ERLANG_VERSION:-27.3.4.15}"
 export ASDF_ELIXIR_VERSION="${ASDF_ELIXIR_VERSION:-1.17.3-otp-27}"
 python3 - "$root" <<'PY'
-import base64, copy, functools, io, json, os, pathlib, shutil, subprocess, sys, tempfile, unittest, zipfile
+import atexit, base64, copy, functools, io, json, os, pathlib, shutil, subprocess, sys, tempfile, unittest, zipfile
 from unittest.mock import patch
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
 import collect_readiness_runs as c
 from readiness_github import GitHub
+sys.path.insert(0,str(root/'scripts/ci'))
+from readiness_validator_fixture import ValidatorFixture
+worker=ValidatorFixture();atexit.register(worker.close)
 original=c.policy
 @functools.lru_cache(maxsize=256)
-def cached(raw):return original(json.loads(raw))
+def cached(raw):return worker.policy(json.loads(raw))
 def policy(request):return copy.deepcopy(cached(c.canonical(request)))
-c.policy=policy
+policy_patch=patch.object(c,'policy',policy);policy_patch.start();atexit.register(policy_patch.stop)
 repo='szTheory/rindle';sha='a'*40;prefix='repos/'+repo+'/'
 topologies={event:policy({'operation':'topology','yaml':(root/'.github/workflows'/file).read_text(),
     'context':{'repository':repo,'event':event,'branch':'main'}}) for event,file in [('push','ci.yml'),('schedule','nightly.yml')]}
 
 class Runs(unittest.TestCase):
+    def test_worker_matches_fresh_cli_for_policy_dispatch(self):
+        code,_,owner=self.collect();self.assertEqual(code,0)
+        sources=c.read_json(owner.portable/'sources.json')['sources']
+        requests=[{'operation':'topology','yaml':(root/'.github/workflows/ci.yml').read_text(),'context':{'repository':repo,'event':'push','branch':'main'}},
+                  {'operation':'topology','yaml':'name: CI\nname: Duplicate\n','context':{'repository':repo,'event':'push','branch':'main'}},
+                  {'operation':'nightly-controls'},
+                  {'operation':'validate','id':'protection','normalized':sources['protection']['source']['normalized'],'inputs':owner.inputs},
+                  {'operation':'validate','id':'protection','normalized':{},'inputs':owner.inputs},
+                  {'operation':'hex','payloads':[],'locks':{}}]
+        def outcome(function,request):
+            try:return ('ok',function(request))
+            except c.NotReady as exc:return ('error',str(exc))
+        for request in requests:
+            with self.subTest(operation=request['operation'],request=request.get('normalized')):
+                self.assertEqual(outcome(worker.policy,request),outcome(original,request))
+    def test_unknown_worker_operation_fails_and_is_reaped(self):
+        other=ValidatorFixture()
+        try:
+            with self.assertRaises(AssertionError):other.policy({'operation':'unknown'})
+        finally:other.close();other.close()
+        self.assertIsNotNone(other.child.poll())
     def setUp(self):
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-runs-')).resolve()
         self.fixture=self.tmp/'fixture';self.fixture.mkdir();self.responses={}
@@ -335,7 +359,10 @@ class Topology(unittest.TestCase):
         value=self.derive('name: CI\njobs:\n  x:\n    if: github.event_name == \'pull_request\'\n    strategy:\n      matrix:\n        v: [one, two]\n')
         self.assertEqual(len(value['jobs']),1);self.assertFalse(value['jobs'][0]['applicable'])
 
-result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]))
-if not result.wasSuccessful():raise SystemExit(1)
-print(f'PASS readiness runs: {result.testsRun} CI/scheduled/protection/topology fixtures; no READY credit')
+try:
+    result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]))
+    if not result.wasSuccessful():raise SystemExit(1)
+    print(f'PASS readiness runs: {result.testsRun} CI/scheduled/protection/topology fixtures; no READY credit')
+finally:
+    policy_patch.stop();worker.close()
 PY

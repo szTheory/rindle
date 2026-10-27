@@ -11,11 +11,15 @@ from types import SimpleNamespace
 root=pathlib.Path(sys.argv[1]);sys.path.insert(0,str(root/'scripts/maintainer'))
 import collect_readiness_remote as c
 import collect_readiness_runs as runs
+sys.path.insert(0,str(root/'scripts/ci'))
+from readiness_validator_fixture import ValidatorFixture
+worker=ValidatorFixture();atexit.register(worker.close)
 original_policy=runs.policy
 @functools.lru_cache(maxsize=128)
-def cached(raw):return original_policy(json.loads(raw))
+def cached(raw):return worker.policy(json.loads(raw))
 def cached_policy(value):return copy.deepcopy(cached(c.canonical(value)))
-c.policy=cached_policy;runs.policy=cached_policy
+policy_patches=[patch.object(c,'policy',cached_policy),patch.object(runs,'policy',cached_policy)]
+for policy_patch in policy_patches:policy_patch.start();atexit.register(policy_patch.stop)
 repo='szTheory/rindle';sha='a'*40;prefix='repos/'+repo+'/'
 ledger=json.loads((root/c.LEDGER).read_bytes())
 # Each adversarial scenario supplies its own open PRs; never import live PR heads
@@ -76,6 +80,11 @@ def fixture_command(self,argv,cwd,env,budget):
 c.RemoteCollector.command=fixture_command
 
 class Remote(unittest.TestCase):
+    def test_hex_worker_matches_fresh_cli_with_bound_audits(self):
+        code,_,owner=self.collect(full=True);self.assertEqual(code,0)
+        rows=c.read_json(owner.private/'normalized-1.json')['hex']
+        request={'operation':'hex','payloads':rows,'locks':{scope:owner.inputs[path] for scope,path in [('root','mix.lock'),('examples/adoption_demo','examples/adoption_demo/mix.lock')]}}
+        self.assertEqual(worker.policy(request),original_policy(request))
     def setUp(self):
         escape_log.unlink(missing_ok=True)
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-remote-')).resolve();self.fixture=self.tmp/'fixture';self.fixture.mkdir()
@@ -388,8 +397,20 @@ class Remote(unittest.TestCase):
     def test_fine_grained_private_gets_require_expected_permission_header(self):
         for path in self.responses:
             if 'security-advisories?' in path:self.responses[path][0]['headers']={'x-accepted-github-permissions':'repository_advisories=read'}
-            if 'dependabot/alerts?' in path:self.responses[path][0]['headers']={'x-accepted-github-permissions':'dependabot_alerts=read'}
+            if 'dependabot/alerts?' in path:self.responses[path][0]['headers']={'x-accepted-github-permissions':'vulnerability_alerts=read'}
         code,_,_=self.collect(full=True);self.assertEqual(code,0)
+    def test_documented_dependabot_permission_accepts_read_and_write(self):
+        owner=c.RemoteCollector(repo,sha,self.tmp/'permission-check',self.fixture)
+        for value in ('vulnerability_alerts=read','contents=read; vulnerability_alerts=write'):
+            with self.subTest(value=value):owner.visibility([{'headers':{'x-accepted-github-permissions':value}}],'dependabot')
+    def test_wrong_or_missing_fine_grained_permission_stays_unproved(self):
+        owner=c.RemoteCollector(repo,sha,self.tmp/'permission-check',self.fixture)
+        for value in ('','dependabot_alerts=read','security_events=read','xvulnerability_alerts=read','vulnerability_alerts=admin','vulnerability_alerts=read_only'):
+            with self.subTest(value=value),self.assertRaisesRegex(c.NotReady,'dependabot_visibility_unproved'):
+                owner.visibility([{'headers':{'x-accepted-github-permissions':value}}],'dependabot')
+    def test_successful_alert_get_without_permission_signal_is_not_empty_proof(self):
+        self.responses[prefix+'dependabot/alerts?state=open%2Cdismissed%2Cfixed%2Cauto_dismissed&per_page=100'][0]['headers']={}
+        self.full_reject('dependabot_visibility_unproved')
     def test_dependabot_disabled_or_forbidden_is_not_empty(self):
         self.put(prefix+'dependabot/alerts?state=open%2Cdismissed%2Cfixed%2Cauto_dismissed&per_page=100',{'message':'disabled for this repository'},403)
         self.full_reject('remote_forbidden')
@@ -448,6 +469,9 @@ class Remote(unittest.TestCase):
         path='repos/'+repo;self.responses[path].extend([copy.deepcopy(self.responses[path][0]),copy.deepcopy(self.responses[path][0])])
         self.responses[path][2]['body']['permissions']['admin']=False;self.full_reject('advisory_visibility_changed')
     def test_actual_cli_full_mode_requires_all_nine_sources(self):
+        for path in self.responses:
+            if 'security-advisories?' in path:self.responses[path][0]['headers']={'x-accepted-github-permissions':'repository_advisories=read'}
+            if 'dependabot/alerts?' in path:self.responses[path][0]['headers']={'x-accepted-github-permissions':'vulnerability_alerts=read'}
         (self.fixture/'responses.json').write_bytes(c.canonical(self.responses));out=self.tmp/'cli-full'
         result=subprocess.run(['bash',str(root/'scripts/maintainer/collect_readiness_remote.sh'),'--repo',repo,'--subject',sha,
             '--output',str(out),'--fixture',str(self.fixture)],capture_output=True)
@@ -474,7 +498,11 @@ class Remote(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
         self.assertEqual(c.read_json(out/'verdict.json')['evidence_mode'],'fixture')
 
-result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]))
-if not result.wasSuccessful():raise SystemExit(1)
-print(f'PASS readiness remote: {result.testsRun} issue/disposition/privacy fixtures; no READY credit')
+try:
+    result=unittest.TextTestRunner(verbosity=1).run(unittest.defaultTestLoader.loadTestsFromModule(sys.modules[__name__]))
+    if not result.wasSuccessful():raise SystemExit(1)
+    print(f'PASS readiness remote: {result.testsRun} issue/disposition/privacy fixtures; no READY credit')
+finally:
+    for policy_patch in reversed(policy_patches):policy_patch.stop()
+    worker.close()
 PY

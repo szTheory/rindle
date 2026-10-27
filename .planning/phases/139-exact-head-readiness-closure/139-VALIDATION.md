@@ -129,3 +129,17 @@ one dirty CPU and one dirty I/O scheduler despite inherited four-scheduler flags
 The full exact workflow-declared groups must still finish with all commands and
 assertions retained at the same240s bound. Local scheduler measurements provide
 no deferred CI performance-target or READY credit; Linux CI remains authoritative.
+
+Fine-grained security fixtures use GitHub's documented `vulnerability_alerts` API
+key in the complete production-collector path. Direct adverse cases reject the
+previous invented key, code-scanning permission, prefixes, unsupported levels and
+missing signal; a successful empty alert GET alone still cannot prove visibility.
+Read/write signals pass; existing private-advisory and401/403 failures remain.
+
+Pure-policy fixture-worker coverage compares topology success/rejection, actual
+Nightly controls, protection success/rejection and valid/invalid Hex against fresh
+original CLI processes. An unknown operation fails and its worker is reaped; close
+is idempotent. The fresh full nine-source collector CLI uses documented fine-grained
+security headers. CLI/cancellation/deadline/archive cases remain external, snapshot
+checkpoint positive/negative policy calls remain fresh, and production code never
+imports the worker. Run complete workflow-declared groups before delivery.

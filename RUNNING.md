@@ -649,6 +649,10 @@ fixtures. CI Script Tests uses only the already locked Jason/yamerl parser runti
 Its short-lived parser VMs use one normal/dirty-CPU/dirty-I/O scheduler each to
 limit startup contention. Preparation verifies those actual runtime counts.
 Native qualification retains its separate four-scheduler settings.
+Fixture suites reuse one owned worker for actual pure policy/validator calls,
+reloading each request and evidence graph. Fresh collector CLI integration and
+worker-versus-CLI value/rejection parity remain required; production collectors
+always use their original external policy commands.
 CI Script Tests does not run native qualification. CI awaits three independent groups (existing
 contracts, Nightly incident fixtures, readiness fixtures) under a shared four-minute
 bound within the unchanged five-minute job. Any group failure fails the job.

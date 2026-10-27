@@ -271,7 +271,7 @@ class RemoteCollector:
 
     def visibility(self,calls,source):
         for call in calls:
-            h=call['headers'];scope_key='repository_advisories' if source=='advisory' else 'dependabot_alerts'
+            h=call['headers'];scope_key='repository_advisories' if source=='advisory' else 'vulnerability_alerts'
             if 'x-oauth-scopes' in h:
                 scopes={s.strip() for s in h['x-oauth-scopes'].split(',')}
                 allowed={'repo','repository_advisories:read','repository_advisories:write'} if source=='advisory' else {'repo','security_events','public_repo'}
