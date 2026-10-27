@@ -660,6 +660,13 @@ exit status and output tail. Candidate closure forwards this diagnostic to the
 producer job log even when collection fails before artifact upload. Raw command
 logs remain restricted; a diagnostic never grants readiness credit.
 
+Remote observation compares complete authenticated inventories twice. PR decision
+hashes omit only `head.repo.size` and `base.repo.size`: GitHub can refresh these
+embedded repository storage counters without changing the proposal or source.
+All other response fields, including unknown fields, remain bound; raw responses
+remain restricted. A real inventory change still fails closed. Its fixed source
+names are forwarded as `REMOTE_COLLECTION_FAILURE` without private response text.
+
 Native collection has a 240-minute total cap, including the unchanged 25 fresh
 coverage seeds; that batch has a 210-minute command cap. Other individual gates
 retain their 40-minute caps and owned cleanup retains its independent four-minute

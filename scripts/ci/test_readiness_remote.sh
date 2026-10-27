@@ -354,6 +354,44 @@ class Remote(unittest.TestCase):
         self.assertEqual(len(observed['statuses']),2)
         calls=[v['path'] for v in collector.api.calls]
         self.assertEqual(calls.count(self.run_path),2);self.assertEqual(calls.count(self.job_path),2)
+    def test_repository_size_changes_do_not_change_pr_decision(self):
+        self.add_pr();path=prefix+'pulls/999'
+        first=self.responses[path][0]
+        for side in ('head','base'):
+            first['body'][side].setdefault('repo',{})['size']=123
+        second=copy.deepcopy(first)
+        for side in ('head','base'):second['body'][side]['repo']['size']=456
+        self.responses[path].append(second)
+        code,_,collector=self.collect(full=True);self.assertEqual(code,0)
+        observed=[c.read_json(collector.private/f'normalized-{n}.json') for n in (1,2)]
+        self.assertEqual(observed[0],observed[1])
+        self.assertEqual(first['body']['base']['repo']['size'],123)
+    def test_repository_identity_change_is_still_pr_drift(self):
+        self.add_pr();path=prefix+'pulls/999'
+        self.body(path)['head']['repo']={'id':123,'size':1}
+        second=copy.deepcopy(self.responses[path][0]);second['body']['head']['repo']['id']=456
+        self.responses[path].append(second);self.full_reject('remote_state_changed')
+    def test_size_projection_preserves_unknown_and_security_fields_without_mutation(self):
+        original={'head':{'sha':'c'*40,'repo':{'size':1,'id':123,'private':False,'future_authority':'old'}},
+                  'base':{'ref':'main','repo':{'size':1}},'size':9}
+        snapshot=copy.deepcopy(original)
+        changed=copy.deepcopy(original);changed['head']['repo']['size']=2;changed['base']['repo'].pop('size')
+        self.assertEqual(c.pull_decision_identity(original),c.pull_decision_identity(changed))
+        for target,key,value in [('head','id',456),('head','private',True),('head','future_authority','new')]:
+            other=copy.deepcopy(original);other[target]['repo'][key]=value
+            self.assertNotEqual(c.pull_decision_identity(original),c.pull_decision_identity(other))
+        other=copy.deepcopy(original);other['size']=10
+        self.assertNotEqual(c.pull_decision_identity(original),c.pull_decision_identity(other))
+        self.assertEqual(original,snapshot)
+    def test_pr_body_change_is_still_decision_drift(self):
+        self.add_pr();path=prefix+'pulls/999'
+        second=copy.deepcopy(self.responses[path][0]);second['body']['body']='changed decision'
+        self.responses[path].append(second)
+        code,value,collector=self.collect(full=True)
+        self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_state_changed')
+        self.assertEqual(value['changed_sources'],['pulls'])
+        self.assertNotIn('ADVISORY-CANARY-PRIVATE-BODY',json.dumps(value))
+        self.assertFalse((collector.portable/'sources.json').exists())
     def test_undispositioned_pr_fails_before_expensive_job_reads(self):
         self.add_pr();self.subject_file(c.LEDGER,c.canonical(ledger));self.full_reject('pull_undispositioned')
     def test_stale_pr_head_rejected_by_actual_ledger_owner(self):

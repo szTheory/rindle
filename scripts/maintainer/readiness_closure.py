@@ -212,6 +212,11 @@ class Closure:
             if code:
                 value=read_json(output/'verdict.json') if (output/'verdict.json').is_file() else {}
                 self.failed_proof=value.get('failed_proof')
+                changed=value.get('changed_sources')
+                sources={'issues','pulls','checks','statuses','absent','advisories','dependabot','hex','protection'}
+                if value.get('reason')=='remote_state_changed' and isinstance(changed,list) and 0<len(changed)<=len(sources) and all(isinstance(name,str) and name in sources for name in changed):
+                    print('REMOTE_COLLECTION_FAILURE '+json.dumps({'reason':'remote_state_changed',
+                        'kind':kind,'position':position,'changed_sources':changed},sort_keys=True),flush=True)
                 raise NotReady(value.get('reason','remote_collection_failed'))
             path=output/'portable/sources.json'
         value=read_json(path)

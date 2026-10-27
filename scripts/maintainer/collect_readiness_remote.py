@@ -27,6 +27,18 @@ def stable_records(values, id_key):
     return sorted(values,key=lambda v:v[id_key])
 
 
+def pull_decision_identity(value):
+    # The embedded repository's asynchronously updated storage size is not a
+    # change to PR intent, source, checks or repository authority. Keep every
+    # other field (including unknown fields), and retain the original API bytes.
+    result=dict(value)
+    for side in ('head','base'):
+        ref=value.get(side)
+        if isinstance(ref,dict) and isinstance(ref.get('repo'),dict):
+            result[side]={**ref,'repo':{key:item for key,item in ref['repo'].items() if key!='size'}}
+    return digest(canonical(result))
+
+
 class RemoteCollector:
     def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False):
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
@@ -243,7 +255,7 @@ class RemoteCollector:
                     delta.extend(found.values())
             prs.append({'number':n,'head_sha':head,'base':p['base']['ref'],'mergeable':p['mergeable'],
                 'mergeable_state':p['mergeable_state'],'behind':p['mergeable_state']=='behind',
-                'decision_identity_sha256':digest(canonical(p)), 'lock_delta':sorted(delta,key=lambda d:(d['lock'],d['package'])),
+                'decision_identity_sha256':pull_decision_identity(p), 'lock_delta':sorted(delta,key=lambda d:(d['lock'],d['package'])),
                 'ci_summary':{'conclusion':latest.get('conclusion') if latest and latest.get('status')=='completed' else None,
                     'check_run_id':latest['id'] if latest else None}})
         return prs,checks,statuses
@@ -410,6 +422,10 @@ class RemoteCollector:
             # 400-GET default. Keep a finite owner cap, including retry attempts.
             self.api=GitHub(self.repo,self.private/'api',self.fixture,budget=600,max_calls=600)
             self.initialize();before=self.observations();after=self.observations();self.main()
+            if before!=after:
+                # Fixed source names only: no private titles, bodies, advisories
+                # or API response fragments may escape through diagnostics.
+                verdict['changed_sources']=[name for name in before if before[name]!=after[name]]
             require(before==after,'remote_state_changed')
             interval={'started_at':started,'completed_at':now()}
             # Portable records carry identity and coverage, never private bodies, titles, or tokens.
