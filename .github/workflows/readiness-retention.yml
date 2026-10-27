@@ -31,7 +31,7 @@ jobs:
   retain:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-22.04
-    timeout-minutes: 190
+    timeout-minutes: 250
     outputs:
       archive-id: ${{ steps.archive.outputs.artifact-id }}
       archive-digest: ${{ steps.archive.outputs.artifact-digest }}

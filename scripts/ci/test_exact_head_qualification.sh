@@ -298,6 +298,15 @@ class QualificationTest(unittest.TestCase):
         q.cleanup=cleanup_after_expiry
         self.assertEqual(q.run(),1)
 
+    def test_seed_matrix_has_a_finite_batch_budget_without_expanding_other_gates(self):
+        q=self.controller();q.reserve();q.workspace=self.source
+        for proof,budget in [('async-isolation',10800),('format',2400)]:
+            with patch.object(q,'checked',side_effect=r.NotReady('probe_reached')) as command:
+                with self.assertRaisesRegex(r.NotReady,'probe_reached'):
+                    r.Qualification.gate(q,proof,metadata['commands'][proof])
+            self.assertEqual(command.call_args.kwargs['budget'],budget)
+        self.assertGreater(q.deadline-r.time.monotonic(),10800)
+
     def test_real_subprocess_deadline_is_terminal(self):
         q=self.controller(); q.reserve()
         q.deadline=__import__('time').monotonic()+0.1

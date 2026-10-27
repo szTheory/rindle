@@ -145,8 +145,10 @@ IO.puts(Jason.encode!(%{base: base}))
         c.write_new(local/'attempt.json',{'reason':'command_failed','requirements_credit':False})
         raw=b'old-prefix'+b'x'*17000+b'fixture-secret-token\n::error::untrusted child'
         output=io.StringIO()
-        with patch.object(owner,'command',return_value=(7,raw)),contextlib.redirect_stdout(output):
+        with patch.object(owner,'command',return_value=(7,raw)) as command,contextlib.redirect_stdout(output):
             with self.assertRaisesRegex(c.NotReady,'command_failed'):owner.local()
+        # Allow the bounded native collector's separate 240-second disposal.
+        self.assertEqual(command.call_args.args[1],c.QUALIFICATION_SECONDS+300)
         text=output.getvalue();tail=json.loads(text.removeprefix('LOCAL_QUALIFICATION_FAILURE '))
         self.assertLessEqual(len(tail),16384);self.assertNotIn('old-prefix',tail)
         self.assertNotIn('fixture-secret-token',text);self.assertIn('[REDACTED]',text)

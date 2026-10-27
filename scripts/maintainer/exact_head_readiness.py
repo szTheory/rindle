@@ -24,6 +24,7 @@ PREFLIGHT = '.planning/phases/139-exact-head-readiness-closure/139-preflight.sh'
 TOOLCHAIN_ENV = {'ASDF_ERLANG_VERSION': '27.3.4.15', 'ASDF_ELIXIR_VERSION': '1.17.3-otp-27',
                  'ASDF_NODEJS_VERSION': '20.18.1'}
 OUTPUT_LIMIT = 32 * 1024 * 1024
+QUALIFICATION_SECONDS = 12000
 
 
 class NotReady(Exception):
@@ -213,7 +214,7 @@ class OwnedServices:
 class Qualification:
     evidence_mode = 'execution'
 
-    def __init__(self, root, output, repo, subject, deadline_seconds=7200, snapshot=False):
+    def __init__(self, root, output, repo, subject, deadline_seconds=QUALIFICATION_SECONDS, snapshot=False):
         self.root, self.output = Path(root).resolve(), Path(output).absolute()
         self.repo, self.subject = repo, subject
         self.snapshot = snapshot
@@ -483,7 +484,10 @@ class Qualification:
             self.async_report = self.private/'async.jsonl'
             argv = argv + ['--report', str(self.async_report)]
             env = {**self.env, 'RINDLE_ASYNC_EVIDENCE_DIR': str(self.private)}
-        record, raw = self.checked(argv, cwd=cwd, budget=2400, env=env)
+        # Twenty-five fresh coverage processes take about two hours at the
+        # observed five-minute suite duration. Keep every seed and a finite cap.
+        budget = 10800 if proof_id == 'async-isolation' else 2400
+        record, raw = self.checked(argv, cwd=cwd, budget=budget, env=env)
         if proof_id == 'dialyzer-fresh':
             require(raw.count(b'mode=fresh action=build-plt')==1 and raw.count(b'mode=fresh attempt=1 action=analyze')==1, 'fresh_plt_missing_execution')
             self.fresh_plt=self.plt_inventory()

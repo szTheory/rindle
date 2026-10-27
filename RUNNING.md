@@ -654,6 +654,14 @@ exit status and output tail. Candidate closure forwards this diagnostic to the
 producer job log even when collection fails before artifact upload. Raw command
 logs remain restricted; a diagnostic never grants readiness credit.
 
+Native collection has a 200-minute total cap, including the unchanged 25 fresh
+coverage seeds; that batch has a 180-minute command cap. Other individual gates
+retain their 40-minute caps and owned cleanup retains its independent four-minute
+budget. Closure allows 205 minutes for the native child and 230 minutes overall,
+within the producer job's 250-minute limit. The acceptance controller polls every
+30 seconds for at most 270 minutes. These finite collection bounds do
+not change CI's 240-second fixture budget or scheduled health deadlines.
+
 Historical prerequisite reports are checked as committed delivery records. Their
 old covered fingerprints and original timing debt are preserved; they provide no
 current READY credit. The current qualifier reruns all eighteen local gates and
