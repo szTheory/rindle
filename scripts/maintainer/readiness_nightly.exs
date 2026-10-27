@@ -2,7 +2,7 @@ defmodule Rindle.ReadinessNightly do
   @moduledoc false
   # A finite verifier for this reviewed workflow, not a GitHub expression interpreter.
   # A changed workflow requires a deliberate verifier/control-registry review.
-  @workflow "d47ce748584f4d8feb092230fe1815fa1398e3c5394fb951b959fca6765faae2"
+  @workflow "70d551110beb19be2e7b5ec89216f9886897b184673e112dea3c72c7d3d6d0ca"
   @controls ~w(.github/workflows/nightly.yml .github/actions/setup-elixir/action.yml
     scripts/ci/eval_nightly_summary.sh scripts/ci/manage_nightly_incident.sh
     scripts/ci/run_nightly_dialyzer.sh scripts/ci/install_apt_packages.sh

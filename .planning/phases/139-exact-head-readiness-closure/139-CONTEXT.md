@@ -412,13 +412,15 @@ An extra real cron recovery window, if proposed separately, needs explicit
 approval before merge because the earlier amendment preserved production cadence.
 
 
-### Proposed 2026-10-27 controlled scheduled recovery amendment
+### Approved 2026-10-27 controlled scheduled recovery amendment
 
-This amendment takes effect only after explicit user authorization and ordinary
-protected merge of PR203. Until then, production cadence stays unchanged. It
+The user explicitly authorized the recovery window and cleanup on2026-10-27.
+It takes effect after ordinary protected merge of PR203. Live11:43UTC recheck
+found the original11:27UTC slot passed, so move the same approved opportunity
+to13:27UTC today. Until protected merge, production cadence stays unchanged. It
 supersedes the earlier unchanged Nightly workflow bytes constraint only to add
-one intended real recovery opportunity at2026-10-27 11:27UTC in the existing
-workflow, retaining daily07:27UTC. The extra `27 11 27 10 *` entry is annual until
+one intended real recovery opportunity at2026-10-27 13:27UTC in the existing
+workflow, retaining daily07:27UTC. The extra `27 13 27 10 *` entry is annual until
 removed; the committed RECOVERY-WINDOW-PROPOSAL.md records ordinary protected
 cleanup after retained historical acceptance or abandonment. Do not merge an
 already-passed slot. No new workflow, permission, secret or dependency.

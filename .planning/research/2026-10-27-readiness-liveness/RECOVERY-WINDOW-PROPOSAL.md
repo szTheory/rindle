@@ -1,12 +1,14 @@
-# Proposed genuine scheduled recovery window — approval required
+# Approved genuine scheduled recovery window — protected activation pending
 
-Status: prepared only. Do not merge this proposal without explicit approval to
-change production cadence. The prior approved139-07 amendment kept it unchanged.
+The user explicitly approved the recovery window and cleanup on2026-10-27.
+At the live11:43UTC recheck, the original11:27UTC slot had passed. Move the same
+approved extra opportunity to13:27UTC today; do not activate the stale entry.
+The ordinary protected PR/main gates and automatic acceptance remain mandatory.
 
 ## Concrete change
 
-Preserve daily07:27UTC and add `27 11 27 10 *` in the existing Nightly workflow.
-The intended occurrence is2026-10-27 11:27UTC (07:27 America/New_York). GitHub cron
+Preserve daily07:27UTC and add `27 13 27 10 *` in the existing Nightly workflow.
+The intended occurrence is2026-10-27 13:27UTC (09:27 America/New_York). GitHub cron
 has no year field: this entry is annual until removed, not intrinsically one-shot.
 The finite Nightly verifier hash is reviewed and updated for these exact bytes.
 No new workflow, job, permission, secret, dependency or external scheduler.
