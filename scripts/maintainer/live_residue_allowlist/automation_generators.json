@@ -245,6 +245,14 @@
     {
       "path": "scripts/ci/test_repo_hygiene_check.sh",
       "class": "planning-path",
+      "text": "commit_in \"${C}/other\" \"metadata advancement\" .planning/metadata-note.md",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "The temporary Git fixture advances planning metadata to verify that an authenticated snapshot source remains admissible without claiming current-main or release eligibility."
+    },
+    {
+      "path": "scripts/ci/test_repo_hygiene_check.sh",
+      "class": "planning-path",
       "text": "printf '# Development train\\n\\nBranch shape: milestone/vNEXT-short-slug\\n' >\"${d}/.planning/DEVELOPMENT-TRAIN.md\"",
       "count": 1,
       "reason_class": "fixture",
