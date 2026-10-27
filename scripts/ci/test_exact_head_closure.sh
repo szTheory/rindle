@@ -154,6 +154,27 @@ IO.puts(Jason.encode!(%{base: base}))
         self.assertNotIn('fixture-secret-token',text);self.assertIn('[REDACTED]',text)
         self.assertEqual(len(text.splitlines()),1);self.assertFalse(text.startswith('::'))
         self.assertFalse(c.read_json(local/'attempt.json')['requirements_credit'])
+    def test_remote_drift_forwards_only_fixed_source_names_and_original_failure(self):
+        owner=c.Closure(repo,self.tmp/'remote-failure',fixture=self.fixture)
+        owner.reserve();owner.index=None;owner.subject=sha
+        remote=owner.private/'remote-before';remote.mkdir()
+        c.write_new(remote/'verdict.json',{'reason':'remote_state_changed','changed_sources':['pulls','checks'],
+            'private_body':'ADVISORY-CANARY-PRIVATE-BODY'})
+        output=io.StringIO()
+        with patch.object(owner,'command',return_value=(1,b'private child output')),contextlib.redirect_stdout(output):
+            with self.assertRaisesRegex(c.NotReady,'remote_state_changed'):owner.producer_sources('remote','before')
+        detail=json.loads(output.getvalue().removeprefix('REMOTE_COLLECTION_FAILURE '))
+        self.assertEqual(detail,{'reason':'remote_state_changed','kind':'remote','position':'before','changed_sources':['pulls','checks']})
+        self.assertEqual(len(output.getvalue().splitlines()),1)
+    def test_remote_drift_diagnostics_reject_untrusted_source_names(self):
+        owner=c.Closure(repo,self.tmp/'remote-failure',fixture=self.fixture)
+        owner.reserve();owner.index=None;owner.subject=sha
+        remote=owner.private/'remote-before';remote.mkdir()
+        c.write_new(remote/'verdict.json',{'reason':'remote_state_changed','changed_sources':['::error::private']})
+        output=io.StringIO()
+        with patch.object(owner,'command',return_value=(1,b'private child output')),contextlib.redirect_stdout(output):
+            with self.assertRaisesRegex(c.NotReady,'remote_state_changed'):owner.producer_sources('remote','before')
+        self.assertEqual(output.getvalue(),'')
     def test_one_valid_newer_ci_source_defeats_stale_candidate(self):
         self.mutate_source('runs','ci-main',lambda n:n.update(run_id=11,latest_run_id=11));self.reject('mutable_source_changed')
     def test_missing_mutable_source(self):
