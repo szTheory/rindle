@@ -410,3 +410,24 @@ A new source and authentic healthy schedule under the new matching control bytes
 are required. PR189 stays held; no READY credit or native acceptance is inferred.
 An extra real cron recovery window, if proposed separately, needs explicit
 approval before merge because the earlier amendment preserved production cadence.
+
+
+### Approved 2026-10-27 controlled scheduled recovery amendment
+
+The user explicitly authorized the recovery window and cleanup on2026-10-27.
+It takes effect after ordinary protected merge of PR203. Live11:43UTC recheck
+found the original11:27UTC slot passed, so move the same approved opportunity
+to13:27UTC today. Until protected merge, production cadence stays unchanged. It
+supersedes the earlier unchanged Nightly workflow bytes constraint only to add
+one intended real recovery opportunity at2026-10-27 13:27UTC in the existing
+workflow, retaining daily07:27UTC. The extra `27 13 27 10 *` entry is annual until
+removed; the committed RECOVERY-WINDOW-PROPOSAL.md records ordinary protected
+cleanup after retained historical acceptance or abandonment. Do not merge an
+already-passed slot. No new workflow, permission, secret or dependency.
+The finite verifier hash binds the exact reviewed bytes. Capture the final
+admitted source after all control edits; require actual scheduled attempt1,
+complete jobs and authenticated verdict/checkpoint/current incident history under
+matching new controls, within unchanged finite freshness bounds. A manual run or
+human authorization never supplies requirement proof. Cleanup changes controls
+again, so the earlier snapshot remains historical without current-readiness
+credit. PR189 stays held; READY remains pending until actual terminal acceptance.
