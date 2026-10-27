@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise the public GET transport and its retained evidence without network."""
 import base64
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -31,6 +32,90 @@ class GitHubEvidenceTest(unittest.TestCase):
 
     def retained(self):
         return [json.loads(p.read_text()) for p in sorted(self.evidence.glob('*-request.json'))]
+
+    def file_body(self, raw=b'expected'):
+        return {'type':'file','path':'code.py','encoding':'base64','size':len(raw),
+                'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),
+                'content':base64.b64encode(raw).decode()}
+
+    def file_client(self, responses, **options):
+        self.path='repos/example/repo/contents/code.py?ref='+'a'*40
+        return self.client(responses,**options)
+
+    def test_incomplete_file_reacquires_same_ref_and_retains_both_responses(self):
+        good=self.file_body();bad={**good,'size':good['size']+1}
+        client=self.file_client([{'status':200,'body':bad},{'status':200,'body':good}])
+        with patch('readiness_github.time.sleep') as sleep:
+            self.assertEqual(client.contents('code.py','a'*40),b'expected')
+        sleep.assert_called_once_with(1)
+        self.assertEqual([r['path'] for r in self.retained()],[self.path,self.path])
+        self.assertEqual(json.loads((self.evidence/'0001-response').read_text()),bad)
+        self.assertEqual(json.loads((self.evidence/'0002-response').read_text()),good)
+
+    def test_equal_size_wrong_blob_cannot_pass_and_can_recover(self):
+        good=self.file_body();bad={**good,'content':base64.b64encode(b'changed!').decode()}
+        self.assertEqual(len(base64.b64decode(bad['content'])),good['size'])
+        client=self.file_client([{'status':200,'body':bad},{'status':200,'body':good}])
+        with patch('readiness_github.time.sleep'):
+            self.assertEqual(client.contents('code.py','a'*40),b'expected')
+        self.assertEqual(len(self.retained()),2)
+
+    def test_persistent_file_inconsistency_stops_after_three_complete_reads(self):
+        good=self.file_body()
+        for index,(bad,reason) in enumerate((
+                ({**good,'size':good['size']+1},'subject_file_incomplete'),
+                ({**good,'sha':'0'*40},'subject_file_digest_mismatch'))):
+            with self.subTest(reason=reason):
+                self.evidence=self.root/f'inconsistent-{index}'
+                client=self.file_client([{'status':200,'body':bad}]*3+[{'status':200,'body':good}])
+                with patch('readiness_github.time.sleep') as sleep:
+                    with self.assertRaisesRegex(NotReady,reason):client.contents('code.py','a'*40)
+                self.assertEqual(sleep.call_count,2)
+                self.assertEqual([r['path'] for r in self.retained()],[self.path]*3)
+
+    def test_file_recovery_keeps_global_call_and_deadline_budgets(self):
+        bad={**self.file_body(),'size':9}
+        client=self.file_client([{'status':200,'body':bad}],max_calls=1)
+        with patch('readiness_github.time.sleep') as sleep:
+            with self.assertRaisesRegex(NotReady,'remote_budget_exhausted'):client.contents('code.py','a'*40)
+            sleep.assert_not_called()
+        self.assertEqual(len(self.retained()),1)
+        self.evidence=self.root/'short-deadline'
+        with patch('readiness_github.time.monotonic',return_value=0):
+            client=self.file_client([{'status':200,'body':bad}],budget=.5)
+            with patch('readiness_github.time.sleep') as sleep:
+                with self.assertRaisesRegex(NotReady,'remote_budget_exhausted'):client.contents('code.py','a'*40)
+                sleep.assert_not_called()
+        self.assertEqual(len(self.retained()),1)
+
+    def test_file_recovery_respects_cooldown_and_exhausted_quota(self):
+        bad={**self.file_body(),'size':9}
+        for index,headers in enumerate(({'Retry-After':'120'},{'X-RateLimit-Remaining':'0'})):
+            self.evidence=self.root/f'file-cooldown-{index}'
+            client=self.file_client([{'status':200,'body':bad,'headers':headers}])
+            with patch('readiness_github.time.sleep') as sleep:
+                with self.assertRaisesRegex(NotReady,'subject_file_incomplete'):client.contents('code.py','a'*40)
+                sleep.assert_not_called()
+            self.assertEqual(len(self.retained()),1)
+
+    def test_foreign_or_malformed_file_identity_never_retries(self):
+        good=self.file_body();missing=dict(good);missing.pop('sha')
+        cases=[{**good,'path':'other.py'},{**good,'type':'dir'},
+               {**good,'encoding':'utf8'},{**good,'size':True},missing,{**good,'content':'!'}]
+        for index,body in enumerate(cases):
+            self.evidence=self.root/f'bad-file-{index}'
+            client=self.file_client([{'status':200,'body':body}])
+            with patch('readiness_github.time.sleep') as sleep:
+                with self.assertRaisesRegex(NotReady,'subject_file_unavailable'):client.contents('code.py','a'*40)
+                sleep.assert_not_called()
+            self.assertEqual(len(self.retained()),1)
+
+    def test_file_recovery_does_not_retry_missing_authorization(self):
+        client=self.file_client([{'status':403,'body':{}}])
+        with patch('readiness_github.time.sleep') as sleep:
+            with self.assertRaisesRegex(NotReady,'remote_forbidden'):client.contents('code.py','a'*40)
+            sleep.assert_not_called()
+        self.assertEqual(len(self.retained()),1)
 
     def test_recovers_from_bad_gateway_and_retains_both_responses(self):
         client = self.client([

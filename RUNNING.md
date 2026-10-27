@@ -493,12 +493,18 @@ one- and two-second backoff inside the existing call and time budgets. Every
 attempt's response remains in restricted evidence and consumes the shared call
 budget. Authentication, visibility, rate limits, server cooldown instructions,
 malformed evidence and exhausted retries fail closed.
+File responses must also match their declared byte length and Git blob SHA.
+An inconsistent bytes/metadata response permits at most three complete reads of
+the same pinned ref, with one- and two-second backoff inside the same shared
+budgets. Each response is retained; bytes and metadata are never repaired or
+combined. Structural/identity errors, missing authorization, rate limits and
+server cooldown instructions do not trigger this file recovery.
 The complete remote-inventory owner allows at most 600 physical GETs for both
 observations, including retained historical lookups and retries, within its
 unchanged 600-second deadline. Other clients keep the 400-GET default.
 
 `accept` repeats admission, dispatches `readiness-retention.yml` on main with a unique
-request nonce and waits at most 200 minutes for the matching successful first attempt.
+request nonce and waits at most 330 minutes for the matching successful first attempt.
 The trusted main workflow admits the candidate before checking out or executing it.
 The producer SHA can differ from the candidate; both identities remain bound in the v2
 sidecar and verified locator. Candidate-specific concurrency does not cancel running work.
