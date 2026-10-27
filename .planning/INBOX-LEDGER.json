@@ -1194,8 +1194,8 @@
       "kind": "pr",
       "number": 188,
       "disposition": "retain",
-      "head_sha": "568f9119a327fff5f771a4215170c1f79846f2bd",
-      "rationale": "Retain the reviewed Dependabot rebase 568f9119 against eb814ef8: its complete delta remains exactly two erlef/setup-beam 1.24.0-to-1.24.1 SHA-pin substitutions in ci.yml and readiness-retention.yml; the latter is a snapshot CONTROL_PATHS producer file. New exact-head CI 40452985990 failed; earlier CI 40320421560 is historical and does not cover this head. Preserve do-not-merge and no auto-merge until successful validated Phase 139 acceptance (or explicit candidate replacement plus compatible actual scheduled proof); then narrowly update exact action-pin allowances and rerun unchanged policy/CI gates. No control-byte exception, unchanged retry, upgrade or READY credit."
+      "head_sha": "e0c4da9697c80a386a2f500876c80743e0544216",
+      "rationale": "Retain the reviewed Dependabot rebase e0c4da96 against94724ae7: the complete delta remains exactly two erlef/setup-beam 1.24.0-to-1.24.1 SHA-pin substitutions in ci.yml and readiness-retention.yml; the latter is a snapshot CONTROL_PATHS producer file. Exact-head CI40500656238 failed; prior568f9119 CI is historical and does not cover this head. Preserve do-not-merge and no auto-merge until successful validated Phase139 acceptance or explicit candidate replacement plus compatible actual scheduled proof. No control-byte exception, dependency upgrade, unchanged retry or READY credit."
     },
     {
       "kind": "pr",
