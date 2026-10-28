@@ -1194,8 +1194,8 @@
       "kind": "pr",
       "number": 188,
       "disposition": "retain",
-      "head_sha": "ee0e8902d4e77982883f59111833efd3848e4eeb",
-      "rationale": "Reviewed the exact Dependabot rebase ee0e8902 against406de086: the complete diff remains exactly two erlef/setup-beam 1.24.0-to-1.24.1 SHA-pin substitutions in ci.yml and readiness-retention.yml. This records head identity and scope only; CI is separately observed and old-head proofs do not qualify this head. Retain the explicit do-not-merge and no-auto-merge hold pending a separately authorized dependency decision. No dependency upgrade, controller-byte exception, scheduled-health substitution, release authority or READY credit is granted by this review."
+      "head_sha": "ef676639a9fe57b819aaa9983f66c007824c114c",
+      "rationale": "Reviewed the exact Dependabot rebase ef676639 against962f6cf5: the complete diff remains exactly two erlef/setup-beam 1.24.0-to-1.24.1 SHA-pin substitutions in ci.yml and readiness-retention.yml. This records head identity and scope only; CI is separately observed and old-head proofs do not qualify this head. Retain the explicit do-not-merge and no-auto-merge hold pending a separately authorized dependency decision. No dependency upgrade, controller-byte exception, scheduled-health substitution, release authority or READY credit is granted by this review."
     },
     {
       "kind": "pr",
