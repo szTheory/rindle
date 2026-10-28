@@ -13,6 +13,11 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 from exact_head_readiness import NotReady, canonical, digest, now, read_json, require, write_new
 
 MAX_BYTES = 16 * 1024 * 1024
+# Full two-observation collections include retained history and native Hex audits.
+# Keep the caller's shutdown window separate from these acquisition deadlines.
+RUN_COLLECTION_SECONDS = 360
+REMOTE_COLLECTION_SECONDS = 1200
+COLLECTION_SHUTDOWN_SECONDS = 30
 
 
 def json_bytes(raw):

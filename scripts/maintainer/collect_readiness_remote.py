@@ -12,7 +12,7 @@ import subprocess
 import time
 
 from exact_head_readiness import ROOT, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new
-from readiness_github import GitHub, json_bytes
+from readiness_github import GitHub, REMOTE_COLLECTION_SECONDS, json_bytes
 from collect_readiness_runs import Collector as RunCollector, policy
 
 LEDGER = '.planning/INBOX-LEDGER.json'
@@ -420,7 +420,7 @@ class RemoteCollector:
         try:
             # Two complete inventories of retained history can exceed the generic
             # 400-GET default. Keep a finite owner cap, including retry attempts.
-            self.api=GitHub(self.repo,self.private/'api',self.fixture,budget=600,max_calls=600)
+            self.api=GitHub(self.repo,self.private/'api',self.fixture,budget=REMOTE_COLLECTION_SECONDS,max_calls=600)
             self.initialize();before=self.observations();after=self.observations();self.main()
             if before!=after:
                 # Fixed source names only: no private titles, bodies, advisories

@@ -24,6 +24,21 @@ topologies={event:policy({'operation':'topology','yaml':(root/'.github/workflows
     'context':{'repository':repo,'event':event,'branch':'main'}}) for event,file in [('push','ci.yml'),('schedule','nightly.yml')]}
 
 class Runs(unittest.TestCase):
+    def timed_collection(self, elapsed):
+        clock=[0.0];observations=c.Collector.observations
+        def observe(owner):
+            value=observations(owner)
+            if clock[0]==0:clock[0]=elapsed
+            return value
+        with patch('readiness_github.time.monotonic',side_effect=lambda:clock[0]),patch.object(c.Collector,'observations',observe):
+            return self.collect()
+    def test_complete_second_observation_survives_measured_acquisition_latency(self):
+        code,value,owner=self.timed_collection(200)
+        self.assertEqual(code,0,value)
+        self.assertEqual(set(c.read_json(owner.portable/'sources.json')['sources']),{'ci-main','nightly-scheduled','protection'})
+    def test_run_collection_deadline_still_rejects_unfinished_observation(self):
+        code,value,_=self.timed_collection(400)
+        self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_budget_exhausted')
     def test_worker_matches_fresh_cli_for_policy_dispatch(self):
         code,_,owner=self.collect();self.assertEqual(code,0)
         sources=c.read_json(owner.portable/'sources.json')['sources']

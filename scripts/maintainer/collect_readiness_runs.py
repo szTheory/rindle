@@ -13,7 +13,7 @@ import datetime as dt
 from urllib.parse import urlencode
 
 from exact_head_readiness import ROOT, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new
-from readiness_github import GitHub, json_bytes
+from readiness_github import GitHub, RUN_COLLECTION_SECONDS, json_bytes
 
 POLICY = 'rindle-exact-head-v1'
 HISTORICAL_QUALIFICATION_SHA = 'aba8565ebfb97fd366efd94c691a977b3c29c78e232e2dda7cb338d69997abce'
@@ -307,7 +307,7 @@ class Collector:
         started=now();self.observed_at=started; verdict={'schema_version':1,'verdict':'not_ready','repository':self.repo,
             'subject_sha':self.subject,'evidence_mode':self.mode,'requirements_credit':False}
         try:
-            self.api=GitHub(self.repo,self.output/'restricted',self.fixture)
+            self.api=GitHub(self.repo,self.output/'restricted',self.fixture,budget=RUN_COLLECTION_SECONDS)
             self.initialize()
             if self.snapshot and self.only!='ci':
                 for path in policy({'operation':'nightly-controls'}):
