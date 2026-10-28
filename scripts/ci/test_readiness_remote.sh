@@ -382,6 +382,33 @@ class Remote(unittest.TestCase):
         observed=[c.read_json(collector.private/f'normalized-{n}.json') for n in (1,2)]
         self.assertEqual(observed[0],observed[1])
         self.assertEqual(first['body']['base']['repo']['size'],123)
+    def test_open_pr_test_merge_regeneration_preserves_decision_and_raw_evidence(self):
+        self.add_pr();path=prefix+'pulls/999'
+        first=self.responses[path][0];first['body'].update(merged=False,merge_commit_sha='1'*40)
+        second=copy.deepcopy(first);second['body']['merge_commit_sha']='2'*40
+        self.responses[path].append(second)
+        code,value,collector=self.collect(full=True);self.assertEqual(code,0,value)
+        observed=[c.read_json(collector.private/f'normalized-{n}.json') for n in (1,2)]
+        self.assertEqual(observed[0],observed[1]);self.assertEqual(first['body']['merge_commit_sha'],'1'*40)
+        responses=[]
+        for p in collector.private.glob('api/*-request.json'):
+            if c.read_json(p)['path']==path:responses.append(c.read_json(p.with_name(p.name.replace('-request.json','-response'))))
+        self.assertEqual({p['merge_commit_sha'] for p in responses},{'1'*40,'2'*40})
+    def test_only_explicit_open_unmerged_test_merge_is_ignored(self):
+        original={'state':'open','merged':False,'merge_commit_sha':'1'*40,'head':{'sha':'a'*40},'base':{'sha':'b'*40}}
+        snapshot=copy.deepcopy(original);changed={**original,'merge_commit_sha':'2'*40}
+        self.assertEqual(c.pull_decision_identity(original),c.pull_decision_identity(changed))
+        self.assertEqual(original,snapshot)
+        for flags in ({'state':'closed'},{'merged':True},{'merged':None}):
+            with self.subTest(flags=flags):
+                left={**original,**flags};right={**left,'merge_commit_sha':'2'*40}
+                self.assertNotEqual(c.pull_decision_identity(left),c.pull_decision_identity(right))
+        left={k:v for k,v in original.items() if k!='merged'}
+        self.assertNotEqual(c.pull_decision_identity(left),c.pull_decision_identity({**left,'merge_commit_sha':'2'*40}))
+        for key in ('head','base'):
+            other=copy.deepcopy(original);other[key]['sha']='c'*40
+            self.assertNotEqual(c.pull_decision_identity(original),c.pull_decision_identity(other))
+        self.assertNotEqual(c.pull_decision_identity(original),c.pull_decision_identity({**original,'future_authority':'changed'}))
     def test_repository_identity_change_is_still_pr_drift(self):
         self.add_pr();path=prefix+'pulls/999'
         self.body(path)['head']['repo']={'id':123,'size':1}
@@ -406,8 +433,15 @@ class Remote(unittest.TestCase):
         code,value,collector=self.collect(full=True)
         self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_state_changed')
         self.assertEqual(value['changed_sources'],['pulls'])
+        self.assertEqual(value['pull_changes'],[{'number':999,'fields':['body']}])
         self.assertNotIn('ADVISORY-CANARY-PRIVATE-BODY',json.dumps(value))
         self.assertFalse((collector.portable/'sources.json').exists())
+    def test_unknown_pr_drift_key_is_redacted_but_still_rejects(self):
+        self.add_pr();path=prefix+'pulls/999';second=copy.deepcopy(self.responses[path][0])
+        second['body']['PRIVATE-CLOSURE-CANARY']='ADVISORY-CANARY-PRIVATE-BODY';self.responses[path].append(second)
+        code,value,collector=self.collect(full=True);self.assertEqual(code,1)
+        self.assertEqual(value['pull_changes'],[{'number':999,'fields':['other']}])
+        self.assertNotIn('PRIVATE-CLOSURE-CANARY',json.dumps(value));self.assertFalse((collector.portable/'sources.json').exists())
     def test_undispositioned_pr_fails_before_expensive_job_reads(self):
         self.add_pr();self.subject_file(c.LEDGER,c.canonical(ledger));self.full_reject('pull_undispositioned')
     def test_stale_pr_head_rejected_by_actual_ledger_owner(self):

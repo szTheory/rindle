@@ -52,6 +52,87 @@ class Retention(unittest.TestCase):
         self.assertEqual(value['manifest_sha256'],self.sidecar['manifest_sha256']);self.assertEqual((self.tmp/'durable/bundle/manifest.json').read_bytes(),(self.base/'manifest.json').read_bytes())
         self.assertEqual((self.tmp/'durable').stat().st_mode&0o777,0o700)
         self.assertTrue(all(p.stat().st_mode&0o777==0o600 for p in (self.tmp/'durable').rglob('*') if p.is_file()))
+    def failed_candidate(self,native=True):
+        candidate=self.tmp/'candidate';candidate.mkdir()
+        r.write_new(candidate/'verdict.json',{'repository':repo,'subject_sha':sha,'evidence_mode':'fixture',
+            'verdict':'not_ready','requirements_credit':False,'stage':'joining_remote','reason':'remote_state_changed',
+            'private_body':'ADVISORY-CANARY-PRIVATE-BODY'})
+        remote=candidate/'restricted/remote-join-before'
+        r.write_new(remote/'verdict.json',{'changed_sources':['pulls'],
+            'pull_changes':[{'number':187,'fields':['merge_commit_sha','body']}],
+            'private_body':'ADVISORY-CANARY-PRIVATE-BODY'})
+        if native:
+            native_root=candidate/'restricted/local-qualification/portable';shutil.copytree(self.base,native_root)
+            manifest=r.read_json(native_root/'manifest.json');manifest.update(state='incomplete',local_state='complete')
+            manifest['proofs']=[ref for ref in manifest['proofs'] if ref['id'] in r.NATIVE_PROOFS]
+            (native_root/'manifest.json').write_bytes(r.canonical(manifest))
+        return candidate
+    def diagnostic_env(self):
+        return {**self.env,'EXPECTED_SUBJECT':sha,'ACCEPTANCE_MODE':'snapshot'}
+    def test_failed_native_graph_retained_without_ready_or_private_source_bytes(self):
+        candidate=self.failed_candidate();output=self.tmp/'failed-output';gh=self.tmp/'failed-gh-output'
+        report=r.prepare_failure(candidate,output,{**self.diagnostic_env(),'GITHUB_OUTPUT':str(gh)})
+        self.assertEqual(report['native_state'],'retained_for_inspection');self.assertEqual(report['native_proofs'],18)
+        self.assertEqual(report['verdict'],'not_ready');self.assertFalse(report['requirements_credit'])
+        self.assertEqual(report['acceptance_scope'],'diagnostic_only')
+        with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:
+            names=archive.getnames();self.assertIn('native/manifest.json',names)
+            body=archive.extractfile('failure.json').read();self.assertNotIn(b'ADVISORY-CANARY-PRIVATE-BODY',body)
+            self.assertIn(b'merge_commit_sha',body)
+            self.assertFalse(any('restricted' in pathlib.PurePosixPath(n).parts for n in names))
+            m=json.loads(archive.extractfile('native/manifest.json').read());self.assertEqual(m['state'],'incomplete')
+            self.assertEqual(len(m['proofs']),18)
+        self.assertIn('diagnostic_name=rindle-readiness-failed-diagnostic-123-2',gh.read_text())
+        self.assertFalse((output/r.SIDECAR_FILE).exists());self.assertFalse((output/r.ARCHIVE_FILE).exists())
+        self.assertEqual((output/r.FAILED_ARCHIVE_FILE).stat().st_mode&0o777,0o600)
+    def test_failure_before_native_keeps_only_fixed_diagnostic(self):
+        candidate=self.failed_candidate(False);p=candidate/'restricted/remote-join-before/verdict.json'
+        (p).write_bytes(r.canonical({'changed_sources':['pulls'],'pull_changes':[{'number':187,'fields':['PRIVATE-CLOSURE-CANARY']}]}))
+        output=self.tmp/'failed-output';report=r.prepare_failure(candidate,output,self.diagnostic_env())
+        self.assertEqual(report['native_state'],'unavailable');self.assertNotIn('pull_changes',report['collections'][0])
+        with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:self.assertEqual(archive.getnames(),['failure.json'])
+    def test_failure_diagnostic_refuses_success_or_foreign_context(self):
+        candidate=self.failed_candidate(False);p=candidate/'verdict.json';v=r.read_json(p);v['verdict']='candidate_ready';p.write_bytes(r.canonical(v))
+        with self.assertRaisesRegex(r.NotReady,'diagnostic_candidate_invalid'):r.prepare_failure(candidate,self.tmp/'bad-ready',self.diagnostic_env())
+        with self.assertRaisesRegex(r.NotReady,'producer_context_unavailable'):r.prepare_failure(candidate,self.tmp/'bad-context',{**self.diagnostic_env(),'GITHUB_REF':'refs/heads/foreign'})
+    def test_failure_diagnostic_refuses_changed_native_bytes(self):
+        candidate=self.failed_candidate();native=candidate/'restricted/local-qualification/portable'
+        manifest=r.read_json(native/'manifest.json');ref=manifest['proofs'][0];(native/ref['path']).write_bytes(b'corrupt')
+        with self.assertRaises(r.NotReady):r.prepare_failure(candidate,self.tmp/'bad-native',self.diagnostic_env())
+    def test_failure_diagnostic_refuses_secret_in_referenced_native_output(self):
+        candidate=self.failed_candidate();native=candidate/'restricted/local-qualification/portable'
+        manifest=r.read_json(native/'manifest.json');ref=next(iter(manifest['runtime_evidence'].values()))
+        raw=b'TOKEN-CANARY-DO-NOT-PUBLISH';(native/ref['path']).write_bytes(raw);ref['sha256']=r.digest(raw)
+        (native/'manifest.json').write_bytes(r.canonical(manifest))
+        with self.assertRaisesRegex(r.NotReady,'portable_private_canary'):r.prepare_failure(candidate,self.tmp/'bad-secret',self.diagnostic_env())
+    def test_failure_diagnostic_cli_and_missing_native_are_never_ready(self):
+        candidate=self.failed_candidate(False);output=self.tmp/'failed-cli';gh=self.tmp/'failed-cli-gh'
+        result=subprocess.run(['bash','scripts/maintainer/retain_readiness_bundle.sh','prepare-failure','--candidate',str(candidate),'--output',str(output)],
+            cwd=root,env={**self.diagnostic_env(),'GITHUB_OUTPUT':str(gh)},capture_output=True,timeout=15)
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertFalse(r.read_json(output/'diagnostic.json')['requirements_credit'])
+        self.assertIn(b'diagnostic_only: no acceptance credit',result.stdout)
+    def test_failure_diagnostic_rejects_incomplete_native_registry_or_cleanup(self):
+        candidate=self.failed_candidate();native=candidate/'restricted/local-qualification/portable';p=native/'manifest.json';original=p.read_bytes()
+        for change in ('missing','wrong_subject','wrong_receipt_id','unclean'):
+            m=json.loads(original)
+            if change=='missing':m['proofs'].pop()
+            elif change=='wrong_subject':m['subject_sha']='f'*40
+            elif change=='unclean':m['cleanup']['errors']=['unowned resource']
+            else:
+                ref=m['proofs'][0];receipt=r.read_json(native/ref['path']);receipt['id']='foreign'
+                raw=r.canonical(receipt);(native/ref['path']).write_bytes(raw);ref['sha256']=r.digest(raw)
+            p.write_bytes(r.canonical(m))
+            with self.subTest(change=change),self.assertRaises(r.NotReady):r.prepare_failure(candidate,self.tmp/('bad-'+change),self.diagnostic_env())
+            # Restore all original receipt bytes as well as manifest for the next counterexample.
+            shutil.copytree(self.base,native,dirs_exist_ok=True)
+    def test_failure_diagnostic_ignores_unreferenced_private_files(self):
+        candidate=self.failed_candidate();native=candidate/'restricted/local-qualification/portable'
+        r.write_new(native/'private-unreferenced.json',b'PRIVATE-CLOSURE-CANARY')
+        output=self.tmp/'safe-referenced';r.prepare_failure(candidate,output,self.diagnostic_env())
+        with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:self.assertNotIn('native/private-unreferenced.json',archive.getnames())
+    def test_diagnostic_artifact_cannot_substitute_for_acceptance_archive(self):
+        self.artifacts[1]['name']='rindle-readiness-failed-diagnostic-123-2';self.reject('producer_archive_missing_or_ambiguous')
     def test_missing_sidecar(self):self.artifacts.pop(0);self.reject('producer_sidecar_missing_or_ambiguous')
     def test_ambiguous_sidecar(self):self.artifacts.append(copy.deepcopy(self.artifacts[0]));self.reject('producer_sidecar_missing_or_ambiguous')
     def test_missing_archive(self):self.artifacts.pop();self.reject('producer_archive_missing_or_ambiguous')

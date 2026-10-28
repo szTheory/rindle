@@ -257,6 +257,11 @@ class Graph(unittest.TestCase):
     def tearDownClass(cls):shutil.rmtree(cls.shared)
     def setUp(self):
         self.tmp=Path(tempfile.mkdtemp(prefix='rindle-snapshot-case-')).resolve();self.bundle=self.tmp/'bundle';shutil.copytree(self.base,self.bundle)
+        self.metadata_root=self.tmp/'metadata';self.metadata_root.mkdir()
+        checker=a.metadata_parity
+        adapter=patch.object(a,'metadata_parity',side_effect=lambda owner_root,subject,interval:
+            checker(self.metadata_root if owner_root==a.ROOT else owner_root,subject,interval))
+        adapter.start();self.addCleanup(adapter.stop)
     def tearDown(self):shutil.rmtree(self.tmp)
     def validate(self,refresh=False):
         owner=a.verifier(REPO,self.tmp/'validator',self.bundle,SHA)

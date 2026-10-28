@@ -19,5 +19,6 @@
 | Hex audit findings and database identity | INTEGRATE | |
 | GitHub issue, PR, advisory, ruleset mutation | OPT-OUT | Readiness is read-only; D-25 forbids remote mutation authority. |
 | GitHub maintainer readiness-retention workflow dispatch | INTEGRATE | |
+| GitHub explicit bounded same-source Nightly qualification dispatch | INTEGRATE | v3 records the actual returned run ID and requires full source qualification; it grants no scheduled incident recovery. |
 | GitHub Nightly workflow dispatch as scheduled evidence | OPT-OUT | A diagnostic dispatch cannot satisfy scheduled Nightly closure; D-12. |
 | Hex publish or dependency mutation | OPT-OUT | Release Please owns release intent; D-25 forbids publish authority. |

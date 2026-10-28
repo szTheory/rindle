@@ -431,3 +431,30 @@ matching new controls, within unchanged finite freshness bounds. A manual run or
 human authorization never supplies requirement proof. Cleanup changes controls
 again, so the earlier snapshot remains historical without current-readiness
 credit. PR189 stays held; READY remains pending until actual terminal acceptance.
+
+
+### 2026-10-28 PR comparison and failed evidence retention repair
+
+The existing inline139-07 unblock authorization covers this measured correction.
+Actual Source8 producer40648108188/1 failed after local qualification, during the
+fresh remote join, with remote_state_changed/pulls. The normal controller exited1;
+no artifact was uploaded and READY-01–05 remain open. Preserve that failed terminal.
+Authenticated preflight/later PR187 responses differ only in embedded repository
+size and merge_commit_sha; head, base and mergeability are identical. The new test
+merge was created during the hosted failed collection. GitHub's primary REST docs
+identify this value on open PRs as a generated test merge, not an actual merged
+commit. The missing hosted raw observations prevent claiming its exact field cause.
+
+Exclude merge_commit_sha only for explicitly open, unmerged PR decision identity,
+retaining real source/base, mergeability and all other known/unknown fields plus
+original restricted responses. Closed/merged identities remain strict. Add fixed
+field-name/numeric-ID drift diagnostics and a separately named redacted failure
+artifact. Byte-check and secret-scan any completed native graph before diagnostic
+upload; do not expose restricted raw payloads. This artifact has no acceptance
+credit, cannot replace a normal archive/sidecar, and does not make a failed producer
+successful or transfer evidence across source changes. Keep every deadline, API cap,
+health control, credential, native gate, seed count and release/merge boundary.
+Deliver through ordinary full PR/main CI, then admit one new source and run its
+own complete qualification. Compatible existing scheduled health remains eligible;
+this repair does not alter the14 operational controls or require a new calendar slot.
+PR189 and recovery-cron cleanup remain held until actual validated acceptance.

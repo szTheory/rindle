@@ -30,7 +30,14 @@ class Acceptance(unittest.TestCase):
         cls.base=pathlib.Path(json.loads(result.stdout.decode().splitlines()[-1])['base'])
     @classmethod
     def tearDownClass(cls):shutil.rmtree(cls.shared)
-    def setUp(self):self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-acceptance-')).resolve()
+    def setUp(self):
+        self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-acceptance-')).resolve()
+        self.metadata_root=self.tmp/'metadata';self.metadata_root.mkdir()
+        checker=a.metadata_parity
+        # Controller examples own their metadata; direct counterexamples keep their explicit roots.
+        adapter=patch.object(a,'metadata_parity',side_effect=lambda owner_root,subject,interval:
+            checker(self.metadata_root if owner_root==a.ROOT else owner_root,subject,interval))
+        adapter.start();self.addCleanup(adapter.stop)
     def tearDown(self):shutil.rmtree(self.tmp)
     def subject(self):return {'repository':repo,'subject_sha':sha,'tracked_inventory':{},'requirements_credit':False}
     def retained(self,_repo,_run,_attempt,destination,_fixture):
@@ -53,6 +60,11 @@ class Acceptance(unittest.TestCase):
         return code,a.read_json(owner.output/'terminal-verdict.json')
     def test_fixture_controller_uses_actual_refresh_validator_without_credit(self):
         code,value=self.run_accept();self.assertEqual(code,0);self.assertEqual(value['verdict'],'fixture_ready');self.assertFalse(value['requirements_credit']);self.assertEqual(value['subject_sha'],sha)
+    def test_controller_still_rejects_unqualified_owned_metadata(self):
+        path=self.metadata_root/'.planning';path.mkdir()
+        (path/'REQUIREMENTS.md').write_text('- [x] **READY-01**: Complete\n')
+        code,value=self.run_accept()
+        self.assertEqual(code,1);self.assertEqual(value['reason'],'unqualified_readiness_metadata')
     def test_missing_uploaded_bundle(self):
         code,value=self.run_accept(transport=lambda *args:(_ for _ in ()).throw(a.NotReady('producer_sidecar_missing_or_ambiguous')))
         self.assertEqual(code,1);self.assertEqual(value['reason'],'producer_sidecar_missing_or_ambiguous');self.assertFalse(value['requirements_credit'])

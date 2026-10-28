@@ -18,6 +18,14 @@ MAX_BYTES = 16 * 1024 * 1024
 RUN_COLLECTION_SECONDS = 360
 REMOTE_COLLECTION_SECONDS = 1200
 COLLECTION_SHUTDOWN_SECONDS = 30
+# Only these schema field names may appear in public PR drift diagnostics.
+# Values and unrecognized field names remain restricted.
+PULL_DIAGNOSTIC_FIELDS = frozenset(('state','merged','merge_commit_sha','mergeable',
+    'mergeable_state','rebaseable','head','base','title','body','draft','user',
+    'author_association','labels','assignees','requested_reviewers','requested_teams',
+    'milestone','auto_merge','maintainer_can_modify','created_at','updated_at',
+    'closed_at','merged_at','comments','review_comments','commits','additions',
+    'deletions','changed_files','locked','other'))
 
 
 def json_bytes(raw):
