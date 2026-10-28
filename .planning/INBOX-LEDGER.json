@@ -1180,8 +1180,8 @@
       "kind": "pr",
       "number": 185,
       "disposition": "retain",
-      "head_sha": "4d10e56a8a1dea71ec87b439d7917989f0292ea6",
-      "rationale": "Reviewed exact Release Please-owned patch 0.4.14 head 4d10e56a against672342eb after PR209: the complete diff changes only .release-please-manifest.json, mix.exs version, and CHANGELOG.md, including the merged readiness, Doctor/native collection and fresh mutable evidence join fixes. This records head identity and scope; CI remains separately observed. Retain the existing explicit do-not-merge and no-auto-merge hold pending a separately authorized release decision. Do not merge, publish, dispatch release, bump manually, or infer release or 1.0 authority from synthetic readiness."
+      "head_sha": "3ff7f80d9f3d3e50ab62b89c9b8bf5c75ff6cc98",
+      "rationale": "Reviewed exact Release Please-owned patch 0.4.14 head 3ff7f80d against2c5cd1fa after PR211: the complete diff still changes only .release-please-manifest.json, mix.exs version, and CHANGELOG.md, with the same four reviewed readiness fixes and the release date advanced to October28. This records head identity and scope; CI remains separately observed. Retain the explicit do-not-merge and no-auto-merge hold pending a separately authorized release decision. Do not merge, publish, dispatch release, bump manually, or infer release or 1.0 authority from synthetic readiness."
     },
     {
       "kind": "pr",
