@@ -14,7 +14,7 @@ import sys
 import time
 
 from exact_head_readiness import ROOT, POLICY_FILE, TOOLCHAIN_ENV, QUALIFICATION_SECONDS, NotReady, canonical, digest, now, read_json, reference, require, write_new, atomic, redact
-from readiness_github import GitHub, json_bytes
+from readiness_github import GitHub, RUN_COLLECTION_SECONDS, REMOTE_COLLECTION_SECONDS, COLLECTION_SHUTDOWN_SECONDS, json_bytes
 from readiness_process import popen_owned, stop_owned
 
 MAX_OBJECT = 256_000_000
@@ -208,7 +208,8 @@ class Closure:
         else:
             output=self.private/(kind+'-'+position)
             script='collect_readiness_runs.sh' if kind=='runs' else 'collect_readiness_remote.sh'
-            code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)]+(['--snapshot'] if self.snapshot else []),210 if kind=='runs' else 630)
+            seconds=RUN_COLLECTION_SECONDS if kind=='runs' else REMOTE_COLLECTION_SECONDS
+            code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)]+(['--snapshot'] if self.snapshot else []),seconds+COLLECTION_SHUTDOWN_SECONDS)
             if code:
                 value=read_json(output/'verdict.json') if (output/'verdict.json').is_file() else {}
                 self.failed_proof=value.get('failed_proof')

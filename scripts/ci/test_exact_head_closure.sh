@@ -30,6 +30,14 @@ class ValidatorWorkerTest(unittest.TestCase):
         self.assertIsNotNone(worker.child.poll())
 
 class ClosureTest(unittest.TestCase):
+    def test_collector_child_has_full_acquisition_window_and_shutdown_grace(self):
+        for kind,seconds in [('runs',390),('remote',1230)]:
+            with self.subTest(kind=kind):
+                owner=c.Closure(repo,self.tmp/kind,fixture=self.fixture)
+                owner.reserve();owner.index=None;owner.subject=sha
+                with patch.object(owner,'command',side_effect=c.NotReady('observed_budget')) as command:
+                    with self.assertRaisesRegex(c.NotReady,'observed_budget'):owner.producer_sources(kind,'before')
+                self.assertEqual(command.call_args.args[1],seconds)
     @classmethod
     def setUpClass(cls):
         cls.shared=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-closure-shared-')).resolve()

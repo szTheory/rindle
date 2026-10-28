@@ -80,6 +80,22 @@ def fixture_command(self,argv,cwd,env,budget):
 c.RemoteCollector.command=fixture_command
 
 class Remote(unittest.TestCase):
+    def timed_collection(self, elapsed):
+        clock=[0.0];observations=c.RemoteCollector.observations
+        def observe(owner):
+            value=observations(owner)
+            if clock[0]==0:clock[0]=elapsed
+            return value
+        with patch('readiness_github.time.monotonic',side_effect=lambda:clock[0]),patch.object(c.RemoteCollector,'observations',observe):
+            return self.collect(full=True)
+    def test_complete_second_inventory_and_hex_audit_survive_measured_latency(self):
+        code,value,owner=self.timed_collection(700)
+        self.assertEqual(code,0,value)
+        self.assertEqual(set(c.read_json(owner.portable/'sources.json')['sources']),{'remote-inventory'})
+        self.assertTrue(c.read_json(owner.portable/'sources.json')['sources']['remote-inventory']['source']['complete'])
+    def test_remote_collection_deadline_still_rejects_unfinished_inventory(self):
+        code,value,_=self.timed_collection(1300)
+        self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_budget_exhausted')
     def test_hex_worker_matches_fresh_cli_with_bound_audits(self):
         code,_,owner=self.collect(full=True);self.assertEqual(code,0)
         rows=c.read_json(owner.private/'normalized-1.json')['hex']

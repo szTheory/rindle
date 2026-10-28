@@ -501,7 +501,15 @@ combined. Structural/identity errors, missing authorization, rate limits and
 server cooldown instructions do not trigger this file recovery.
 The complete remote-inventory owner allows at most 600 physical GETs for both
 observations, including retained historical lookups and retries, within its
-unchanged 600-second deadline. Other clients keep the 400-GET default.
+1200-second acquisition deadline. The run/protection collector has 360 seconds
+for its complete two observations; it keeps the 400-GET cap. The closure caller
+allows each collector its full window plus 30 seconds for shutdown. These finite
+windows cover observed maintainer-host latency: the earlier 180-second run window
+expired after 91 successful reads, and the 600-second remote window expired during
+its second Hex audit after 455 successful reads. Full pagination, both inventories,
+signed root/demo audits and all equality/identity checks remain required. Per-GET
+and Hex-command limits, retry and request-count caps, native qualification, outer
+closure/producer bounds and scheduled-health freshness rules are unchanged.
 
 `accept` repeats admission, dispatches `readiness-retention.yml` on main with a unique
 request nonce and waits at most 330 minutes for the matching successful first attempt.
