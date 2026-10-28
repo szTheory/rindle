@@ -216,8 +216,15 @@ class Closure:
                 changed=value.get('changed_sources')
                 sources={'issues','pulls','checks','statuses','absent','advisories','dependabot','hex','protection'}
                 if value.get('reason')=='remote_state_changed' and isinstance(changed,list) and 0<len(changed)<=len(sources) and all(isinstance(name,str) and name in sources for name in changed):
-                    print('REMOTE_COLLECTION_FAILURE '+json.dumps({'reason':'remote_state_changed',
-                        'kind':kind,'position':position,'changed_sources':changed},sort_keys=True),flush=True)
+                    detail={'reason':'remote_state_changed','kind':kind,'position':position,'changed_sources':changed}
+                    from readiness_github import PULL_DIAGNOSTIC_FIELDS
+                    pulls=value.get('pull_changes')
+                    if isinstance(pulls,list) and len(pulls)<=1000 and all(isinstance(row,dict) and
+                        set(row)=={'number','fields'} and type(row['number']) is int and row['number']>0 and
+                        isinstance(row['fields'],list) and 0<len(row['fields'])<=len(PULL_DIAGNOSTIC_FIELDS) and
+                        all(isinstance(field,str) and field in PULL_DIAGNOSTIC_FIELDS for field in row['fields']) for row in pulls):
+                        detail['pull_changes']=pulls
+                    print('REMOTE_COLLECTION_FAILURE '+json.dumps(detail,sort_keys=True),flush=True)
                 raise NotReady(value.get('reason','remote_collection_failed'))
             path=output/'portable/sources.json'
         value=read_json(path)

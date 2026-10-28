@@ -81,10 +81,21 @@ presence, while actual workflow reads must still prove its access.
 Security-setting changes and credential provisioning are separate authorized
 maintainer operations under RUNNING.md.
 
-The scheduled Nightly must pass for the accepted previously-main snapshot SHA.
-Use the versioned snapshot command in Running to keep that SHA fixed while main advances;
-current security, inbox, protection and adoption facts are still refreshed.
-A snapshot verdict is historical evidence and never grants current-head readiness. Its current schedule is
-07:27 UTC daily; dispatching it manually does not supply scheduled-event evidence,
-and GitHub may delay scheduled execution. PR merge, storage setup and fixture tests
-leave READY requirements open until terminal live acceptance passes.
+Full push-main CI and complete Nightly qualification must pass for the exact
+snapshot SHA. Qualification may use a dispatch or a schedule; use Running's
+explicit `capture-nightly` command to bind the actual returned source and run ID.
+Keep that source fixed while compatible main changes land.
+
+Separately, the newest genuine scheduled Nightly must prove operational health
+at its actual SHA under the same reviewed controls, with authenticated incident
+verdict, checkpoint and current history. It need not run on the candidate SHA.
+A manual qualification cannot supply scheduled incident recovery. The daily slot
+is 07:27 UTC: require creation by slot plus 60 minutes and completion within
+120 minutes of actual creation. That completion deadline is not an evidence age
+limit. A newer pending or failed run still rejects; compatible main advancement
+alone does not require another schedule.
+
+Current security, inbox, protection and adoption facts are refreshed independently.
+A snapshot verdict is historical evidence and never grants current-head readiness.
+PR merge, storage setup and fixture tests leave READY requirements open until
+terminal live acceptance passes.

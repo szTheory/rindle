@@ -232,6 +232,20 @@ IO.puts(Jason.encode!(%{base: base}))
         with patch.object(owner,'command',return_value=(1,b'private child output')),contextlib.redirect_stdout(output):
             with self.assertRaisesRegex(c.NotReady,'remote_state_changed'):owner.producer_sources('remote','before')
         self.assertEqual(output.getvalue(),'')
+    def test_remote_drift_forwards_only_valid_fixed_pr_field_names(self):
+        for position,changes,expected in (
+            ('before',[{'number':187,'fields':['merge_commit_sha']}],True),
+            ('join-before',[{'number':187,'fields':['PRIVATE-CLOSURE-CANARY']}],False),
+            ('after',[{'number':True,'fields':['body']}],False)):
+            owner=c.Closure(repo,self.tmp/('field-'+position),fixture=self.fixture)
+            owner.reserve();owner.index=None;owner.subject=sha
+            remote=owner.private/('remote-'+position);remote.mkdir()
+            c.write_new(remote/'verdict.json',{'reason':'remote_state_changed','changed_sources':['pulls'],'pull_changes':changes})
+            output=io.StringIO()
+            with patch.object(owner,'command',return_value=(1,b'private child output')),contextlib.redirect_stdout(output):
+                with self.assertRaisesRegex(c.NotReady,'remote_state_changed'):owner.producer_sources('remote',position)
+            detail=json.loads(output.getvalue().removeprefix('REMOTE_COLLECTION_FAILURE '))
+            self.assertEqual('pull_changes' in detail,expected);self.assertNotIn('PRIVATE-CLOSURE-CANARY',output.getvalue())
     def test_one_valid_newer_ci_source_defeats_stale_candidate(self):
         self.mutate_source('runs','ci-main',lambda n:n.update(run_id=11,latest_run_id=11));self.reject('mutable_source_changed')
     def test_missing_mutable_source(self):

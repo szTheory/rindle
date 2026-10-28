@@ -19,6 +19,10 @@ WORKFLOW_NAME = 'Readiness Retention'
 SIDECAR_SCHEMA = 'rindle-readiness-producer-digest-v1'
 ARCHIVE_FILE = 'readiness-evidence.tar.gz'
 SIDECAR_FILE = 'readiness-digest.json'
+FAILED_ARCHIVE_FILE = 'readiness-failed-diagnostic.tar.gz'
+NATIVE_PROOFS = frozenset(('format','compile','credo','dialyzer-fresh','dialyzer-restored',
+    'coverage','security','docs','contracts','package','generated-consumer','doctor',
+    'twin-recovery','inbox-ledger','contributor-bootstrap','async-isolation','release-truth','hygiene'))
 
 
 def reserve(path):
@@ -56,6 +60,88 @@ def durable_path(path,fixture):
     return path
 
 
+def write_archive(path,objects):
+    with open(path,'xb',opener=lambda p,f:os.open(p,f,0o600)) as raw:
+        with gzip.GzipFile(fileobj=raw,mode='wb',filename='',mtime=0) as compressed:
+            with tarfile.open(fileobj=compressed,mode='w|',format=tarfile.USTAR_FORMAT) as tar:
+                for name,data in sorted(objects.items()):
+                    require(not name.startswith(('restricted/','../','/')),'unsafe_archive_member')
+                    info=tarfile.TarInfo(name);info.size=len(data);info.mode=0o600;info.mtime=0
+                    tar.addfile(info,io.BytesIO(data))
+        raw.flush();os.fsync(raw.fileno())
+    require(path.stat().st_size<=250_000_000,'artifact_size_limit')
+
+
+def prepare_failure(candidate,output,environment=None):
+    """Retain only redacted diagnostics; a failed producer never gains credit."""
+    output=reserve(output);environment=dict(os.environ if environment is None else environment)
+    repo=environment.get('GITHUB_REPOSITORY','');subject=environment.get('EXPECTED_SUBJECT','')
+    producer=environment.get('GITHUB_SHA','');run=environment.get('GITHUB_RUN_ID','');attempt=environment.get('GITHUB_RUN_ATTEMPT','')
+    require(environment.get('GITHUB_ACTIONS')=='true' and re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo) and
+        re.fullmatch(r'[0-9a-f]{40}',subject) and re.fullmatch(r'[0-9a-f]{40}',producer) and
+        environment.get('GITHUB_REF')=='refs/heads/main' and environment.get('GITHUB_EVENT_NAME')=='workflow_dispatch' and
+        environment.get('GITHUB_WORKFLOW')==WORKFLOW_NAME and environment.get('GITHUB_WORKFLOW_REF')==repo+'/'+WORKFLOW+'@refs/heads/main' and
+        environment.get('ACCEPTANCE_MODE') in ('snapshot','current-main') and
+        (environment['ACCEPTANCE_MODE']=='snapshot' or producer==subject) and
+        re.fullmatch(r'[1-9][0-9]{0,19}',run) and re.fullmatch(r'[1-9][0-9]{0,9}',attempt),'producer_context_unavailable')
+    candidate=Path(candidate).resolve();require(not candidate.is_relative_to(ROOT),'diagnostic_candidate_invalid')
+    value=read_json(candidate/'verdict.json')
+    require(value.get('repository')==repo and value.get('subject_sha') in (None,subject) and
+        value.get('evidence_mode') in ('fixture','execution') and value.get('verdict')=='not_ready' and
+        value.get('requirements_credit') is False,'diagnostic_candidate_invalid')
+    stages={'reserve','metadata','main','initial_remote','local','joining_remote','final_remote','final_main'}
+    reasons={'remote_state_changed','mutable_source_changed','command_failed','command_timeout','cleanup_failed',
+        'collection_interrupted','closure_interrupted','closure_unavailable','remote_unavailable','remote_command_budget'}
+    report={'schema':'rindle-readiness-failed-diagnostic-v1','repository':repo,'subject_sha':subject,
+        'producer_head_sha':producer,'run_id':int(run),'run_attempt':int(attempt),'evidence_mode':value['evidence_mode'],
+        'verdict':'not_ready','requirements_credit':False,'acceptance_scope':'diagnostic_only',
+        'stage':value.get('stage') if value.get('stage') in stages else 'unknown',
+        'reason':value.get('reason') if value.get('reason') in reasons else 'upstream_not_ready',
+        'native_state':'unavailable','created_at':now()}
+    from readiness_github import PULL_DIAGNOSTIC_FIELDS
+    sources={'issues','pulls','checks','statuses','absent','advisories','dependabot','hex','protection'}
+    collections=[]
+    for position in ('before','join-before','after'):
+        path=candidate/'restricted'/('remote-'+position)/'verdict.json'
+        if not path.is_file():continue
+        row=read_json(path);changed=row.get('changed_sources')
+        if not (isinstance(changed,list) and 0<len(changed)<=len(sources) and all(isinstance(x,str) and x in sources for x in changed)):continue
+        item={'position':position,'changed_sources':changed};pulls=row.get('pull_changes')
+        if isinstance(pulls,list) and len(pulls)<=1000 and all(isinstance(p,dict) and set(p)=={'number','fields'} and
+            type(p['number']) is int and p['number']>0 and isinstance(p['fields'],list) and
+            0<len(p['fields'])<=len(PULL_DIAGNOSTIC_FIELDS) and
+            all(isinstance(f,str) and f in PULL_DIAGNOSTIC_FIELDS for f in p['fields']) for p in pulls):item['pull_changes']=pulls
+        collections.append(item)
+    report['collections']=collections;objects={}
+    path=candidate/'restricted/local-qualification/portable/manifest.json'
+    if path.is_file():
+        manifest=read_json(path)
+        if manifest.get('local_state')=='complete':
+            require(manifest.get('state')=='incomplete' and manifest.get('repository')==repo and manifest.get('subject_sha')==subject and
+                manifest.get('evidence_mode')==value['evidence_mode'] and manifest.get('cleanup',{}).get('state')=='observed' and
+                manifest['cleanup'].get('errors')==[],'diagnostic_native_identity')
+            proofs=manifest.get('proofs',[])
+            require(len(proofs)==len(NATIVE_PROOFS) and {p.get('id') for p in proofs}==NATIVE_PROOFS,'diagnostic_native_registry')
+            objects=graph_objects(path.parent,manifest)
+            for ref in proofs:
+                receipt=json_bytes(objects[ref['path']])
+                require(all(receipt.get(k)==manifest.get(k) for k in ('repository','subject_sha','policy','validator_sha256','toolchain','input_identity','package_identity','evidence_mode')) and
+                    receipt.get('id')==ref['id'] and receipt.get('state')=='complete' and receipt.get('outcome')=='passed' and
+                    type(receipt.get('command',{}).get('exit_code')) is int and receipt['command']['exit_code']==0,'diagnostic_native_identity')
+            objects['manifest.json']=path.read_bytes()
+            require(all('restricted' not in Path(name).parts and 'private' not in Path(name).parts for name in objects),'unsafe_archive_member')
+            objects={'native/'+name:data for name,data in objects.items()}
+            report.update(native_state='retained_for_inspection',native_proofs=len(proofs),native_manifest_sha256=digest(path.read_bytes()))
+    objects['failure.json']=canonical(report)
+    require(len(objects)<=2002 and sum(map(len,objects.values()))<=514_000_000,'graph_limit')
+    scan_public(objects,environment)
+    archive=output/FAILED_ARCHIVE_FILE;write_archive(archive,objects)
+    write_new(output/'diagnostic.json',report)
+    if environment.get('GITHUB_OUTPUT'):
+        with open(environment['GITHUB_OUTPUT'],'a') as stream:stream.write('diagnostic_path='+str(archive)+'\ndiagnostic_name=rindle-readiness-failed-diagnostic-'+run+'-'+attempt+'\n')
+    return report
+
+
 def prepare(manifest_path,output,environment=None):
     output=reserve(output);environment=dict(os.environ if environment is None else environment)
     failure={'schema_version':1,'verdict':'not_ready','operation':'prepare','requirements_credit':False}
@@ -77,15 +163,7 @@ def prepare(manifest_path,output,environment=None):
         objects=graph_objects(manifest_path.parent,manifest);objects['manifest.json']=manifest_path.read_bytes()
         scan_public(objects,environment)
         archive=output/ARCHIVE_FILE
-        with open(archive,'xb',opener=lambda p,f:os.open(p,f,0o600)) as raw:
-            with gzip.GzipFile(fileobj=raw,mode='wb',filename='',mtime=0) as compressed:
-                with tarfile.open(fileobj=compressed,mode='w|',format=tarfile.USTAR_FORMAT) as tar:
-                    for name,data in sorted(objects.items()):
-                        require(not name.startswith(('restricted/','../','/')),'unsafe_archive_member')
-                        info=tarfile.TarInfo(name);info.size=len(data);info.mode=0o600;info.mtime=0
-                        tar.addfile(info,io.BytesIO(data))
-            raw.flush();os.fsync(raw.fileno())
-        require(archive.stat().st_size<=250_000_000,'artifact_size_limit')
+        write_archive(archive,objects)
         import secrets
         nonce=secrets.token_hex(8)
         archive_name=f'rindle-readiness-archive-{run}-{attempt}-{nonce}'
@@ -268,10 +346,13 @@ def retrieve(repo,run,attempt,destination,fixture=None):
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);subs=parser.add_subparsers(dest='operation',required=True)
     p=subs.add_parser('prepare');p.add_argument('--manifest',required=True);p.add_argument('--output',required=True)
+    p=subs.add_parser('prepare-failure');p.add_argument('--candidate',required=True);p.add_argument('--output',required=True)
     p=subs.add_parser('retrieve');p.add_argument('--repo',required=True);p.add_argument('--run-id',type=int,required=True);p.add_argument('--attempt',type=int,required=True)
     p.add_argument('--destination',required=True);p.add_argument('--fixture')
     args=parser.parse_args(argv)
     try:
+        if args.operation=='prepare-failure':
+            prepare_failure(args.candidate,args.output);print('diagnostic_only: no acceptance credit');return 0
         value=prepare(args.manifest,args.output) if args.operation=='prepare' else retrieve(args.repo,args.run_id,args.attempt,args.destination,args.fixture)
         print('prepared' if args.operation=='prepare' else 'durable_bytes_verified');return 0
     except (NotReady,OSError,ValueError,KeyError,TypeError,IndexError) as exc:

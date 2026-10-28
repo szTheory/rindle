@@ -12,7 +12,7 @@ import subprocess
 import time
 
 from exact_head_readiness import ROOT, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new
-from readiness_github import GitHub, REMOTE_COLLECTION_SECONDS, json_bytes
+from readiness_github import GitHub, PULL_DIAGNOSTIC_FIELDS, REMOTE_COLLECTION_SECONDS, json_bytes
 from collect_readiness_runs import Collector as RunCollector, policy
 
 LEDGER = '.planning/INBOX-LEDGER.json'
@@ -28,10 +28,14 @@ def stable_records(values, id_key):
 
 
 def pull_decision_identity(value):
-    # The embedded repository's asynchronously updated storage size is not a
-    # change to PR intent, source, checks or repository authority. Keep every
-    # other field (including unknown fields), and retain the original API bytes.
+    # Ignore only GitHub storage telemetry and the generated test-merge identity
+    # of an explicitly open, unmerged PR. GitHub can regenerate that commit on a
+    # GET without changing the reviewed head, base or mergeability. Closed/merged
+    # commit identity and every other known/unknown field remain significant.
+    # The original authenticated API bytes are retained without modification.
     result=dict(value)
+    if value.get('state')=='open' and value.get('merged') is False:
+        result.pop('merge_commit_sha',None)
     for side in ('head','base'):
         ref=value.get(side)
         if isinstance(ref,dict) and isinstance(ref.get('repo'),dict):
@@ -54,6 +58,7 @@ class RemoteCollector:
         self.command_count=0
         self.inputs={}
         self.current_source="repository"
+        self.pull_inputs={}
 
     def main(self):
         if self.snapshot:
@@ -203,6 +208,7 @@ class RemoteCollector:
         prs=[];checks=[];statuses=[]
         for listed_pr in listed:
             n=listed_pr['number'];p,_=self.api.get(self.api.path('pulls/'+str(n)))
+            self.pull_inputs.setdefault(self.observation,{})[n]=p
             head=p.get('head',{}).get('sha')
             require(p.get('number')==n and p.get('state')=='open' and re.fullmatch(r'[0-9a-f]{40}',head or '') and
                     p.get('base',{}).get('repo',{}).get('full_name')==self.repo and p['base'].get('ref')=='main' and
@@ -426,6 +432,17 @@ class RemoteCollector:
                 # Fixed source names only: no private titles, bodies, advisories
                 # or API response fragments may escape through diagnostics.
                 verdict['changed_sources']=[name for name in before if before[name]!=after[name]]
+                # Fixed schema names and numeric PR IDs only. In particular, a
+                # private title/body, label value or unknown key cannot escape.
+                if 'pulls' in verdict['changed_sources']:
+                    left=self.pull_inputs.get(1,{});right=self.pull_inputs.get(2,{})
+                    changes=[]
+                    for number in sorted(left.keys() & right.keys()):
+                        fields={key if key in PULL_DIAGNOSTIC_FIELDS else 'other'
+                            for key in left[number].keys() | right[number].keys()
+                            if key not in left[number] or key not in right[number] or left[number].get(key)!=right[number].get(key)}
+                        if fields:changes.append({'number':number,'fields':sorted(fields)})
+                    verdict['pull_changes']=changes
             require(before==after,'remote_state_changed')
             interval={'started_at':started,'completed_at':now()}
             # Portable records carry identity and coverage, never private bodies, titles, or tokens.

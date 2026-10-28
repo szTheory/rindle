@@ -1494,8 +1494,8 @@ jobs:
     name: CI Script Tests
     timeout-minutes: 5
     runs-on: ubuntu-22.04
-    # CI gate scripts and parser-only readiness fixtures run in two bounded groups.
-    # Both groups must pass. Pins the CI Summary skip-as-pass logic (the fork "pending forever"
+    # CI gate scripts and parser-only readiness fixtures run in three bounded groups.
+    # All groups must pass. Pins the CI Summary skip-as-pass logic (the fork "pending forever"
     # fix) so it is merge-blocking. Gated transitively via ci-summary's needs:, not
     # as its own required context — CI Summary stays the single required check.
     steps:
