@@ -2,6 +2,17 @@
 
 0.1.0-0.1.3 were release-pipeline shakedown iterations; treat 0.1.4 as the first recommended pin.
 
+## [0.4.14](https://github.com/szTheory/rindle/compare/rindle-v0.4.13...rindle-v0.4.14) (2026-10-29)
+
+
+### Bug Fixes
+
+* qualify immutable readiness snapshots while main advances ([#182](https://github.com/szTheory/rindle/issues/182)) ([968113a](https://github.com/szTheory/rindle/commit/968113aa2bb73bc5180fbba59a0da5b4a13e6d60))
+* **readiness:** join fresh mutable evidence after native qualification ([#209](https://github.com/szTheory/rindle/issues/209)) ([672342e](https://github.com/szTheory/rindle/commit/672342eb25f8b1a952517ebb9c979fe0fee631f2))
+* **readiness:** load Doctor host and fit the full seed collection ([#205](https://github.com/szTheory/rindle/issues/205)) ([406de08](https://github.com/szTheory/rindle/commit/406de086f241fcdbad32c1a7fb1f3d4572f5b90f))
+* **readiness:** qualify snapshots without per-source cron waits ([#197](https://github.com/szTheory/rindle/issues/197)) ([61131fd](https://github.com/szTheory/rindle/commit/61131fd2c707e69cb91724db07e8cf75e5be2614))
+* **readiness:** retain sanitized async first-red diagnostics ([#215](https://github.com/szTheory/rindle/issues/215)) ([8ea9820](https://github.com/szTheory/rindle/commit/8ea98203d6543f5c19cee2db0095fd2f624e64c6))
+
 ## [0.4.13](https://github.com/szTheory/rindle/compare/rindle-v0.4.12...rindle-v0.4.13) (2026-10-25)
 
 
