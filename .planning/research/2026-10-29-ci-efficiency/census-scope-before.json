@@ -1,0 +1,22 @@
+{
+  "scope": "actual run_script helper AST-derived probe, executed with fresh Mix child",
+  "parent_before": {
+    "normal": 4,
+    "dirty_cpu": 4,
+    "dirty_io": 10,
+    "flags": "+S 4:4"
+  },
+  "child": {
+    "normal": 4,
+    "dirty_cpu": 4,
+    "dirty_io": 10,
+    "flags": "+S 4:4"
+  },
+  "parent_after": {
+    "normal": 4,
+    "dirty_cpu": 4,
+    "dirty_io": 10,
+    "flags": "+S 4:4"
+  },
+  "observation": "Executed during A1; this short extra process is recorded as potential A1 contention rather than silently excluded."
+}

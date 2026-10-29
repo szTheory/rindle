@@ -70,11 +70,11 @@ Current remote-source and authority facts stay fresh. Completion records
 must name the historical subject, interval and durable locator; later main gains no credit.
 No requirement is closed by this policy amendment or its implementation fixtures.
 
-- [ ] **READY-01**: One isolated exact-head checkout passes supported toolchains, formatting, compilation, Credo, Dialyzer, Doctor, coverage, security, docs, package, generated-consumer, twin, and repository-hygiene gates.
-- [ ] **READY-02**: The selected authenticated previously-main snapshot's full push-main CI and complete same-source Nightly qualification (dispatch or schedule) are green; independently authenticated newest real scheduled incident health is fresh under matching operational controls, and effective branch protection matches the tested workflow topology. Manual qualification cannot supply scheduled recovery.
-- [ ] **READY-03**: Every open remote item and advisory has a current evidence-backed disposition, with no undispositioned release blocker.
-- [ ] **READY-04**: One fail-closed readiness manifest rejects missing, stale, partial, skipped-as-green, foreign-SHA, unclean, or unexplained evidence.
-- [ ] **READY-05**: Milestone closure leaves the named independent Phoenix pilot requirement open and makes no real-adopter or 1.0 claim.
+- [x] **READY-01**: One isolated exact-head checkout passes supported toolchains, formatting, compilation, Credo, Dialyzer, Doctor, coverage, security, docs, package, generated-consumer, twin, and repository-hygiene gates. Historical completion: historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`.
+- [x] **READY-02**: The selected authenticated previously-main snapshot's full push-main CI and complete same-source Nightly qualification (dispatch or schedule) are green; independently authenticated newest real scheduled incident health is fresh under matching operational controls, and effective branch protection matches the tested workflow topology. Manual qualification cannot supply scheduled recovery. Historical completion: historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`.
+- [x] **READY-03**: Every open remote item and advisory has a current evidence-backed disposition, with no undispositioned release blocker. Historical completion: historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`.
+- [x] **READY-04**: One fail-closed readiness manifest rejects missing, stale, partial, skipped-as-green, foreign-SHA, unclean, or unexplained evidence. Historical completion: historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`.
+- [x] **READY-05**: Milestone closure leaves the named independent Phoenix pilot requirement open and makes no real-adopter or 1.0 claim. Historical completion: historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`.
 
 ## Future Requirements
 
@@ -143,11 +143,11 @@ No requirement is closed by this policy amendment or its implementation fixtures
 | RECOV-04 | Phase 138 | Complete |
 | RECOV-05 | Phase 138 | Complete |
 | RECOV-06 | Phase 138 | Complete |
-| READY-01 | Phase 139 | Pending |
-| READY-02 | Phase 139 | Pending |
-| READY-03 | Phase 139 | Pending |
-| READY-04 | Phase 139 | Pending |
-| READY-05 | Phase 139 | Pending |
+| READY-01 | Phase 139 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |
+| READY-02 | Phase 139 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |
+| READY-03 | Phase 139 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |
+| READY-04 | Phase 139 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |
+| READY-05 | Phase 139 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |
 
 **Coverage:**
 

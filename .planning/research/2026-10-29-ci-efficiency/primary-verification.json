@@ -1,0 +1,22 @@
+{
+  "schema": "rindle-research-verification-v1",
+  "date": "2026-10-29",
+  "scope": "primary-and-adversarial.md and primary-source-inventory.json",
+  "checks": [
+    {
+      "name": "source identities, links, seed matrix and report boundaries",
+      "status": "fulfilled",
+      "exit_code": 0,
+      "output": "PASS: 11 source digests, local links, exact 25 seeds, no-credit/ownership/pilot boundaries, whitespace\nReport words: 3132\n"
+    },
+    {
+      "name": "automation-first active Phase139",
+      "status": "fulfilled",
+      "exit_code": 0,
+      "output": "[automation-first] automation-first contract passed for /Users/jon/projects/rindle/.claude/worktrees/phase139-development/.planning/phases/139-exact-head-readiness-closure\n"
+    }
+  ],
+  "limitations": [
+    "Documentation/source checks only; no implementation, timing benchmark, hosted acceptance, billing savings or qualification credit."
+  ]
+}

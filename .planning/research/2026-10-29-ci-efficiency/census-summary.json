@@ -1,0 +1,108 @@
+{
+  "schema": "rindle-census-local-abba-v1",
+  "scope": "bounded local module experiment only; no hosted/CI16/READY credit",
+  "base_sha": "aeb8cf646f920b15c369e703e1a45ac3b30aaf87",
+  "source_sha256_restored": "7dea3984b8f524e09c02ca94ba375b35fd98c72d47f937a601a8715a11d6f00b",
+  "source_matches_committed_HEAD": true,
+  "runtime": {
+    "elixir": "1.17.3",
+    "otp": "27.3.4.15",
+    "parent_ERL_FLAGS": "+S 4:4",
+    "os": "Darwin",
+    "machine": "arm64"
+  },
+  "seed": 173,
+  "max_cases": 8,
+  "rows": [
+    {
+      "variant": "A1",
+      "elapsed_seconds": 92.030303459,
+      "exit": 0,
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "--no-deps-check",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase139-development/.planning/research/2026-10-29-ci-efficiency/census-runner.exs"
+      ],
+      "parent_ERL_FLAGS": "+S 4:4",
+      "source_sha256": "7dea3984b8f524e09c02ca94ba375b35fd98c72d47f937a601a8715a11d6f00b",
+      "captured_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cases": "census-A1-cases.json",
+      "case_count": 23,
+      "sum_case_seconds": 84.951651
+    },
+    {
+      "variant": "B1",
+      "elapsed_seconds": 90.884467167,
+      "exit": 0,
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "--no-deps-check",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase139-development/.planning/research/2026-10-29-ci-efficiency/census-runner.exs"
+      ],
+      "parent_ERL_FLAGS": "+S 4:4",
+      "source_sha256": "db5ef9c0b63a4649fe98cd091efa72c61d3efd424166776a84e9d75f21a151f3",
+      "captured_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cases": "census-B1-cases.json",
+      "case_count": 23,
+      "sum_case_seconds": 83.704725
+    },
+    {
+      "variant": "B2",
+      "elapsed_seconds": 75.378255875,
+      "exit": 0,
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "--no-deps-check",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase139-development/.planning/research/2026-10-29-ci-efficiency/census-runner.exs"
+      ],
+      "parent_ERL_FLAGS": "+S 4:4",
+      "source_sha256": "db5ef9c0b63a4649fe98cd091efa72c61d3efd424166776a84e9d75f21a151f3",
+      "captured_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cases": "census-B2-cases.json",
+      "case_count": 23,
+      "sum_case_seconds": 69.595558
+    },
+    {
+      "variant": "A2",
+      "elapsed_seconds": 88.55065108300002,
+      "exit": 0,
+      "argv": [
+        "mix",
+        "run",
+        "--no-start",
+        "--no-compile",
+        "--no-deps-check",
+        "/Users/jon/projects/rindle/.claude/worktrees/phase139-development/.planning/research/2026-10-29-ci-efficiency/census-runner.exs"
+      ],
+      "parent_ERL_FLAGS": "+S 4:4",
+      "source_sha256": "7dea3984b8f524e09c02ca94ba375b35fd98c72d47f937a601a8715a11d6f00b",
+      "captured_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cases": "census-A2-cases.json",
+      "case_count": 23,
+      "sum_case_seconds": 82.237774
+    }
+  ],
+  "original_case_exit_diagnostic_assertion_parity": "23 identical test identifiers passed in all four runs; all original within-test CLI exit/diagnostic assertions retained; full volatile subprocess output not byte-compared",
+  "baseline_mean_seconds": 90.29047727100001,
+  "capped_mean_seconds": 83.131361521,
+  "descriptive_mean_difference_seconds": 7.159115750000012,
+  "descriptive_mean_fraction": 0.07928982065863344,
+  "decision": "restore original helper; no consistent worthwhile benefit established",
+  "uncertainties": [
+    "Two observations per variant, host/cache effects unknown.",
+    "Brief extra scope probe ran during A1, potentially adding contention.",
+    "B1 was slower than final uncapped A2; B2 improvement was not consistent.",
+    "Module-only no coverage instrumentation or shared-run suite contention; cannot project savings to25 seeds."
+  ],
+  "scope_probe": "census-scope-after.json",
+  "source_after_git_diff": ""
+}

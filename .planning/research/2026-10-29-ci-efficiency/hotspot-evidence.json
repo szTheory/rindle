@@ -1,0 +1,171 @@
+{
+  "schema": "rindle-ci-hotspots-research-v1",
+  "requirements_credit": false,
+  "diagnostic": {
+    "path": "/private/tmp/rindle-seed173-coverage-diagnostic-20261029.log",
+    "sha256": "0b4a1f94356be2b4ba550a67dc308bca16d02556f2f5f1366333c3b3719b6ae7",
+    "provenance": "User-attributed repair head7a5, seed173,1770tests+3doctests,435s; diagnostic only, not acceptance or a same-input hosted comparison",
+    "top20_seconds": 186.2993,
+    "rows": [
+      {
+        "test_identifier": "test reductions run a current subject behavior test and reject stale failing or recursive proof",
+        "module": "Rindle.CredoPolicyTest",
+        "duration_ms": 25335.4,
+        "source_location": "test/install_smoke/credo_policy_test.exs:175"
+      },
+      {
+        "test_identifier": "test aggregate rejects added, deleted, changed, and count-drift baseline identities",
+        "module": "Rindle.CredoPolicyTest",
+        "duration_ms": 17122.8,
+        "source_location": "test/install_smoke/credo_policy_test.exs:94"
+      },
+      {
+        "test_identifier": "test digest-consistent caller-authored results cannot prove package execution",
+        "module": "Rindle.InstallSmoke.LiveTruthParityTest",
+        "duration_ms": 12551.6,
+        "source_location": "test/install_smoke/live_truth_parity_test.exs:655"
+      },
+      {
+        "test_identifier": "test metric ceilings preserve duplicate identities and ignore ordering",
+        "module": "Rindle.CredoPolicyTest",
+        "duration_ms": 10983.5,
+        "source_location": "test/install_smoke/credo_policy_test.exs:147"
+      },
+      {
+        "test_identifier": "test candidate set changes and unexplained observation transitions fail closed",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 10580.6,
+        "source_location": "test/install_smoke/evidence_census_test.exs:315"
+      },
+      {
+        "test_identifier": "test mixed applicability preserves exact authority for every applicable detector",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 9924.4,
+        "source_location": "test/install_smoke/evidence_census_test.exs:262"
+      },
+      {
+        "test_identifier": "test one complete package claim consumes and normalizes the receipt argument",
+        "module": "Rindle.InstallSmoke.LiveTruthParityTest",
+        "duration_ms": 9812.6,
+        "source_location": "test/install_smoke/live_truth_parity_test.exs:1143"
+      },
+      {
+        "test_identifier": "test empty inventories and reductions have explicit evidence requirements",
+        "module": "Rindle.CredoPolicyTest",
+        "duration_ms": 9348.7,
+        "source_location": "test/install_smoke/credo_policy_test.exs:162"
+      },
+      {
+        "test_identifier": "test candidate identity and disposition mutations fail closed",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 8094.4,
+        "source_location": "test/install_smoke/evidence_census_test.exs:215"
+      },
+      {
+        "test_identifier": "test caller supplied fake package evidence is rejected against the exact release version",
+        "module": "Rindle.InstallSmoke.LiveTruthParityTest",
+        "duration_ms": 7515.7,
+        "source_location": "test/install_smoke/live_truth_parity_test.exs:639"
+      },
+      {
+        "test_identifier": "test receipt mutations cannot forge counts source runtime local success or payload",
+        "module": "Rindle.CoverageFloorPolicyTest",
+        "duration_ms": 7431.2,
+        "source_location": "test/install_smoke/coverage_floor_policy_test.exs:34"
+      },
+      {
+        "test_identifier": "test permanent API rate limits terminalize owned state and preserve receipt evidence",
+        "module": "Rindle.InstallSmoke.CiTimingAutomationTest",
+        "duration_ms": 7423.3,
+        "source_location": "test/install_smoke/ci_timing_automation_test.exs:281"
+      },
+      {
+        "test_identifier": "test a caller supplied trivial package cannot stand in for the committed Rindle package",
+        "module": "Rindle.InstallSmoke.LiveTruthParityTest",
+        "duration_ms": 7102.0,
+        "source_location": "test/install_smoke/live_truth_parity_test.exs:1171"
+      },
+      {
+        "test_identifier": "test aggregate passes the reviewed tree and fails before later profiles on a warning anywhere in test",
+        "module": "Rindle.CredoPolicyTest",
+        "duration_ms": 6988.2,
+        "source_location": "test/install_smoke/credo_policy_test.exs:76"
+      },
+      {
+        "test_identifier": "test taxonomy and observation assignment mutations fail closed",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 6716.1,
+        "source_location": "test/install_smoke/evidence_census_test.exs:136"
+      },
+      {
+        "test_identifier": "test stale malformed and failed local outputs never qualify",
+        "module": "Rindle.CoverageFloorPolicyTest",
+        "duration_ms": 6524.5,
+        "source_location": "test/install_smoke/coverage_floor_policy_test.exs:67"
+      },
+      {
+        "test_identifier": "test --regen-baseline is byte-idempotent and reproduces the committed shards",
+        "module": "Rindle.InstallSmoke.LiveResidueScanTest",
+        "duration_ms": 6454.9,
+        "source_location": "test/install_smoke/live_residue_scan_test.exs:402"
+      },
+      {
+        "test_identifier": "test validator independently rejects lexical and symlink observation escapes",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 5815.1,
+        "source_location": "test/install_smoke/evidence_census_test.exs:496"
+      },
+      {
+        "test_identifier": "test inapplicability requires an allowlisted dimension and exact bounded reason",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 5476.7,
+        "source_location": "test/install_smoke/evidence_census_test.exs:285"
+      },
+      {
+        "test_identifier": "test collector rejects invalid detector input physical shapes",
+        "module": "Rindle.InstallSmoke.EvidenceCensusTest",
+        "duration_ms": 5097.6,
+        "source_location": "test/install_smoke/evidence_census_test.exs:544"
+      }
+    ],
+    "top20_module_seconds": {
+      "Rindle.CredoPolicyTest": 69.7786,
+      "Rindle.InstallSmoke.LiveTruthParityTest": 36.9819,
+      "Rindle.InstallSmoke.EvidenceCensusTest": 51.7049,
+      "Rindle.CoverageFloorPolicyTest": 13.9557,
+      "Rindle.InstallSmoke.CiTimingAutomationTest": 7.4233,
+      "Rindle.InstallSmoke.LiveResidueScanTest": 6.4549
+    }
+  },
+  "retained_coverage": {
+    "subject_sha": "bb0341a07ebf58b556aff4bcfa84003673d0151f",
+    "manifest_sha256": "687495cf43220e872e5c7ec122583e7eab17cab72874b474e110b28723f9b232",
+    "receipt_sha256": "5b79ecb3c79e92db36cb71d4341b43680b7c71cd42d218eb6a3e5e9de1e2f648",
+    "output_sha256": "86b1e806f55702979fd599372ec537222f4fcfdda675cb546ab16515f9658e5d",
+    "output_reference": "logs/command-0032.txt",
+    "all_referenced_hashes_checked_before_extraction": true,
+    "slowest_section_present": false,
+    "command_argv": [
+      "mix",
+      "coveralls.multiple",
+      "--type",
+      "local",
+      "--type",
+      "json"
+    ],
+    "duration_ms": 408782
+  },
+  "review_source_sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+  "review_source_sha256": {
+    "test/install_smoke/credo_policy_test.exs": "0abb61443acf376237bd3166f350c1b78cb1a8c72f4b050ce5d890bf9193d5fd",
+    "test/install_smoke/evidence_census_test.exs": "7dea3984b8f524e09c02ca94ba375b35fd98c72d47f937a601a8715a11d6f00b",
+    "test/install_smoke/coverage_floor_policy_test.exs": "ffb564db32784367d719aebb06916ea9b75d1e1ba70f2aaea964cba7670965a5",
+    "test/install_smoke/live_truth_parity_test.exs": "cfca8dd278d1e0b7ac607933fa16ec6603d924b2118a42807568068f99fcd303",
+    "scripts/maintainer/credo_quality.sh": "3e800387c80811af022469344bd3d1e9555247b4518b2d73394f3d024f7280d4",
+    "scripts/maintainer/credo_quality_normalize.exs": "b0bda6920b30dc6ddb23f1b15383a14ea3236151d1ad5b9d051f998a30bce9a0",
+    "scripts/maintainer/evidence_census.exs": "68c82368f5210762b9833a25806081c98d3b40cb93f556d3aba05c9f561de41e",
+    "scripts/maintainer/validate_evidence_census.exs": "215aa00cf0a374b6efcc83ffdc74d5f215d7796cd8456cfda2217e17422d9e81",
+    "scripts/maintainer/verify_coverage_floor.exs": "7c5fa424adf48cecf113591252f4561805ab683b02dc20376e992425bb1e3d4d",
+    "scripts/maintainer/validate_live_truth.exs": "4115a06fa5885dcbe12e689bf81d22f8fef2e1784e5bbc103a9976ad89a25d68"
+  }
+}

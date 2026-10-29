@@ -1,0 +1,4386 @@
+[
+  {
+    "run_id": 40852085909,
+    "event": "pull_request",
+    "name": "CI",
+    "attempt": 1,
+    "sha": "9f64eae384309d032ad432350b31ca58530310c5",
+    "conclusion": "success",
+    "created_to_last_job_s": 764.0,
+    "first_start_to_last_job_s": 762.0,
+    "summed_job_s": 2948.0,
+    "jobs": [
+      {
+        "name": "Package Consumer Proof Matrix + Release Preflight",
+        "runtime_s": 242.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 244.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 13.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 16.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 10.0
+          },
+          {
+            "name": "Run built-artifact image-only package-consumer proof against MinIO",
+            "s": 177.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Script Tests",
+        "runtime_s": 259.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 261.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          },
+          {
+            "name": "Set up fixture parser runtime",
+            "s": 6.0
+          },
+          {
+            "name": "Prepare only root-lock Jason and yamerl",
+            "s": 7.0
+          },
+          {
+            "name": "Await existing contracts and readiness fixtures",
+            "s": 239.0
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.15, 26)",
+        "runtime_s": 442.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 445.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 15.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 31.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 11.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 5.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 5.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 342.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.17, 27)",
+        "runtime_s": 44.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 47.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 23.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.15, 26)",
+        "runtime_s": 41.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 44.0,
+        "step_s": [
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 19.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.17, 27, true)",
+        "runtime_s": 615.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 618.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 20.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 14.0
+          },
+          {
+            "name": "Install dependencies (lock-verified)",
+            "s": 1.0
+          },
+          {
+            "name": "Check for unused deps",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Check formatting",
+            "s": 1.0
+          },
+          {
+            "name": "Credo quality",
+            "s": 6.0
+          },
+          {
+            "name": "Doctor (full, raise)",
+            "s": 89.0
+          },
+          {
+            "name": "Credo (strict, advisory style)",
+            "s": 9.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 6.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 6.0
+          },
+          {
+            "name": "Audit dependencies (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Audit Hex advisories (advisory)",
+            "s": 2.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 413.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 2.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo E2E Smoke",
+        "runtime_s": 230.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 232.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 3.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 21.0
+          },
+          {
+            "name": "Checkout",
+            "s": 4.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 15.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 5.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 50.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 14.0
+          },
+          {
+            "name": "Install root dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for adoption demo",
+            "s": 8.0
+          },
+          {
+            "name": "Run adoption demo Playwright suite (pinned container, smoke subset)",
+            "s": 103.0
+          },
+          {
+            "name": "Post Set up Node",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Contract",
+        "runtime_s": 105.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 108.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 18.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile",
+            "s": 2.0
+          },
+          {
+            "name": "Run contract tests",
+            "s": 21.0
+          },
+          {
+            "name": "Run SAFE-01 preservation contract",
+            "s": 14.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Integration",
+        "runtime_s": 138.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 141.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 2.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 22.0
+          },
+          {
+            "name": "Checkout",
+            "s": 4.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 14.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 31.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run integration tests",
+            "s": 37.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Proof",
+        "runtime_s": 537.0,
+        "start_offset_s": 50.0,
+        "finish_offset_s": 587.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips for the generated image consumer",
+            "s": 26.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 2.0
+          },
+          {
+            "name": "Compile",
+            "s": 1.0
+          },
+          {
+            "name": "Run docs parity tests",
+            "s": 7.0
+          },
+          {
+            "name": "Set up MinIO for the package authority proof",
+            "s": 5.0
+          },
+          {
+            "name": "Install the pinned Phoenix generator for the package authority proof",
+            "s": 3.0
+          },
+          {
+            "name": "Run adoption proof matrix drift gate",
+            "s": 299.0
+          },
+          {
+            "name": "Run Nightly evidence harnesses",
+            "s": 151.0
+          },
+          {
+            "name": "Run batch owner erasure task proof",
+            "s": 6.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "brandbook-tokens",
+        "runtime_s": 53.0,
+        "start_offset_s": 621.0,
+        "finish_offset_s": 674.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 5.0
+          },
+          {
+            "name": "Install adoption_demo node deps (playwright resolution anchor)",
+            "s": 1.0
+          },
+          {
+            "name": "Install Playwright chromium",
+            "s": 30.0
+          },
+          {
+            "name": "Run admin gallery browser proof",
+            "s": 8.0
+          },
+          {
+            "name": "Fail on generated-artifact drift",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adopter",
+        "runtime_s": 95.0,
+        "start_offset_s": 621.0,
+        "finish_offset_s": 716.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 25.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 2.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 7.0
+          },
+          {
+            "name": "Run adopter tests",
+            "s": 9.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo Unit",
+        "runtime_s": 132.0,
+        "start_offset_s": 621.0,
+        "finish_offset_s": 753.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 21.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 17.0
+          },
+          {
+            "name": "Run adoption demo ExUnit suite",
+            "s": 57.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Observability",
+        "runtime_s": 6.0,
+        "start_offset_s": 755.0,
+        "finish_offset_s": 761.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Summarize native per-job and per-step durations",
+            "s": 4.0
+          }
+        ]
+      },
+      {
+        "name": "CI Summary",
+        "runtime_s": 9.0,
+        "start_offset_s": 755.0,
+        "finish_offset_s": 764.0,
+        "step_s": [
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40857874414,
+    "event": "pull_request",
+    "name": "CI",
+    "attempt": 1,
+    "sha": "2638971c343dcded5aed1b2feab7064609a3f66c",
+    "conclusion": "success",
+    "created_to_last_job_s": 577.0,
+    "first_start_to_last_job_s": 575.0,
+    "summed_job_s": 2735.0,
+    "jobs": [
+      {
+        "name": "Contract",
+        "runtime_s": 104.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 106.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 14.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 25.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile",
+            "s": 1.0
+          },
+          {
+            "name": "Run contract tests",
+            "s": 17.0
+          },
+          {
+            "name": "Run SAFE-01 preservation contract",
+            "s": 10.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          },
+          {
+            "name": "Complete job",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.17, 27)",
+        "runtime_s": 36.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 38.0,
+        "step_s": [
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 7.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 21.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.17, 27, true)",
+        "runtime_s": 371.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 373.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 17.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 26.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 8.0
+          },
+          {
+            "name": "Install dependencies (lock-verified)",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Credo quality",
+            "s": 4.0
+          },
+          {
+            "name": "Doctor (full, raise)",
+            "s": 54.0
+          },
+          {
+            "name": "Credo (strict, advisory style)",
+            "s": 4.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 4.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 3.0
+          },
+          {
+            "name": "Audit dependencies (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Audit Hex advisories (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 229.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.15, 26)",
+        "runtime_s": 42.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 44.0,
+        "step_s": [
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 25.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.15, 26)",
+        "runtime_s": 405.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 407.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 22.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 10.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 5.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 5.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 323.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Integration",
+        "runtime_s": 123.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 125.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 7.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 21.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 2.0
+          },
+          {
+            "name": "Run integration tests",
+            "s": 42.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 2.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo E2E Smoke",
+        "runtime_s": 177.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 179.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 15.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 18.0
+          },
+          {
+            "name": "Install root dependencies",
+            "s": 2.0
+          },
+          {
+            "name": "Set up MinIO for adoption demo",
+            "s": 6.0
+          },
+          {
+            "name": "Run adoption demo Playwright suite (pinned container, smoke subset)",
+            "s": 98.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Script Tests",
+        "runtime_s": 232.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 234.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          },
+          {
+            "name": "Set up fixture parser runtime",
+            "s": 6.0
+          },
+          {
+            "name": "Prepare only root-lock Jason and yamerl",
+            "s": 7.0
+          },
+          {
+            "name": "Await existing contracts and readiness fixtures",
+            "s": 212.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Proof Matrix + Release Preflight",
+        "runtime_s": 421.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 423.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 25.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 2.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 5.0
+          },
+          {
+            "name": "Purge phx.new archive to exercise the cold-runner self-install path",
+            "s": 1.0
+          },
+          {
+            "name": "Run built-artifact image-only package-consumer proof against MinIO",
+            "s": 346.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 2.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Proof",
+        "runtime_s": 519.0,
+        "start_offset_s": 46.0,
+        "finish_offset_s": 565.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips for the generated image consumer",
+            "s": 26.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 2.0
+          },
+          {
+            "name": "Compile",
+            "s": 1.0
+          },
+          {
+            "name": "Run docs parity tests",
+            "s": 7.0
+          },
+          {
+            "name": "Set up MinIO for the package authority proof",
+            "s": 6.0
+          },
+          {
+            "name": "Install the pinned Phoenix generator for the package authority proof",
+            "s": 3.0
+          },
+          {
+            "name": "Run adoption proof matrix drift gate",
+            "s": 298.0
+          },
+          {
+            "name": "Run Nightly evidence harnesses",
+            "s": 136.0
+          },
+          {
+            "name": "Run batch owner erasure task proof",
+            "s": 6.0
+          }
+        ]
+      },
+      {
+        "name": "Adopter",
+        "runtime_s": 101.0,
+        "start_offset_s": 409.0,
+        "finish_offset_s": 510.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 21.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 33.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 10.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 9.0
+          },
+          {
+            "name": "Run adopter tests",
+            "s": 7.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "brandbook-tokens",
+        "runtime_s": 40.0,
+        "start_offset_s": 409.0,
+        "finish_offset_s": 449.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Install adoption_demo node deps (playwright resolution anchor)",
+            "s": 1.0
+          },
+          {
+            "name": "Install Playwright chromium",
+            "s": 23.0
+          },
+          {
+            "name": "Run admin gallery browser proof",
+            "s": 6.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo Unit",
+        "runtime_s": 149.0,
+        "start_offset_s": 409.0,
+        "finish_offset_s": 558.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 25.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 21.0
+          },
+          {
+            "name": "Run adoption demo ExUnit suite",
+            "s": 67.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Observability",
+        "runtime_s": 5.0,
+        "start_offset_s": 568.0,
+        "finish_offset_s": 573.0,
+        "step_s": [
+          {
+            "name": "Summarize native per-job and per-step durations",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Summary",
+        "runtime_s": 10.0,
+        "start_offset_s": 567.0,
+        "finish_offset_s": 577.0,
+        "step_s": [
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          },
+          {
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40853899390,
+    "event": "push",
+    "name": "CI",
+    "attempt": 1,
+    "sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+    "conclusion": "success",
+    "created_to_last_job_s": 1403.0,
+    "first_start_to_last_job_s": 1400.0,
+    "summed_job_s": 5305.0,
+    "jobs": [
+      {
+        "name": "Contract",
+        "runtime_s": 84.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 87.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 18.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Run AV hygiene gate",
+            "s": 1.0
+          },
+          {
+            "name": "Run contract tests",
+            "s": 13.0
+          },
+          {
+            "name": "Run SAFE-01 preservation contract",
+            "s": 8.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.17, 27, true)",
+        "runtime_s": 566.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 569.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 32.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install dependencies (lock-verified)",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Check formatting",
+            "s": 1.0
+          },
+          {
+            "name": "Credo quality",
+            "s": 5.0
+          },
+          {
+            "name": "Doctor (full, raise)",
+            "s": 83.0
+          },
+          {
+            "name": "Credo (strict, advisory style)",
+            "s": 8.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 5.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 6.0
+          },
+          {
+            "name": "Audit dependencies (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Audit Hex advisories (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 2.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 367.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 2.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.17, 27)",
+        "runtime_s": 40.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 43.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 25.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.15, 26)",
+        "runtime_s": 39.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 42.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 23.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 2.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Proof Matrix + Release Preflight",
+        "runtime_s": 270.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 273.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 29.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 7.0
+          },
+          {
+            "name": "Run built-artifact image-only package-consumer proof against MinIO",
+            "s": 198.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo E2E Smoke",
+        "runtime_s": 189.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 192.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 22.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 10.0
+          },
+          {
+            "name": "Install root dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for adoption demo",
+            "s": 7.0
+          },
+          {
+            "name": "Run adoption demo Playwright suite (pinned container, smoke subset)",
+            "s": 111.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.15, 26)",
+        "runtime_s": 524.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 527.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 34.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 2.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 5.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 7.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 421.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 2.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Script Tests",
+        "runtime_s": 258.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 261.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 3.0
+          },
+          {
+            "name": "Set up fixture parser runtime",
+            "s": 11.0
+          },
+          {
+            "name": "Prepare only root-lock Jason and yamerl",
+            "s": 7.0
+          },
+          {
+            "name": "Await existing contracts and readiness fixtures",
+            "s": 233.0
+          }
+        ]
+      },
+      {
+        "name": "Integration",
+        "runtime_s": 136.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 139.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 16.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 7.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 31.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run integration tests",
+            "s": 39.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          },
+          {
+            "name": "Complete job",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Proof",
+        "runtime_s": 569.0,
+        "start_offset_s": 46.0,
+        "finish_offset_s": 615.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 24.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips for the generated image consumer",
+            "s": 33.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile",
+            "s": 1.0
+          },
+          {
+            "name": "Run docs parity tests",
+            "s": 8.0
+          },
+          {
+            "name": "Set up MinIO for the package authority proof",
+            "s": 6.0
+          },
+          {
+            "name": "Install the pinned Phoenix generator for the package authority proof",
+            "s": 3.0
+          },
+          {
+            "name": "Run adoption proof matrix drift gate",
+            "s": 310.0
+          },
+          {
+            "name": "Run Nightly evidence harnesses",
+            "s": 156.0
+          },
+          {
+            "name": "Run batch owner erasure task proof",
+            "s": 6.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adopter",
+        "runtime_s": 87.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 658.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 2.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 22.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 25.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 10.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 7.0
+          },
+          {
+            "name": "Run adopter tests",
+            "s": 7.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (video)",
+        "runtime_s": 373.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 944.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 5.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 32.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 5.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 6.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 180.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 88.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 2.0
+          },
+          {
+            "name": "Post Set up Node",
+            "s": 1.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "brandbook-tokens",
+        "runtime_s": 39.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 610.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Install adoption_demo node deps (playwright resolution anchor)",
+            "s": 1.0
+          },
+          {
+            "name": "Install Playwright chromium",
+            "s": 22.0
+          },
+          {
+            "name": "Run admin gallery browser proof",
+            "s": 6.0
+          },
+          {
+            "name": "Fail on generated-artifact drift",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo Unit",
+        "runtime_s": 138.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 709.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 26.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 19.0
+          },
+          {
+            "name": "Run adoption demo ExUnit suite",
+            "s": 55.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (gcs)",
+        "runtime_s": 175.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 746.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 17.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 15.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 5.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 13.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 89.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 3.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (tus)",
+        "runtime_s": 289.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 860.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 21.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 6.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 5.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 115.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 82.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 3.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Cohort Demo Smoke",
+        "runtime_s": 156.0,
+        "start_offset_s": 572.0,
+        "finish_offset_s": 728.0,
+        "step_s": [
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Run cohort demo cold-start smoke",
+            "s": 149.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo E2E",
+        "runtime_s": 238.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 809.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 7.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 20.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 16.0
+          },
+          {
+            "name": "Install root dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for adoption demo",
+            "s": 7.0
+          },
+          {
+            "name": "Run adoption demo Playwright suite (pinned container)",
+            "s": 156.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (image)",
+        "runtime_s": 832.0,
+        "start_offset_s": 571.0,
+        "finish_offset_s": 1403.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 22.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 6.0
+          },
+          {
+            "name": "Run release preflight",
+            "s": 425.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 5.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 317.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 1.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 2.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (mux)",
+        "runtime_s": 289.0,
+        "start_offset_s": 572.0,
+        "finish_offset_s": 861.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 2.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 6.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 38.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 7.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 5.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 99.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 76.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 3.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Summary",
+        "runtime_s": 7.0,
+        "start_offset_s": 712.0,
+        "finish_offset_s": 719.0,
+        "step_s": [
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 3.0
+          }
+        ]
+      },
+      {
+        "name": "CI Observability",
+        "runtime_s": 7.0,
+        "start_offset_s": 712.0,
+        "finish_offset_s": 719.0,
+        "step_s": [
+          {
+            "name": "Summarize native per-job and per-step durations",
+            "s": 3.0
+          },
+          {
+            "name": "Complete job",
+            "s": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40859417216,
+    "event": "push",
+    "name": "CI",
+    "attempt": 1,
+    "sha": "b2a60c51687293df5498920cc2bddb4e25349251",
+    "conclusion": "success",
+    "created_to_last_job_s": 1224.0,
+    "first_start_to_last_job_s": 1221.0,
+    "summed_job_s": 5050.0,
+    "jobs": [
+      {
+        "name": "CI Script Tests",
+        "runtime_s": 136.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 139.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          },
+          {
+            "name": "Set up fixture parser runtime",
+            "s": 4.0
+          },
+          {
+            "name": "Prepare only root-lock Jason and yamerl",
+            "s": 4.0
+          },
+          {
+            "name": "Await existing contracts and readiness fixtures",
+            "s": 112.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.17, 27)",
+        "runtime_s": 57.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 60.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 7.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 42.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.15, 26)",
+        "runtime_s": 498.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 501.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 17.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 20.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 11.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 6.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 6.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 2.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 418.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Quality (1.17, 27, true)",
+        "runtime_s": 587.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 590.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 16.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install dependencies (lock-verified)",
+            "s": 1.0
+          },
+          {
+            "name": "Check for unused deps",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Check formatting",
+            "s": 1.0
+          },
+          {
+            "name": "Credo quality",
+            "s": 6.0
+          },
+          {
+            "name": "Doctor (full, raise)",
+            "s": 86.0
+          },
+          {
+            "name": "Credo (strict, advisory style)",
+            "s": 9.0
+          },
+          {
+            "name": "Verify AV runtime with public doctor task",
+            "s": 5.0
+          },
+          {
+            "name": "Run focused AV behavior tests",
+            "s": 6.0
+          },
+          {
+            "name": "Audit dependencies (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Audit Hex advisories (advisory)",
+            "s": 1.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 405.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Contract",
+        "runtime_s": 120.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 123.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 29.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile",
+            "s": 1.0
+          },
+          {
+            "name": "Run contract tests",
+            "s": 22.0
+          },
+          {
+            "name": "Run SAFE-01 preservation contract",
+            "s": 13.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Integration",
+        "runtime_s": 122.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 125.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 13.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 7.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 23.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 2.0
+          },
+          {
+            "name": "Run integration tests",
+            "s": 39.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 1.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Proof Matrix + Release Preflight",
+        "runtime_s": 383.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 386.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 10.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 33.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Surface compile profile + schedulers",
+            "s": 2.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 7.0
+          },
+          {
+            "name": "Run built-artifact image-only package-consumer proof against MinIO",
+            "s": 299.0
+          },
+          {
+            "name": "Upload JUnit + coverage artifacts",
+            "s": 2.0
+          },
+          {
+            "name": "Complete job",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo E2E Smoke",
+        "runtime_s": 155.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 158.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 15.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 19.0
+          },
+          {
+            "name": "Install root dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for adoption demo",
+            "s": 6.0
+          },
+          {
+            "name": "Run adoption demo Playwright suite (pinned container, smoke subset)",
+            "s": 77.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "ADMIN-06 Optional Dependencies (1.15, 26)",
+        "runtime_s": 38.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 41.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 22.0
+          },
+          {
+            "name": "Install dependencies without optional packages",
+            "s": 1.0
+          },
+          {
+            "name": "Compile without optional dependencies",
+            "s": 2.0
+          }
+        ]
+      },
+      {
+        "name": "Proof",
+        "runtime_s": 511.0,
+        "start_offset_s": 62.0,
+        "finish_offset_s": 573.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips for the generated image consumer",
+            "s": 16.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile",
+            "s": 1.0
+          },
+          {
+            "name": "Run docs parity tests",
+            "s": 7.0
+          },
+          {
+            "name": "Set up MinIO for the package authority proof",
+            "s": 6.0
+          },
+          {
+            "name": "Install the pinned Phoenix generator for the package authority proof",
+            "s": 4.0
+          },
+          {
+            "name": "Run adoption proof matrix drift gate",
+            "s": 287.0
+          },
+          {
+            "name": "Run Nightly evidence harnesses",
+            "s": 152.0
+          },
+          {
+            "name": "Run batch owner erasure task proof",
+            "s": 5.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Cohort Demo Smoke",
+        "runtime_s": 159.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 751.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Run cohort demo cold-start smoke",
+            "s": 151.0
+          }
+        ]
+      },
+      {
+        "name": "Adopter",
+        "runtime_s": 85.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 677.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 6.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 26.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 9.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO",
+            "s": 9.0
+          },
+          {
+            "name": "Run adopter tests",
+            "s": 7.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo E2E",
+        "runtime_s": 337.0,
+        "start_offset_s": 593.0,
+        "finish_offset_s": 930.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 5.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 29.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 21.0
+          },
+          {
+            "name": "Install root dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for adoption demo",
+            "s": 5.0
+          },
+          {
+            "name": "Run adoption demo Playwright suite (pinned container)",
+            "s": 238.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (image)",
+        "runtime_s": 629.0,
+        "start_offset_s": 595.0,
+        "finish_offset_s": 1224.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 28.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 7.0
+          },
+          {
+            "name": "Run release preflight",
+            "s": 307.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 4.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 230.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 2.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (tus)",
+        "runtime_s": 282.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 874.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 17.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 6.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 6.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 116.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 84.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 3.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Adoption Demo Unit",
+        "runtime_s": 128.0,
+        "start_offset_s": 593.0,
+        "finish_offset_s": 721.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 21.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 20.0
+          },
+          {
+            "name": "Install libvips for native dependency compilation",
+            "s": 15.0
+          },
+          {
+            "name": "Run adoption demo ExUnit suite",
+            "s": 55.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (gcs)",
+        "runtime_s": 198.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 790.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 16.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 5.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 30.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 5.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 12.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 86.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 2.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (mux)",
+        "runtime_s": 218.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 810.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 14.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 31.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 8.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 3.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 68.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 53.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 2.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (video)",
+        "runtime_s": 348.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 940.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 4.0
+          },
+          {
+            "name": "Set up FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 19.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 2.0
+          },
+          {
+            "name": "Set up MinIO for S3-compatible package-consumer proofs",
+            "s": 6.0
+          },
+          {
+            "name": "Repo hygiene gate (release train)",
+            "s": 5.0
+          },
+          {
+            "name": "Run built-artifact package-consumer proof against MinIO",
+            "s": 172.0
+          },
+          {
+            "name": "Verify version alignment (mocking tag)",
+            "s": 83.0
+          },
+          {
+            "name": "Dry-run Hex publish",
+            "s": 3.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "brandbook-tokens",
+        "runtime_s": 48.0,
+        "start_offset_s": 592.0,
+        "finish_offset_s": 640.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Node",
+            "s": 5.0
+          },
+          {
+            "name": "Install adoption_demo node deps (playwright resolution anchor)",
+            "s": 1.0
+          },
+          {
+            "name": "Install Playwright chromium",
+            "s": 26.0
+          },
+          {
+            "name": "Regenerate tokens CSS",
+            "s": 1.0
+          },
+          {
+            "name": "Run admin gallery browser proof",
+            "s": 7.0
+          },
+          {
+            "name": "Fail on generated-artifact drift",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Observability",
+        "runtime_s": 4.0,
+        "start_offset_s": 723.0,
+        "finish_offset_s": 727.0,
+        "step_s": [
+          {
+            "name": "Summarize native per-job and per-step durations",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "CI Summary",
+        "runtime_s": 7.0,
+        "start_offset_s": 723.0,
+        "finish_offset_s": 730.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40857260942,
+    "event": "workflow_dispatch",
+    "name": "Nightly",
+    "attempt": 1,
+    "sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+    "conclusion": "success",
+    "created_to_last_job_s": 523.0,
+    "first_start_to_last_job_s": 520.0,
+    "summed_job_s": 2532.0,
+    "jobs": [
+      {
+        "name": "GCS Soak (real bucket)",
+        "runtime_s": 25.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 28.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.18, 28)",
+        "runtime_s": 319.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 322.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 22.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 8.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 247.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 7.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.18, 27)",
+        "runtime_s": 414.0,
+        "start_offset_s": 4.0,
+        "finish_offset_s": 418.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 9.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 32.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 9.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 326.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 9.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.15, 26)",
+        "runtime_s": 512.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 515.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 18.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 430.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 17.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.17, 27)",
+        "runtime_s": 491.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 494.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 22.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 13.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 406.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 16.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.16, 26)",
+        "runtime_s": 484.0,
+        "start_offset_s": 4.0,
+        "finish_offset_s": 488.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 19.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 20.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 400.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 11.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer GCS Live Proof",
+        "runtime_s": 27.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 30.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Dialyzer",
+        "runtime_s": 254.0,
+        "start_offset_s": 4.0,
+        "finish_offset_s": 258.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 21.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 14.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 21.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Dialyzer (fresh PLT)",
+            "s": 180.0
+          },
+          {
+            "name": "Restore exact PLT cache",
+            "s": 1.0
+          },
+          {
+            "name": "Dialyzer (restored PLT)",
+            "s": 9.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Nightly Summary",
+        "runtime_s": 6.0,
+        "start_offset_s": 517.0,
+        "finish_offset_s": 523.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40695062822,
+    "event": "workflow_dispatch",
+    "name": "Readiness b8582dd18a8b306fdb6d40d5787b7e2f",
+    "attempt": 1,
+    "sha": "52d75bceecc388b3c6e7903e06d7b8e4c14d51d0",
+    "conclusion": "failure",
+    "created_to_last_job_s": 5974.0,
+    "first_start_to_last_job_s": 5970.0,
+    "summed_job_s": 5970.0,
+    "jobs": [
+      {
+        "name": "retain",
+        "runtime_s": 5970.0,
+        "start_offset_s": 4.0,
+        "finish_offset_s": 5974.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 2.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          },
+          {
+            "name": "Bind dispatch to main and require private-source read credentials",
+            "s": 11.0
+          },
+          {
+            "name": "Run erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93",
+            "s": 6.0
+          },
+          {
+            "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+            "s": 4.0
+          },
+          {
+            "name": "Native qualification prerequisites",
+            "s": 149.0
+          },
+          {
+            "name": "Collect authenticated candidate",
+            "s": 5792.0
+          },
+          {
+            "name": "Prepare redacted failure diagnostic",
+            "s": 1.0
+          },
+          {
+            "name": "Retain diagnostic evidence without acceptance credit",
+            "s": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40609107572,
+    "event": "workflow_dispatch",
+    "name": "Readiness 2b11e4828da3fd04f176318ffbeacaf2",
+    "attempt": 1,
+    "sha": "bb0341a07ebf58b556aff4bcfa84003673d0151f",
+    "conclusion": "success",
+    "created_to_last_job_s": 15278.0,
+    "first_start_to_last_job_s": 15275.0,
+    "summed_job_s": 15275.0,
+    "jobs": [
+      {
+        "name": "retain",
+        "runtime_s": 15275.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 15278.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "s": 2.0
+          },
+          {
+            "name": "Bind dispatch to main and require private-source read credentials",
+            "s": 7.0
+          },
+          {
+            "name": "Run erlef/setup-beam@fc68ffb90438ef2936bbb3251622353b3dcb2f93",
+            "s": 10.0
+          },
+          {
+            "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+            "s": 4.0
+          },
+          {
+            "name": "Native qualification prerequisites",
+            "s": 148.0
+          },
+          {
+            "name": "Collect authenticated candidate",
+            "s": 15087.0
+          },
+          {
+            "name": "Prepare redacted archive and separate producer digests",
+            "s": 2.0
+          },
+          {
+            "name": "Upload immutable archive",
+            "s": 8.0
+          },
+          {
+            "name": "Upload separate producer digest sidecar",
+            "s": 1.0
+          },
+          {
+            "name": "Complete job",
+            "s": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "run_id": 40835838272,
+    "event": "schedule",
+    "name": "Nightly",
+    "attempt": 1,
+    "sha": "20224c0272aaf7b3a38bb7366b2e9c196e0b806d",
+    "conclusion": "success",
+    "created_to_last_job_s": 624.0,
+    "first_start_to_last_job_s": 622.0,
+    "summed_job_s": 2761.0,
+    "jobs": [
+      {
+        "name": "Dialyzer",
+        "runtime_s": 191.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 193.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 16.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Dialyzer (fresh PLT)",
+            "s": 131.0
+          },
+          {
+            "name": "Restore exact PLT cache",
+            "s": 2.0
+          },
+          {
+            "name": "Dialyzer (restored PLT)",
+            "s": 7.0
+          }
+        ]
+      },
+      {
+        "name": "Package Consumer GCS Live Proof",
+        "runtime_s": 25.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 28.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Complete job",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.15, 26)",
+        "runtime_s": 499.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 501.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 8.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 17.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 425.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 11.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.16, 26)",
+        "runtime_s": 520.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 523.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 12.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 32.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 15.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 419.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 12.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.17, 27)",
+        "runtime_s": 499.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 502.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 20.0
+          },
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 11.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 31.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 404.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 11.0
+          },
+          {
+            "name": "Post Set up Elixir",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "GCS Soak (real bucket)",
+        "runtime_s": 24.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 26.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Initialize containers",
+            "s": 17.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.18, 28)",
+        "runtime_s": 413.0,
+        "start_offset_s": 2.0,
+        "finish_offset_s": 415.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 7.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 23.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 10.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 337.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 11.0
+          }
+        ]
+      },
+      {
+        "name": "Compat Matrix (1.18, 27)",
+        "runtime_s": 496.0,
+        "start_offset_s": 3.0,
+        "finish_offset_s": 499.0,
+        "step_s": [
+          {
+            "name": "Initialize containers",
+            "s": 18.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          },
+          {
+            "name": "Set up Elixir",
+            "s": 17.0
+          },
+          {
+            "name": "Install libvips",
+            "s": 25.0
+          },
+          {
+            "name": "Install FFmpeg",
+            "s": 12.0
+          },
+          {
+            "name": "Install dependencies",
+            "s": 1.0
+          },
+          {
+            "name": "Compile (warnings as errors)",
+            "s": 1.0
+          },
+          {
+            "name": "Run tests with coverage",
+            "s": 404.0
+          },
+          {
+            "name": "Subprocess :epipe cleanup canary (advisory)",
+            "s": 11.0
+          },
+          {
+            "name": "Stop containers",
+            "s": 1.0
+          }
+        ]
+      },
+      {
+        "name": "Nightly Summary",
+        "runtime_s": 7.0,
+        "start_offset_s": 526.0,
+        "finish_offset_s": 533.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Checkout",
+            "s": 2.0
+          }
+        ]
+      },
+      {
+        "name": "Persist Nightly Incident Verdict",
+        "runtime_s": 5.0,
+        "start_offset_s": 535.0,
+        "finish_offset_s": 540.0,
+        "step_s": [
+          {
+            "name": "Set up job",
+            "s": 1.0
+          },
+          {
+            "name": "Upload immutable Nightly verdict event",
+            "s": 2.0
+          }
+        ]
+      },
+      {
+        "name": "Nightly Incident Lifecycle",
+        "runtime_s": 82.0,
+        "start_offset_s": 542.0,
+        "finish_offset_s": 624.0,
+        "step_s": [
+          {
+            "name": "Checkout",
+            "s": 3.0
+          },
+          {
+            "name": "Resolve current remote default-branch SHA",
+            "s": 3.0
+          },
+          {
+            "name": "Manage scheduled Nightly incident",
+            "s": 72.0
+          },
+          {
+            "name": "Upload authenticated Nightly replay checkpoint",
+            "s": 1.0
+          },
+          {
+            "name": "Post Checkout",
+            "s": 1.0
+          }
+        ]
+      }
+    ]
+  }
+]

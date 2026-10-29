@@ -1,0 +1,502 @@
+{
+  "schema": "rindle-current-acceptance-timing-research-v1",
+  "requirements_credit": false,
+  "numeric_ci16_credit": false,
+  "source_directory": "/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029",
+  "subject_sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+  "producer": {
+    "run_id": 40864930767,
+    "run_attempt": 1
+  },
+  "observed_terminal": {
+    "verdict": "ready",
+    "acceptance_scope": "historical",
+    "current_readiness": false,
+    "current_main_sha": "b2a60c51687293df5498920cc2bddb4e25349251",
+    "evidence_mode": "execution"
+  },
+  "verification": {
+    "terminal_sha256": "3a4a2c03b49474bd6118d65386b223ade7555738731469ce8180defb5da9b9c5",
+    "terminal_references": [
+      {
+        "role": "archive",
+        "path": "durable/readiness-evidence.tar.gz",
+        "sha256": "8737a63f9e0ac931383e77fb841620692cf447814577984c76ad59d714758f91"
+      },
+      {
+        "role": "locator",
+        "path": "durable/locator.json",
+        "sha256": "78dda6ae33a3462ed4384828cedb3d058ac19275ae5f45e624473178123ce4ba"
+      },
+      {
+        "role": "manifest",
+        "path": "durable/bundle/manifest.json",
+        "sha256": "78dacc1381ba6fe3f02c90199d6bb31982886f984a7e33a00436397421b5ca61"
+      },
+      {
+        "role": "refresh_envelope",
+        "path": "refresh/portable/refresh-envelope.json",
+        "sha256": "63e4f3d10e3f85f664740737fb8cfc382ac7a7242e159187b2bc524336c0f246"
+      },
+      {
+        "role": "refresh_manifest",
+        "path": "refresh/portable/manifest.json",
+        "sha256": "78dacc1381ba6fe3f02c90199d6bb31982886f984a7e33a00436397421b5ca61"
+      },
+      {
+        "role": "sidecar",
+        "path": "durable/readiness-digest.json",
+        "sha256": "34c5a6915168e4c584a768d7b0f1c5e131f67603362ca38974027e96e7a30b28"
+      },
+      {
+        "role": "subject",
+        "path": "subject.json",
+        "sha256": "342e61388d022bd6019c5e40e672891596263856392347292a5502063cf2a72e"
+      },
+      {
+        "role": "validator",
+        "path": "terminal-validation/refresh-validation.json",
+        "sha256": "706ceb673905492240ecacac7b813d16f2ceedeb7d4cac3a93f4a8ddcbb65775"
+      }
+    ],
+    "manifest_and_receipt_reference_files_verified": 158,
+    "sidecar_locator_digest_crosschecks": true,
+    "refresh_manifest_byte_identical": true
+  },
+  "nested_intervals": {
+    "controller_terminal": {
+      "interval": {
+        "completed_at": "2026-10-29T15:56:53.252718Z",
+        "started_at": "2026-10-29T11:22:36.801043Z"
+      },
+      "wall_s": 16456.451675
+    },
+    "producer_candidate": {
+      "interval": {
+        "completed_at": "2026-10-29T15:41:32.819768Z",
+        "started_at": "2026-10-29T11:25:40.642311Z"
+      },
+      "wall_s": 15352.177457
+    },
+    "host_refresh_envelope": {
+      "interval": {
+        "completed_at": "2026-10-29T15:56:29.210344Z",
+        "started_at": "2026-10-29T15:42:24.092120Z"
+      },
+      "wall_s": 845.118224
+    },
+    "native_receipt_command_sum": {
+      "duration_ms": 13989972,
+      "note": "Sum of18 native receipt commands, nested within candidate interval; excludes setup, acquisition and cleanup gaps."
+    },
+    "native_first_to_last_receipt_span_s": 13999.525764
+  },
+  "native_gates": [
+    {
+      "id": "async-isolation",
+      "duration_ms": 11512939,
+      "timestamp_duration_s": 11512.939834,
+      "interval": {
+        "completed_at": "2026-10-29T15:22:16.228866Z",
+        "started_at": "2026-10-29T12:10:23.289032Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/async-isolation.json",
+        "sha256": "7ceb83ee51afc8714de0d0fa8272049fd48082279ccd3caa01fe48130bf50157"
+      }
+    },
+    {
+      "id": "twin-recovery",
+      "duration_ms": 697699,
+      "timestamp_duration_s": 697.69941,
+      "interval": {
+        "completed_at": "2026-10-29T11:59:53.530429Z",
+        "started_at": "2026-10-29T11:48:15.831019Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/twin-recovery.json",
+        "sha256": "1a19f391d1311be7a711a295048a740adb4f5532a532fb4cf4cd94dc699c3e4e"
+      }
+    },
+    {
+      "id": "contributor-bootstrap",
+      "duration_ms": 622665,
+      "timestamp_duration_s": 622.665218,
+      "interval": {
+        "completed_at": "2026-10-29T12:10:23.288248Z",
+        "started_at": "2026-10-29T12:00:00.623030Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/contributor-bootstrap.json",
+        "sha256": "a8a2b379ac3b1116288b0220450e7506e8791d9030e31006abb226757bf2de88"
+      }
+    },
+    {
+      "id": "coverage",
+      "duration_ms": 423057,
+      "timestamp_duration_s": 423.057925,
+      "interval": {
+        "completed_at": "2026-10-29T11:45:03.051252Z",
+        "started_at": "2026-10-29T11:37:59.993327Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/coverage.json",
+        "sha256": "5ec7ee70f98d12f451f7a5a893a43045c938acfd850387b4d06c00979245f2d9"
+      }
+    },
+    {
+      "id": "release-truth",
+      "duration_ms": 301753,
+      "timestamp_duration_s": 301.753216,
+      "interval": {
+        "completed_at": "2026-10-29T15:27:18.037436Z",
+        "started_at": "2026-10-29T15:22:16.284220Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/release-truth.json",
+        "sha256": "76e4e16bda02e516f56ab1c01157408760af7dbe6f2243e61be655650949b7a9"
+      }
+    },
+    {
+      "id": "dialyzer-fresh",
+      "duration_ms": 203774,
+      "timestamp_duration_s": 203.774217,
+      "interval": {
+        "completed_at": "2026-10-29T11:37:49.511233Z",
+        "started_at": "2026-10-29T11:34:25.737016Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/dialyzer-fresh.json",
+        "sha256": "2dde8b1e65ea12a7c306bcbe9ef09621bee1b5b3771f3163ec654165920c24f0"
+      }
+    },
+    {
+      "id": "docs",
+      "duration_ms": 92322,
+      "timestamp_duration_s": 92.322392,
+      "interval": {
+        "completed_at": "2026-10-29T11:46:38.816603Z",
+        "started_at": "2026-10-29T11:45:06.494211Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/docs.json",
+        "sha256": "ed6ae7714e3e8cc88074aeb740bfffa6fa894419c92396644b80b499559a428c"
+      }
+    },
+    {
+      "id": "generated-consumer",
+      "duration_ms": 78946,
+      "timestamp_duration_s": 78.946704,
+      "interval": {
+        "completed_at": "2026-10-29T11:48:11.742128Z",
+        "started_at": "2026-10-29T11:46:52.795424Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/generated-consumer.json",
+        "sha256": "1d2e78f63db116d39f42ae289fa2612c872f83656b9c7513bf9bfa1bb1c30fc8"
+      }
+    },
+    {
+      "id": "hygiene",
+      "duration_ms": 15045,
+      "timestamp_duration_s": 15.045587,
+      "interval": {
+        "completed_at": "2026-10-29T15:27:33.083503Z",
+        "started_at": "2026-10-29T15:27:18.037916Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/hygiene.json",
+        "sha256": "7c966cbaaf80d0d4acb4140e99d3b8eba552f02dfff2cf053bbc0eda74caccbf"
+      }
+    },
+    {
+      "id": "contracts",
+      "duration_ms": 13095,
+      "timestamp_duration_s": 13.095771,
+      "interval": {
+        "completed_at": "2026-10-29T11:46:51.912762Z",
+        "started_at": "2026-10-29T11:46:38.816991Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/contracts.json",
+        "sha256": "1f254b9c2be5a60f1c426fc900fe48f97ccb84f2e16ff21ffd201b77588c3b3b"
+      }
+    },
+    {
+      "id": "dialyzer-restored",
+      "duration_ms": 10430,
+      "timestamp_duration_s": 10.43002,
+      "interval": {
+        "completed_at": "2026-10-29T11:37:59.956734Z",
+        "started_at": "2026-10-29T11:37:49.526714Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/dialyzer-restored.json",
+        "sha256": "b874afda4e0111b6cb37a27870c5c3a8d073ef491e90fda0fce2a695b62744c7"
+      }
+    },
+    {
+      "id": "credo",
+      "duration_ms": 6259,
+      "timestamp_duration_s": 6.259692,
+      "interval": {
+        "completed_at": "2026-10-29T11:34:25.736625Z",
+        "started_at": "2026-10-29T11:34:19.476933Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/credo.json",
+        "sha256": "2e6f084039ba1cee6e98e3a0d7354f29b68ce434e122bd026a74dba1fa04498b"
+      }
+    },
+    {
+      "id": "compile",
+      "duration_ms": 4826,
+      "timestamp_duration_s": 4.826203,
+      "interval": {
+        "completed_at": "2026-10-29T11:34:19.476564Z",
+        "started_at": "2026-10-29T11:34:14.650361Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/compile.json",
+        "sha256": "75e6aed87a6e7e8352a44c21a5483048c35718c2ce5f25d4beb4015ac9d9d061"
+      }
+    },
+    {
+      "id": "doctor",
+      "duration_ms": 4076,
+      "timestamp_duration_s": 4.076247,
+      "interval": {
+        "completed_at": "2026-10-29T11:48:15.830599Z",
+        "started_at": "2026-10-29T11:48:11.754352Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/doctor.json",
+        "sha256": "ec4bcbe97279851fc1fc9dd91ef9ebd7c72c3c01afcdb38f82efe20f1a21babc"
+      }
+    },
+    {
+      "id": "security",
+      "duration_ms": 1108,
+      "timestamp_duration_s": 1.108052,
+      "interval": {
+        "completed_at": "2026-10-29T11:45:06.493855Z",
+        "started_at": "2026-10-29T11:45:05.385803Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/security.json",
+        "sha256": "040ea20d34e19fd7ed22ed1beb161a835a793cab77a51bd950fe5cc95f5f3894"
+      }
+    },
+    {
+      "id": "format",
+      "duration_ms": 1092,
+      "timestamp_duration_s": 1.09226,
+      "interval": {
+        "completed_at": "2026-10-29T11:34:14.649999Z",
+        "started_at": "2026-10-29T11:34:13.557739Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/format.json",
+        "sha256": "7c6215e15292558c9e1732a3ffc79e3f4b0117c8eb6d0f2830350009ed59b313"
+      }
+    },
+    {
+      "id": "package",
+      "duration_ms": 758,
+      "timestamp_duration_s": 0.758784,
+      "interval": {
+        "completed_at": "2026-10-29T11:46:52.671987Z",
+        "started_at": "2026-10-29T11:46:51.913203Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/package.json",
+        "sha256": "daffd32beefd7f7351bfa9b8de82494302616674addcebdc4cce75ab7ee6a6a9"
+      }
+    },
+    {
+      "id": "inbox-ledger",
+      "duration_ms": 128,
+      "timestamp_duration_s": 0.128747,
+      "interval": {
+        "completed_at": "2026-10-29T12:00:00.622649Z",
+        "started_at": "2026-10-29T12:00:00.493902Z"
+      },
+      "exit_code": 0,
+      "state": "completed",
+      "receipt": {
+        "path": "durable/bundle/receipts/inbox-ledger.json",
+        "sha256": "50ba9c19bde99325af2aa5f2171290a873e80e1bb5d20a54b9d4295ae3f02439"
+      }
+    }
+  ],
+  "async_isolation": {
+    "iterations": 25,
+    "successful_iterations": 25,
+    "duration_ms": 11512939,
+    "share_of_native_command_sum_percent": 82.29422474898449,
+    "per_seed_duration_available": false,
+    "source": {
+      "path": "durable/bundle/upstream/async.jsonl",
+      "sha256": "09d6a08062b08b6a68c65d285c2c12d171c60331c4e5022d722254c27c4792da"
+    }
+  },
+  "host_refresh_api": {
+    "groups": [
+      {
+        "name": "outer-refresh",
+        "metadata_directory": "refresh/restricted/api",
+        "recorded_physical_attempts": 103,
+        "within_refresh_envelope": 78,
+        "after_refresh_envelope": 25,
+        "status_counts": {
+          "200": 103
+        },
+        "first_observed_at": "2026-10-29T15:42:26.222212Z",
+        "last_observed_at": "2026-10-29T15:56:39.537965Z",
+        "first_to_last_metadata_span_s": 853.315753,
+        "metadata_inventory_sha256": "06cc00d994ee36cabe844ba027dc9ff2c35007473c524bd8e756bc289dc71877"
+      },
+      {
+        "name": "runs-before",
+        "metadata_directory": "refresh/restricted/runs-before/restricted",
+        "recorded_physical_attempts": 163,
+        "within_refresh_envelope": 163,
+        "after_refresh_envelope": 0,
+        "status_counts": {
+          "200": 162,
+          "502": 1
+        },
+        "first_observed_at": "2026-10-29T15:42:38.089502Z",
+        "last_observed_at": "2026-10-29T15:44:28.633241Z",
+        "first_to_last_metadata_span_s": 110.543739,
+        "metadata_inventory_sha256": "590c67a6e4f78ea75234c5b44afdb848209a6ca40b4a237ab5286b5406e3f6a2",
+        "collector_interval": {
+          "completed_at": "2026-10-29T15:44:29.634571Z",
+          "started_at": "2026-10-29T15:42:37.247019Z"
+        },
+        "collector_wall_s": 112.387552,
+        "verdict_file": {
+          "path": "refresh/restricted/runs-before/verdict.json",
+          "sha256": "b57c71784203732f3af3ab7a8212b0056d91998f9b28d8a0102ef68eb5c6f3be"
+        }
+      },
+      {
+        "name": "remote-before",
+        "metadata_directory": "refresh/restricted/remote-before/restricted/api",
+        "recorded_physical_attempts": 493,
+        "within_refresh_envelope": 493,
+        "after_refresh_envelope": 0,
+        "status_counts": {
+          "200": 493
+        },
+        "first_observed_at": "2026-10-29T15:44:30.549961Z",
+        "last_observed_at": "2026-10-29T15:49:43.533572Z",
+        "first_to_last_metadata_span_s": 312.983611,
+        "metadata_inventory_sha256": "e688fb8e3296ad76ecb4048da610a25d7ffb6de65905cd8fdf558ebfb1168d6c",
+        "collector_interval": {
+          "completed_at": "2026-10-29T15:49:43.587085Z",
+          "started_at": "2026-10-29T15:44:29.739360Z"
+        },
+        "collector_wall_s": 313.847725,
+        "verdict_file": {
+          "path": "refresh/restricted/remote-before/verdict.json",
+          "sha256": "603cc4b192194c28a496b770cc4c4d0f9995b5beb60dc1a4d92ea693b2d32b98"
+        }
+      },
+      {
+        "name": "runs-after",
+        "metadata_directory": "refresh/restricted/runs-after/restricted",
+        "recorded_physical_attempts": 162,
+        "within_refresh_envelope": 162,
+        "after_refresh_envelope": 0,
+        "status_counts": {
+          "200": 162
+        },
+        "first_observed_at": "2026-10-29T15:49:49.511035Z",
+        "last_observed_at": "2026-10-29T15:51:18.931596Z",
+        "first_to_last_metadata_span_s": 89.420561,
+        "metadata_inventory_sha256": "380ee6b885d7360ba0cb9e7df7c6e47b642cf79533ffd42ce037b8766c9e7b9b",
+        "collector_interval": {
+          "completed_at": "2026-10-29T15:51:19.567802Z",
+          "started_at": "2026-10-29T15:49:48.677164Z"
+        },
+        "collector_wall_s": 90.890638,
+        "verdict_file": {
+          "path": "refresh/restricted/runs-after/verdict.json",
+          "sha256": "df21f0b7e6bc51e18ad0fe3dffb7f7896ac9e0795d744e6c0a0070309cbd8891"
+        }
+      },
+      {
+        "name": "remote-after",
+        "metadata_directory": "refresh/restricted/remote-after/restricted/api",
+        "recorded_physical_attempts": 493,
+        "within_refresh_envelope": 493,
+        "after_refresh_envelope": 0,
+        "status_counts": {
+          "200": 493
+        },
+        "first_observed_at": "2026-10-29T15:51:20.442945Z",
+        "last_observed_at": "2026-10-29T15:56:14.201199Z",
+        "first_to_last_metadata_span_s": 293.758254,
+        "metadata_inventory_sha256": "e3c5ecd9b29b22a211e1544df2d6cd43bbf410dbac18b2657c8f90bbb74f9673",
+        "collector_interval": {
+          "completed_at": "2026-10-29T15:56:14.258929Z",
+          "started_at": "2026-10-29T15:51:19.646990Z"
+        },
+        "collector_wall_s": 294.611939,
+        "verdict_file": {
+          "path": "refresh/restricted/remote-after/verdict.json",
+          "sha256": "8e84b187aa3b1fa4aa9402c64cc752b5c43c12f0e83161c86286e288968a8c80"
+        }
+      }
+    ],
+    "collector_attempts": 1311,
+    "envelope_window_total_attempts": 1389,
+    "all_refresh_recorders_total_attempts": 1414,
+    "collector_intervals_sum_s": 811.737854,
+    "collector_share_of_envelope_wall_percent": 96.05021296996667,
+    "outer_controller_api_attempts_separate": 573,
+    "outer_controller_api_note": "Separate recorder includes polling/admission/retrieval/final checks across entire acceptance; not attributable exclusively to refresh and not summed into refresh counts."
+  },
+  "limits": [
+    "Pure read of existing evidence; no acceptance/controller/test/probe/API execution.",
+    "Receipt duration_ms is monotonic command elapsed rounded down to integer milliseconds; timestamp interval may differ below milliseconds.",
+    "First-to-last request metadata span excludes the first request acquisition duration; use collector verdict interval for wall timing.",
+    "Nested durations are not additive runner-minutes, billing units or a latency benchmark.",
+    "Raw request paths, headers and bodies are neither copied nor included; only aggregate counts/statuses/times and metadata inventory digests are retained."
+  ]
+}

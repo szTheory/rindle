@@ -28,7 +28,7 @@ error vocabulary, release coupling, supported behavior, or the accepted pull-req
 - [x] **Phase 136: Measured Quality and CI Ratchets** - Tighten measured quality, contributor, and CI/CD guarantees without weakening signal or speed. (completed 2026-10-21)
 - [x] **Phase 137: Built-Package Twin Foundation** - Establish a production-faithful synthetic-adopter substrate with authoritative receipts and cleanup. (completed 2026-10-21)
 - [x] **Phase 138: Lifecycle Failure and Recovery Matrix** - Prove deterministic lifecycle recovery and zero unapproved residue through supported boundaries. (completed 2026-10-22)
-- [ ] **Phase 139: Exact-Head Readiness Closure** - Produce one fail-closed, exact-head readiness verdict while keeping independent adoption open.
+- [x] **Phase 139: Exact-Head Readiness Closure** - Produce one fail-closed, exact-head readiness verdict while keeping independent adoption open.
 
 ## Phase Details
 
@@ -828,7 +828,7 @@ Plans:
   4. One fail-closed readiness manifest rejects missing, stale, partial, impermissibly skipped, foreign-SHA, unclean, residue-bearing, or unexplained evidence.
   5. Automated release and adoption-truth checks keep the named independent Phoenix pilot open and reject any claim that the synthetic twin satisfies real-adopter validation or authorizes 1.0.
 
-**Plans**: 8 plans
+**Plans**: 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -849,7 +849,7 @@ Plans:
 - [x] 139-06-PLAN.md — Retain byte-verified evidence and enforce honest adoption claims
 
 **Wave 6** *(requires merged main and actual live prerequisites)*
-- [ ] 139-07-PLAN.md — Run final post-merge main acceptance with historical claim scope
+- [x] 139-07-PLAN.md — Run final post-merge main acceptance with historical claim scope
 
 ## Progress
 
@@ -863,7 +863,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 7/8 | Executing | - |
+| 139. Exact-Head Readiness Closure | 8/8 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` | 2026-10-29 |
 
 ---
-*Last updated: 2026-10-22 during Phase 139 inline execution: Plans 00–06 verified; 7/8 plans complete. Plan 07 awaits actual post-merge main acceptance. READY-01–05 remain pending. Numeric CI speed remains deferred unfinished with zero credit.*
+*Last updated: 2026-10-29. Phase139 has historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. Numeric CI speed remains deferred unfinished with zero credit; independent adoption and publication remain outside this acceptance.*

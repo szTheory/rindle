@@ -44,6 +44,14 @@
     },
     {
       "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "optimization and record new reusable lessons under `.planning/research/`. Distinguish",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained research directory for bounded CI learning."
+    },
+    {
+      "path": "AGENTS.md",
       "class": "requirement-id",
       "text": "- avoid speculative milestone reopening during `demand-gated-pause` unless LIFE-06 or STREAM-10 signal exists",
       "count": 1,

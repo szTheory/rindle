@@ -1,0 +1,68 @@
+{
+  "source": "after",
+  "base_sha": "b2a60c51687293df5498920cc2bddb4e25349251",
+  "command": [
+    "actionlint",
+    "-format",
+    "{{json .}}",
+    ".github/workflows/ci.yml"
+  ],
+  "exit_code": 1,
+  "findings": [
+    {
+      "message": "shellcheck reported issue in this script: SC2251:info:3:1: This ! is not on a condition and skips errexit. Use `&& exit 1` instead, or make sure $? is checked",
+      "filepath": ".github/workflows/ci.yml",
+      "line": 93,
+      "column": 9,
+      "kind": "shellcheck",
+      "snippet": "        run: |\n        ^~~~",
+      "end_column": 12
+    },
+    {
+      "message": "shellcheck reported issue in this script: SC2251:info:4:1: This ! is not on a condition and skips errexit. Use `&& exit 1` instead, or make sure $? is checked",
+      "filepath": ".github/workflows/ci.yml",
+      "line": 93,
+      "column": 9,
+      "kind": "shellcheck",
+      "snippet": "        run: |\n        ^~~~",
+      "end_column": 12
+    },
+    {
+      "message": "shellcheck reported issue in this script: SC2209:warning:1:1: Use var=$(command) to assign output (or quote to assign string)",
+      "filepath": ".github/workflows/ci.yml",
+      "line": 316,
+      "column": 9,
+      "kind": "shellcheck",
+      "snippet": "        run: MIX_ENV=test mix deps.get --no-optional-deps\n        ^~~~",
+      "end_column": 12
+    },
+    {
+      "message": "shellcheck reported issue in this script: SC2209:warning:1:1: Use var=$(command) to assign output (or quote to assign string)",
+      "filepath": ".github/workflows/ci.yml",
+      "line": 319,
+      "column": 9,
+      "kind": "shellcheck",
+      "snippet": "        run: MIX_ENV=test mix compile --no-optional-deps --warnings-as-errors\n        ^~~~",
+      "end_column": 12
+    },
+    {
+      "message": "property \"elixir\" is not defined in object type {}",
+      "filepath": ".github/workflows/ci.yml",
+      "line": 440,
+      "column": 54,
+      "kind": "expression",
+      "snippet": "          name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}\n                                                     ^~~~~~~~~~~~~",
+      "end_column": 66
+    },
+    {
+      "message": "property \"elixir\" is not defined in object type {}",
+      "filepath": ".github/workflows/ci.yml",
+      "line": 739,
+      "column": 54,
+      "kind": "expression",
+      "snippet": "          name: junit-coverage-${{ github.job }}-${{ matrix.elixir || 'na' }}\n                                                     ^~~~~~~~~~~~~",
+      "end_column": 66
+    }
+  ],
+  "stderr": ""
+}

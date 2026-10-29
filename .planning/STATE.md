@@ -2,56 +2,29 @@
 gsd_state_version: "1.0"
 milestone: v1.26
 milestone_name: Pre-Adopter Readiness & Quality Consolidation
-status: executing
-last_updated: "2026-10-25T21:21:37.724Z"
-state_head: e285e9d0723a5d056f330fdf4761e1efc0b8b4bf
+status: complete
+last_updated: "2026-10-29T17:28:10.901Z"
+state_head: 14b2366b44d9e757b771a4523bb7dea5a58acca9
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 233
-  completed_plans: 232
-last_activity: 2026-10-25
+  completed_plans: 233
+  percent: 100
+last_activity: 2026-10-29
 current_phase: 139
 current_phase_name: Exact-Head Readiness Closure
 current_plan: 139-07
-stopped_at: Quick261025-nfr snapshot acceptance implementation and verification; live139-07 remains pending
-last_activity_desc: Approved immutable snapshot slice; real READY evidence and ordinary protected delivery remain separate.
+stopped_at: Historical Phase139 verified15/15; ordinary protected maintenance and metadata delivery pending
+last_activity_desc: Retained snapshot proof; later heads have no current-readiness credit.
 ---
 
 ## Current position
 
-Phase139 Plan07 is open;232/233 plans have summaries. READY-01–05 remain Pending.
-Quick261025-nfr implements the approved versioned immutable snapshot path. This clean
-checkout is `/private/tmp/rindle-snapshot-readiness-261025-nfr`, branch
-`maint/readiness-snapshot-261025-nfr`. Execution is inline; no executor dispatched.
-The primary and phase139-development dirty trees remain separate and preserved.
+Phase139 Plan07 has actual execution-mode historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. Original normal controller exit0 and independent original-source stored-byte and claim verification passed. All233 plans have summaries; GSD audits passed and the independent verifier reports15/15 must-haves verified; phase.complete reports8/8 plans. Current-head readiness requires its own appropriate new qualification.
 
-Main was last observed as a13ef401cb485513e5c0de1523fbfde389ed528b with successful
-CI40229174180 attempt2 and Release40229173362. That observation is historical;
-refresh all live facts before acceptance. No live acceptance or new producer ran here.
+Durable locator is the terminal directory plus `durable/locator.json`; producer40864930767/1 and single qualification Nightly40857260942/1 are immutable. No redispatch or certify-and-commit loop. The canonical maintainer checkout remains `/Users/jon/projects/rindle/.claude/worktrees/phase139-development`; its dirty user work and the primary checkout are preserved.
 
 ## Next action
 
-Finish the quick task's ordinary protected PR/review path. Resume this task now with
-`$gsd-quick resume implement-immutable-snapshot-readiness-a` in this checkout if interrupted.
-After protected delivery, use `$gsd-execute-phase 139` only for Plan07 when the selected
-candidate contains the intended snapshot policy, has complete CI and real same-candidate
-scheduled Nightly proof, a clean admitted checkout and complete fresh mutable sources.
-The snapshot is fixed while main advances; snapshot claim-status remains historical.
-A candidate lacking scheduled proof is still ineligible. No blanket development freeze.
-
-Numeric CI-speed target stays deferred_unfinished with zero credit (SEED-261021-918).
-Independent pilots and1.0/publication authority remain separate. No credential changes,
-old collectors, consumed authorizations or historical verification fingerprints are replayed.
-The former stale main-branch state is preserved under this quick task's STATE-before.md.
-
-### Blockers/Concerns
-
-Live readiness is pending. Fixtures do not satisfy it. The quick task's code verification,
-ordinary PR CI and protected delivery do not grant READY or pilot credit.
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Status | Directory |
-|---|-------------|------|--------|--------|-----------|
-| 261025-nfr | Implement immutable snapshot readiness acceptance; preserve scheduled proof and fresh mutable sources | 2026-10-25 | e285e9d0 | Verified | [261025-nfr-implement-immutable-snapshot-readiness-a](./quick/261025-nfr-implement-immutable-snapshot-readiness-a/) |
+Finish ordinary protected CI maintenance and historical-metadata delivery. Do not archive the milestone or start a new one automatically. The independent Phoenix pilot and1.0/publication authority remain open. CI-16 is deferred unfinished with zero credit, original receipt immutable; no exact-ten collector. PR185/188 holds and PR189 draft/unmerged/no-auto posture remain unchanged.

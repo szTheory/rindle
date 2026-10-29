@@ -14,8 +14,7 @@ retention-job bootstrap disable bytecode before imports to preserve clean source
 Results are
 historical snapshot readiness only; independent pilots, 1.0 and publication retain
 all existing gates. No new dependency, workflow or recurring job is introduced.
-READY-01–05 remain Pending and PR189 remains held until actual terminal live
-acceptance with retained verified bytes succeeds. Retained-intent rebase policy
+READY-01–05 have historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. PR189 remains held. Later changes require their own current-head readiness qualification. Retained-intent rebase policy
 is a separate optional follow-up and cannot delay this core amendment.
 
 ## Current Milestone: v1.26 Pre-Adopter Readiness & Quality Consolidation
@@ -64,7 +63,7 @@ strict private receipts and safe owned-resource cleanup passed. Default regressi
 1717 tests plus 3 doctests, zero failures; final focused checks: 63 tests, zero failures.
 No new CI lane, public API, independent-pilot, AV-execution, numeric-speed or readiness
 credit. Doctor's legacy/host migration-ledger false failure is explicitly deferred;
-actual catalog/version/image/storage probes passed. Phase 138 subsequently closes the recovery matrix; Phase 139 remains open.
+actual catalog/version/image/storage probes passed. Phase 138 subsequently closes the recovery matrix; Phase 139 historical acceptance is recorded below.
 
 **Phase 138 result (2026-10-22):** All six plans, 20/20 must-haves and RECOV-01..06
 verified automatically. One fresh archive completed six isolated lifecycle recovery cases,
@@ -89,10 +88,7 @@ visibility correctly leave live collection not ready. Plan 05 adds bounded candi
 owned-cleanup regressions passing. Candidate/fixture results grant no READY credit.
 Plan 06 adds producer-bound digest sidecars, authenticated durable retrieval, authoritative
 adoption parity and merged-subject/accept/claim-status commands. All 292 cheap fixtures
-pass in 89 seconds; 58 owner regressions and unchanged quality policies pass. Plan 07
-awaits the complete merged source and actual scheduled/security/durable proof, including
-the currently absent READINESS_READ_TOKEN producer secret. No terminal execution
-acceptance ran; all READY requirements and final exact-main readiness remain open.
+pass in 89 seconds; 58 owner regressions and unchanged quality policies pass. Plan 07 completed actual execution-mode historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. Normal controller exit0, retained-byte verification and original-source historical claim inspection passed. The maintainer renewed the read-only Actions credential; no token value was retained. No later head inherits current readiness.
 
 **Readiness Hex compatibility (2026-10-25):** Registry snapshots explicitly support Hex
 2.5.1 verified ETS persistence and Hex 2.6.0 native CRC-checked persistence. Collector
@@ -1063,4 +1059,4 @@ This document evolves at phase transitions and milestone boundaries.
    (`workflow.milestone_boundary.block_feature_milestone_without_signal`)
 
 ---
-*Last updated: 2026-10-22 after Phase 138 verification and transition to Phase 139.*
+*Last updated: 2026-10-29 after verified historical Phase139 acceptance; independent adoption and publication remain outside this result.*

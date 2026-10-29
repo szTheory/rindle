@@ -1,0 +1,29 @@
+{
+  "observed_at": "2026-10-29T12:04:20.844576+00:00",
+  "scope": "research_synthesis_only",
+  "requirements_credit": false,
+  "report_sha256": "76e5be2410c276b9a2bcccf8e3ce9b4c414277ed568e710bdf5719e5e6cbe999",
+  "all_local_links_exist": true,
+  "all_current_json_parse": true,
+  "implementation_status": "verified local commits; remote publication held while acceptance runs",
+  "active_producer": 40864930767,
+  "local_commits": [
+    "aeb8cf646f920b15c369e703e1a45ac3b30aaf87 docs(agents): retain bounded CI learning and dependency guidance",
+    "93ca114f920a9a3108b83564263b95cbaf8ac877 perf(ci): overlap full package matrix with Quality"
+  ],
+  "independent_review": "prototype-review.md",
+  "root_checks": {
+    "log": "prototype-root-checks.txt",
+    "sha256": "82d0b54b03536d6470121dbf040283328f7195748e675aca90a0e9c705d6e3a1",
+    "result": "55 tests, 0 failures; automation-first passed"
+  },
+  "historical_native_timing": "retained-native-timings.json",
+  "census_pilot": {
+    "result": "inconclusive; helper restored; no implementation change",
+    "summary": "census-summary.json",
+    "report": "census-pilot.md",
+    "full_module_runs": 4,
+    "all_existing_cases_passed": true,
+    "worktree_clean_verified": true
+  }
+}

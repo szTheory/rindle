@@ -1,0 +1,65 @@
+{
+  "schema": "rindle-local-prototype-verification-v1",
+  "recorded_at": "2026-10-29T12:01:28.453311+00:00",
+  "worktree": "/Users/jon/projects/rindle/.claude/worktrees/ci-main-matrix-overlap-20261029",
+  "base_sha": "b2a60c51687293df5498920cc2bddb4e25349251",
+  "branch": "perf/main-package-matrix-overlap-261029",
+  "scope": "local scheduling-only prototype; no hosted run, measured latency improvement, or acceptance credit",
+  "source_sha256": {
+    ".github/workflows/ci.yml": "ab135123f378ec7157e2221fabe01d9679bbbc4ed1025501c37d852584505b25",
+    "RUNNING.md": "e2d36ba7410fb1ba2b7902d2fbb112f0d94c82695b1b3d9513b94181247c6cbc",
+    "test/install_smoke/ci_lane_split_test.exs": "6b699ad0ebcc9138e4862dee9128b516eab0006b40b8608edb074ecb2fa416f1",
+    "scripts/maintainer/validate_exact_head_readiness.exs": "eaee865053bf7d4f62be9db7c2f4b843eaebf0ee56a5c1f5c320ef754e596fe0"
+  },
+  "commands": [
+    {
+      "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test ERL_FLAGS='+S 4:4' elixir -pa '_build/test/lib/*/ebin' -e 'ExUnit.start(seed: 0); Enum.each([\"test/install_smoke/ci_lane_split_test.exs\", \"test/install_smoke/ci_cache_hygiene_test.exs\", \"test/planning_path_hygiene_test.exs\"], &Code.require_file/1)' ",
+      "environment_addition": "ASDF_NODEJS_VERSION=20.18.1",
+      "exit_code": 0,
+      "observed_output": "55 tests, 0 failures"
+    },
+    {
+      "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test ERL_FLAGS='+S 4:4' bash scripts/ci/test_exact_head_readiness.sh",
+      "environment_addition": "ASDF_NODEJS_VERSION=20.18.1",
+      "exit_code": 0,
+      "observed_output": "69 tests, 0 failures; PASS: exact-head readiness CLI, immutable graph, negative-case count >= 40; refresh graph and path confinement"
+    },
+    {
+      "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test ERL_FLAGS='+S 4:4' bash scripts/ci/test_readiness_runs.sh",
+      "environment_addition": "ASDF_NODEJS_VERSION=20.18.1",
+      "exit_code": 0,
+      "observed_output": "Ran 64 tests in 9.864s; OK; PASS readiness runs: 64 CI/scheduled/protection/topology fixtures; no READY credit"
+    },
+    {
+      "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test ERL_FLAGS='+S 4:4' bash scripts/ci/test_ci_summary_gate.sh",
+      "exit_code": 0,
+      "observed_output": "passed: 6  failed: 0"
+    },
+    {
+      "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test ERL_FLAGS='+S 4:4' mix compile --warnings-as-errors",
+      "exit_code": 0,
+      "observed_output": ""
+    },
+    {
+      "command": "ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 MIX_ENV=test ERL_FLAGS='+S 4:4' mix format --check-formatted test/install_smoke/ci_lane_split_test.exs scripts/maintainer/validate_exact_head_readiness.exs",
+      "exit_code": 0,
+      "observed_output": ""
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "observed_output": ""
+    }
+  ],
+  "transcript_provenance": "Observed completed tool outputs. Original checks were not redirected to persistent raw logs; observed_output preserves final output excerpts, not fabricated full transcripts. Actionlint files are a fresh exact baseline/modified comparison.",
+  "semantic_guard": "75bedd220f51673361e824a61cfb98468bbf5490e94a68606193ed61da2c5187",
+  "parsed_workflow_comparison": "Completed: baseline AST with only full-matrix needs replaced exactly equals modified AST; computed real guard_identity equals source pin. Initial ad-hoc comparison missed starting yamerl; corrected Application.ensure_all_started invocation passed.",
+  "red_baseline": "28 tests, 1 failure: new scheduling assertion saw [quality, optional-dependencies] before workflow edit.",
+  "actionlint": {
+    "before": "design-prototype-actionlint-before.json",
+    "after": "design-prototype-actionlint-after.json",
+    "result": "Both exit 1, same six normalized findings; zero new"
+  },
+  "cache_copy": "cp -cR /private/tmp/rindle-async-failure-diagnostic-20261029/deps deps && cp -cR /private/tmp/rindle-async-failure-diagnostic-20261029/_build _build; lock SHA256 bc97e8f8424115e8e94f559577eac05dec27c6d59eb9181b2e69e7985e24213e; no frozen-source cache mutation",
+  "root_owned_agency_note": "AGENTS.md is separately edited by root and preserved; excluded from this worker source receipt."
+}
