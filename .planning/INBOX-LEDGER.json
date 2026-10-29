@@ -656,6 +656,18 @@
       "locked": "1.11.12",
       "fix_version": "1.11.13",
       "status": "resolved"
+    },
+    {
+      "fix_version": "1.14.1",
+      "id": "EEF-CVE-2026-116078",
+      "locked": "1.14.0",
+      "package": "bandit",
+      "path": [
+        "bandit"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -1295,6 +1307,21 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 217,
+      "disposition": "merge",
+      "risk_group": "demo-bandit-security",
+      "group_packages": [
+        "bandit"
+      ],
+      "rationale": "Actual protected squash 48407bac7691c459395760b06f7714bbb6c3545b after full exact-head PR CI 40852085909 passed on 9f64eae3. Only the demo Bandit tuple changes from 1.14.0 to 1.14.1 for EEF-CVE-2026-116078 / GHSA-pxjf-g536-7r93. Its complete own push-main CI 40853899390 passed all 23 jobs (22 successful/one expected Mux skip), including supported toolchains, contracts, consumers, Cohort cold start and browser proof. The signed online audit of all 49 demo packages at 09:45 UTC found no advisories or retirements; local full demo tests (44/0) and actual homepage/admin HTTP 200 checks passed. Source10 remains frozen and non-accepted. The legacy landing twin marker grants no current twin or READY proof. No publication or READY credit.",
+      "terminal": {
+        "state": "closed",
+        "merged": true,
+        "state_reason": null
+      }
     }
   ],
   "landings": [
@@ -1784,6 +1811,31 @@
           "from": "1.11.12",
           "package": "jose",
           "to": "1.11.13"
+        }
+      ],
+      "gates": {
+        "package_consumer": "pass",
+        "public_contract": "pass",
+        "supported_toolchain": "pass",
+        "twin": "not-applicable: twin not built (Phase 137)"
+      }
+    },
+    {
+      "number": 217,
+      "group": "demo-bandit-security",
+      "group_packages": [
+        "bandit"
+      ],
+      "lock": "examples/adoption_demo/mix.lock",
+      "merge_sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+      "ci_run_id": 40853899390,
+      "baseline_run_id": 40807101818,
+      "subject": "build(deps): patch demo Bandit HTTP2 memory advisory (#217)",
+      "lock_delta": [
+        {
+          "from": "1.14.0",
+          "package": "bandit",
+          "to": "1.14.1"
         }
       ],
       "gates": {
