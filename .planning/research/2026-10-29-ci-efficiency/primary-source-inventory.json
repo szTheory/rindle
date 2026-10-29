@@ -1,0 +1,195 @@
+{
+  "schema": "rindle-research-source-inventory-v1",
+  "research_date": "2026-10-29",
+  "scope": "primary-and-adversarial.md only; research, no acceptance credit",
+  "worktree_head": "3a09c25f9ae274974ef1946d2d0dd59788d98b48",
+  "operational_subject": "b2a60c51687293df5498920cc2bddb4e25349251",
+  "local_git_objects": [
+    {
+      "path": "AGENTS.md",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "325f51465cf952d490157101e063a027c684bed3",
+      "sha256": "311ee5f4248dd45ca9a1acb958f3827ed2825fd2a78ea254c0c618b6a91f0929",
+      "bytes": 2572
+    },
+    {
+      "path": "RUNNING.md",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "a4c3a0e9a779fd14de2de502cb2f70654de2ffe9",
+      "sha256": "7d5f73b1398890a4a324c7d873613dab6819b170427521d32bb93382538c273f",
+      "bytes": 50682
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "eac44f6fe356f0f62b5d2166b803c6e673ae8385",
+      "sha256": "3c63eb991aa2c33de6e8bca69bd7b44886afbca202e58ac7f48ef3ca00aaa950",
+      "bytes": 64183
+    },
+    {
+      "path": ".github/workflows/nightly.yml",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "7e6dfbddc52408b969e236cbc2dd89409e1fe78d",
+      "sha256": "70d551110beb19be2e7b5ec89216f9886897b184673e112dea3c72c7d3d6d0ca",
+      "bytes": 28237
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "134fb5d97b8347b75403d7f324a5ae79f369ab72",
+      "sha256": "b849f7fd889d9081f87dff5b6c8021de6480c967414a76a7ece19336996ea6aa",
+      "bytes": 5518
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "e1bb90f249c2a3fe0a0be13179dda07668f2ba5d",
+      "sha256": "198172f4e655c3b25990943329c38382a6fe753134d58fe378e1afdb66acb8c2",
+      "bytes": 23346
+    },
+    {
+      "path": ".github/workflows/release-please-automerge.yml",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "f152cbdaa9235908023e11244a2966f1f7501369",
+      "sha256": "e4267a4ff66028a0ee594eaa98b32c193b0e5bba3f7d8e6b73931d845c7cafaa",
+      "bytes": 5755
+    },
+    {
+      "path": ".github/actions/setup-elixir/action.yml",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "2e9873496eeb445ebcf1c94075d8b2e6b8fe15b8",
+      "sha256": "9a89119e8139545f505d6ce14fffef2837c22393f736a3313bdd1f653d04a973",
+      "bytes": 4909
+    },
+    {
+      "path": "config/ci_required_checks.json",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "3a0ce88f3df6a279a14662ec68eeb9701840a6da",
+      "sha256": "e7aef1ffc8fefe190883ea1f190c22173063eac10480c1046fa082c675cb36ce",
+      "bytes": 178
+    },
+    {
+      "path": "scripts/maintainer/async_isolation_evidence.sh",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "eac7c707d2d202411c9d37496ea44bd94dcd2e12",
+      "sha256": "3c5da9dd89488c967dcfd434ce6d23846ea523fcc405ebcdae5fd114c23edea0",
+      "bytes": 4561
+    },
+    {
+      "path": "scripts/ci/run_nightly_dialyzer.sh",
+      "commit": "b2a60c51687293df5498920cc2bddb4e25349251",
+      "git_blob": "51d10233cb0f92da25e49e4555ff162ab595e1a1",
+      "sha256": "c95862c09971d9df58f969baca0030ed628a3c569e434da16a808421d6fa9892",
+      "bytes": 3479
+    }
+  ],
+  "external_sources": [
+    {
+      "topic": "billing",
+      "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "runner pricing",
+      "url": "https://docs.github.com/en/billing/reference/actions-runner-pricing",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "concurrency",
+      "url": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "workflow topology",
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "dependency cache security",
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "cache action",
+      "url": "https://github.com/actions/cache/blob/main/README.md",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "queue max announcement",
+      "url": "https://github.blog/changelog/2026-05-07-github-actions-concurrency-groups-now-allow-larger-queues/",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "cache hardening announcement",
+      "url": "https://github.blog/changelog/2026-06-26-read-only-actions-cache-for-untrusted-triggers/",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "upload artifact",
+      "url": "https://github.com/actions/upload-artifact",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "artifact download verification",
+      "url": "https://docs.github.com/en/actions/tutorials/store-and-share-data",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "schedule",
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "rerun identity",
+      "url": "https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "setup beam",
+      "url": "https://github.com/erlef/setup-beam",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "mix compile supported version",
+      "url": "https://raw.githubusercontent.com/elixir-lang/elixir/v1.17.3/lib/mix/lib/mix/tasks/compile.ex",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "mix test supported version",
+      "url": "https://github.com/elixir-lang/elixir/blob/v1.17.3/lib/mix/lib/mix/tasks/test.ex",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "dialyxir",
+      "url": "https://dialyxir.hexdocs.pm/readme.html",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    },
+    {
+      "topic": "build provenance mechanism",
+      "url": "https://slsa.dev/spec/v1.2/build-provenance",
+      "kind": "primary",
+      "checked_on": "2026-10-29"
+    }
+  ],
+  "limitations": [
+    "External sources are dated live documentation observations, not retained immutable page snapshots.",
+    "No account billing export, actual eligible storage usage, benchmark dispatch, qualification or live producer mutation was performed.",
+    "Timing and deep code findings belong to separate research reports."
+  ]
+}

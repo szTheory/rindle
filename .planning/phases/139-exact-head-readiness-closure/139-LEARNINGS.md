@@ -1,3 +1,82 @@
+---
+phase: 139
+phase_name: "Exact-Head Readiness Closure"
+project: Rindle
+generated: "2026-10-29"
+counts:
+  decisions: 2
+  lessons: 3
+  patterns: 2
+  surprises: 2
+missing_artifacts: ["UAT.md"]
+---
+
+# Phase139 retained learnings
+
+## Decisions
+
+### Preserve one fixed subject while observing mutable authority
+Separate exact source qualification, genuine scheduled operational health and current security/inbox/protection/adoption observations. Keep the candidate and original verifier immutable; later metadata records historical scope.
+
+**Rationale:** Several-hour qualification must not require a permanent development freeze or transfer proof to changed control bytes.
+**Source:** 139-CONTEXT.md;139-07-SUMMARY.md.
+
+### Keep proof complete while reducing scheduling delay
+Overlap independent main package work with Quality while preserving Optional Dependencies and whole-run release authority. Report its latency model separately from successful-run compute and billing.
+
+**Rationale:** Scheduling can improve feedback without deleting proof, adding dependencies or claiming measured savings prematurely.
+**Source:** ../../research/2026-10-29-ci-efficiency/REPORT.md.
+
+## Lessons
+
+### Process disappearance is not a successful exit
+Record one direct-parent registration and normal child exit, then independently inspect terminal and stored bytes. Never redispatch based only on a lost tool session.
+
+**Context:** The successful owner exited0 after4h34m; earlier failed owners and cloud runs remain separate immutable attempts.
+**Source:** 139-07-SUMMARY.md.
+
+### Validate instruction edits against repository scanners
+A new legitimate research path in AGENTS required an exact policy allowlist entry. Topology checks alone did not cover this gate.
+
+**Context:** Both initial PR219 Quality jobs rejected the same unallowlisted line; preserve failure and add the existing scanner to the focused verification set.
+**Source:** ../../research/2026-10-29-ci-efficiency/REPORT.md; PR219 CI40919944407.
+
+### Review provenance before expanding phase scope
+Two permissive Doctor predicates were real preexisting defects, unchanged since August22. The accepted shipped migration had the correct defaults/predicate; retain a bounded hardening task without claiming the historical run had a bad schema.
+
+**Context:** Independent reviewer revised initial blocker classification after Git provenance and actual retained schema evidence.
+**Source:** 139-REVIEW.md;139-REVIEW-DISPOSITION.md.
+
+## Patterns
+
+### Separate transport hashes and retained object hashes
+Compare transport ZIP digests, separate producer sidecar, actual gzip, manifest and receipt bytes at their respective boundaries.
+
+**When to use:** Durable evidence retrieval and later historical claim inspection; generic artifact-warning behavior is insufficient.
+**Source:** 139-06-SUMMARY.md;139-07-SUMMARY.md.
+
+### Stop a bounded optimization pilot without declaring a win
+Use a small existing-case ABBA experiment, verify actual child/parent scope, preserve results and restore rejected code byte-for-byte when variance prevents a reliable conclusion.
+
+**When to use:** A low-impact runtime-policy hypothesis during an existing long wait.
+**Source:** ../../research/2026-10-29-ci-efficiency/census-pilot.md.
+
+## Surprises
+
+### Native isolation dominates outer bootstrap
+The completed current acceptance spent3h11m53s in25 fresh seeds,82.3% of native command intervals. Host refresh independently took14m05s with1,311 collector requests. These nested intervals are not summed runner-minutes.
+
+**Impact:** Prioritize bounded gate/seed visibility and measured acquisition work over more setup caches; preserve all proof.
+**Source:** ../../research/2026-10-29-ci-efficiency/current-acceptance-timings.md.
+
+### Credentials can expire before native work starts
+A nonempty secret failed actual producer authentication. Maintainer renewal, fresh prerequisites and a distinct normal owned invocation recovered; the failed invocation was not retried or rewritten.
+
+**Impact:** Distinguish secret replacement metadata from actual authenticated producer success. Never retain token values in chat or evidence.
+**Source:** 139-07-SUMMARY.md.
+
+## Earlier retained execution context
+
 # Readiness liveness lessons
 
 These are execution lessons from Phase 139. Requirement credit still depends on

@@ -1,0 +1,225 @@
+{
+  "schema": "rindle-research-native-timing-v1",
+  "scope": "historical_native_timing_only",
+  "requirements_credit": false,
+  "current_acceptance_credit": false,
+  "producer_run_id": 40609107572,
+  "run_attempt": 1,
+  "subject_sha": "bb0341a07ebf58b556aff4bcfa84003673d0151f",
+  "durable_locator": "/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-bb0341a0-20261028-resume-6/durable/locator.json",
+  "archive_sha256": "fa4ae8a6c5a3238e1be254a7e0fc914b2e647b5e933bf280f54f3eeffad56d6b",
+  "manifest_sha256": "687495cf43220e872e5c7ec122583e7eab17cab72874b474e110b28723f9b232",
+  "sidecar_sha256": "05db16eb84f593aa37209f9d06fc4fe3f81082cc4150a48e42a3ddb4e65aabd4",
+  "all24_receipt_reference_hashes_verified": true,
+  "local_gate_count": 18,
+  "sum_local_gate_elapsed_seconds": 13890.552377999998,
+  "candidate_collection_step_seconds": 15087,
+  "async_share_of_collection": 0.7586645223702525,
+  "async_share_of_local_gate_intervals": 0.8240112658966858,
+  "rows": [
+    {
+      "id": "format",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:40:23.380117Z",
+        "started_at": "2026-10-28T00:40:22.317243Z"
+      },
+      "elapsed_seconds": 1.062874,
+      "receipt_sha256": "f84c32bd7ba452617260caf5b7c707e7d2e9b33ada891161e9896499dabfbdae",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "compile",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:40:28.223425Z",
+        "started_at": "2026-10-28T00:40:23.380485Z"
+      },
+      "elapsed_seconds": 4.84294,
+      "receipt_sha256": "5b0c6932cc4bdebe0ffb17644450713e90ec67040e3733ade7774e4872817e39",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "credo",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:40:34.547844Z",
+        "started_at": "2026-10-28T00:40:28.223818Z"
+      },
+      "elapsed_seconds": 6.324026,
+      "receipt_sha256": "c4c586662a5ac39bb01ee83642bf4a24c4e35bc239acf90d5a542a16117b71e6",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "dialyzer-fresh",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:43:55.804746Z",
+        "started_at": "2026-10-28T00:40:34.548239Z"
+      },
+      "elapsed_seconds": 201.256507,
+      "receipt_sha256": "572d9f44d2bb4fc44e9109bc3823b04dbdfd40aa197d72eda9d3825d469fd2aa",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "dialyzer-restored",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:44:06.217306Z",
+        "started_at": "2026-10-28T00:43:55.820450Z"
+      },
+      "elapsed_seconds": 10.396856,
+      "receipt_sha256": "e19876904a9f7301a7a9594a486dc4791ec92dcbe588a0521ff4625ba3b65eba",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "coverage",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:50:55.036424Z",
+        "started_at": "2026-10-28T00:44:06.253724Z"
+      },
+      "elapsed_seconds": 408.7827,
+      "receipt_sha256": "5b79ecb3c79e92db36cb71d4341b43680b7c71cd42d218eb6a3e5e9de1e2f648",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "security",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:50:58.247577Z",
+        "started_at": "2026-10-28T00:50:57.290633Z"
+      },
+      "elapsed_seconds": 0.956944,
+      "receipt_sha256": "2592279d2ee11af2860d8a9b5d32a444caa47ad8ee549ee99f3781a5b92083d8",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "docs",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:52:26.488159Z",
+        "started_at": "2026-10-28T00:50:58.247990Z"
+      },
+      "elapsed_seconds": 88.240169,
+      "receipt_sha256": "c498c0899647236846fc986d5c67d078d286d7bdd0c8f43f3c284ae42135d77e",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "contracts",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:52:39.084829Z",
+        "started_at": "2026-10-28T00:52:26.488556Z"
+      },
+      "elapsed_seconds": 12.596273,
+      "receipt_sha256": "b36349a83302917d2d40a5d082d916be460667f9f279be09f9453e8cfb713c2b",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "package",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:52:39.817278Z",
+        "started_at": "2026-10-28T00:52:39.085206Z"
+      },
+      "elapsed_seconds": 0.732072,
+      "receipt_sha256": "2e572a07b1e3100cac6b21b216195112ccba435b87ae578628b90ef41975918c",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "generated-consumer",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:54:01.576345Z",
+        "started_at": "2026-10-28T00:52:39.940601Z"
+      },
+      "elapsed_seconds": 81.635744,
+      "receipt_sha256": "d7075683c0477af4edfc235b9f2822fa050fe680f616c951748a1b14982cf909",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "doctor",
+      "observation_interval": {
+        "completed_at": "2026-10-28T00:54:05.637809Z",
+        "started_at": "2026-10-28T00:54:01.588066Z"
+      },
+      "elapsed_seconds": 4.049743,
+      "receipt_sha256": "7a3da595277e430c5ba434aec1c303066526f5ee4960339379e64e627aa98d5b",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "twin-recovery",
+      "observation_interval": {
+        "completed_at": "2026-10-28T01:05:44.328275Z",
+        "started_at": "2026-10-28T00:54:05.638233Z"
+      },
+      "elapsed_seconds": 698.690042,
+      "receipt_sha256": "c0cd8375b3342ac8d4b497397e75cbd24030309f6be63e481b220898ce76b20d",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "inbox-ledger",
+      "observation_interval": {
+        "completed_at": "2026-10-28T01:05:51.393163Z",
+        "started_at": "2026-10-28T01:05:51.264588Z"
+      },
+      "elapsed_seconds": 0.128575,
+      "receipt_sha256": "ebae6270c196cd93bd2be31e40323e7812a1409ac47598cca868e04fd2afa5e5",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "contributor-bootstrap",
+      "observation_interval": {
+        "completed_at": "2026-10-28T01:16:03.920141Z",
+        "started_at": "2026-10-28T01:05:51.393552Z"
+      },
+      "elapsed_seconds": 612.526589,
+      "receipt_sha256": "ebb29b2f178559eecb117d95ffaa1f84948ae32bd967e08a057601b351c12d72",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "async-isolation",
+      "observation_interval": {
+        "completed_at": "2026-10-28T04:26:49.892545Z",
+        "started_at": "2026-10-28T01:16:03.920896Z"
+      },
+      "elapsed_seconds": 11445.971649,
+      "receipt_sha256": "e54f2125f49a789d260ed1ab6a63bbd74c0fd6cb22055b65463fbea62209083a",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "release-truth",
+      "observation_interval": {
+        "completed_at": "2026-10-28T04:31:49.589767Z",
+        "started_at": "2026-10-28T04:26:49.947071Z"
+      },
+      "elapsed_seconds": 299.642696,
+      "receipt_sha256": "e8ca90a1c8c54d508e8b9a4e366f2f229e3fdae039d41da892f3a6bd91b80cbb",
+      "state": "complete",
+      "outcome": "passed"
+    },
+    {
+      "id": "hygiene",
+      "observation_interval": {
+        "completed_at": "2026-10-28T04:32:02.306216Z",
+        "started_at": "2026-10-28T04:31:49.590237Z"
+      },
+      "elapsed_seconds": 12.715979,
+      "receipt_sha256": "b942e83d49afe3594b60837e3e7774edee6a068d2988349519376863a389bc99",
+      "state": "complete",
+      "outcome": "passed"
+    }
+  ],
+  "limitations": [
+    "Historical source differs from active source48407bac; no causal performance comparison.",
+    "Gate wall durations include its nested work and cannot be added to parent job duration.",
+    "No per-seed durations present; total/25 is only an arithmetic mean.",
+    "Candidate/upload or retained timing does not establish terminal readiness."
+  ]
+}

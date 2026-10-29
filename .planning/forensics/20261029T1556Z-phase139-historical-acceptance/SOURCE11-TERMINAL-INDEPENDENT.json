@@ -1,0 +1,17 @@
+{
+  "subject_sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+  "verdict": "ready",
+  "evidence_mode": "execution",
+  "acceptance_scope": "historical",
+  "current_readiness": false,
+  "observation_interval": {
+    "completed_at": "2026-10-29T15:56:53.252718Z",
+    "started_at": "2026-10-29T11:22:36.801043Z"
+  },
+  "normal_owner_exit": 0,
+  "terminal_references_verified": 8,
+  "receipt_graph_verified": true,
+  "archive_manifest_matches": true,
+  "observer_sha256_verified": true,
+  "terminal_sha256": "3a4a2c03b49474bd6118d65386b223ade7555738731469ce8180defb5da9b9c5"
+}

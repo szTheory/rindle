@@ -763,7 +763,10 @@ jobs:
     # ci-observability.needs (omit-from-needs): the PR gate makes no claim about
     # this conditionally-skipped lane, and release readiness is proven by the
     # push:main run conclusion — not by CI Summary or any check name.
-    needs: [quality, optional-dependencies]
+    # This job owns its setup and consumes no Quality artifacts. Overlap Quality
+    # after the optional-dependency proof; CI Summary and the exact-source full
+    # run conclusion still reject failed/cancelled Quality before release.
+    needs: [optional-dependencies]
     if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false

@@ -73,7 +73,7 @@ applied GitHub branch-protection state remains remote. The `name: CI` and `ci.ym
 | `proof` | merge-blocking | `needs: [optional-dependencies]`; overlaps Quality | docs-parity install/migrations, onboarding/capabilities, operations, and product/admin domain suites; adoption proof matrix drift gate; `batch_owner_erasure_task_test.exs`; Postgres only; Elixir 1.17/OTP 27 |
 | `package-consumer-full` — repo hygiene gate | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | `scripts/maintainer/repo_hygiene_check.sh --ci`; release/main gate, not merge-blocking on PRs |
 | `package-consumer` (lean, PR) | merge-blocking | Starts independently; `CI Summary` waits for it | Representative `image`-only install-smoke + version alignment; full profile breadth remains on main/release |
-| `package-consumer-full` | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`) | Full 5-profile matrix; common release preflight once on image; `hex.publish --dry-run` per profile; **NOT** a required PR check (omitted from `CI Summary.needs`); release proof is the push:main run conclusion |
+| `package-consumer-full` | off-critical-path | `push:main`/release (`if: github.event_name != 'pull_request'`); `needs: [optional-dependencies]`; overlaps Quality | Full 5-profile matrix; common release preflight once on image; `hex.publish --dry-run` per profile; **NOT** a required PR check (omitted from `CI Summary.needs`); release proof is the push:main run conclusion |
 | `adoption-demo-unit` | merge-blocking | `needs: [quality, optional-dependencies]`; Postgres only | Fast ExUnit proof for `examples/adoption_demo`: brand mark/wordmark, admin-console mount, lifecycle-state display, README walkthrough parity (storage-free, direct-insert seeds) |
 | `adoption-demo-e2e-smoke` | merge-blocking | Every PR; starts independently with Postgres + MinIO-local | Lean Chromium smoke (`e2e/smoke.spec.js` + `e2e/admin-console.spec.js` only, no screenshot spec) in the pinned Playwright container. No secrets or repo/event gate, so it runs on forks and is included in `CI Summary.needs`. |
 | `adoption-demo-e2e` | off-critical-path | `push:main` only (repo `szTheory/rindle` + `if: github.event_name != 'pull_request'`); `needs: [quality, optional-dependencies]` | Full Playwright browser proof for `examples/adoption_demo` (image, tus, stretch journeys, admin lifecycle render, homepage cold-start smoke + screenshot specs). **NOT** in `CI Summary.needs`; its PR-side proxy is the lean `adoption-demo-e2e-smoke` lane above. |
@@ -85,6 +85,14 @@ applied GitHub branch-protection state remains remote. The `name: CI` and `ci.ym
 | `dialyzer` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Owned type-contract lane; not a required PR check, but a failure makes Nightly red. |
 | `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets are absent; a live-GCS regression makes Nightly red. |
 | `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets are present (skipped otherwise); failures make Nightly red. |
+
+The full main package-consumer matrix owns its setup and consumes no Quality artifacts,
+so it starts after Optional Dependencies while Quality continues. All five profile proofs,
+the image preflight and later hygiene/version/publish-dry-run checks remain required.
+CI Summary still waits for Quality, and release still requires the complete successful
+CI run for the exact source SHA. Earlier profile success cannot hide failed or cancelled
+Quality. This scheduling overlap may spend extra runner time when Quality fails; it
+changes no proof coverage and establishes no measured latency improvement by itself.
 
 Nightly Dialyzer proves fresh and restored PLT modes independently on the supported Elixir 1.17 / OTP
 27 cell. `Nightly Summary` applies the strict Nightly verdict: failed, cancelled, unexpected, missing,

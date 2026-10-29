@@ -1,0 +1,100 @@
+[
+  {
+    "run_id": 40853899390,
+    "assumptions": [
+      "Move only full matrix needs from Quality+Optional to Optional; all step runtimes fixed; per-leg observed post-prerequisite launch lag fixed; all other job timestamps unchanged.",
+      "No cache/contention feedback, failure extra-work or queue simulation; model is not a hosted observation."
+    ],
+    "observed_wall_s": 1403.0,
+    "other_jobs_last_finish_s": 809.0,
+    "modeled_wall_s": 877.0,
+    "modeled_saving_s": 526.0,
+    "summed_green_job_saving_s": 0,
+    "legs": [
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (video)",
+        "old_start_s": 571.0,
+        "modeled_start_s": 45.0,
+        "runtime_s": 373.0,
+        "modeled_finish_s": 418.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (gcs)",
+        "old_start_s": 571.0,
+        "modeled_start_s": 45.0,
+        "runtime_s": 175.0,
+        "modeled_finish_s": 220.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (tus)",
+        "old_start_s": 571.0,
+        "modeled_start_s": 45.0,
+        "runtime_s": 289.0,
+        "modeled_finish_s": 334.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (image)",
+        "old_start_s": 571.0,
+        "modeled_start_s": 45.0,
+        "runtime_s": 832.0,
+        "modeled_finish_s": 877.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (mux)",
+        "old_start_s": 572.0,
+        "modeled_start_s": 46.0,
+        "runtime_s": 289.0,
+        "modeled_finish_s": 335.0
+      }
+    ]
+  },
+  {
+    "run_id": 40859417216,
+    "assumptions": [
+      "Move only full matrix needs from Quality+Optional to Optional; all step runtimes fixed; per-leg observed post-prerequisite launch lag fixed; all other job timestamps unchanged.",
+      "No cache/contention feedback, failure extra-work or queue simulation; model is not a hosted observation."
+    ],
+    "observed_wall_s": 1224.0,
+    "other_jobs_last_finish_s": 930.0,
+    "modeled_wall_s": 930.0,
+    "modeled_saving_s": 294.0,
+    "summed_green_job_saving_s": 0,
+    "legs": [
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (image)",
+        "old_start_s": 595.0,
+        "modeled_start_s": 65.0,
+        "runtime_s": 629.0,
+        "modeled_finish_s": 694.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (tus)",
+        "old_start_s": 592.0,
+        "modeled_start_s": 62.0,
+        "runtime_s": 282.0,
+        "modeled_finish_s": 344.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (gcs)",
+        "old_start_s": 592.0,
+        "modeled_start_s": 62.0,
+        "runtime_s": 198.0,
+        "modeled_finish_s": 260.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (mux)",
+        "old_start_s": 592.0,
+        "modeled_start_s": 62.0,
+        "runtime_s": 218.0,
+        "modeled_finish_s": 280.0
+      },
+      {
+        "name": "Package Consumer Full Matrix + Release Preflight (video)",
+        "old_start_s": 592.0,
+        "modeled_start_s": 62.0,
+        "runtime_s": 348.0,
+        "modeled_finish_s": 410.0
+      }
+    ]
+  }
+]

@@ -1,0 +1,110 @@
+{
+  "scope": "accepted historical source regression evidence; later CI changes independently tested",
+  "subject_sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+  "prior_phase_referenced_files": [
+    "scripts/ci/collect_pr_timing_receipt.sh",
+    "scripts/ci/eval_nightly_summary.sh",
+    "scripts/ci/install_ffmpeg.sh",
+    "scripts/ci/manage_nightly_incident.sh",
+    "scripts/ci/run_nightly_dialyzer.sh",
+    "scripts/ci/test_collect_inbox.sh",
+    "scripts/ci/test_compat_115_26.sh",
+    "scripts/ci/test_craft_contract_tools.sh",
+    "scripts/ci/test_dep_landing_evidence.sh",
+    "scripts/ci/test_nightly_dialyzer.sh",
+    "scripts/ci/test_repo_hygiene_check.sh",
+    "scripts/ci/test_validate_artifact_ledger.sh",
+    "scripts/ci/test_validate_inbox_ledger.sh",
+    "scripts/ci/test_verify_nightly_run.sh",
+    "scripts/ci/verify_nightly_run.sh",
+    "test/install_smoke/artifact_package_set_test.exs",
+    "test/install_smoke/async_isolation_evidence_runner_test.exs",
+    "test/install_smoke/ci_cache_hygiene_test.exs",
+    "test/install_smoke/ci_timing_automation_test.exs",
+    "test/install_smoke/contributor_bootstrap_test.exs",
+    "test/install_smoke/coverage_floor_policy_test.exs",
+    "test/install_smoke/credo_policy_test.exs",
+    "test/install_smoke/dependabot_policy_test.exs",
+    "test/install_smoke/dialyzer_ignore_policy_test.exs",
+    "test/install_smoke/evidence_census_test.exs",
+    "test/install_smoke/generated_app_smoke_test.exs",
+    "test/install_smoke/live_residue_scan_test.exs",
+    "test/install_smoke/live_truth_parity_test.exs",
+    "test/install_smoke/nightly_policy_test.exs",
+    "test/install_smoke/phase136_measure_test.exs",
+    "test/install_smoke/phase136_qualification_test.exs",
+    "test/install_smoke/quality_signal_policy_test.exs",
+    "test/install_smoke/twin_cleanup_test.exs",
+    "test/install_smoke/twin_cli_test.exs",
+    "test/install_smoke/twin_fault_test.exs",
+    "test/install_smoke/twin_package_boundary_test.exs",
+    "test/install_smoke/twin_receipt_test.exs",
+    "test/install_smoke/twin_tracer_contract_test.exs",
+    "test/rindle/admin/live/variants_runtime_actions_test.exs",
+    "test/rindle/admin/queries_test.exs",
+    "test/rindle/delivery/webhook_plug_test.exs",
+    "test/rindle/doctor_test.exs",
+    "test/rindle/ops/runtime_checks_test.exs",
+    "test/rindle/processor/av/output_probe_test.exs",
+    "test/rindle/public_surface_snapshot_test.exs",
+    "test/rindle/streaming/provider/mux/telemetry_test.exs",
+    "test/rindle/test/mux_webhook_fixtures_test.exs",
+    "test/rindle/workers/ingest_provider_webhook_test.exs",
+    "test/rindle/workers/mux_ingest_variant_test.exs",
+    "test/rindle/workers/mux_sync_provider_asset_test.exs",
+    "test/rindle/workers/purge_storage_test.exs"
+  ],
+  "native_gate_results": {
+    "coverage": {
+      "exit_code": 0,
+      "command": [
+        "mix",
+        "coveralls.multiple",
+        "--type",
+        "local",
+        "--type",
+        "json"
+      ],
+      "output_sha256": "2e204ca89f9e07af6d2a991a2e1631954c660d90c0de4dbc819dc1fd47feaacf",
+      "summary_lines": [
+        "3 doctests, 1770 tests, 0 failures, 88 excluded, 4 skipped"
+      ]
+    },
+    "contracts": {
+      "exit_code": 0,
+      "command": [
+        "mix",
+        "refactor_contract"
+      ],
+      "output_sha256": "17609bbaecf398005b62aa3bc5ba703be89d94875c8e89514cd28dd675102a44",
+      "summary_lines": [
+        "103 tests, 0 failures"
+      ]
+    },
+    "twin-recovery": {
+      "exit_code": 0,
+      "command": [
+        "python3",
+        "scripts/maintainer/built_package_twin.py",
+        "run",
+        "--evidence-dir",
+        "/home/runner/work/_temp/readiness-candidate/restricted/local-qualification/restricted/matrix",
+        "--cleanup"
+      ],
+      "output_sha256": "72d839cbe6db3b3f3791dcc93510dc0bd679d8c5e593b507550aa050d284fe05",
+      "summary_lines": []
+    },
+    "async-isolation": {
+      "exit_code": 0,
+      "command": [
+        "bash",
+        "scripts/maintainer/async_isolation_evidence.sh",
+        "--report",
+        "/home/runner/work/_temp/readiness-candidate/restricted/local-qualification/restricted/async.jsonl"
+      ],
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "summary_lines": []
+    }
+  },
+  "note": "Existing native coverage and25 fresh full-coverage processes executed the default suite, including prior-phase ExUnit cases. Shell harnesses also execute in complete exact-head CI. Support/config files and side-effecting timing collector references are not standalone regression tests; no timing collector rerun."
+}

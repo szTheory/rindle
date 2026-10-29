@@ -1,0 +1,17 @@
+{
+  "variant": "B1",
+  "elapsed_seconds": 90.884467167,
+  "exit": 0,
+  "argv": [
+    "mix",
+    "run",
+    "--no-start",
+    "--no-compile",
+    "--no-deps-check",
+    "/Users/jon/projects/rindle/.claude/worktrees/phase139-development/.planning/research/2026-10-29-ci-efficiency/census-runner.exs"
+  ],
+  "parent_ERL_FLAGS": "+S 4:4",
+  "source_sha256": "db5ef9c0b63a4649fe98cd091efa72c61d3efd424166776a84e9d75f21a151f3",
+  "captured_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "cases": "census-B1-cases.json"
+}

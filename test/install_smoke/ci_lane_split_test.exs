@@ -273,6 +273,44 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   end
 
   @tag :required_job_topology
+  test "the full main matrix overlaps Quality and retains its optional-dependency prerequisite",
+       %{ci: ci, running: running} do
+    assert job_needs(ci, "package-consumer-full") == ["optional-dependencies"]
+    assert "quality" in job_needs(ci, "ci-summary")
+    assert job_block(ci, "ci-summary") =~ "if: always()"
+
+    row =
+      running
+      |> String.split("\n")
+      |> Enum.find(&String.starts_with?(&1, "| `package-consumer-full` |"))
+
+    assert row =~ "`needs: [optional-dependencies]`; overlaps Quality"
+  end
+
+  @tag :required_job_topology
+  test "earlier successful profiles cannot hide later Quality failure or cancellation",
+       %{ci: ci, release: release} do
+    {profiles, preflight, consumer} = full_matrix_commands(ci)
+    {results, _calls} = execute_matrix_fixture(profiles, preflight, consumer, "none")
+    assert Enum.all?(results, fn {_profile, status} -> status == 0 end)
+
+    for quality <- ["success", "failure", "cancelled"] do
+      needs = Map.new(job_needs(ci, "ci-summary"), &{&1, %{result: "success"}})
+      needs = Map.put(needs, "quality", %{result: quality})
+
+      {output, status} =
+        System.cmd("bash", ["scripts/ci/eval_ci_summary.sh"],
+          env: [{"NEEDS_JSON", Jason.encode!(needs)}, {"GITHUB_STEP_SUMMARY", "/dev/null"}],
+          stderr_to_stdout: true
+        )
+
+      assert status == if(quality == "success", do: 0, else: 1), output
+      {release_output, release_status} = execute_release_gate(release, quality)
+      assert release_status == status, release_output
+    end
+  end
+
+  @tag :required_job_topology
   test "required jobs keep their runner authorities and the aggregation graph", %{
     ci: ci
   } do
@@ -525,6 +563,57 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
   defp job_block(ci, job) do
     [_, block] = Regex.run(~r/\n  #{Regex.escape(job)}:\n(.*?)(?=\n  [a-z][a-z0-9-]*:\n|\z)/s, ci)
     block
+  end
+
+  # Execute the shipped release gate with only its remote run response replaced.
+  # A green matrix must not turn a failed/cancelled whole CI run into release proof.
+  defp execute_release_gate(release, conclusion) do
+    {:ok, _} = Application.ensure_all_started(:yamerl)
+    [workflow] = :yamerl_constr.string(release, str_node_as_binary: true)
+    get = fn fields, key -> fields |> List.keyfind(key, 0) |> elem(1) end
+
+    step =
+      workflow
+      |> get.("jobs")
+      |> get.("gate-ci-green")
+      |> get.("steps")
+      |> Enum.map(&Map.new/1)
+      |> Enum.find(&(&1["id"] == "ci"))
+
+    script = step |> Map.fetch!("with") |> get.("script")
+
+    script =
+      String.replace(
+        script,
+        "${{ steps.resolve.outputs.release_sha }}",
+        String.duplicate("a", 40)
+      )
+
+    harness = ~S"""
+    const assert = require('node:assert/strict');
+    const sha = 'a'.repeat(40);
+    const conclusion = process.argv[2];
+    let failed = false;
+    let reported = false;
+    const github = {rest: {actions: {listWorkflowRuns: async (query) => {
+      assert.equal(query.workflow_id, 'ci.yml');
+      assert.equal(query.head_sha, sha);
+      return {data: {workflow_runs: [{head_sha: sha, status: 'completed', conclusion,
+        html_url: 'https://example.invalid/exact-source-ci'}]}};
+    }}}};
+    const context = {repo: {owner: 'fixture', repo: 'fixture'}};
+    const core = {info: () => {}, setFailed: () => {failed = true;},
+      setOutput: (key) => {assert.equal(key, 'ci_run_url'); reported = true;}};
+    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    new AsyncFunction('github', 'context', 'core', process.argv[1])(github, context, core)
+      .then(() => {
+        assert.equal(reported, conclusion === 'success');
+        assert.equal(failed, conclusion !== 'success');
+        process.exit(failed ? 1 : 0);
+      }).catch((error) => {console.error(error); process.exit(2);});
+    """
+
+    System.cmd("node", ["--eval", harness, script, conclusion], stderr_to_stdout: true)
   end
 
   defp full_matrix_commands(ci) do

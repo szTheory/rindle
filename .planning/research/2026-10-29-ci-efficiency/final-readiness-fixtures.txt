@@ -1,0 +1,8 @@
+candidate_ready: validated_candidate
+candidate_ready: validated_refresh
+candidate_ready: validated_refresh
+not_ready: acceptance_policy_mismatch
+captured: nightly_source_captured
+not_ready: nightly_capture_raced
+not_ready: nightly_dispatch_unknown
+PASS: all cheap readiness fixtures in 112s (240s fixture budget within existing 5-minute CI seam)

@@ -1,0 +1,20 @@
+{
+  "child": {
+    "dirty_cpu": 1,
+    "dirty_io": 1,
+    "flags": "+S 1:1 +SDcpu 1:1 +SDio 1",
+    "normal": 1
+  },
+  "parent_before": {
+    "normal": 4,
+    "dirty_cpu": 4,
+    "dirty_io": 10,
+    "flags": "+S 4:4"
+  },
+  "parent_after": {
+    "normal": 4,
+    "dirty_cpu": 4,
+    "dirty_io": 10,
+    "flags": "+S 4:4"
+  }
+}

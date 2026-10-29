@@ -1,0 +1,35 @@
+{
+  "schema": "rindle-ci-efficiency-design-v1",
+  "source_sha": "48407bac7691c459395760b06f7714bbb6c3545b",
+  "source_root": "/private/tmp/rindle-v3-source-20261029-11",
+  "scope": "read-only source review; one extracted-script negative fixture; no hosted execution, performance benchmark, or acceptance",
+  "source_sha256": {
+    ".github/workflows/ci.yml": "3c63eb991aa2c33de6e8bca69bd7b44886afbca202e58ac7f48ef3ca00aaa950",
+    ".github/workflows/nightly.yml": "70d551110beb19be2e7b5ec89216f9886897b184673e112dea3c72c7d3d6d0ca",
+    ".github/workflows/readiness-retention.yml": "b849f7fd889d9081f87dff5b6c8021de6480c967414a76a7ece19336996ea6aa",
+    ".github/workflows/release.yml": "198172f4e655c3b25990943329c38382a6fe753134d58fe378e1afdb66acb8c2",
+    ".github/actions/setup-elixir/action.yml": "9a89119e8139545f505d6ce14fffef2837c22393f736a3313bdd1f653d04a973",
+    "scripts/maintainer/exact_head_readiness.py": "c44cf5e6539dfa8f8a648628045e802a1453645c86d92031f93e84250151d620",
+    "scripts/maintainer/readiness_closure.py": "ca1dbe4daae91f77de409665de11f98c8786f7576db48252f7dc3e0cf4cdb3b0",
+    "scripts/maintainer/readiness_subject.py": "bd678c8bc059c38c5a63b31c6170585d80bcbdb8230ecf022cecb25b59dc5585",
+    "scripts/maintainer/validate_exact_head_readiness.exs": "1b9366ef5374648beea371dc4ace1f22033c981edc8bbe5c946b52776bdab16d",
+    "scripts/maintainer/collect_readiness_runs.py": "d1fa6d84b0f4382ad2438845f50e67e0008b890689c053c89e9082c357f1fbbf",
+    "scripts/ci/e2e_local.sh": "042f697adfa17227f29bdb05da503972c7038050fe7d363671d8fe4cd693937e",
+    "scripts/ci/prepare_readiness_fixture_runtime.sh": "20daccf8ffaa0faf2b5f9ccabfa9d67277e56d04a797b8d47ce43505f77a728d",
+    "scripts/ci/run_script_test_groups.py": "a3148df3b61a2c68c03054306f2aee7f50b77756823543e736b4bbb8ed2ef5be"
+  },
+  "observer_api_failure_fixture": {
+    "scope": "actual extracted advisory observation script; no real API call",
+    "exit_code": 1,
+    "stderr": "simulated GitHub observation failure\n",
+    "summary_created": false,
+    "job_continue_on_error_present": false,
+    "excluded_from_ci_summary": true
+  },
+  "pr189_review": {
+    "head_sha": "8699c2c548e8658fa84a14150e2dc40304b43435",
+    "base_sha": "968113aa2bb73bc5180fbba59a0da5b4a13e6d60",
+    "diff_stat": " .github/workflows/ci.yml                           | 15 +++-\n .../automation_workflows.json                      | 12 +--\n .../live_residue_allowlist/install_smoke.json      | 32 ++++++++\n .../maintainer/validate_exact_head_readiness.exs   |  2 +-\n test/install_smoke/ci_lane_split_test.exs          | 94 ++++++++++++++++++++++\n 5 files changed, 146 insertions(+), 9 deletions(-)\n",
+    "transport": "existing immutable local Git objects; no remote state claim"
+  }
+}
