@@ -91,6 +91,70 @@ class Retention(unittest.TestCase):
         output=self.tmp/'failed-output';report=r.prepare_failure(candidate,output,self.diagnostic_env())
         self.assertEqual(report['native_state'],'unavailable');self.assertNotIn('pull_changes',report['collections'][0])
         with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:self.assertEqual(archive.getnames(),['failure.json'])
+    def failed_async_candidate(self):
+        candidate=self.failed_candidate(False)
+        verdict=r.read_json(candidate/'verdict.json');verdict.update(stage='local',reason='command_failed')
+        (candidate/'verdict.json').write_bytes(r.canonical(verdict))
+        rows=[{'kind':'async_isolation_evidence','schema':['iteration','seed','sha','toolchain','argv','exit_status','failure_location']}]
+        for i,seed in enumerate((0,17,43,71,101,131,173),1):
+            rows.append({'iteration':i,'seed':seed,'sha':sha,'toolchain':'elixir-1.17.3/otp-27.3.4.15',
+                'argv':f'mix coveralls.multiple --type local --type json --seed {seed} --slowest 20',
+                'exit_status':2 if seed==173 else 0,
+                'failure_location':'AssertionError:async_test.exs:42' if seed==173 else None})
+        path=candidate/'restricted/local-qualification/restricted/async.jsonl';path.parent.mkdir(parents=True)
+        path.write_bytes(b''.join(r.canonical(row)+b'\n' for row in rows))
+        return candidate,path,rows
+    def test_failed_async_prefix_keeps_bounded_sanitized_seed_identity(self):
+        candidate,path,rows=self.failed_async_candidate()
+        output=self.tmp/'failed-async';report=r.prepare_failure(candidate,output,self.diagnostic_env())
+        self.assertEqual(report['async_failure'],{'iterations':7,'seed':173,'exit_status':2,
+            'failure_location':'AssertionError:async_test.exs:42'})
+        self.assertFalse(report['requirements_credit']);self.assertEqual(report['native_state'],'unavailable')
+        with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:
+            self.assertEqual(archive.getnames(),['failure.json'])
+            self.assertEqual(json.loads(archive.extractfile('failure.json').read())['async_failure'],report['async_failure'])
+
+    def test_later_gate_failure_does_not_misclassify_completed_async_matrix(self):
+        candidate,path,rows=self.failed_async_candidate()
+        declaration=subprocess.check_output(['bash',str(root/'scripts/maintainer/async_isolation_evidence.sh'),'--validate'])
+        seeds=json.loads(declaration.splitlines()[0])['seeds']
+        rows=rows[:1]+[{**rows[1],'iteration':i,'seed':seed,'exit_status':0,'failure_location':None,
+            'argv':f'mix coveralls.multiple --type local --type json --seed {seed} --slowest 20'}
+            for i,seed in enumerate(seeds,1)]
+        path.write_bytes(b''.join(r.canonical(row)+b'\n' for row in rows))
+        report=r.prepare_failure(candidate,self.tmp/'later-gate',self.diagnostic_env())
+        self.assertNotIn('async_failure',report);self.assertFalse(report['requirements_credit'])
+
+    def test_failed_async_diagnostic_rejects_invalid_or_private_identity(self):
+        candidate,path,rows=self.failed_async_candidate()
+        for index,change in enumerate(('subject','argv','seed','boolean','location','extra','post_red','all_green','header','duplicate','oversized','symlink')):
+            current=copy.deepcopy(rows)
+            if change=='subject':current[-1]['sha']='f'*40
+            elif change=='argv':current[-1]['argv']='PRIVATE-CLOSURE-CANARY'
+            elif change=='seed':current[-1]['seed']=174
+            elif change=='boolean':current[-1]['exit_status']=True
+            elif change=='location':current[-1]['failure_location']='/private/SECRET-CANARY/config.ex:42'
+            elif change=='extra':current[-1]['private_body']='PRIVATE-CLOSURE-CANARY'
+            elif change=='post_red':current[1].update(exit_status=2,failure_location='command_failed')
+            elif change=='all_green':current[-1].update(exit_status=0,failure_location=None)
+            elif change=='header':current[0]['schema']=['foreign']
+            raw=b''.join(r.canonical(row)+b'\n' for row in current)
+            if change=='duplicate':raw=raw.replace(b'"seed":173',b'"seed":173,"seed":173')
+            if change=='oversized':raw=b' '*65537
+            if change=='symlink':
+                target=self.tmp/'private-async';target.write_bytes(raw);path.unlink();path.symlink_to(target)
+            else:path.write_bytes(raw)
+            output=self.tmp/('bad-async-'+str(index))
+            with self.subTest(change=change),self.assertRaises(r.NotReady):
+                r.prepare_failure(candidate,output,self.diagnostic_env())
+            self.assertFalse((output/r.FAILED_ARCHIVE_FILE).exists())
+        path.unlink()
+    def test_async_diagnostic_rejects_environment_secret_and_preserves_first_red_bytes(self):
+        candidate,path,rows=self.failed_async_candidate();before=path.read_bytes()
+        with self.assertRaisesRegex(r.NotReady,'portable_secret_detected'):
+            r.prepare_failure(candidate,self.tmp/'secret-async',{**self.diagnostic_env(),'READINESS_TOKEN':'async_test.exs'})
+        self.assertEqual(path.read_bytes(),before)
+
     def test_failure_diagnostic_refuses_success_or_foreign_context(self):
         candidate=self.failed_candidate(False);p=candidate/'verdict.json';v=r.read_json(p);v['verdict']='candidate_ready';p.write_bytes(r.canonical(v))
         with self.assertRaisesRegex(r.NotReady,'diagnostic_candidate_invalid'):r.prepare_failure(candidate,self.tmp/'bad-ready',self.diagnostic_env())

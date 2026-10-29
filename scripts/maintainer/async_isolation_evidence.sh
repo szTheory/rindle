@@ -121,7 +121,7 @@ for index in "${!seeds[@]}"; do
   fi
 
   if [ "${status}" -ne 0 ]; then
-    echo "async isolation evidence failed at iteration ${iteration} (seed ${seed}); see sanitized report ${report_path}" >&2
+    echo "async isolation evidence failed at iteration ${iteration} (seed ${seed}), exit ${status}, location ${location}; see sanitized report ${report_path}" >&2
     exit "${status}"
   fi
 done

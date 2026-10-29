@@ -6,6 +6,7 @@ import io
 import os
 from pathlib import Path
 import re
+import subprocess
 import tarfile
 import tempfile
 import zipfile
@@ -72,6 +73,40 @@ def write_archive(path,objects):
     require(path.stat().st_size<=250_000_000,'artifact_size_limit')
 
 
+def async_failure(candidate,subject):
+    """Export a validated first-red identity, never restricted test output."""
+    path=candidate/'restricted/local-qualification/restricted/async.jsonl'
+    if not path.exists() and not path.is_symlink():return None
+    require(path.is_file() and not path.is_symlink() and
+        path.resolve().is_relative_to(candidate) and path.stat().st_size<=65536,'diagnostic_async_identity')
+    rows=[json_bytes(line) for line in path.read_bytes().splitlines()]
+    declaration=subprocess.run(['bash',str(ROOT/'scripts/maintainer/async_isolation_evidence.sh'),'--validate'],
+        capture_output=True,timeout=5,check=True)
+    matrix,command,schema=[json_bytes(line) for line in declaration.stdout.splitlines()]
+    seeds=matrix['seeds'];fields=schema['fields']
+    require(rows and rows[0]=={'kind':'async_isolation_evidence','schema':fields} and
+        1<len(rows)<=len(seeds)+1,'diagnostic_async_identity')
+    for index,row in enumerate(rows[1:]):
+        require(isinstance(row,dict) and set(row)==set(fields),'diagnostic_async_identity')
+        status=row['exit_status'];location=row['failure_location']
+        require(type(row['iteration']) is int and row['iteration']==index+1 and
+            type(row['seed']) is int and row['seed']==seeds[index] and row['sha']==subject and
+            row['toolchain']=='elixir-1.17.3/otp-27.3.4.15' and
+            row['argv']==' '.join(str(seeds[index]) if arg=='SEED' else arg for arg in command['argv']) and
+            type(status) is int and 0<=status<=255,'diagnostic_async_identity')
+        if index<len(rows)-2:
+            require(status==0 and location is None,'diagnostic_async_identity')
+        elif status==0:
+            require(len(rows)==len(seeds)+1 and location is None,'diagnostic_async_identity')
+        else:
+            require(isinstance(location,str) and
+                re.fullmatch(r'[A-Za-z0-9_.:-]{1,160}',location),'diagnostic_async_identity')
+    last=rows[-1]
+    if last['exit_status']==0:return None
+    return {'iterations':len(rows)-1,'seed':last['seed'],'exit_status':last['exit_status'],
+        'failure_location':last['failure_location']}
+
+
 def prepare_failure(candidate,output,environment=None):
     """Retain only redacted diagnostics; a failed producer never gains credit."""
     output=reserve(output);environment=dict(os.environ if environment is None else environment)
@@ -113,6 +148,9 @@ def prepare_failure(candidate,output,environment=None):
             all(isinstance(f,str) and f in PULL_DIAGNOSTIC_FIELDS for f in p['fields']) for p in pulls):item['pull_changes']=pulls
         collections.append(item)
     report['collections']=collections;objects={}
+    if report['stage']=='local' and report['reason']=='command_failed':
+        failure=async_failure(candidate,subject)
+        if failure is not None:report['async_failure']=failure
     path=candidate/'restricted/local-qualification/portable/manifest.json'
     if path.is_file():
         manifest=read_json(path)

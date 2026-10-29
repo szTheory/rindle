@@ -44,9 +44,12 @@ defmodule Rindle.AsyncIsolationEvidenceRunnerTest do
     report = report_path("failure")
     log = temporary_path("failure.log")
 
-    {_output, status} = run_runner(report, log, fail_seed: failing_seed, fail_status: 23)
+    {output, status} = run_runner(report, log, fail_seed: failing_seed, fail_status: 23)
 
     assert status == 23
+    assert output =~ "RuntimeError:private-config.ex:42"
+    refute output =~ "super-secret"
+    refute output =~ "/tmp/secret-settings"
 
     assert log
            |> File.read!()
