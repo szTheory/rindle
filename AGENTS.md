@@ -36,4 +36,13 @@ Agents should default to the repo's **green-main release train** posture:
 - avoid speculative milestone reopening during `demand-gated-pause` unless LIFE-06 or STREAM-10 signal exists
 - when the release train is idle and there is no approved work item, say so plainly instead of inventing work (**silence on the wire** — see [`.planning/RELEASE-TRAIN.md`](.planning/RELEASE-TRAIN.md))
 
+During long CI waits, inspect completed run/job/step evidence for the next useful
+optimization and record new reusable lessons under `.planning/research/`. Distinguish
+wall latency, aggregate runner time and actual billed cost; label estimates and unknowns.
+Preserve required proof and the active evidence subject while preparing independent work.
+Stop expanding the audit when more analysis no longer changes a material decision.
+
+Prefer a small, understood repo-local implementation over another dependency. Add a
+dependency when its concrete benefit justifies its maintenance and transitive surface.
+
 Before release prep, run `./scripts/maintainer/repo_hygiene_check.sh`.
