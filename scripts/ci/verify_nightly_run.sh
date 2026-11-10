@@ -694,7 +694,7 @@ plan278_source_identity() {
   [ "$head" = "$expected_sha" ] || die "source root does not match the expected SHA"
   dirty="$(git -C "$source_root" status --porcelain --untracked-files=all)" || die "source root status is unreadable"
   [ -z "$dirty" ] || die "source root must be clean"
-  tree="$(git -C "$source_root" rev-parse HEAD^{tree})" || die "source root tree is unreadable"
+  tree="$(git -C "$source_root" rev-parse 'HEAD^{tree}')" || die "source root tree is unreadable"
   remote="$(gh api "repos/${repo}/git/ref/heads/main" | jq -er '.object.sha')" || die "main ref lookup failed"
   [ "$remote" = "$expected_sha" ] || die "main moved away from the scheduled evidence subject"
   [ "$(cd "$source_root" && pwd -P)" != "$(cd "$evidence_root" && pwd -P)" ] ||
@@ -706,15 +706,15 @@ plan278_local_evidence() {
   local ledger="${evidence_root}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-LEDGER.json"
   local receipt_a="${evidence_root}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-A.json"
   local receipt_b="${evidence_root}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-B.json"
-  local mix_cmd="$source_root/scripts/maintainer/validate_evidence_census.exs" a b live
+  local mix_cmd="$source_root/scripts/maintainer/validate_evidence_census.exs" live
   for path in "$ledger" "$receipt_a" "$receipt_b"; do
     [ -s "$path" ] || die "Plan 278 local evidence is missing: $path"
   done
-  a="$(cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
-    mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_a")" ||
+  (cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
+    mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_a") >/dev/null ||
     die "census A did not validate against the exact source root"
-  b="$(cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
-    mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_b")" ||
+  (cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
+    mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_b") >/dev/null ||
     die "census B did not validate against the exact source root"
   cmp -s "$receipt_a" "$receipt_b" || die "census A and B receipts are not byte-identical"
   live="$(cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
@@ -843,7 +843,8 @@ capture_plan278_scheduled() {
        dialyzer:$dialyzer,strict_verdict:{summary_job:"Nightly Summary",verdict:"green"},
        incident:$incident,source:$source,local_evidence:$local}
     ' 2>"$tempdir/render.err")" || {
-      local render_error="$(cat "$tempdir/render.err" 2>/dev/null || true)"
+      local render_error
+      render_error="$(cat "$tempdir/render.err" 2>/dev/null || true)"
       receipt="$previous_receipt"; rm -rf -- "$tempdir"
       die "scheduled receipt rendering failed: ${render_error}"
     }

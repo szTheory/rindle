@@ -148,6 +148,8 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
     File.write!(
       journal,
       Jason.encode!(%{
+        "schema_version" => 1,
+        "plan" => "133-278",
         "status" => "applying",
         "terminal_path" => terminal_rel,
         "prior_bytes" => prior
@@ -162,5 +164,122 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
     Enum.each(originals, fn {path, bytes} -> assert File.read!(path) == bytes end)
     refute File.exists?(Path.join(root, terminal_rel))
     refute File.exists?(journal)
+  end
+
+  test "Plan 278 rejects traversal, malformed backups, and mismatched terminal paths without mutation" do
+    for {label, mutate} <- [
+          {"traversal",
+           fn prior -> Map.put(prior, "../../outside", Base.encode64("overwrite")) end},
+          {"invalid later backup",
+           fn prior ->
+             Map.put(
+               prior,
+               ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json",
+               "%%%invalid"
+             )
+           end},
+          {"terminal mismatch", fn prior -> prior end}
+        ] do
+      root =
+        Path.join(
+          System.tmp_dir!(),
+          "phase133-plan278-invalid-journal-#{label}-#{System.unique_integer([:positive])}"
+        )
+
+      phase = Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
+      File.mkdir_p!(phase)
+      requirements = Path.join(root, ".planning/REQUIREMENTS.md")
+      census = Path.join(phase, "133-EVIDENCE-CENSUS.json")
+      nightly = Path.join(phase, "133-NIGHTLY-EVIDENCE.json")
+
+      originals = %{
+        requirements => "untouched requirements\n",
+        census => "untouched census\n",
+        nightly => "untouched nightly\n"
+      }
+
+      Enum.each(originals, fn {path, bytes} -> File.write!(path, bytes) end)
+      current = Map.new(originals, fn {path, _} -> {path, "current promoted bytes\n"} end)
+      Enum.each(current, fn {path, bytes} -> File.write!(path, bytes) end)
+
+      prior =
+        Map.new(originals, fn {path, bytes} ->
+          {Path.relative_to(path, root), Base.encode64(bytes)}
+        end)
+        |> mutate.()
+
+      outside = root <> "-outside-terminal"
+      File.write!(outside, "must remain\n")
+
+      terminal_rel =
+        if label == "terminal mismatch",
+          do: Path.relative_to(outside, root),
+          else: ".planning/phases/133-evidence-charter-and-live-truth/133-278-TERMINAL.json"
+
+      journal = Path.join(phase, "133-278-TRANSACTION.json")
+
+      journal_bytes =
+        Jason.encode!(%{
+          "schema_version" => 1,
+          "plan" => "133-278",
+          "status" => "applying",
+          "terminal_path" => terminal_rel,
+          "prior_bytes" => prior
+        })
+
+      File.write!(journal, journal_bytes)
+
+      on_exit(fn ->
+        File.rm_rf!(root)
+        File.rm(outside)
+      end)
+
+      assert {:error, _} = Rindle.ValidatePhase133Reconciliation.recover_plan278_transaction(root)
+      Enum.each(current, fn {path, bytes} -> assert File.read!(path) == bytes end)
+      assert File.read!(journal) == journal_bytes
+      assert File.read!(outside) == "must remain\n"
+
+      if label == "terminal mismatch" do
+        assert File.exists?(outside)
+      else
+        refute File.exists?(Path.join(root, terminal_rel))
+      end
+    end
+  end
+
+  test "Plan 278 recovery restores original bytes after interruption at every write boundary" do
+    for boundary <- 1..5 do
+      root =
+        Path.join(
+          System.tmp_dir!(),
+          "phase133-plan278-boundary-#{boundary}-#{System.unique_integer([:positive])}"
+        )
+
+      phase = Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
+      File.mkdir_p!(phase)
+      requirements = Path.join(root, ".planning/REQUIREMENTS.md")
+      census = Path.join(phase, "133-EVIDENCE-CENSUS.json")
+      nightly = Path.join(phase, "133-NIGHTLY-EVIDENCE.json")
+
+      originals = %{
+        requirements => "original requirements\n",
+        census => "original census\n",
+        nightly => "original nightly\n"
+      }
+
+      Enum.each(originals, fn {path, bytes} -> File.write!(path, bytes) end)
+      on_exit(fn -> File.rm_rf!(root) end)
+
+      assert {:interrupted, ^boundary} =
+               Rindle.ValidatePhase133Reconciliation.plan278_interrupt_transaction_for_test(
+                 root,
+                 boundary
+               )
+
+      assert :ok = Rindle.ValidatePhase133Reconciliation.recover_plan278_transaction(root)
+      Enum.each(originals, fn {path, bytes} -> assert File.read!(path) == bytes end)
+      refute File.exists?(Path.join(phase, "133-278-TERMINAL.json"))
+      refute File.exists?(Path.join(phase, "133-278-TRANSACTION.json"))
+    end
   end
 end
