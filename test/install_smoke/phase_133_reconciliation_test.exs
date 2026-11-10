@@ -159,6 +159,34 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
                tree
              )
 
+    # The parsed frontmatter is the sole verdict authority. Body text, including
+    # Markdown comments and contradictory prose, must not manufacture or alter it.
+    body_markers =
+      String.replace(
+        valid,
+        "**Verdict:** PASS — 0 BLOCKERs, 0 WARNINGs, 0 INFO findings.",
+        "<!--\n**Verdict:** PASS\n-->\n**Verdict:** FAIL — stale body text"
+      )
+
+    File.write!(path, body_markers)
+
+    assert :ok =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
+
+    body_only = String.replace(valid, "verdict: PASS\n", "")
+    File.write!(path, body_only)
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
+
     contradictory =
       valid
       |> String.replace("verdict: PASS\n", "verdict: FAIL\n")

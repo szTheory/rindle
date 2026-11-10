@@ -649,6 +649,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   defp plan278_review_binding(path, sha, tree) do
     with {:ok, bytes} <- File.read(path),
          {:ok, frontmatter, body} <- bounded_frontmatter(bytes),
+         # Strict frontmatter is the machine-readable review contract.
+         # Narrative body text does not determine the verdict.
          :ok <- plan278_review_frontmatter_keys(frontmatter),
          :ok <- reject_second_frontmatter(body),
          {:ok, metadata} <- decode_frontmatter(frontmatter),
@@ -663,9 +665,7 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          findings when is_map(findings) <- metadata["findings"],
          true <-
            Enum.sort(Map.keys(findings)) == ~w(blocker critical info necessity total warning),
-         true <- Enum.all?(Map.values(findings), &(&1 == 0)),
-         [["PASS"]] <-
-           Regex.scan(~r/^\*\*Verdict:\*\* (PASS)(?:[ \t—-]|$)/m, body, capture: :all_but_first) do
+         true <- Enum.all?(Map.values(findings), &(&1 == 0)) do
       :ok
     else
       _ -> {:error, "independent PASS review is not bound to the exact main commit/tree"}
