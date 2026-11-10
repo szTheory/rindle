@@ -990,9 +990,12 @@ verify_plan278_scheduled_case "Plan 278 rejects a non-main scheduled branch" wro
 verify_plan278_scheduled_case "Plan 278 rejects wrong schedule SHA" other_sha fail
 verify_plan278_scheduled_case "Plan 278 rejects scheduled attempt two" attempt2 fail
 verify_plan278_scheduled_case "Plan 278 rejects duplicate incident artifacts" duplicate_artifact fail
+verify_plan278_scheduled_case "Plan 278 rejects a well-formed but wrong artifact archive digest" wrong_artifact_digest fail
 verify_plan278_scheduled_case "Plan 278 rejects a missing checkpoint artifact" missing_checkpoint fail
 verify_plan278_scheduled_case "Plan 278 rejects artifact content for another SHA" artifact_other_sha fail
 verify_plan278_scheduled_case "Plan 278 rejects malformed incident checkpoint" malformed_checkpoint fail
+verify_plan278_scheduled_case "Plan 278 rejects an issue number without an issue state" issue_number_without_state fail
+verify_plan278_scheduled_case "Plan 278 rejects an issue state without an issue number" issue_state_without_number fail
 verify_plan278_scheduled_case "Plan 278 rejects failed scheduled jobs" red_job fail
 verify_plan278_scheduled_case "Plan 278 rejects an unexpected scheduled job" extra_job fail
 
@@ -1469,10 +1472,15 @@ case "${1-} ${2-}" in
     fi
     ;;
   "api repos/szTheory/rindle/actions/runs/7001/artifacts?per_page=100")
-    artifacts='[{"id":51,"name":"nightly-incident-verdict-7001-1","expired":false,"digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","workflow_run":{"id":7001,"head_sha":"'"$FAKE_SCHED_SHA"'"}},{"id":52,"name":"nightly-incident-replay-checkpoint-7001-1","expired":false,"digest":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","workflow_run":{"id":7001,"head_sha":"'"$FAKE_SCHED_SHA"'"}}]'
+    verdict_digest="$(printf 'verdict-archive-fixture' | shasum -a 256 | awk '{print $1}')"
+    checkpoint_digest="$(printf 'checkpoint-archive-fixture' | shasum -a 256 | awk '{print $1}')"
+    [ "$state" != wrong_artifact_digest ] || verdict_digest="$(printf '0%.0s' {1..64})"
+    artifacts="$(jq -cn --arg sha "$FAKE_SCHED_SHA" --arg vd "sha256:$verdict_digest" --arg cd "sha256:$checkpoint_digest" '[{id:51,name:"nightly-incident-verdict-7001-1",expired:false,digest:$vd,workflow_run:{id:7001,head_sha:$sha}},{id:52,name:"nightly-incident-replay-checkpoint-7001-1",expired:false,digest:$cd,workflow_run:{id:7001,head_sha:$sha}}]')"
     [ "$state" != duplicate_artifact ] || artifacts="$(jq '. + [.[0]]' <<<"$artifacts")"
     jq -cn --argjson artifacts "$artifacts" '{artifacts:$artifacts}'
     ;;
+  "api repos/szTheory/rindle/actions/artifacts/51/zip") printf 'verdict-archive-fixture' ;;
+  "api repos/szTheory/rindle/actions/artifacts/52/zip") printf 'checkpoint-archive-fixture' ;;
   "run download")
     id="$3"; shift 3; name=; dir=
     while [ "$#" -gt 0 ]; do case "$1" in --name) name="$2"; shift 2;; --dir) dir="$2"; shift 2;; *) shift;; esac; done
@@ -1484,7 +1492,11 @@ case "${1-} ${2-}" in
       jq -cn --arg sha "$artifact_sha" --arg verdict "$verdict" '{schema:"rindle-nightly-incident-verdict-v1",repository:"szTheory/rindle",workflow_name:"Nightly",workflow_ref:"szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main",event:"schedule",run_id:7001,run_attempt:1,sha:$sha,ref:"refs/heads/main",url:"https://github.com/szTheory/rindle/actions/runs/7001",verdict:{verdict:$verdict,errors:[],jobs:[{name:"compat-matrix",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]},{name:"dialyzer",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]},{name:"gcs-soak",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]},{name:"package-consumer-gcs-live",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]}]}}' >"$dir/nightly-incident-verdict.json"
     else
       issue_digest="$(printf '[]\n' | shasum -a 256 | awk '{print $1}')"
-      jq -cnS --arg issue "$issue_digest" --arg state "$state" '{schema:"rindle-nightly-incident-checkpoint-v1",repository:"szTheory/rindle",workflow_ref:"szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main",last_run_id:7001,last_run_attempt:1,event_digest:"__EVENT__",previous_chain_digest:("0"*64),issue_number:null,issue_state:null,issue_digest:$issue,chain_digest:""}' >"$dir/checkpoint.raw"
+      issue_number=null
+      issue_state=
+      [ "$state" != issue_number_without_state ] || issue_number=88
+      [ "$state" != issue_state_without_number ] || issue_state=OPEN
+      jq -cnS --arg issue "$issue_digest" --arg state "$issue_state" --argjson number "$issue_number" '{schema:"rindle-nightly-incident-checkpoint-v1",repository:"szTheory/rindle",workflow_ref:"szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main",last_run_id:7001,last_run_attempt:1,event_digest:"__EVENT__",previous_chain_digest:("0"*64),issue_number:$number,issue_state:(if $state == "" then null else $state end),issue_digest:$issue,chain_digest:""}' >"$dir/checkpoint.raw"
       # The collector's downloaded verdict is reproduced here; its canonical bytes define the event digest.
       verdict_file="${dir}/../verdict/nightly-incident-verdict.json"
       if [ -f "$verdict_file" ]; then event_digest="$(jq -cS . "$verdict_file" | shasum -a 256 | awk '{print $1}')"; fi

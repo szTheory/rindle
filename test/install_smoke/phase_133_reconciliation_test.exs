@@ -282,4 +282,83 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
       refute File.exists?(Path.join(phase, "133-278-TRANSACTION.json"))
     end
   end
+
+  test "Plan 278 rejects symlinked planning, phase, and evidence paths before recovery or fresh reads" do
+    for kind <- [:planning_directory, :phase_directory, :evidence_leaf] do
+      root =
+        Path.join(
+          System.tmp_dir!(),
+          "phase133-plan278-symlink-#{kind}-#{System.unique_integer([:positive])}"
+        )
+
+      File.mkdir_p!(root)
+      outside = root <> "-outside"
+      File.mkdir_p!(outside)
+      sentinel = Path.join(outside, "sentinel.json")
+      File.write!(sentinel, "outside bytes stay unchanged\n")
+
+      case kind do
+        :planning_directory ->
+          File.ln_s!(outside, Path.join(root, ".planning"))
+
+        :phase_directory ->
+          File.mkdir_p!(Path.join(root, ".planning/phases"))
+
+          File.ln_s!(
+            outside,
+            Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
+          )
+
+        :evidence_leaf ->
+          phase = Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
+          File.mkdir_p!(phase)
+          File.write!(Path.join(root, ".planning/REQUIREMENTS.md"), "requirements\n")
+          File.ln_s!(sentinel, Path.join(phase, "133-EVIDENCE-CENSUS.json"))
+      end
+
+      on_exit(fn ->
+        File.rm_rf!(root)
+        File.rm_rf!(outside)
+      end)
+
+      assert {:error, _} = Rindle.ValidatePhase133Reconciliation.recover_plan278_transaction(root)
+
+      assert {:error, _} =
+               Rindle.ValidatePhase133Reconciliation.validate_plan278_terminal(root, root)
+
+      assert File.read!(sentinel) == "outside bytes stay unchanged\n"
+
+      refute File.exists?(
+               Path.join(
+                 root,
+                 ".planning/phases/133-evidence-charter-and-live-truth/133-278-TRANSACTION.json"
+               )
+             )
+    end
+  end
+
+  test "Plan 278 keeps its recovery journal when terminal removal fails" do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "phase133-plan278-remove-failure-#{System.unique_integer([:positive])}"
+      )
+
+    phase = Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
+    File.mkdir_p!(phase)
+    terminal = Path.join(phase, "133-278-TERMINAL.json")
+    journal = Path.join(phase, "133-278-TRANSACTION.json")
+    File.write!(terminal, "terminal\n")
+    File.write!(journal, "journal\n")
+    on_exit(fn -> File.rm_rf!(root) end)
+
+    assert {:error, {:remove_failed, ^terminal, :eacces}} =
+             Rindle.ValidatePhase133Reconciliation.plan278_remove_terminal_failure_for_test(
+               terminal,
+               journal
+             )
+
+    assert File.read!(terminal) == "terminal\n"
+    assert File.read!(journal) == "journal\n"
+  end
 end

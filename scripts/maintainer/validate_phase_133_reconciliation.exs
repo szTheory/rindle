@@ -316,57 +316,69 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   def recover_plan278_transaction(root), do: plan278_recover_journal(root)
 
-  @doc false
-  def plan278_interrupt_transaction_for_test(root, fail_after)
-      when is_integer(fail_after) and fail_after in 1..5 do
-    root = Path.expand(root)
-    requirements = Path.join(root, @plan278_requirements)
-    census = Path.join(root, @plan278_census)
-    nightly = Path.join(root, @plan278_nightly)
-    terminal = Path.join(root, @plan278_terminal)
-    journal = Path.join(root, @plan278_journal)
-    originals = Map.new([requirements, census, nightly], &{&1, File.read!(&1)})
-    updates = Map.new([requirements, census, nightly], &{&1, "promoted:#{Path.basename(&1)}\n"})
+  if Code.ensure_loaded?(ExUnit) and Process.whereis(ExUnit.Server) do
+    @doc false
+    def plan278_interrupt_transaction_for_test(root, fail_after)
+        when is_integer(fail_after) and fail_after in 1..5 do
+      root = Path.expand(root)
+      requirements = Path.join(root, @plan278_requirements)
+      census = Path.join(root, @plan278_census)
+      nightly = Path.join(root, @plan278_nightly)
+      terminal = Path.join(root, @plan278_terminal)
+      journal = Path.join(root, @plan278_journal)
+      originals = Map.new([requirements, census, nightly], &{&1, File.read!(&1)})
+      updates = Map.new([requirements, census, nightly], &{&1, "promoted:#{Path.basename(&1)}\n"})
 
-    journal_bytes =
-      Jason.encode!(%{
-        "schema_version" => 1,
-        "plan" => "133-278",
-        "status" => "applying",
-        "terminal_path" => @plan278_terminal,
-        "prior_bytes" =>
-          Map.new(originals, fn {path, bytes} ->
-            {Path.relative_to(path, root), Base.encode64(bytes)}
-          end)
-      })
+      journal_bytes =
+        Jason.encode!(%{
+          "schema_version" => 1,
+          "plan" => "133-278",
+          "status" => "applying",
+          "terminal_path" => @plan278_terminal,
+          "prior_bytes" =>
+            Map.new(originals, fn {path, bytes} ->
+              {Path.relative_to(path, root), Base.encode64(bytes)}
+            end)
+        })
 
-    terminal_bytes = "terminal:plan278\n"
-    counter = :atomics.new(1, [])
+      terminal_bytes = "terminal:plan278\n"
+      counter = :atomics.new(1, [])
 
-    write = fn path, bytes ->
-      atomic_write(path, bytes)
-      write_number = :atomics.add_get(counter, 1, 1)
-      if write_number == fail_after, do: throw({:plan278_interrupted, write_number})
-      :ok
+      write = fn path, bytes ->
+        atomic_write(path, bytes)
+        write_number = :atomics.add_get(counter, 1, 1)
+        if write_number == fail_after, do: throw({:plan278_interrupted, write_number})
+        :ok
+      end
+
+      try do
+        result =
+          plan278_apply_transaction(
+            root,
+            originals,
+            updates,
+            terminal,
+            journal,
+            journal_bytes,
+            terminal_bytes,
+            fn -> :ok end,
+            write
+          )
+
+        {:completed, result}
+      catch
+        {:plan278_interrupted, write_number} -> {:interrupted, write_number}
+      end
     end
 
-    try do
-      result =
-        plan278_apply_transaction(
-          root,
-          originals,
-          updates,
-          terminal,
-          journal,
-          journal_bytes,
-          terminal_bytes,
-          fn -> :ok end,
-          write
-        )
+    @doc false
+    def plan278_remove_terminal_failure_for_test(terminal, journal) do
+      remove = fn
+        ^terminal -> {:error, :eacces}
+        path -> File.rm(path)
+      end
 
-      {:completed, result}
-    catch
-      {:plan278_interrupted, write_number} -> {:interrupted, write_number}
+      plan278_remove_terminal_and_journal(terminal, journal, remove)
     end
   end
 
@@ -434,7 +446,8 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       canonical_nightly
     ]
 
-    with :ok <- plan278_recover_journal(root),
+    with :ok <- plan278_preflight_paths(root, paths, [p.("133-278-TRANSACTION.json"), terminal]),
+         :ok <- plan278_recover_journal(root),
          :ok <- plan278_source(source_root, ci, review),
          :ok <- plan278_files(paths),
          :ok <- plan278_pending_requirements(requirements),
@@ -694,58 +707,67 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          postcheck,
          sealed_history
        ) do
-    if File.exists?(terminal) do
-      {:error, "Plan 278 terminal artifact already exists"}
-    else
-      files = [requirements, canonical_census, canonical_nightly]
-      originals = Map.new(files, &{&1, File.read!(&1)})
+    journal = Path.join(root, @plan278_journal)
 
-      proof = %{
-        "schema_version" => 1,
-        "plan" => "133-278",
-        "status" => "validated",
-        "source_sha" => sha,
-        "source_tree" => tree,
-        "ci_sha256" => file_sha(ci),
-        "review_sha256" => file_sha(review),
-        "census_sha256" => file_sha(census),
-        "nightly_sha256" => file_sha(nightly),
-        "sealed_history_sha256" => sealed_history,
-        "requirements_pending" => true
-      }
+    case plan278_preflight_paths(root, [requirements, canonical_census, canonical_nightly], [
+           journal,
+           terminal
+         ]) do
+      :ok ->
+        if File.exists?(terminal) do
+          {:error, "Plan 278 terminal artifact already exists"}
+        else
+          files = [requirements, canonical_census, canonical_nightly]
+          originals = Map.new(files, &{&1, File.read!(&1)})
 
-      journal = Path.join(root, @plan278_journal)
-
-      journal_bytes =
-        Jason.encode!(
-          %{
+          proof = %{
             "schema_version" => 1,
             "plan" => "133-278",
-            "status" => "applying",
-            "terminal_path" => @plan278_terminal,
-            "prior_bytes" =>
-              Map.new(originals, fn {path, bytes} ->
-                {Path.relative_to(path, root), Base.encode64(bytes)}
-              end)
-          },
-          pretty: true
-        ) <> "\n"
+            "status" => "validated",
+            "source_sha" => sha,
+            "source_tree" => tree,
+            "ci_sha256" => file_sha(ci),
+            "review_sha256" => file_sha(review),
+            "census_sha256" => file_sha(census),
+            "nightly_sha256" => file_sha(nightly),
+            "sealed_history_sha256" => sealed_history,
+            "requirements_pending" => true
+          }
 
-      plan278_apply_transaction(
-        root,
-        originals,
-        %{
-          requirements => new_requirements,
-          canonical_census => new_census,
-          canonical_nightly => new_nightly
-        },
-        terminal,
-        journal,
-        journal_bytes,
-        Jason.encode!(proof, pretty: true) <> "\n",
-        postcheck,
-        &atomic_write/2
-      )
+          journal_bytes =
+            Jason.encode!(
+              %{
+                "schema_version" => 1,
+                "plan" => "133-278",
+                "status" => "applying",
+                "terminal_path" => @plan278_terminal,
+                "prior_bytes" =>
+                  Map.new(originals, fn {path, bytes} ->
+                    {Path.relative_to(path, root), Base.encode64(bytes)}
+                  end)
+              },
+              pretty: true
+            ) <> "\n"
+
+          plan278_apply_transaction(
+            root,
+            originals,
+            %{
+              requirements => new_requirements,
+              canonical_census => new_census,
+              canonical_nightly => new_nightly
+            },
+            terminal,
+            journal,
+            journal_bytes,
+            Jason.encode!(proof, pretty: true) <> "\n",
+            postcheck,
+            &atomic_write/2
+          )
+        end
+
+      {:error, message} ->
+        {:error, "Plan 278 evidence paths are unsafe: #{inspect(message)}"}
     end
   end
 
@@ -760,63 +782,95 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          postcheck,
          write
        ) do
-    try do
-      write.(journal, journal_bytes)
+    case plan278_preflight_paths(root, Map.keys(originals), [journal, terminal]) do
+      :ok ->
+        if File.exists?(terminal) do
+          {:error, "Plan 278 terminal artifact appeared during transaction preflight"}
+        else
+          try do
+            write.(journal, journal_bytes)
 
-      Enum.each([@plan278_requirements, @plan278_census, @plan278_nightly], fn relative ->
-        path = Path.join(root, relative)
-        write.(path, Map.fetch!(updates, path))
-      end)
+            Enum.each([@plan278_requirements, @plan278_census, @plan278_nightly], fn relative ->
+              path = Path.join(root, relative)
+              write.(path, Map.fetch!(updates, path))
+            end)
 
-      write.(terminal, terminal_bytes)
+            write.(terminal, terminal_bytes)
 
-      case postcheck.() do
-        :ok ->
-          File.rm!(journal)
-          :ok
+            case postcheck.() do
+              :ok ->
+                File.rm!(journal)
+                :ok
 
-        {:error, message} ->
-          plan278_restore(originals, terminal, journal)
-          {:error, "post-promotion validation failed and evidence was restored: #{message}"}
-      end
-    rescue
-      error ->
-        plan278_restore(originals, terminal, journal)
-        {:error, "Plan 278 terminal transaction rolled back: #{Exception.message(error)}"}
+              {:error, message} ->
+                case plan278_restore(originals, terminal, journal) do
+                  :ok ->
+                    {:error,
+                     "post-promotion validation failed and evidence was restored: #{message}"}
+
+                  {:error, rollback} ->
+                    {:error,
+                     "post-promotion validation failed; rollback is incomplete: #{inspect(rollback)}"}
+                end
+            end
+          rescue
+            error ->
+              case plan278_restore(originals, terminal, journal) do
+                :ok ->
+                  {:error,
+                   "Plan 278 terminal transaction rolled back: #{Exception.message(error)}"}
+
+                {:error, rollback} ->
+                  {:error,
+                   "Plan 278 transaction failed and rollback is incomplete: #{inspect(rollback)}; #{Exception.message(error)}"}
+              end
+          end
+        end
+
+      {:error, reason} ->
+        {:error,
+         "Plan 278 evidence paths became unsafe before transaction writes: #{inspect(reason)}"}
     end
   end
 
   defp plan278_restore(originals, terminal, journal) do
-    Enum.each(originals, fn {path, bytes} -> atomic_write(path, bytes) end)
-    File.rm(terminal)
-    File.rm(journal)
-    :ok
+    with :ok <- plan278_restore_backups(Map.to_list(originals)),
+         :ok <- plan278_remove_terminal_and_journal(terminal, journal) do
+      :ok
+    end
   end
 
   defp plan278_recover_journal(root) do
     root = Path.expand(root)
     journal = Path.join(root, @plan278_journal)
 
-    case File.lstat(journal) do
-      {:error, :enoent} ->
-        :ok
-
-      {:ok, %{type: :regular}} ->
-        with :ok <- plan278_recovery_path_safety(root),
-             {:ok, bytes} <- File.read(journal),
-             {:ok, decoded} <- Jason.decode(bytes),
-             {:ok, backups, terminal} <- plan278_validate_recovery_journal(root, decoded) do
-          Enum.each(backups, fn {path, original} -> atomic_write(path, original) end)
-          File.rm(terminal)
-          File.rm(journal)
+    with :ok <- plan278_recovery_path_safety(root) do
+      case File.lstat(journal) do
+        {:error, :enoent} ->
           :ok
-        else
-          _ -> {:error, "Plan 278 transaction journal is malformed; refusing to change evidence"}
-        end
 
-      _ ->
-        {:error,
-         "Plan 278 transaction journal is not a regular file; refusing to change evidence"}
+        {:ok, %{type: :regular}} ->
+          with {:ok, bytes} <- File.read(journal),
+               {:ok, decoded} <- Jason.decode(bytes),
+               {:ok, backups, terminal} <- plan278_validate_recovery_journal(root, decoded),
+               :ok <- plan278_restore_backups(backups),
+               :ok <- plan278_remove_terminal_and_journal(terminal, journal) do
+            :ok
+          else
+            {:error, _} = error ->
+              error
+
+            _ ->
+              {:error, "Plan 278 transaction journal is malformed; refusing to change evidence"}
+          end
+
+        _ ->
+          {:error,
+           "Plan 278 transaction journal is not a regular file; refusing to change evidence"}
+      end
+    else
+      {:error, reason} ->
+        {:error, "Plan 278 recovery paths are unsafe: #{inspect(reason)}"}
     end
   end
 
@@ -914,25 +968,113 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp plan278_recovery_path_safety(root) do
-    required = [
-      @plan278_journal,
-      @plan278_requirements,
-      @plan278_census,
-      @plan278_nightly,
-      @plan278_terminal
-    ]
+    optional =
+      Enum.map(
+        [
+          @plan278_journal,
+          @plan278_requirements,
+          @plan278_census,
+          @plan278_nightly,
+          @plan278_terminal
+        ],
+        &Path.join(root, &1)
+      )
 
-    Enum.reduce_while(required, :ok, fn relative, :ok ->
-      terminal? = relative == @plan278_terminal
+    plan278_preflight_paths(root, [], optional)
+  end
 
-      prior_paths =
-        MapSet.new([@plan278_journal, @plan278_requirements, @plan278_census, @plan278_nightly])
+  defp plan278_preflight_paths(root, required, optional) do
+    root = Path.expand(root)
 
-      case plan278_recovery_path(root, relative, prior_paths, terminal?) do
-        {:ok, _} -> {:cont, :ok}
-        _ -> {:halt, {:error, :unsafe_recovery_paths}}
+    with {:ok, %{type: :directory}} <- File.lstat(root),
+         :ok <- Enum.reduce_while(required, :ok, &plan278_preflight_one(root, &1, true, &2)),
+         :ok <- Enum.reduce_while(optional, :ok, &plan278_preflight_one(root, &1, false, &2)) do
+      :ok
+    else
+      {:error, reason} -> {:error, reason}
+      _ -> {:error, :unsafe_root}
+    end
+  end
+
+  defp plan278_preflight_one(root, path, required?, :ok) do
+    expanded = Path.expand(path)
+    relative = Path.relative_to(expanded, root)
+    segments = String.split(relative, "/", trim: true)
+
+    cond do
+      Path.type(path) != :absolute ->
+        {:halt, {:error, :non_absolute_path}}
+
+      expanded == root or not String.starts_with?(expanded, root <> "/") ->
+        {:halt, {:error, :outside_root}}
+
+      Enum.any?(segments, &(&1 in [".", "..", ""])) ->
+        {:halt, {:error, :traversal}}
+
+      true ->
+        case plan278_parent_chain(root, segments) do
+          :missing when not required? ->
+            {:cont, :ok}
+
+          :missing ->
+            {:halt, {:error, :missing_parent}}
+
+          :ok ->
+            case File.lstat(expanded) do
+              {:ok, %{type: :regular}} -> {:cont, :ok}
+              {:error, :enoent} when not required? -> {:cont, :ok}
+              {:error, :enoent} -> {:halt, {:error, :missing_file}}
+              _ -> {:halt, {:error, :unsafe_leaf}}
+            end
+
+          {:error, reason} ->
+            {:halt, {:error, reason}}
+        end
+    end
+  end
+
+  defp plan278_parent_chain(root, segments) do
+    segments
+    |> Enum.drop(-1)
+    |> Enum.reduce_while({:ok, root}, fn segment, {:ok, parent} ->
+      path = Path.join(parent, segment)
+
+      case File.lstat(path) do
+        {:ok, %{type: :directory}} -> {:cont, {:ok, path}}
+        {:error, :enoent} -> {:halt, :missing}
+        _ -> {:halt, {:error, :unsafe_parent}}
       end
     end)
+    |> case do
+      {:ok, _} -> :ok
+      result -> result
+    end
+  end
+
+  defp plan278_restore_backups(backups) do
+    Enum.reduce_while(backups, :ok, fn {path, bytes}, :ok ->
+      try do
+        atomic_write(path, bytes)
+        {:cont, :ok}
+      rescue
+        error -> {:halt, {:error, {:restore_failed, path, Exception.message(error)}}}
+      end
+    end)
+  end
+
+  defp plan278_remove_terminal_and_journal(terminal, journal, remove_fun \\ &File.rm/1) do
+    with :ok <- plan278_remove_if_present(terminal, remove_fun),
+         :ok <- plan278_remove_if_present(journal, remove_fun) do
+      :ok
+    end
+  end
+
+  defp plan278_remove_if_present(path, remove_fun) do
+    case remove_fun.(path) do
+      :ok -> :ok
+      {:error, :enoent} -> :ok
+      {:error, reason} -> {:error, {:remove_failed, path, reason}}
+    end
   end
 
   defp atomic_write(path, bytes) do

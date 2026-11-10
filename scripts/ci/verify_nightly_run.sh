@@ -748,6 +748,8 @@ scheduled_checkpoint() {
   ' <<<"$index" >/dev/null || die "scheduled verdict/checkpoint artifact inventory is duplicate, expired, or misbound"
   verdict_index="$(jq -cS --arg name "nightly-incident-verdict-${run_id}-1" '.artifacts[] | select(.name == $name) | {id,name,digest}' <<<"$index")"
   checkpoint_index="$(jq -cS --arg name "nightly-incident-replay-checkpoint-${run_id}-1" '.artifacts[] | select(.name == $name) | {id,name,digest}' <<<"$index")"
+  verify_scheduled_artifact_archive "$verdict_index" "$dir/verdict.zip" "verdict"
+  verify_scheduled_artifact_archive "$checkpoint_index" "$dir/checkpoint.zip" "checkpoint"
   gh run download "$run_id" --repo "$repo" --name "nightly-incident-verdict-${run_id}-1" --dir "$dir/verdict" >/dev/null 2>&1 ||
     die "scheduled verdict artifact is missing"
   gh run download "$run_id" --repo "$repo" --name "nightly-incident-replay-checkpoint-${run_id}-1" --dir "$dir/checkpoint" >/dev/null 2>&1 ||
@@ -779,8 +781,8 @@ scheduled_checkpoint() {
     (.event_digest | test("^[0-9a-f]{64}$")) and (.issue_digest | test("^[0-9a-f]{64}$")) and
     (.chain_digest | test("^[0-9a-f]{64}$")) and
     (.previous_chain_digest | test("^[0-9a-f]{64}$")) and
-    (.issue_number == null or (.issue_number | type == "number" and . > 0)) and
-    (.issue_state == null or (.issue_state | IN("OPEN","CLOSED")))
+    (if .issue_number == null then .issue_state == null else
+      (.issue_number | type == "number" and . > 0) and (.issue_state | IN("OPEN","CLOSED")) end)
   ' <<<"$checkpoint" >/dev/null || die "scheduled incident checkpoint identity is malformed"
   event_digest="$(printf '%s\n' "$artifact" | sha256_stream)"
   [ "$event_digest" = "$(jq -r .event_digest <<<"$checkpoint")" ] || die "checkpoint event digest does not authenticate the verdict artifact"
@@ -806,6 +808,18 @@ scheduled_checkpoint() {
     '{verdict:$artifact,verdict_sha256:$artifact_sha256,verdict_artifact:$verdict_artifact,
       checkpoint:$checkpoint,checkpoint_artifact:$checkpoint_artifact,
       checkpoint_sha256:$checkpoint_sha256,incident_state_sha256:$issue_sha256,status:"pass"}'
+}
+
+verify_scheduled_artifact_archive() {
+  local artifact_index="$1" archive="$2" label="$3" artifact_id expected actual
+  artifact_id="$(jq -er '.id | select(type == "number" and . > 0 and floor == .)' <<<"$artifact_index")" ||
+    die "scheduled ${label} artifact ID is malformed"
+  expected="$(jq -er '.digest | select(test("^sha256:[0-9a-f]{64}$")) | sub("^sha256:"; "")' <<<"$artifact_index")" ||
+    die "scheduled ${label} artifact digest is malformed"
+  gh api "repos/${repo}/actions/artifacts/${artifact_id}/zip" >"$archive" ||
+    die "scheduled ${label} artifact archive download failed"
+  actual="$(sha256_file "$archive")" || die "scheduled ${label} artifact archive is unreadable"
+  [ "$actual" = "$expected" ] || die "scheduled ${label} artifact archive digest differs from inventory"
 }
 
 capture_plan278_scheduled() {
