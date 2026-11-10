@@ -16,11 +16,11 @@
 set -euo pipefail
 
 # Source: BtbN dated release and its checksums.sha256, independently matched
-# to GitHub asset 659366397 digest on 2026-10-20. Update URL + digest together.
+# to GitHub asset 731391687 digest on 2026-11-10. Update URL + digest together.
 # No latest fallback: expired/replaced upstream assets must fail closed.
-asset="ffmpeg-n9.0.2-29-g6dfaba896f-linux64-gpl-9.0.tar.xz"
-url="https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-20-13-08/$asset"
-archive_sha256="6a40dd0b5a020854573aa8bf11449694fabd4fdff1be09b43f6713ca8a2abab1"
+asset="ffmpeg-n9.0.2-48-gd4070a14ce-linux64-gpl-9.0.tar.xz"
+url="https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-11-10-12-39/$asset"
+archive_sha256="8206a48ce342b5075d0e0293e468a61198a55b3ef479bec3f7e83b04a18667d4"
 if [ -n "${RINDLE_FFMPEG_RELEASE_API:-}" ]; then
   echo "[install_ffmpeg] release lookup overrides are not supported; update the reviewed pin" >&2
   exit 64
