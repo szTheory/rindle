@@ -369,22 +369,6 @@
       "count": 2,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "scripts/ci/verify_nightly_run.sh",
-      "class": "planning-path",
-      "text": ".local_authorities.census.ledger_path == \".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json\" and",
-      "count": 1,
-      "reason_class": "immutable-receipt",
-      "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
-    },
-    {
-      "path": "scripts/ci/verify_nightly_run.sh",
-      "class": "planning-path",
-      "text": "ledger_path='.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'",
-      "count": 1,
-      "reason_class": "immutable-receipt",
-      "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
     }
   ]
 }

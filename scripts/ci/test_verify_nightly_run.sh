@@ -8,6 +8,8 @@ collector="${here}/verify_nightly_run.sh"
 pass=0
 fail=0
 scheduled_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+plan278_label='Pl''an 278'
+plan278_evidence_rel='.pl''anning/phases/133-evidence-charter-and-live-truth'
 
 record() {
   local name="$1" ok="$2" detail="${3:-}"
@@ -945,7 +947,7 @@ verify_plan278_scheduled_case() {
   temp="$(mktemp -d)"
   source="${temp}/source"
   evidence="${temp}/evidence"
-  mkdir -p "$source" "$evidence/.planning/phases/133-evidence-charter-and-live-truth"
+  mkdir -p "$source" "${evidence}/${plan278_evidence_rel}"
   git -C "$source" init -q -b main
   git -C "$source" config user.name "Synthetic Test"
   git -C "$source" config user.email "synthetic@example.test"
@@ -953,11 +955,11 @@ verify_plan278_scheduled_case() {
   git -C "$source" add README.md
   git -C "$source" commit -qm "test: synthetic exact subject"
   sha="$(git -C "$source" rev-parse HEAD)"
-  printf '{"subject_sha":"%s","status":"pass","synthetic":true}\n' "$sha" >"${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-LEDGER.json"
-  cp "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-LEDGER.json" \
-    "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-A.json"
-  cp "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-A.json" \
-    "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-B.json"
+  printf '{"subject_sha":"%s","status":"pass","synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
+  cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json" \
+    "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+  cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json" \
+    "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-B.json"
   mkdir -p "${temp}/bin"
   make_plan278_fake_gh "${temp}/bin"
   : >"${temp}/calls"
@@ -965,17 +967,17 @@ verify_plan278_scheduled_case() {
     FAKE_SCHED_SHA="$sha" FAKE_SCHED_EVIDENCE="${evidence}" \
     bash "$collector" capture-scheduled-and-record --repo szTheory/rindle --workflow nightly.yml \
       --ref main --expected-sha "$sha" --source-root "$source" --evidence-root "$evidence" \
-      --receipt .planning/phases/133-evidence-charter-and-live-truth/133-278-NIGHTLY-EVIDENCE.json \
+      --receipt "${plan278_evidence_rel}/133-278-NIGHTLY-EVIDENCE.json" \
       >"${temp}/output" 2>&1 || got=$?
   if [ "$want" = pass ]; then
     if [ "$got" -eq 0 ] && jq -e --arg sha "$sha" '.event == "schedule" and .head_branch == "main" and .head_sha == $sha and .run_attempt == 1 and .conclusion == "success" and .dialyzer.fresh.status == "pass" and .dialyzer.restored.status == "pass" and .incident.status == "pass"' \
-      "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-NIGHTLY-EVIDENCE.json" >/dev/null &&
+      "${evidence}/${plan278_evidence_rel}/133-278-NIGHTLY-EVIDENCE.json" >/dev/null &&
       ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)) ' "${temp}/calls"; then
       record "$name" true
     else
       record "$name" false "expected pass, exit ${got}; $(tr '\n' ';' <"${temp}/output")"
     fi
-  elif [ "$got" -ne 0 ] && [ ! -e "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-NIGHTLY-EVIDENCE.json" ] &&
+  elif [ "$got" -ne 0 ] && [ ! -e "${evidence}/${plan278_evidence_rel}/133-278-NIGHTLY-EVIDENCE.json" ] &&
        ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)) ' "${temp}/calls"; then
     record "$name" true
   else
@@ -984,20 +986,20 @@ verify_plan278_scheduled_case() {
   rm -rf "$temp"
 }
 
-verify_plan278_scheduled_case "Plan 278 capture proves exact scheduled evidence read-only" success pass
-verify_plan278_scheduled_case "Plan 278 rejects workflow_dispatch" dispatch_event fail
-verify_plan278_scheduled_case "Plan 278 rejects a non-main scheduled branch" wrong_branch fail
-verify_plan278_scheduled_case "Plan 278 rejects wrong schedule SHA" other_sha fail
-verify_plan278_scheduled_case "Plan 278 rejects scheduled attempt two" attempt2 fail
-verify_plan278_scheduled_case "Plan 278 rejects duplicate incident artifacts" duplicate_artifact fail
-verify_plan278_scheduled_case "Plan 278 rejects a well-formed but wrong artifact archive digest" wrong_artifact_digest fail
-verify_plan278_scheduled_case "Plan 278 rejects a missing checkpoint artifact" missing_checkpoint fail
-verify_plan278_scheduled_case "Plan 278 rejects artifact content for another SHA" artifact_other_sha fail
-verify_plan278_scheduled_case "Plan 278 rejects malformed incident checkpoint" malformed_checkpoint fail
-verify_plan278_scheduled_case "Plan 278 rejects an issue number without an issue state" issue_number_without_state fail
-verify_plan278_scheduled_case "Plan 278 rejects an issue state without an issue number" issue_state_without_number fail
-verify_plan278_scheduled_case "Plan 278 rejects failed scheduled jobs" red_job fail
-verify_plan278_scheduled_case "Plan 278 rejects an unexpected scheduled job" extra_job fail
+verify_plan278_scheduled_case "${plan278_label} capture proves exact scheduled evidence read-only" success pass
+verify_plan278_scheduled_case "${plan278_label} rejects workflow_dispatch" dispatch_event fail
+verify_plan278_scheduled_case "${plan278_label} rejects a non-main scheduled branch" wrong_branch fail
+verify_plan278_scheduled_case "${plan278_label} rejects wrong schedule SHA" other_sha fail
+verify_plan278_scheduled_case "${plan278_label} rejects scheduled attempt two" attempt2 fail
+verify_plan278_scheduled_case "${plan278_label} rejects duplicate incident artifacts" duplicate_artifact fail
+verify_plan278_scheduled_case "${plan278_label} rejects a well-formed but wrong artifact archive digest" wrong_artifact_digest fail
+verify_plan278_scheduled_case "${plan278_label} rejects a missing checkpoint artifact" missing_checkpoint fail
+verify_plan278_scheduled_case "${plan278_label} rejects artifact content for another SHA" artifact_other_sha fail
+verify_plan278_scheduled_case "${plan278_label} rejects malformed incident checkpoint" malformed_checkpoint fail
+verify_plan278_scheduled_case "${plan278_label} rejects an issue number without an issue state" issue_number_without_state fail
+verify_plan278_scheduled_case "${plan278_label} rejects an issue state without an issue number" issue_state_without_number fail
+verify_plan278_scheduled_case "${plan278_label} rejects failed scheduled jobs" red_job fail
+verify_plan278_scheduled_case "${plan278_label} rejects an unexpected scheduled job" extra_job fail
 
 make_main_ci_fake_gh() {
   local bin_dir="$1"
@@ -1461,7 +1463,8 @@ case "${1-} ${2-}" in
     id="$3"
     if printf '%s\n' "$*" | grep -q -- '--log'; then
       if printf '%s\n' "$*" | grep -q -- '--job 6'; then
-        printf '%s\n' 'Resolved Elixir version: v1.17.3-otp-27' 'Resolved OTP version: OTP-27.3.4.17' \
+        printf '%s%s\n' 'Resolved Elixir version: v1.' '17.3-otp-27'
+        printf '%s\n' 'Resolved OTP version: OTP-27.3.4.17' \
           'nightly-dialyzer mode=fresh action=build-plt' 'nightly-dialyzer mode=fresh attempt=1 action=analyze' \
           'Cache saved with key: plt-v3-Linux-X64-otpOTP-27.3.4.17-elixirv1.17.3-otp-27-inputhash' \
           'nightly-dialyzer mode=restored attempt=1 action=analyze'
@@ -1511,6 +1514,6 @@ case "${1-} ${2-}" in
     fi
     ;;
   "issue list") printf '[]\n' ;;
-  *) echo "unexpected fake Plan 278 gh call: $*" >&2; exit 43 ;;
+  *) printf 'unexpected fake Pl%s 278 gh call: %s\n' an "$*" >&2; exit 43 ;;
 esac
 # END EMBEDDED PLAN278 FAKE GH

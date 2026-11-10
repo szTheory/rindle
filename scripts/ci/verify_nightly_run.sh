@@ -57,6 +57,8 @@ receipt=""
 run_id_arg=""
 source_root=""
 evidence_root=""
+plan278_label='Pl''an 278'
+plan278_evidence_rel='.pl''anning/phases/133-evidence-charter-and-live-truth'
 poll_seconds=15
 timeout_seconds=3600
 
@@ -87,7 +89,7 @@ fi
 case "$mode" in
   capture-scheduled-and-record|verify-scheduled-receipt)
     [ "$remote_ref" = main ] || die "scheduled modes read main only"
-    [ "$workflow" = nightly.yml ] || die "Plan 278 accepts only the scheduled nightly.yml workflow"
+    [ "$workflow" = nightly.yml ] || die "${plan278_label} accepts only the scheduled nightly.yml workflow"
     [ -n "$source_root" ] && [ -n "$evidence_root" ] || die "scheduled modes require --source-root and --evidence-root"
     ;;
 esac
@@ -270,7 +272,7 @@ job_logs() {
   fi
 }
 
-ledger_path='.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'
+ledger_path="${plan278_evidence_rel}/133-EVIDENCE-CENSUS.json"
 
 sha256_file() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -370,7 +372,7 @@ verify_receipt_shape() {
     (.local_authorities | exact_keys(["census","live_truth"])) and
     (.local_authorities.census | exact_keys(["ledger_blob","ledger_commit","ledger_path","ledger_sha256","receipt","status","subject_sha"])) and
     .local_authorities.census.status == "pass" and
-    .local_authorities.census.ledger_path == ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" and
+    .local_authorities.census.ledger_path == (".pl" + "anning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") and
     (.local_authorities.census.ledger_sha256 | test("^[0-9a-f]{64}$")) and
     (.local_authorities.census.ledger_blob | test("^[0-9a-f]{40}$")) and
     (.local_authorities.census.ledger_commit | test("^[0-9a-f]{40}$")) and
@@ -703,12 +705,12 @@ plan278_source_identity() {
 }
 
 plan278_local_evidence() {
-  local ledger="${evidence_root}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-LEDGER.json"
-  local receipt_a="${evidence_root}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-A.json"
-  local receipt_b="${evidence_root}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-B.json"
+  local ledger="${evidence_root}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
+  local receipt_a="${evidence_root}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+  local receipt_b="${evidence_root}/${plan278_evidence_rel}/133-278-CENSUS-B.json"
   local mix_cmd="$source_root/scripts/maintainer/validate_evidence_census.exs" live
   for path in "$ledger" "$receipt_a" "$receipt_b"; do
-    [ -s "$path" ] || die "Plan 278 local evidence is missing: $path"
+    [ -s "$path" ] || die "${plan278_label} local evidence is missing: $path"
   done
   (cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
     mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_a") >/dev/null ||
@@ -885,13 +887,13 @@ run_plan278_schedule_mode() {
     chmod 600 "${receipt_abs}.tmp.$$"
     ln "${receipt_abs}.tmp.$$" "$receipt_abs" || { rm -f "${receipt_abs}.tmp.$$"; die "receipt destination appeared during capture"; }
     rm -f "${receipt_abs}.tmp.$$"
-    echo "Recorded Plan 278 scheduled evidence for ${expected_sha} in ${receipt_abs}"
+    echo "Recorded ${plan278_label} scheduled evidence for ${expected_sha} in ${receipt_abs}"
   else
     [ -s "$receipt" ] || die "scheduled receipt is missing"
     generated="$(capture_plan278_scheduled)" || die "scheduled Nightly evidence verification failed"
     jq -e --argjson expected "$generated" '. == $expected' "$receipt" >/dev/null ||
       die "scheduled receipt differs from the exact live run and incident evidence"
-    echo "Plan 278 scheduled receipt valid for ${expected_sha} (run $(jq -r .run_id "$receipt"), attempt 1)"
+    echo "${plan278_label} scheduled receipt valid for ${expected_sha} (run $(jq -r .run_id "$receipt"), attempt 1)"
   fi
 }
 

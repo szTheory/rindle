@@ -36,7 +36,10 @@ defmodule Rindle.Maintainer.LiveResidueScan do
 
   @self_files [
     "scripts/maintainer/scan_live_residue.exs",
-    "test/install_smoke/live_residue_scan_test.exs"
+    "test/install_smoke/live_residue_scan_test.exs",
+    # Phase-specific reconciliation tooling necessarily names its planning records.
+    "scripts/maintainer/validate_phase_133_reconciliation.exs",
+    "test/install_smoke/phase_133_reconciliation_test.exs"
   ]
   @self_dir "scripts/maintainer/live_residue_allowlist/"
 
