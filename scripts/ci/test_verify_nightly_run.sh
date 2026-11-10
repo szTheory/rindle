@@ -7,6 +7,7 @@ here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 collector="${here}/verify_nightly_run.sh"
 pass=0
 fail=0
+scheduled_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 
 record() {
   local name="$1" ok="$2" detail="${3:-}"
@@ -683,6 +684,7 @@ if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" = authority-argv ]; then
   exit
 fi
 
+if [ "${VERIFY_NIGHTLY_TEST_SCOPE:-}" != plan278 ]; then
 verify_uncompiled_subject_case
 verify_authority_argv_case
 verify_missing_no_start_mutation 1 "census generator"
@@ -844,8 +846,6 @@ make_scheduled_fake_gh() {
   chmod +x "${bin_dir}/gh"
 }
 
-scheduled_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-
 run_scheduled() {
   local temp="$1" state="$2"; shift 2
   PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_SCHED_STATE="$state" \
@@ -929,6 +929,116 @@ verify_scheduled_case "verify-scheduled selects a pinned run among same-SHA runs
 verify_scheduled_case "verify-scheduled rejects a pinned run that does not qualify" ambiguous fail "no completed scheduled Nightly run" --run-id 7999
 verify_scheduled_reproducible_read_only_case
 verify_scheduled_existing_receipt_case
+fi
+
+make_plan278_fake_gh() {
+  local bin_dir="$1"
+  mkdir -p "$bin_dir"
+  awk '/^# BEGIN EMBEDDED PLAN278 FAKE GH$/ {copy=1; next} /^# END EMBEDDED PLAN278 FAKE GH$/ {copy=0} copy' "$0" >"${bin_dir}/gh"
+  chmod +x "${bin_dir}/gh"
+  awk '/^# BEGIN EMBEDDED PLAN278 FAKE MIX$/ {copy=1; next} /^# END EMBEDDED PLAN278 FAKE MIX$/ {copy=0} copy' "$0" >"${bin_dir}/mix"
+  chmod +x "${bin_dir}/mix"
+}
+
+verify_plan278_scheduled_case() {
+  local name="$1" state="$2" want="$3" temp source evidence sha got=0
+  temp="$(mktemp -d)"
+  source="${temp}/source"
+  evidence="${temp}/evidence"
+  mkdir -p "$source" "$evidence/.planning/phases/133-evidence-charter-and-live-truth"
+  git -C "$source" init -q -b main
+  git -C "$source" config user.name "Synthetic Test"
+  git -C "$source" config user.email "synthetic@example.test"
+  printf 'synthetic source\n' >"${source}/README.md"
+  git -C "$source" add README.md
+  git -C "$source" commit -qm "test: synthetic exact subject"
+  sha="$(git -C "$source" rev-parse HEAD)"
+  printf '{"subject_sha":"%s","status":"pass","synthetic":true}\n' "$sha" >"${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-LEDGER.json"
+  cp "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-LEDGER.json" \
+    "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-A.json"
+  cp "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-A.json" \
+    "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-CENSUS-B.json"
+  mkdir -p "${temp}/bin"
+  make_plan278_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_SCHED_STATE="$state" \
+    FAKE_SCHED_SHA="$sha" FAKE_SCHED_EVIDENCE="${evidence}" \
+    bash "$collector" capture-scheduled-and-record --repo szTheory/rindle --workflow nightly.yml \
+      --ref main --expected-sha "$sha" --source-root "$source" --evidence-root "$evidence" \
+      --receipt .planning/phases/133-evidence-charter-and-live-truth/133-278-NIGHTLY-EVIDENCE.json \
+      >"${temp}/output" 2>&1 || got=$?
+  if [ "$want" = pass ]; then
+    if [ "$got" -eq 0 ] && jq -e --arg sha "$sha" '.event == "schedule" and .head_branch == "main" and .head_sha == $sha and .run_attempt == 1 and .conclusion == "success" and .dialyzer.fresh.status == "pass" and .dialyzer.restored.status == "pass" and .incident.status == "pass"' \
+      "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-NIGHTLY-EVIDENCE.json" >/dev/null &&
+      ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)) ' "${temp}/calls"; then
+      record "$name" true
+    else
+      record "$name" false "expected pass, exit ${got}; $(tr '\n' ';' <"${temp}/output")"
+    fi
+  elif [ "$got" -ne 0 ] && [ ! -e "${evidence}/.planning/phases/133-evidence-charter-and-live-truth/133-278-NIGHTLY-EVIDENCE.json" ] &&
+       ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)) ' "${temp}/calls"; then
+    record "$name" true
+  else
+    record "$name" false "expected read-only fail closed, exit ${got}; $(tail -1 "${temp}/output")"
+  fi
+  rm -rf "$temp"
+}
+
+verify_plan278_scheduled_case "Plan 278 capture proves exact scheduled evidence read-only" success pass
+verify_plan278_scheduled_case "Plan 278 rejects workflow_dispatch" dispatch_event fail
+verify_plan278_scheduled_case "Plan 278 rejects a non-main scheduled branch" wrong_branch fail
+verify_plan278_scheduled_case "Plan 278 rejects wrong schedule SHA" other_sha fail
+verify_plan278_scheduled_case "Plan 278 rejects scheduled attempt two" attempt2 fail
+verify_plan278_scheduled_case "Plan 278 rejects duplicate incident artifacts" duplicate_artifact fail
+verify_plan278_scheduled_case "Plan 278 rejects a missing checkpoint artifact" missing_checkpoint fail
+verify_plan278_scheduled_case "Plan 278 rejects artifact content for another SHA" artifact_other_sha fail
+verify_plan278_scheduled_case "Plan 278 rejects malformed incident checkpoint" malformed_checkpoint fail
+verify_plan278_scheduled_case "Plan 278 rejects failed scheduled jobs" red_job fail
+verify_plan278_scheduled_case "Plan 278 rejects an unexpected scheduled job" extra_job fail
+
+make_main_ci_fake_gh() {
+  local bin_dir="$1"
+  mkdir -p "$bin_dir"
+  awk '/^# BEGIN EMBEDDED MAIN CI FAKE GH$/ {copy=1; next} /^# END EMBEDDED MAIN CI FAKE GH$/ {copy=0} copy' "$0" >"${bin_dir}/gh"
+  chmod +x "${bin_dir}/gh"
+}
+
+verify_main_ci_case() {
+  local name="$1" state="$2" want="$3" temp got=0
+  temp="$(mktemp -d)"
+  make_main_ci_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_CI_STATE="$state" \
+    bash "$collector" verify-main-ci-receipt --repo szTheory/rindle \
+      --expected-sha "$scheduled_sha" --receipt "${temp}/receipt.json" >"${temp}/output" 2>&1 || got=$?
+  if [ "$want" = pass ]; then
+    if [ "$got" -eq 0 ] && [ "$(jq -r '.check_id' "${temp}/receipt.json")" = 42 ] &&
+       [ "$(jq -r '.subject_sha' "${temp}/receipt.json")" = "$scheduled_sha" ] &&
+       ! grep -Ev '^api --paginate --slurp repos/szTheory/rindle/commits/' "${temp}/calls" | grep -q .; then
+      record "$name" true
+    else
+      record "$name" false "exit ${got}: $(tail -1 "${temp}/output")"
+    fi
+  elif [ "$got" -ne 0 ] && [ ! -e "${temp}/receipt.json" ]; then
+    record "$name" true
+  else
+    record "$name" false "expected fail closed, exit ${got}"
+  fi
+  rm -rf "$temp"
+}
+
+verify_main_ci_case "exact-SHA CI Summary receipt records check identity" success pass
+verify_main_ci_case "CI Summary with a different SHA is rejected" wrong_sha fail
+verify_main_ci_case "duplicate exact-SHA CI Summary checks are rejected" duplicate fail
+verify_main_ci_case "pending CI Summary is rejected" pending fail
+verify_main_ci_case "failed CI Summary is rejected" failure fail
+verify_main_ci_case "missing CI Summary is rejected" missing fail
+
+echo "—"
+echo "passed: ${pass}  failed: ${fail}"
+status=0
+[ "$pass" -gt 0 ] && [ "$fail" -eq 0 ] || status=1
+exit "$status"
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
@@ -1280,3 +1390,115 @@ case "${1-} ${2-}" in
   *) echo "unexpected scheduled fake gh call: $*" >&2; exit 43 ;;
 esac
 # END EMBEDDED SCHEDULED FAKE GH
+
+# BEGIN EMBEDDED MAIN CI FAKE GH
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$FAKE_GH_LOG"
+state="${FAKE_CI_STATE:-success}"
+sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+status=completed
+conclusion=success
+name='CI Summary'
+case "$state" in
+  wrong_sha) sha=cccccccccccccccccccccccccccccccccccccccc ;;
+  duplicate) ;;
+  pending) status=in_progress; conclusion=null ;;
+  failure) conclusion=failure ;;
+  missing) name='Quality' ;;
+esac
+jq -cn --arg sha "$sha" --arg status "$status" --arg conclusion "$conclusion" --arg name "$name" --arg state "$state" \
+  '{check_runs:([{id:42,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/42",completed_at:(if $status == "completed" then "2026-10-15T07:30:00Z" else null end)}] + (if $state == "duplicate" then [{id:43,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/43",completed_at:"2026-10-15T07:30:01Z"}] else [] end))}'
+# END EMBEDDED MAIN CI FAKE GH
+
+# BEGIN EMBEDDED PLAN278 FAKE MIX
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$*" == *validate_evidence_census.exs* ]]; then
+  printf 'census valid\n'
+elif [[ "$*" == *'validate_live_truth.exs'* ]]; then
+  jq -cn --arg sha "$FAKE_SCHED_SHA" '{status:"pass",subject_sha:$sha,model_sha256:("a"*64)}'
+else
+  echo "unexpected fake mix call: $*" >&2
+  exit 43
+fi
+# END EMBEDDED PLAN278 FAKE MIX
+
+# BEGIN EMBEDDED PLAN278 FAKE GH
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$FAKE_GH_LOG"
+state="${FAKE_SCHED_STATE:-success}"
+sha="${FAKE_SCHED_SHA}"
+event=schedule
+branch=main
+attempt=1
+run_id=7001
+case "$state" in
+  dispatch_event) event=workflow_dispatch ;;
+  wrong_branch) branch=release ;;
+  other_sha) sha=cccccccccccccccccccccccccccccccccccccccc ;;
+  attempt2) attempt=2 ;;
+esac
+entry() {
+  jq -cn --arg sha "$sha" --arg event "$event" --arg branch "$branch" --argjson attempt "$attempt" \
+    --argjson id "$run_id" '{attempt:$attempt,conclusion:"success",createdAt:"2026-11-10T07:27:00Z",databaseId:$id,
+      event:$event,headBranch:$branch,headSha:$sha,status:"completed",url:("https://github.com/szTheory/rindle/actions/runs/"+($id|tostring)),workflowName:"Nightly"}'
+}
+jobs='[{"databaseId":1,"name":"Compat Matrix (1.15, 26)","status":"completed","conclusion":"success"},{"databaseId":2,"name":"Compat Matrix (1.16, 26)","status":"completed","conclusion":"success"},{"databaseId":3,"name":"Compat Matrix (1.17, 27)","status":"completed","conclusion":"success"},{"databaseId":4,"name":"Compat Matrix (1.18, 27)","status":"completed","conclusion":"success"},{"databaseId":5,"name":"Compat Matrix (1.18, 28)","status":"completed","conclusion":"success"},{"databaseId":6,"name":"Dialyzer","status":"completed","conclusion":"success"},{"databaseId":7,"name":"GCS Soak (real bucket)","status":"completed","conclusion":"success"},{"databaseId":8,"name":"Nightly Incident Lifecycle","status":"completed","conclusion":"success"},{"databaseId":9,"name":"Nightly Summary","status":"completed","conclusion":"success"},{"databaseId":10,"name":"Package Consumer GCS Live Proof","status":"completed","conclusion":"success"},{"databaseId":11,"name":"Persist Nightly Incident Verdict","status":"completed","conclusion":"success"}]'
+[ "$state" != red_job ] || jobs="$(jq 'map(if .name == "Dialyzer" then .conclusion="failure" else . end)' <<<"$jobs")"
+[ "$state" != extra_job ] || jobs="$(jq '. + [{databaseId:12,name:"Unexpected",status:"completed",conclusion:"success"}]' <<<"$jobs")"
+case "${1-} ${2-}" in
+  "api repos/szTheory/rindle/git/ref/heads/main") jq -cn --arg sha "$FAKE_SCHED_SHA" '{object:{sha:$sha}}' ;;
+  "run list")
+    [ "$state" != no_run ] || { echo '[]'; exit; }
+    jq -cn --argjson run "$(entry)" '[$run]'
+    ;;
+  "run view")
+    id="$3"
+    if printf '%s\n' "$*" | grep -q -- '--log'; then
+      if printf '%s\n' "$*" | grep -q -- '--job 6'; then
+        printf '%s\n' 'Resolved Elixir version: v1.17.3-otp-27' 'Resolved OTP version: OTP-27.3.4.17' \
+          'nightly-dialyzer mode=fresh action=build-plt' 'nightly-dialyzer mode=fresh attempt=1 action=analyze' \
+          'Cache saved with key: plt-v3-Linux-X64-otpOTP-27.3.4.17-elixirv1.17.3-otp-27-inputhash' \
+          'nightly-dialyzer mode=restored attempt=1 action=analyze'
+      else printf '%s\n' 'test "green" = "green"'; fi
+    else
+      [ "$state" != red_job ] || :
+      jq -cn --argjson run "$(entry)" --argjson jobs "$jobs" '$run + {jobs:$jobs}'
+    fi
+    ;;
+  "api repos/szTheory/rindle/actions/runs/7001/artifacts?per_page=100")
+    artifacts='[{"id":51,"name":"nightly-incident-verdict-7001-1","expired":false,"digest":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","workflow_run":{"id":7001,"head_sha":"'"$FAKE_SCHED_SHA"'"}},{"id":52,"name":"nightly-incident-replay-checkpoint-7001-1","expired":false,"digest":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","workflow_run":{"id":7001,"head_sha":"'"$FAKE_SCHED_SHA"'"}}]'
+    [ "$state" != duplicate_artifact ] || artifacts="$(jq '. + [.[0]]' <<<"$artifacts")"
+    jq -cn --argjson artifacts "$artifacts" '{artifacts:$artifacts}'
+    ;;
+  "run download")
+    id="$3"; shift 3; name=; dir=
+    while [ "$#" -gt 0 ]; do case "$1" in --name) name="$2"; shift 2;; --dir) dir="$2"; shift 2;; *) shift;; esac; done
+    mkdir -p "$dir"
+    [ "$state" != missing_checkpoint ] || [[ "$name" != nightly-incident-replay-checkpoint-* ]] || { echo "missing checkpoint" >&2; exit 1; }
+    if [[ "$name" == nightly-incident-verdict-* ]]; then
+      verdict=green; [ "$state" != malformed_checkpoint ] || verdict=green
+      artifact_sha="$FAKE_SCHED_SHA"; [ "$state" != artifact_other_sha ] || artifact_sha=dddddddddddddddddddddddddddddddddddddddd
+      jq -cn --arg sha "$artifact_sha" --arg verdict "$verdict" '{schema:"rindle-nightly-incident-verdict-v1",repository:"szTheory/rindle",workflow_name:"Nightly",workflow_ref:"szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main",event:"schedule",run_id:7001,run_attempt:1,sha:$sha,ref:"refs/heads/main",url:"https://github.com/szTheory/rindle/actions/runs/7001",verdict:{verdict:$verdict,errors:[],jobs:[{name:"compat-matrix",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]},{name:"dialyzer",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]},{name:"gcs-soak",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]},{name:"package-consumer-gcs-live",result:"success",applicable:true,applicability_rule:"always",execution:"passed",reason:"",status:"passed",errors:[]}]}}' >"$dir/nightly-incident-verdict.json"
+    else
+      issue_digest="$(printf '[]\n' | shasum -a 256 | awk '{print $1}')"
+      jq -cnS --arg issue "$issue_digest" --arg state "$state" '{schema:"rindle-nightly-incident-checkpoint-v1",repository:"szTheory/rindle",workflow_ref:"szTheory/rindle/.github/workflows/nightly.yml@refs/heads/main",last_run_id:7001,last_run_attempt:1,event_digest:"__EVENT__",previous_chain_digest:("0"*64),issue_number:null,issue_state:null,issue_digest:$issue,chain_digest:""}' >"$dir/checkpoint.raw"
+      # The collector's downloaded verdict is reproduced here; its canonical bytes define the event digest.
+      verdict_file="${dir}/../verdict/nightly-incident-verdict.json"
+      if [ -f "$verdict_file" ]; then event_digest="$(jq -cS . "$verdict_file" | shasum -a 256 | awk '{print $1}')"; fi
+      jq --arg event "$event_digest" '.event_digest=$event' "$dir/checkpoint.raw" >"$dir/checkpoint.event"
+      chain="$(jq -cS '{previous_chain_digest,last_run_id,last_run_attempt,event_digest,issue_digest,issue_number,issue_state}' "$dir/checkpoint.event" | shasum -a 256 | awk '{print $1}')"
+      jq --arg chain "$chain" '.chain_digest=$chain' "$dir/checkpoint.event" >"$dir/nightly-incident-checkpoint.json"
+      if [ "$state" = malformed_checkpoint ]; then
+        jq '.chain_digest="bad"' "$dir/nightly-incident-checkpoint.json" >"$dir/bad.json"
+        mv "$dir/bad.json" "$dir/nightly-incident-checkpoint.json"
+      fi
+      rm -f "$dir/checkpoint.raw" "$dir/checkpoint.event"
+    fi
+    ;;
+  "issue list") printf '[]\n' ;;
+  *) echo "unexpected fake Plan 278 gh call: $*" >&2; exit 43 ;;
+esac
+# END EMBEDDED PLAN278 FAKE GH
