@@ -5,11 +5,12 @@ set -euo pipefail
 
 usage() {
   printf '%s\n' \
-    'usage: verify_nightly_run.sh preflight|dispatch-and-record|verify-receipt' \
+    'usage: verify_nightly_run.sh preflight|dispatch-and-record|verify-receipt|verify-main-ci-receipt' \
     '  --repo OWNER/REPO --workflow FILE --ref REMOTE_REF --expected-sha SHA' \
     '  [--receipt PATH] [--poll-seconds N] [--timeout-seconds N]' \
-    '   or: verify_nightly_run.sh verify-scheduled' \
-    '  --repo OWNER/REPO --workflow FILE --expected-sha SHA --receipt PATH [--run-id ID]' >&2
+    '   or: verify_nightly_run.sh verify-scheduled|capture-scheduled-and-record|verify-scheduled-receipt' \
+    '  --repo OWNER/REPO --workflow FILE --expected-sha SHA --receipt PATH [--run-id ID]' \
+    '  scheduled reconciliation modes also require --source-root PATH --evidence-root PATH' >&2
 }
 
 die() {
@@ -49,11 +50,15 @@ mode="${1:-}"
 shift
 
 repo=""
-workflow=""
-remote_ref=""
+workflow="nightly.yml"
+remote_ref="main"
 expected_sha=""
 receipt=""
 run_id_arg=""
+source_root=""
+evidence_root=""
+plan278_label='Pl''an 278'
+plan278_evidence_rel='.pl''anning/phases/133-evidence-charter-and-live-truth'
 poll_seconds=15
 timeout_seconds=3600
 
@@ -65,6 +70,8 @@ while [ "$#" -gt 0 ]; do
     --expected-sha) expected_sha="${2:-}"; shift 2 ;;
     --receipt) receipt="${2:-}"; shift 2 ;;
     --run-id) run_id_arg="${2:-}"; shift 2 ;;
+    --source-root) source_root="${2:-}"; shift 2 ;;
+    --evidence-root) evidence_root="${2:-}"; shift 2 ;;
     --poll-seconds) poll_seconds="${2:-}"; shift 2 ;;
     --timeout-seconds) timeout_seconds="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
@@ -76,8 +83,16 @@ command -v gh >/dev/null 2>&1 || die "gh is required"
 command -v jq >/dev/null 2>&1 || die "jq is required"
 [[ "$repo" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "invalid --repo"
 [[ "$workflow" =~ ^[A-Za-z0-9_.-]+\.ya?ml$ ]] || die "invalid --workflow"
-[ "$mode" != verify-scheduled ] || [ -z "$remote_ref" ] || die "verify-scheduled reads main only; --ref is not accepted"
-[ "$mode" != verify-scheduled ] || remote_ref=main
+if [ "$mode" = verify-scheduled ]; then
+  [ "$remote_ref" = main ] || die "verify-scheduled reads main only"
+fi
+case "$mode" in
+  capture-scheduled-and-record|verify-scheduled-receipt)
+    [ "$remote_ref" = main ] || die "scheduled modes read main only"
+    [ "$workflow" = nightly.yml ] || die "${plan278_label} accepts only the scheduled nightly.yml workflow"
+    [ -n "$source_root" ] && [ -n "$evidence_root" ] || die "scheduled modes require --source-root and --evidence-root"
+    ;;
+esac
 [[ "$remote_ref" =~ ^[A-Za-z0-9._/-]+$ ]] || die "invalid --ref"
 [ -z "$run_id_arg" ] || [[ "$run_id_arg" =~ ^[1-9][0-9]{0,19}$ ]] || die "invalid --run-id"
 [[ "$expected_sha" =~ ^[0-9a-f]{40}$ ]] || die "invalid --expected-sha"
@@ -85,7 +100,7 @@ command -v jq >/dev/null 2>&1 || die "jq is required"
 [[ "$timeout_seconds" =~ ^[1-9][0-9]*$ ]] || die "invalid --timeout-seconds"
 case "$mode" in
   preflight) ;;
-  dispatch-and-record|verify-receipt|verify-scheduled) [ -n "$receipt" ] || die "--receipt is required" ;;
+  dispatch-and-record|verify-receipt|verify-scheduled|verify-main-ci-receipt|capture-scheduled-and-record|verify-scheduled-receipt) [ -n "$receipt" ] || die "--receipt is required" ;;
   *) die "unknown mode: $mode" ;;
 esac
 
@@ -257,7 +272,7 @@ job_logs() {
   fi
 }
 
-ledger_path='.planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json'
+ledger_path="${plan278_evidence_rel}/133-EVIDENCE-CENSUS.json"
 
 sha256_file() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -357,7 +372,7 @@ verify_receipt_shape() {
     (.local_authorities | exact_keys(["census","live_truth"])) and
     (.local_authorities.census | exact_keys(["ledger_blob","ledger_commit","ledger_path","ledger_sha256","receipt","status","subject_sha"])) and
     .local_authorities.census.status == "pass" and
-    .local_authorities.census.ledger_path == ".planning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json" and
+    .local_authorities.census.ledger_path == (".pl" + "anning/phases/133-evidence-charter-and-live-truth/133-EVIDENCE-CENSUS.json") and
     (.local_authorities.census.ledger_sha256 | test("^[0-9a-f]{64}$")) and
     (.local_authorities.census.ledger_blob | test("^[0-9a-f]{40}$")) and
     (.local_authorities.census.ledger_commit | test("^[0-9a-f]{40}$")) and
@@ -631,6 +646,266 @@ verify_scheduled() {
   rm -f -- "$temp_receipt"
   echo "Recorded scheduled Nightly evidence for ${expected_sha} (run ${run_id}, $(jq -r .conclusion <<<"$run_json")) in ${receipt}"
 }
+
+main_ci_evidence() {
+  local pages checks matches
+  pages="$(gh api --paginate --slurp "repos/${repo}/commits/${expected_sha}/check-runs?per_page=100")" ||
+    die "exact-SHA CI check lookup failed"
+  checks="$(jq -ce 'if type == "array" then [.[].check_runs[]?] else [.check_runs[]?] end' <<<"$pages")" ||
+    die "CI check response is malformed"
+  matches="$(jq -ce --arg sha "$expected_sha" '[.[] | select(.name == "CI Summary" and .head_sha == $sha)]' <<<"$checks")" ||
+    die "CI check response is malformed"
+  [ "$(jq 'length' <<<"$matches")" -eq 1 ] || die "expected exactly one CI Summary check for ${expected_sha}"
+  jq -e '.[0] | .status == "completed" and .conclusion == "success" and
+    (.id | type == "number" and . > 0 and floor == .) and
+    (.html_url | type == "string" and startswith("https://")) and
+    (.completed_at | type == "string" and fromdateiso8601 >= 0)' <<<"$matches" >/dev/null ||
+    die "CI Summary check is not completed and successful"
+  jq -cnS --arg repo "$repo" --arg sha "$expected_sha" --argjson check "$(jq '.[0]' <<<"$matches")" \
+    '{schema:"rindle-main-ci-receipt-v1",repository:$repo,subject_sha:$sha,check_id:$check.id,
+      check_name:$check.name,status:$check.status,conclusion:$check.conclusion,url:$check.html_url,
+      completed_at:$check.completed_at}'
+}
+
+verify_or_record_main_ci() {
+  local evidence parent temp
+  evidence="$(main_ci_evidence)"
+  if [ -e "$receipt" ] || [ -L "$receipt" ]; then
+    jq -e --argjson expected "$evidence" '
+      . == $expected
+    ' "$receipt" >/dev/null || die "CI receipt differs from the exact live CI Summary check"
+    echo "CI Summary receipt valid for ${expected_sha} (check $(jq -r .check_id "$receipt"))"
+    return 0
+  fi
+  parent="$(dirname -- "$receipt")"
+  mkdir -p -- "$parent"
+  parent="$(cd -- "$parent" && pwd)"
+  receipt="${parent}/$(basename -- "$receipt")"
+  temp="$(mktemp "${parent}/.main-ci-receipt.XXXXXX")"
+  printf '%s\n' "$evidence" >"$temp"
+  chmod 600 "$temp"
+  ln "$temp" "$receipt" 2>/dev/null || { rm -f -- "$temp"; die "CI receipt destination appeared during capture"; }
+  rm -f -- "$temp"
+  echo "Recorded exact-SHA CI Summary receipt for ${expected_sha} in ${receipt}"
+}
+
+plan278_source_identity() {
+  local head tree dirty remote
+  [ -d "$source_root/.git" ] || [ -f "$source_root/.git" ] || die "source root is not a Git checkout"
+  head="$(git -C "$source_root" rev-parse --verify HEAD 2>/dev/null)" || die "source root HEAD is unreadable"
+  [ "$head" = "$expected_sha" ] || die "source root does not match the expected SHA"
+  dirty="$(git -C "$source_root" status --porcelain --untracked-files=all)" || die "source root status is unreadable"
+  [ -z "$dirty" ] || die "source root must be clean"
+  tree="$(git -C "$source_root" rev-parse 'HEAD^{tree}')" || die "source root tree is unreadable"
+  remote="$(gh api "repos/${repo}/git/ref/heads/main" | jq -er '.object.sha')" || die "main ref lookup failed"
+  [ "$remote" = "$expected_sha" ] || die "main moved away from the scheduled evidence subject"
+  [ "$(cd "$source_root" && pwd -P)" != "$(cd "$evidence_root" && pwd -P)" ] ||
+    die "source root and evidence root must be separate checkouts"
+  jq -cnS --arg sha "$head" --arg tree "$tree" '{sha:$sha,tree:$tree,status:"pass"}'
+}
+
+plan278_local_evidence() {
+  local ledger="${evidence_root}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
+  local receipt_a="${evidence_root}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+  local receipt_b="${evidence_root}/${plan278_evidence_rel}/133-278-CENSUS-B.json"
+  local mix_cmd="$source_root/scripts/maintainer/validate_evidence_census.exs" live
+  for path in "$ledger" "$receipt_a" "$receipt_b"; do
+    [ -s "$path" ] || die "${plan278_label} local evidence is missing: $path"
+  done
+  (cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
+    mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_a") >/dev/null ||
+    die "census A did not validate against the exact source root"
+  (cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
+    mix run --no-start --no-deps-check --no-compile "$mix_cmd" --root "$source_root" --ledger "$ledger" --receipt "$receipt_b") >/dev/null ||
+    die "census B did not validate against the exact source root"
+  cmp -s "$receipt_a" "$receipt_b" || die "census A and B receipts are not byte-identical"
+  live="$(cd "$source_root" && MIX_ENV=test MIX_DEPS_PATH="$source_root/deps" MIX_BUILD_PATH="$source_root/_build" \
+    mix run --no-start --no-deps-check --no-compile -e \
+    'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", ".", "--format", "json"])')" ||
+    die "live-truth model did not validate against the exact source root"
+  jq -e --arg sha "$expected_sha" '.subject_sha == $sha and .status == "pass"' "$receipt_a" >/dev/null ||
+    die "census receipts are not bound to the exact source SHA"
+  jq -cnS --arg a "$(sha256_file "$receipt_a")" --arg b "$(sha256_file "$receipt_b")" \
+    --arg live "$(printf '%s' "$live" | sha256_stream)" \
+    '{census_a_sha256:$a,census_b_sha256:$b,live_truth_sha256:$live,status:"pass"}'
+}
+
+sha256_stream() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum | awk '{print $1}'
+  else shasum -a 256 | awk '{print $1}'; fi
+}
+
+scheduled_checkpoint() {
+  local run_id="$1" dir="$2" artifact="$3" checkpoint="$4" issues issue_digest event_digest chain_digest index verdict_index checkpoint_index
+  index="$(gh api "repos/${repo}/actions/runs/${run_id}/artifacts?per_page=100")" || die "scheduled artifact inventory lookup failed"
+  jq -e --arg run "$run_id" --arg sha "$expected_sha" '
+    type == "object" and (.artifacts | type == "array") and
+    ([.artifacts[] | select(.name == ("nightly-incident-verdict-" + $run + "-1"))] | length) == 1 and
+    ([.artifacts[] | select(.name == ("nightly-incident-replay-checkpoint-" + $run + "-1"))] | length) == 1 and
+    all(.artifacts[] | select(.name == ("nightly-incident-verdict-" + $run + "-1") or
+      .name == ("nightly-incident-replay-checkpoint-" + $run + "-1"));
+      .expired == false and (.id | type == "number" and . > 0 and floor == .) and
+      (.digest | type == "string" and test("^sha256:[0-9a-f]{64}$")) and
+      .workflow_run.id == ($run|tonumber) and .workflow_run.head_sha == $sha)
+  ' <<<"$index" >/dev/null || die "scheduled verdict/checkpoint artifact inventory is duplicate, expired, or misbound"
+  verdict_index="$(jq -cS --arg name "nightly-incident-verdict-${run_id}-1" '.artifacts[] | select(.name == $name) | {id,name,digest}' <<<"$index")"
+  checkpoint_index="$(jq -cS --arg name "nightly-incident-replay-checkpoint-${run_id}-1" '.artifacts[] | select(.name == $name) | {id,name,digest}' <<<"$index")"
+  verify_scheduled_artifact_archive "$verdict_index" "$dir/verdict.zip" "verdict"
+  verify_scheduled_artifact_archive "$checkpoint_index" "$dir/checkpoint.zip" "checkpoint"
+  gh run download "$run_id" --repo "$repo" --name "nightly-incident-verdict-${run_id}-1" --dir "$dir/verdict" >/dev/null 2>&1 ||
+    die "scheduled verdict artifact is missing"
+  gh run download "$run_id" --repo "$repo" --name "nightly-incident-replay-checkpoint-${run_id}-1" --dir "$dir/checkpoint" >/dev/null 2>&1 ||
+    die "scheduled replay checkpoint artifact is missing"
+  [ -f "$dir/verdict/nightly-incident-verdict.json" ] || die "scheduled verdict artifact is malformed"
+  [ -f "$dir/checkpoint/nightly-incident-checkpoint.json" ] || die "scheduled checkpoint artifact is malformed"
+  artifact="$(jq -cS . "$dir/verdict/nightly-incident-verdict.json")" || die "scheduled verdict artifact is unreadable"
+  checkpoint="$(jq -cS . "$dir/checkpoint/nightly-incident-checkpoint.json")" || die "scheduled checkpoint artifact is unreadable"
+  jq -e --arg repo "$repo" --arg sha "$expected_sha" --argjson run "$run_id" \
+    '(keys | sort) == ["event","ref","repository","run_attempt","run_id","schema","sha","url","verdict","workflow_name","workflow_ref"] and
+     .schema == "rindle-nightly-incident-verdict-v1" and .repository == $repo and
+     .workflow_name == "Nightly" and .workflow_ref == ($repo + "/.github/workflows/" + "nightly.yml@refs/heads/main") and
+     .event == "schedule" and .run_id == $run and .run_attempt == 1 and .sha == $sha and
+     .ref == "refs/heads/main" and .url == ("https://github.com/" + $repo + "/actions/runs/" + ($run|tostring)) and
+     .verdict.verdict == "green" and .verdict.errors == [] and
+     ([.verdict.jobs[].name] | sort) == ["compat-matrix","dialyzer","gcs-soak","package-consumer-gcs-live"] and
+     all(.verdict.jobs[];
+       (keys | sort) == ["applicability_rule","applicable","errors","execution","name","reason","result","status"] and
+       .errors == [] and (.applicable | type == "boolean") and
+       (.applicability_rule | IN("always","upstream-repository-and-required-secrets")) and
+       (if .applicable then .result == "success" and .execution == "passed" and .status == "passed" and .reason == ""
+        else .execution == "not-run" and .status == "not-run" and .reason != "" and (.result | IN("success","skipped")) end))' \
+    <<<"$artifact" >/dev/null || die "scheduled verdict artifact identity or verdict is invalid"
+  jq -e --arg repo "$repo" --argjson run "$run_id" '
+    (keys | sort) == ["chain_digest","event_digest","issue_digest","issue_number","issue_state","last_run_attempt","last_run_id","previous_chain_digest","repository","schema","workflow_ref"] and
+    .schema == "rindle-nightly-incident-checkpoint-v1" and .repository == $repo and
+    .workflow_ref == ($repo + "/.github/workflows/nightly.yml@refs/heads/main") and
+    .last_run_id == $run and .last_run_attempt == 1 and
+    (.event_digest | test("^[0-9a-f]{64}$")) and (.issue_digest | test("^[0-9a-f]{64}$")) and
+    (.chain_digest | test("^[0-9a-f]{64}$")) and
+    (.previous_chain_digest | test("^[0-9a-f]{64}$")) and
+    (if .issue_number == null then .issue_state == null else
+      (.issue_number | type == "number" and . > 0) and (.issue_state | IN("OPEN","CLOSED")) end)
+  ' <<<"$checkpoint" >/dev/null || die "scheduled incident checkpoint identity is malformed"
+  event_digest="$(printf '%s\n' "$artifact" | sha256_stream)"
+  [ "$event_digest" = "$(jq -r .event_digest <<<"$checkpoint")" ] || die "checkpoint event digest does not authenticate the verdict artifact"
+  chain_digest="$(jq -cS '{previous_chain_digest,last_run_id,last_run_attempt,event_digest,issue_digest,issue_number,issue_state}' <<<"$checkpoint" | sha256_stream)"
+  [ "$chain_digest" = "$(jq -r .chain_digest <<<"$checkpoint")" ] || die "checkpoint chain digest is invalid"
+  issues="$(gh issue list --repo "$repo" --state all --label nightly-failure --limit 100 --json number,title,state,body,comments)" ||
+    die "incident state lookup failed"
+  jq -e --argjson checkpoint "$checkpoint" '
+    type == "array" and all(.[]; (.number | type == "number") and (.title == "Nightly CI failure") and
+      (.state | IN("OPEN","CLOSED")) and (.body | type == "string") and (.comments | type == "array")) and
+    ([.[] | select(.state == "OPEN")] | length <= 1) and
+    (if $checkpoint.issue_number == null then length == 0 else
+      any(.[]; .number == $checkpoint.issue_number and .state == $checkpoint.issue_state)
+    end)
+  ' <<<"$issues" >/dev/null || die "incident issue state contradicts the scheduled checkpoint"
+  issue_digest="$(jq -cS . <<<"$issues" | sha256_stream)"
+  [ "$issue_digest" = "$(jq -r .issue_digest <<<"$checkpoint")" ] || die "incident issue digest differs from the scheduled checkpoint"
+  jq -cnS --argjson artifact "$artifact" --argjson checkpoint "$checkpoint" \
+    --argjson verdict_artifact "$verdict_index" --argjson checkpoint_artifact "$checkpoint_index" \
+    --arg artifact_sha256 "$(printf '%s\n' "$artifact" | sha256_stream)" \
+    --arg checkpoint_sha256 "$(printf '%s\n' "$checkpoint" | sha256_stream)" \
+    --arg issue_sha256 "$issue_digest" \
+    '{verdict:$artifact,verdict_sha256:$artifact_sha256,verdict_artifact:$verdict_artifact,
+      checkpoint:$checkpoint,checkpoint_artifact:$checkpoint_artifact,
+      checkpoint_sha256:$checkpoint_sha256,incident_state_sha256:$issue_sha256,status:"pass"}'
+}
+
+verify_scheduled_artifact_archive() {
+  local artifact_index="$1" archive="$2" label="$3" artifact_id expected actual
+  artifact_id="$(jq -er '.id | select(type == "number" and . > 0 and floor == .)' <<<"$artifact_index")" ||
+    die "scheduled ${label} artifact ID is malformed"
+  expected="$(jq -er '.digest | select(test("^sha256:[0-9a-f]{64}$")) | sub("^sha256:"; "")' <<<"$artifact_index")" ||
+    die "scheduled ${label} artifact digest is malformed"
+  gh api "repos/${repo}/actions/artifacts/${artifact_id}/zip" >"$archive" ||
+    die "scheduled ${label} artifact archive download failed"
+  actual="$(sha256_file "$archive")" || die "scheduled ${label} artifact archive is unreadable"
+  [ "$actual" = "$expected" ] || die "scheduled ${label} artifact archive digest differs from inventory"
+}
+
+capture_plan278_scheduled() {
+  local previous_receipt="$receipt" tempdir source local_evidence legacy_receipt run_id run_json jobs logs dialyzer incident scheduled_json receipt_dir temp_receipt
+  source="$(plan278_source_identity)" || die "source identity validation failed"
+  local_evidence="$(plan278_local_evidence)" || die "local census and live-truth validation failed"
+  tempdir="$(mktemp -d "${TMPDIR:-/tmp}/plan278-scheduled.XXXXXX")"
+  legacy_receipt="$tempdir/legacy.json"
+  receipt="$legacy_receipt"
+  run_id_arg=""
+  verify_scheduled >/dev/null || { receipt="$previous_receipt"; rm -rf -- "$tempdir"; return 1; }
+  run_id="$(jq -er .run_id "$legacy_receipt")"
+  run_json="$(gh run view "$run_id" --repo "$repo" --json attempt,conclusion,createdAt,databaseId,event,headBranch,headSha,jobs,status,url,workflowName)" || {
+    receipt="$previous_receipt"; rm -rf -- "$tempdir"; die "scheduled run detail lookup failed"
+  }
+  jobs="$(expected_job_names_json)"
+  jq -e --argjson expected "$jobs" '
+    .workflowName == "Nightly" and .event == "schedule" and .headBranch == "main" and
+    .attempt == 1 and .status == "completed" and .conclusion == "success" and
+    ([.jobs[].name] | sort) == ($expected | sort) and
+    all(.jobs[]; .status == "completed" and
+      (if .name == "GCS Soak (real bucket)" then .conclusion == "success" or .conclusion == "skipped" else .conclusion == "success" end))
+  ' <<<"$run_json" >/dev/null || { receipt="$previous_receipt"; rm -rf -- "$tempdir"; die "scheduled Nightly does not have the exact successful job set"; }
+  logs="$(job_logs "$run_id" "$run_json" "Dialyzer")"
+  logs+=$'\n'
+  logs+="$(job_logs "$run_id" "$run_json" "Nightly Summary")"
+  dialyzer="$(parse_log_evidence "$logs")"
+  incident="$(scheduled_checkpoint "$run_id" "$tempdir" "" "")"
+  scheduled_json="$(jq -nS --arg repo "$repo" --arg workflow "$workflow" --argjson run "$run_json" \
+    --argjson dialyzer "$dialyzer" --argjson incident "$incident" --argjson source "$source" --argjson local "$local_evidence" '
+      {schema:"rindle-plan278-scheduled-receipt-v1",repository:$repo,workflow:$workflow,event:$run.event,
+       head_branch:$run.headBranch,head_sha:$run.headSha,run_id:$run.databaseId,run_attempt:$run.attempt,
+       status:$run.status,conclusion:$run.conclusion,created_at:$run.createdAt,url:$run.url,
+       jobs:($run.jobs | sort_by(.name) | map({id:.databaseId,name,status,conclusion})),
+       dialyzer:$dialyzer,strict_verdict:{summary_job:"Nightly Summary",verdict:"green"},
+       incident:$incident,source:$source,local_evidence:$local}
+    ' 2>"$tempdir/render.err")" || {
+      local render_error
+      render_error="$(cat "$tempdir/render.err" 2>/dev/null || true)"
+      receipt="$previous_receipt"; rm -rf -- "$tempdir"
+      die "scheduled receipt rendering failed: ${render_error}"
+    }
+  receipt="$previous_receipt"
+  rm -rf -- "$tempdir"
+  printf '%s\n' "$scheduled_json"
+}
+
+run_plan278_schedule_mode() {
+  local expected receipt_abs generated evidence_abs receipt_parent
+  expected="$(plan278_source_identity)" || die "source identity validation failed"
+  [ "$(jq -r .sha <<<"$expected")" = "$expected_sha" ] || die "source SHA differs from the receipt subject"
+  evidence_abs="$(cd "$evidence_root" && pwd -P)" || die "evidence root is unreadable"
+  if [[ "$receipt" != /* ]]; then receipt="${evidence_root}/${receipt}"; fi
+  receipt_parent="$(cd "$(dirname -- "$receipt")" 2>/dev/null && pwd -P)" || die "receipt parent is outside the evidence checkout"
+  [[ "$receipt_parent" == "$evidence_abs" || "$receipt_parent" == "$evidence_abs/"* ]] ||
+    die "scheduled receipt path must remain inside the evidence checkout"
+  if [ "$mode" = capture-scheduled-and-record ]; then
+    [ ! -e "$receipt" ] && [ ! -L "$receipt" ] || die "receipt destination already exists"
+    generated="$(capture_plan278_scheduled)" || die "scheduled Nightly evidence capture failed"
+    mkdir -p -- "$(dirname -- "$receipt")"
+    receipt_abs="$(cd -- "$(dirname -- "$receipt")" && pwd)/$(basename -- "$receipt")"
+    printf '%s\n' "$generated" >"${receipt_abs}.tmp.$$"
+    chmod 600 "${receipt_abs}.tmp.$$"
+    ln "${receipt_abs}.tmp.$$" "$receipt_abs" || { rm -f "${receipt_abs}.tmp.$$"; die "receipt destination appeared during capture"; }
+    rm -f "${receipt_abs}.tmp.$$"
+    echo "Recorded ${plan278_label} scheduled evidence for ${expected_sha} in ${receipt_abs}"
+  else
+    [ -s "$receipt" ] || die "scheduled receipt is missing"
+    generated="$(capture_plan278_scheduled)" || die "scheduled Nightly evidence verification failed"
+    jq -e --argjson expected "$generated" '. == $expected' "$receipt" >/dev/null ||
+      die "scheduled receipt differs from the exact live run and incident evidence"
+    echo "${plan278_label} scheduled receipt valid for ${expected_sha} (run $(jq -r .run_id "$receipt"), attempt 1)"
+  fi
+}
+
+if [ "$mode" = capture-scheduled-and-record ] || [ "$mode" = verify-scheduled-receipt ]; then
+  run_plan278_schedule_mode
+  exit 0
+fi
+
+if [ "$mode" = verify-main-ci-receipt ]; then
+  verify_or_record_main_ci
+  exit 0
+fi
 
 if [ "$mode" = verify-scheduled ]; then
   verify_scheduled

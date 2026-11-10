@@ -138,12 +138,14 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
     assert output =~ "misfiled"
   end
 
-  test "the self-exclusion list is exactly the scanner, the allowlist directory and this test" do
+  test "self-exclusions are limited to scanner and phase-specific reconciliation tooling" do
     assert Enum.sort(excluded_paths_in_source()) ==
              Enum.sort([
                "scripts/maintainer/scan_live_residue.exs",
                "scripts/maintainer/live_residue_allowlist/",
-               "test/install_smoke/live_residue_scan_test.exs"
+               "test/install_smoke/live_residue_scan_test.exs",
+               "scripts/maintainer/validate_phase_133_reconciliation.exs",
+               "test/install_smoke/phase_133_reconciliation_test.exs"
              ])
   end
 
@@ -275,7 +277,7 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
     assert output =~ "unknown reason_class"
   end
 
-  test "contract-classed message text is protected in the live shards" do
+  test "contract-classed message text is protected and evidence paths add no live residue" do
     lib = live_shard("lib")
 
     assert Enum.any?(lib["entries"], fn e ->
@@ -285,13 +287,9 @@ defmodule Rindle.InstallSmoke.LiveResidueScanTest do
 
     generators = live_shard("automation_generators")
 
-    receipts =
-      for e <- generators["entries"],
-          e["path"] == "scripts/ci/verify_nightly_run.sh" and e["class"] == "planning-path",
-          do: e["reason_class"]
-
-    assert receipts != []
-    assert Enum.all?(receipts, &(&1 == "immutable-receipt"))
+    refute Enum.any?(generators["entries"], fn e ->
+             e["path"] == "scripts/ci/verify_nightly_run.sh" and e["class"] == "planning-path"
+           end)
   end
 
   # --------------------------------------------------------------- Task 3
