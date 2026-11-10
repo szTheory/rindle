@@ -34,6 +34,55 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @moduledoc false
 
   @phase_dir ".planning/phases/133-evidence-charter-and-live-truth"
+  @plan278_sealed_history_files_by_plan %{
+    "205" => ~w(
+      133-205-FIXTURE-DECISION-211.json
+      133-205-FIXTURE-DECISION.json
+      133-205-PLAN.md
+      133-205-SUMMARY.md
+    ),
+    "217" => ~w(
+      133-217-LOCAL.json
+      133-217-PLAN.md
+      133-217-SUMMARY.md
+    ),
+    "240" => ~w(
+      133-240-CODE-REVIEW.md
+      133-240-PLAN.md
+      133-240-PREREQ.json
+      133-240-STOP.json
+      133-240-SUMMARY.md
+    ),
+    "243" => ~w(
+      133-243-BUILD-DECISION.json
+      133-243-CODE-REVIEW.md
+      133-243-PLAN.md
+      133-243-PREREQ.json
+      133-243-REVIEW-ADMISSION.json
+      133-243-REVIEW.md
+      133-243-STOP.json
+      133-243-SUMMARY.md
+      133-243-SUPPLY.json
+    ),
+    "275" => ~w(
+      133-275-CODE-REVIEW.md
+      133-275-HOST-ATTEMPT.json
+      133-275-HOST-RESULT.json
+      133-275-PLAN.md
+      133-275-SUMMARY.md
+    )
+  }
+  @plan278_reviewed_files ~w(
+    scripts/ci/install_ffmpeg.sh
+    scripts/ci/test_verify_nightly_run.sh
+    scripts/ci/verify_nightly_run.sh
+    scripts/maintainer/live_residue_allowlist/automation_generators.json
+    scripts/maintainer/scan_live_residue.exs
+    scripts/maintainer/validate_phase_133_reconciliation.exs
+    test/install_smoke/ci_cache_hygiene_test.exs
+    test/install_smoke/live_residue_scan_test.exs
+    test/install_smoke/phase_133_reconciliation_test.exs
+  )
   @plan278_requirements ".planning/REQUIREMENTS.md"
   @plan278_census Path.join(@phase_dir, "133-EVIDENCE-CENSUS.json")
   @plan278_nightly Path.join(@phase_dir, "133-NIGHTLY-EVIDENCE.json")
@@ -289,34 +338,62 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   def plan278_sealed_history(root) do
-    plans = [205, 217, 240, 243, 275]
+    expected =
+      @plan278_sealed_history_files_by_plan
+      |> Enum.flat_map(fn {_plan, names} -> Enum.map(names, &Path.join(@phase_dir, &1)) end)
+      |> Enum.sort()
 
-    files =
-      Enum.flat_map(plans, fn plan ->
+    actual =
+      @plan278_sealed_history_files_by_plan
+      |> Enum.flat_map(fn {plan, _names} ->
         Path.wildcard(Path.join([root, @phase_dir, "133-#{plan}-*"]))
-        |> Enum.filter(&File.regular?/1)
+        |> Enum.map(&Path.relative_to(&1, root))
       end)
+      |> Enum.sort()
 
-    if files == [] do
-      {:error, "sealed Plan 205/217/240/243/P275 history is missing"}
-    else
-      {:ok, Map.new(files, fn path -> {Path.relative_to(path, root), file_sha(path)} end)}
+    cond do
+      actual != expected ->
+        {:error, "sealed Plan 205/217/240/243/P275 history inventory is incomplete or unexpected"}
+
+      true ->
+        Enum.reduce_while(expected, {:ok, %{}}, fn relative, {:ok, sealed} ->
+          path = Path.join(root, relative)
+
+          case File.lstat(path) do
+            {:ok, %File.Stat{type: :regular}} ->
+              {:cont, {:ok, Map.put(sealed, relative, file_sha(path))}}
+
+            _ ->
+              {:halt, {:error, "sealed history entry is missing or not a regular file"}}
+          end
+        end)
     end
   end
 
   def plan278_sealed_history_unchanged(root, expected) when is_map(expected) do
-    unchanged? =
-      Enum.all?(expected, fn {relative, digest} ->
-        path = Path.join(root, relative)
-        File.regular?(path) and file_sha(path) == digest
-      end)
-
-    if unchanged?, do: :ok, else: {:error, "sealed Plan 205/217/240/243/P275 history changed"}
+    case plan278_sealed_history(root) do
+      {:ok, ^expected} -> :ok
+      _ -> {:error, "sealed Plan 205/217/240/243/P275 history changed"}
+    end
   end
 
   def recover_plan278_transaction(root), do: plan278_recover_journal(root)
 
   if Code.ensure_loaded?(ExUnit) and Process.whereis(ExUnit.Server) do
+    @doc false
+    def plan278_review_binding_for_test(path, sha, tree),
+      do: plan278_review_binding(path, sha, tree)
+
+    @doc false
+    def plan278_sealed_history_paths_for_test do
+      @plan278_sealed_history_files_by_plan
+      |> Enum.flat_map(fn {_plan, names} -> Enum.map(names, &Path.join(@phase_dir, &1)) end)
+      |> Enum.sort()
+    end
+
+    @doc false
+    def plan278_reviewed_paths_for_test, do: @plan278_reviewed_files
+
     @doc false
     def plan278_interrupt_transaction_for_test(root, fail_after)
         when is_integer(fail_after) and fail_after in 1..5 do
@@ -571,13 +648,52 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   defp plan278_review_binding(path, sha, tree) do
     with {:ok, bytes} <- File.read(path),
-         true <- String.contains?(bytes, "verdict: PASS"),
-         true <- String.contains?(bytes, "source_commit: #{sha}"),
-         true <- String.contains?(bytes, "source_tree: #{tree}") do
+         {:ok, frontmatter, body} <- bounded_frontmatter(bytes),
+         :ok <- plan278_review_frontmatter_keys(frontmatter),
+         :ok <- reject_second_frontmatter(body),
+         {:ok, metadata} <- decode_frontmatter(frontmatter),
+         true <- metadata["phase"] == "133-278",
+         true <- metadata["verdict"] == "PASS",
+         true <- metadata["status"] == "clean",
+         true <- metadata["source_commit"] == sha,
+         true <- metadata["source_tree"] == tree,
+         true <- metadata["files_reviewed"] == length(@plan278_reviewed_files),
+         reviewed_files when is_list(reviewed_files) <- metadata["files_reviewed_list"],
+         true <- Enum.sort(reviewed_files) == Enum.sort(@plan278_reviewed_files),
+         findings when is_map(findings) <- metadata["findings"],
+         true <-
+           Enum.sort(Map.keys(findings)) == ~w(blocker critical info necessity total warning),
+         true <- Enum.all?(Map.values(findings), &(&1 == 0)),
+         [["PASS"]] <-
+           Regex.scan(~r/^\*\*Verdict:\*\* (PASS)(?:[ \t—-]|$)/m, body, capture: :all_but_first) do
       :ok
     else
       _ -> {:error, "independent PASS review is not bound to the exact main commit/tree"}
     end
+  end
+
+  defp plan278_review_frontmatter_keys(frontmatter) do
+    top_level =
+      ~w(findings files_reviewed files_reviewed_list phase source_commit source_tree status verdict)
+
+    finding_fields = ~w(blocker critical info necessity total warning)
+
+    with :ok <- require_frontmatter_keys_once(frontmatter, top_level, ""),
+         :ok <- require_frontmatter_keys_once(frontmatter, finding_fields, "  ") do
+      :ok
+    end
+  end
+
+  defp require_frontmatter_keys_once(frontmatter, keys, indent) do
+    Enum.reduce_while(keys, :ok, fn key, :ok ->
+      pattern = Regex.compile!("^" <> indent <> Regex.escape(key) <> "[ \\t]*:", "m")
+
+      if length(Regex.scan(pattern, frontmatter)) == 1 do
+        {:cont, :ok}
+      else
+        {:halt, {:error, "review frontmatter has a missing or duplicate #{key} field"}}
+      end
+    end)
   end
 
   defp plan278_external_validators(

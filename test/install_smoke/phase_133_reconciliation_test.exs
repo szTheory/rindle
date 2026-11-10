@@ -87,19 +87,32 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
     refute File.exists?(Path.join(phase, "133-278-TERMINAL.json"))
   end
 
-  test "Plan 278 rejects changes to sealed predecessor and P275 records" do
+  test "Plan 278 requires every sealed predecessor inventory and detects later changes" do
+    paths = Rindle.ValidatePhase133Reconciliation.plan278_sealed_history_paths_for_test()
+    assert length(paths) == 26
+
+    for plan <- ~w(205 217 240 243 275) do
+      root =
+        Path.join(
+          System.tmp_dir!(),
+          "phase133-plan278-sealed-missing-#{plan}-#{System.unique_integer([:positive])}"
+        )
+
+      omitted = Enum.find(paths, &String.starts_with?(Path.basename(&1), "133-#{plan}-"))
+      assert is_binary(omitted)
+      seed_sealed_history(root, [omitted])
+      on_exit(fn -> File.rm_rf!(root) end)
+
+      assert {:error, _} = Rindle.ValidatePhase133Reconciliation.plan278_sealed_history(root)
+    end
+
     root =
       Path.join(
         System.tmp_dir!(),
-        "phase133-plan278-sealed-#{System.unique_integer([:positive])}"
+        "phase133-plan278-sealed-complete-#{System.unique_integer([:positive])}"
       )
 
-    phase = Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
-    File.mkdir_p!(phase)
-    stop = Path.join(phase, "133-243-STOP.json")
-    prior = Path.join(phase, "133-275-HOST-RESULT.json")
-    File.write!(stop, "{\"status\":\"halted\"}\n")
-    File.write!(prior, "{\"status\":\"stopped\"}\n")
+    originals = seed_sealed_history(root)
     on_exit(fn -> File.rm_rf!(root) end)
 
     assert {:ok, seal} = Rindle.ValidatePhase133Reconciliation.plan278_sealed_history(root)
@@ -107,10 +120,103 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
     assert :ok =
              Rindle.ValidatePhase133Reconciliation.plan278_sealed_history_unchanged(root, seal)
 
-    File.write!(stop, "{\"status\":\"reopened\"}\n")
+    {relative, original} = Enum.at(originals, 0)
+    File.write!(Path.join(root, relative), "changed bytes\n")
 
     assert {:error, _} =
              Rindle.ValidatePhase133Reconciliation.plan278_sealed_history_unchanged(root, seal)
+
+    File.write!(Path.join(root, relative), original)
+
+    extra =
+      Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth/133-205-EXTRA.json")
+
+    File.write!(extra, "unexpected entry\n")
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_sealed_history_unchanged(root, seal)
+  end
+
+  test "Plan 278 binds a clean review verdict, source identity, and exact reviewed paths" do
+    root =
+      Path.join(
+        System.tmp_dir!(),
+        "phase133-plan278-review-binding-#{System.unique_integer([:positive])}"
+      )
+
+    File.mkdir_p!(root)
+    path = Path.join(root, "review.md")
+    sha = String.duplicate("a", 40)
+    tree = String.duplicate("b", 40)
+    valid = plan278_review_report(sha, tree)
+    File.write!(path, valid)
+    on_exit(fn -> File.rm_rf!(root) end)
+
+    assert :ok =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
+
+    contradictory =
+      valid
+      |> String.replace("verdict: PASS\n", "verdict: FAIL\n")
+      |> Kernel.<>("\nverdict: PASS\nsource_commit: #{sha}\nsource_tree: #{tree}\n")
+
+    File.write!(path, contradictory)
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
+
+    wrong_subject =
+      valid
+      |> String.replace(
+        "source_commit: #{sha}\n",
+        "source_commit: #{String.duplicate("c", 40)}\n"
+      )
+      |> Kernel.<>("\nsource_commit: #{sha}\nsource_tree: #{tree}\n")
+
+    File.write!(path, wrong_subject)
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
+
+    duplicate =
+      String.replace(
+        valid,
+        "source_tree: #{tree}\n",
+        "source_tree: #{tree}\nsource_tree: #{tree}\n"
+      )
+
+    File.write!(path, duplicate)
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
+
+    wrong_scope =
+      String.replace(valid, "scripts/ci/install_ffmpeg.sh", "scripts/ci/unreviewed.sh")
+
+    File.write!(path, wrong_scope)
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
+               path,
+               sha,
+               tree
+             )
   end
 
   test "Plan 278 crash recovery restores canonical and requirement bytes before accepting new evidence" do
@@ -360,5 +466,60 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
 
     assert File.read!(terminal) == "terminal\n"
     assert File.read!(journal) == "journal\n"
+  end
+
+  defp seed_sealed_history(root, omitted \\ []) do
+    File.mkdir_p!(root)
+
+    Rindle.ValidatePhase133Reconciliation.plan278_sealed_history_paths_for_test()
+    |> Enum.reject(&(&1 in omitted))
+    |> Enum.reduce(%{}, fn relative, originals ->
+      path = Path.join(root, relative)
+      File.mkdir_p!(Path.dirname(path))
+      bytes = "sealed fixture: #{relative}\n"
+      File.write!(path, bytes)
+      Map.put(originals, relative, bytes)
+    end)
+  end
+
+  defp plan278_review_report(sha, tree) do
+    reviewed_files = ~w(
+      scripts/ci/install_ffmpeg.sh
+      scripts/ci/test_verify_nightly_run.sh
+      scripts/ci/verify_nightly_run.sh
+      scripts/maintainer/live_residue_allowlist/automation_generators.json
+      scripts/maintainer/scan_live_residue.exs
+      scripts/maintainer/validate_phase_133_reconciliation.exs
+      test/install_smoke/ci_cache_hygiene_test.exs
+      test/install_smoke/live_residue_scan_test.exs
+      test/install_smoke/phase_133_reconciliation_test.exs
+    )
+
+    assert Rindle.ValidatePhase133Reconciliation.plan278_reviewed_paths_for_test() ==
+             reviewed_files
+
+    file_lines = Enum.map_join(reviewed_files, "\n", &"  - #{&1}")
+
+    """
+    ---
+    phase: 133-278
+    source_commit: #{sha}
+    source_tree: #{tree}
+    files_reviewed: 9
+    files_reviewed_list:
+    #{file_lines}
+    findings:
+      critical: 0
+      blocker: 0
+      warning: 0
+      info: 0
+      total: 0
+      necessity: 0
+    status: clean
+    verdict: PASS
+    ---
+    **Verdict:** PASS — 0 BLOCKERs, 0 WARNINGs, 0 INFO findings.
+    """
+    |> String.trim_leading()
   end
 end
