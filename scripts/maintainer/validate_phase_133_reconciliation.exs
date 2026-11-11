@@ -381,6 +381,38 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   if Code.ensure_loaded?(ExUnit) and Process.whereis(ExUnit.Server) do
     @doc false
+    def plan278_census_ledger_binding_for_test(canonical, candidate, sha),
+      do: plan278_census_ledger_binding(canonical, candidate, sha)
+
+    @doc false
+    def plan278_census_ledger_binding_files_for_test(
+          canonical_bytes,
+          candidate_path,
+          sha,
+          digest
+        ),
+        do: plan278_census_ledger_binding_files(canonical_bytes, candidate_path, sha, digest)
+
+    @doc false
+    def plan278_review_binding_digest_for_test(path, sha, tree, digest),
+      do: plan278_review_binding_digest(path, sha, tree, digest)
+
+    @doc false
+    def plan278_apply_transaction_for_test(root, originals, updates, postcheck) do
+      plan278_apply_transaction(
+        Path.expand(root),
+        originals,
+        updates,
+        Path.join(Path.expand(root), @plan278_terminal),
+        Path.join(Path.expand(root), @plan278_journal),
+        "transaction journal\n",
+        "terminal proof\n",
+        postcheck,
+        &atomic_write/2
+      )
+    end
+
+    @doc false
     def plan278_review_binding_for_test(path, sha, tree),
       do: plan278_review_binding(path, sha, tree)
 
@@ -530,7 +562,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          :ok <- plan278_pending_requirements(requirements),
          {:ok, sha} <- plan278_ci_sha(ci),
          {:ok, tree} <- git(source_root, ["rev-parse", "HEAD^{tree}"]),
-         :ok <- plan278_review_binding(review, sha, tree),
+         {:ok, review_bytes} <- File.read(review),
+         :ok <- plan278_review_binding_bytes(review_bytes, sha, tree),
+         review_sha256 <- sha256(review_bytes),
+         {:ok, canonical_ledger} <- File.read(canonical_census),
+         {:ok, canonical_ledger_doc} <- Jason.decode(canonical_ledger),
+         {:ok, candidate_ledger} <- File.read(ledger),
+         {:ok, candidate_ledger_doc} <- Jason.decode(candidate_ledger),
+         :ok <- plan278_census_ledger_binding(canonical_ledger_doc, candidate_ledger_doc, sha),
+         candidate_ledger_sha256 <- sha256(candidate_ledger),
          :ok <-
            plan278_external_validators(
              root,
@@ -548,7 +588,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
            receipt_a == receipt_b or {:error, "census A and B receipts are not byte-identical"},
          {:ok, original_requirements} <- File.read(requirements),
          {:ok, updated_requirements} <- plan278_requirement_paragraph(original_requirements),
-         {:ok, canonical_ledger} <- File.read(canonical_census),
          {:ok, canonical_nightly_bytes} <- File.read(canonical_nightly),
          {:ok, promoted_ledger} <- plan278_promote_census(canonical_ledger, sha),
          {:ok, nightly_receipt} <- File.read(nightly),
@@ -559,6 +598,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
              requirements,
              updated_requirements,
              canonical_census,
+             ledger,
+             candidate_ledger_sha256,
+             review_sha256,
              promoted_ledger,
              canonical_nightly,
              nightly_receipt,
@@ -566,7 +608,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
              sha,
              tree,
              ci,
-             review,
              census_a,
              nightly,
              fn ->
@@ -583,6 +624,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
                       ),
                     :ok <- plan278_pending_requirements(requirements),
                     :ok <- plan278_sealed_history_unchanged(root, sealed_history),
+                    {:ok, promoted_census_bytes} <- File.read(canonical_census),
+                    :ok <-
+                      plan278_census_ledger_binding_files(
+                        promoted_census_bytes,
+                        ledger,
+                        sha,
+                        candidate_ledger_sha256
+                      ),
+                    :ok <- plan278_review_binding_digest(review, sha, tree, review_sha256),
                     do: :ok
              end,
              sealed_history
@@ -647,8 +697,15 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   defp plan278_review_binding(path, sha, tree) do
-    with {:ok, bytes} <- File.read(path),
-         {:ok, frontmatter, body} <- bounded_frontmatter(bytes),
+    with {:ok, bytes} <- File.read(path) do
+      plan278_review_binding_bytes(bytes, sha, tree)
+    else
+      _ -> {:error, "independent PASS review is not bound to the exact main commit/tree"}
+    end
+  end
+
+  defp plan278_review_binding_bytes(bytes, sha, tree) do
+    with {:ok, frontmatter, body} <- bounded_frontmatter(bytes),
          # Strict frontmatter is the machine-readable review contract.
          # Narrative body text does not determine the verdict.
          :ok <- plan278_review_frontmatter_keys(frontmatter),
@@ -669,6 +726,16 @@ defmodule Rindle.ValidatePhase133Reconciliation do
       :ok
     else
       _ -> {:error, "independent PASS review is not bound to the exact main commit/tree"}
+    end
+  end
+
+  defp plan278_review_binding_digest(path, sha, tree, expected_sha256) do
+    with {:ok, bytes} <- File.read(path),
+         true <- sha256(bytes) == expected_sha256,
+         :ok <- plan278_review_binding_bytes(bytes, sha, tree) do
+      :ok
+    else
+      _ -> {:error, "independent PASS review changed before terminal promotion completed"}
     end
   end
 
@@ -795,6 +862,40 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     end)
   end
 
+  defp plan278_census_ledger_binding(canonical, candidate, sha)
+       when is_map(canonical) and is_map(candidate) do
+    canonical_sha = Map.get(canonical, "subject_sha")
+
+    with true <- valid_hex?(canonical_sha, 40),
+         true <- valid_hex?(sha, 40),
+         true <- Map.get(candidate, "subject_sha") == sha,
+         true <- Map.put(canonical, "subject_sha", sha) == candidate do
+      :ok
+    else
+      _ ->
+        {:error,
+         "Plan 278 census ledger must match canonical evidence with only the exact subject SHA changed"}
+    end
+  end
+
+  defp plan278_census_ledger_binding(_canonical, _candidate, _sha),
+    do:
+      {:error,
+       "Plan 278 census ledger must match canonical evidence with only the exact subject SHA changed"}
+
+  defp plan278_census_ledger_binding_files(canonical_bytes, candidate_path, sha, expected_sha256) do
+    with {:ok, candidate_bytes} <- File.read(candidate_path),
+         true <- sha256(candidate_bytes) == expected_sha256,
+         {:ok, canonical} <- Jason.decode(canonical_bytes),
+         {:ok, candidate} <- Jason.decode(candidate_bytes),
+         :ok <- plan278_census_ledger_binding(canonical, candidate, sha) do
+      :ok
+    else
+      _ ->
+        {:error, "Plan 278 census ledger or canonical evidence changed before promotion"}
+    end
+  end
+
   defp plan278_promote_census(bytes, sha) do
     with {:ok, doc} <- Jason.decode(bytes),
          true <- is_map(doc),
@@ -810,6 +911,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          requirements,
          new_requirements,
          canonical_census,
+         candidate_ledger,
+         candidate_ledger_sha256,
+         review_sha256,
          new_census,
          canonical_nightly,
          new_nightly,
@@ -817,7 +921,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
          sha,
          tree,
          ci,
-         review,
          census,
          nightly,
          postcheck,
@@ -825,10 +928,11 @@ defmodule Rindle.ValidatePhase133Reconciliation do
        ) do
     journal = Path.join(root, @plan278_journal)
 
-    case plan278_preflight_paths(root, [requirements, canonical_census, canonical_nightly], [
-           journal,
-           terminal
-         ]) do
+    case plan278_preflight_paths(
+           root,
+           [requirements, canonical_census, canonical_nightly, candidate_ledger],
+           [journal, terminal]
+         ) do
       :ok ->
         if File.exists?(terminal) do
           {:error, "Plan 278 terminal artifact already exists"}
@@ -836,50 +940,59 @@ defmodule Rindle.ValidatePhase133Reconciliation do
           files = [requirements, canonical_census, canonical_nightly]
           originals = Map.new(files, &{&1, File.read!(&1)})
 
-          proof = %{
-            "schema_version" => 1,
-            "plan" => "133-278",
-            "status" => "validated",
-            "source_sha" => sha,
-            "source_tree" => tree,
-            "ci_sha256" => file_sha(ci),
-            "review_sha256" => file_sha(review),
-            "census_sha256" => file_sha(census),
-            "nightly_sha256" => file_sha(nightly),
-            "sealed_history_sha256" => sealed_history,
-            "requirements_pending" => true
-          }
+          with :ok <-
+                 plan278_census_ledger_binding_files(
+                   Map.fetch!(originals, canonical_census),
+                   candidate_ledger,
+                   sha,
+                   candidate_ledger_sha256
+                 ) do
+            proof = %{
+              "schema_version" => 1,
+              "plan" => "133-278",
+              "status" => "validated",
+              "source_sha" => sha,
+              "source_tree" => tree,
+              "ledger_sha256" => candidate_ledger_sha256,
+              "ci_sha256" => file_sha(ci),
+              "review_sha256" => review_sha256,
+              "census_sha256" => file_sha(census),
+              "nightly_sha256" => file_sha(nightly),
+              "sealed_history_sha256" => sealed_history,
+              "requirements_pending" => true
+            }
 
-          journal_bytes =
-            Jason.encode!(
+            journal_bytes =
+              Jason.encode!(
+                %{
+                  "schema_version" => 1,
+                  "plan" => "133-278",
+                  "status" => "applying",
+                  "terminal_path" => @plan278_terminal,
+                  "prior_bytes" =>
+                    Map.new(originals, fn {path, bytes} ->
+                      {Path.relative_to(path, root), Base.encode64(bytes)}
+                    end)
+                },
+                pretty: true
+              ) <> "\n"
+
+            plan278_apply_transaction(
+              root,
+              originals,
               %{
-                "schema_version" => 1,
-                "plan" => "133-278",
-                "status" => "applying",
-                "terminal_path" => @plan278_terminal,
-                "prior_bytes" =>
-                  Map.new(originals, fn {path, bytes} ->
-                    {Path.relative_to(path, root), Base.encode64(bytes)}
-                  end)
+                requirements => new_requirements,
+                canonical_census => new_census,
+                canonical_nightly => new_nightly
               },
-              pretty: true
-            ) <> "\n"
-
-          plan278_apply_transaction(
-            root,
-            originals,
-            %{
-              requirements => new_requirements,
-              canonical_census => new_census,
-              canonical_nightly => new_nightly
-            },
-            terminal,
-            journal,
-            journal_bytes,
-            Jason.encode!(proof, pretty: true) <> "\n",
-            postcheck,
-            &atomic_write/2
-          )
+              terminal,
+              journal,
+              journal_bytes,
+              Jason.encode!(proof, pretty: true) <> "\n",
+              postcheck,
+              &atomic_write/2
+            )
+          end
         end
 
       {:error, message} ->
