@@ -955,9 +955,8 @@ verify_plan278_scheduled_case() {
   git -C "$source" add README.md
   git -C "$source" commit -qm "test: synthetic exact subject"
   sha="$(git -C "$source" rev-parse HEAD)"
-  printf '{"subject_sha":"%s","status":"pass","synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
-  cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json" \
-    "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+  printf '{"subject_sha":"%s","schema_version":1,"synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
+  printf '{"source_sha":"%s","schema_version":1,"synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
   cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json" \
     "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-B.json"
   mkdir -p "${temp}/bin"
