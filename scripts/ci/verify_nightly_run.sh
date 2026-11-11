@@ -723,7 +723,7 @@ plan278_local_evidence() {
     mix run --no-start --no-deps-check --no-compile -e \
     'Code.require_file("scripts/maintainer/validate_live_truth.exs"); Rindle.ValidateLiveTruth.run(["--root", ".", "--format", "json"])')" ||
     die "live-truth model did not validate against the exact source root"
-  jq -e --arg sha "$expected_sha" '.subject_sha == $sha and .status == "pass"' "$receipt_a" >/dev/null ||
+  jq -e --arg sha "$expected_sha" '.source_sha == $sha and .schema_version == 1' "$receipt_a" >/dev/null ||
     die "census receipts are not bound to the exact source SHA"
   jq -cnS --arg a "$(sha256_file "$receipt_a")" --arg b "$(sha256_file "$receipt_b")" \
     --arg live "$(printf '%s' "$live" | sha256_stream)" \

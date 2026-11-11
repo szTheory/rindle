@@ -943,7 +943,7 @@ make_plan278_fake_gh() {
 }
 
 verify_plan278_scheduled_case() {
-  local name="$1" state="$2" want="$3" temp source evidence sha got=0
+  local name="$1" state="$2" want="$3" receipt_state="${4:-}" expected_error="${5:-}" temp source evidence sha got=0
   temp="$(mktemp -d)"
   source="${temp}/source"
   evidence="${temp}/evidence"
@@ -955,11 +955,28 @@ verify_plan278_scheduled_case() {
   git -C "$source" add README.md
   git -C "$source" commit -qm "test: synthetic exact subject"
   sha="$(git -C "$source" rev-parse HEAD)"
-  printf '{"subject_sha":"%s","status":"pass","synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
-  cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json" \
-    "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+  printf '{"subject_sha":"%s","schema_version":1,"synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-LEDGER.json"
+  printf '{"source_sha":"%s","schema_version":1,"synthetic":true}\n' "$sha" >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
   cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json" \
     "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-B.json"
+  case "$receipt_state" in
+    wrong_source_sha)
+      printf '{"source_sha":"%s","schema_version":1,"synthetic":true}\n' \
+        cccccccccccccccccccccccccccccccccccccccc >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+      ;;
+    missing_source_sha)
+      printf '{"schema_version":1,"synthetic":true}\n' \
+        >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+      ;;
+    wrong_schema)
+      printf '{"source_sha":"%s","schema_version":2,"synthetic":true}\n' "$sha" \
+        >"${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json"
+      ;;
+  esac
+  if [ -n "$receipt_state" ]; then
+    cp "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-A.json" \
+      "${evidence}/${plan278_evidence_rel}/133-278-CENSUS-B.json"
+  fi
   mkdir -p "${temp}/bin"
   make_plan278_fake_gh "${temp}/bin"
   : >"${temp}/calls"
@@ -978,6 +995,7 @@ verify_plan278_scheduled_case() {
       record "$name" false "expected pass, exit ${got}; $(tr '\n' ';' <"${temp}/output")"
     fi
   elif [ "$got" -ne 0 ] && [ ! -e "${evidence}/${plan278_evidence_rel}/133-278-NIGHTLY-EVIDENCE.json" ] &&
+       { [ -z "$expected_error" ] || grep -Fq "$expected_error" "${temp}/output"; } &&
        ! grep -Eq '^(workflow run|issue (create|comment|close|edit|delete)) ' "${temp}/calls"; then
     record "$name" true
   else
@@ -987,6 +1005,9 @@ verify_plan278_scheduled_case() {
 }
 
 verify_plan278_scheduled_case "${plan278_label} capture proves exact scheduled evidence read-only" success pass
+verify_plan278_scheduled_case "${plan278_label} rejects a local census receipt for another SHA" success fail wrong_source_sha "census receipts are not bound to the exact source SHA"
+verify_plan278_scheduled_case "${plan278_label} rejects a local census receipt without source_sha" success fail missing_source_sha "census receipts are not bound to the exact source SHA"
+verify_plan278_scheduled_case "${plan278_label} rejects a local census receipt with an unsupported schema" success fail wrong_schema "census receipts are not bound to the exact source SHA"
 verify_plan278_scheduled_case "${plan278_label} rejects workflow_dispatch" dispatch_event fail
 verify_plan278_scheduled_case "${plan278_label} rejects a non-main scheduled branch" wrong_branch fail
 verify_plan278_scheduled_case "${plan278_label} rejects wrong schedule SHA" other_sha fail

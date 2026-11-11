@@ -159,6 +159,18 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
                tree
              )
 
+    review_digest =
+      :crypto.hash(:sha256, valid)
+      |> Base.encode16(case: :lower)
+
+    assert :ok =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_digest_for_test(
+               path,
+               sha,
+               tree,
+               review_digest
+             )
+
     # The parsed frontmatter is the sole verdict authority. Body text, including
     # Markdown comments and contradictory prose, must not manufacture or alter it.
     body_markers =
@@ -193,6 +205,14 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
       |> Kernel.<>("\nverdict: PASS\nsource_commit: #{sha}\nsource_tree: #{tree}\n")
 
     File.write!(path, contradictory)
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_review_binding_digest_for_test(
+               path,
+               sha,
+               tree,
+               review_digest
+             )
 
     assert {:error, _} =
              Rindle.ValidatePhase133Reconciliation.plan278_review_binding_for_test(
@@ -245,6 +265,195 @@ defmodule Rindle.InstallSmoke.Plan278TerminalTest do
                sha,
                tree
              )
+  end
+
+  test "Plan 278 candidate census ledger must be canonical except for the exact subject SHA" do
+    prior_sha = String.duplicate("a", 40)
+    current_sha = String.duplicate("b", 40)
+
+    canonical = %{
+      "schema_version" => 1,
+      "subject_sha" => prior_sha,
+      "detectors" => [%{"id" => "detector-a", "status" => "pass"}]
+    }
+
+    candidate = Map.put(canonical, "subject_sha", current_sha)
+
+    assert :ok =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_for_test(
+               canonical,
+               candidate,
+               current_sha
+             )
+
+    forged_content =
+      Map.put(candidate, "detectors", [%{"id" => "detector-a", "status" => "forged"}])
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_for_test(
+               canonical,
+               forged_content,
+               current_sha
+             )
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_for_test(
+               canonical,
+               Map.put(candidate, "unexpected", true),
+               current_sha
+             )
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_for_test(
+               canonical,
+               Map.put(candidate, "subject_sha", prior_sha),
+               current_sha
+             )
+  end
+
+  test "Plan 278 rechecks the candidate ledger against the transaction snapshot before promotion" do
+    prior_sha = String.duplicate("a", 40)
+    current_sha = String.duplicate("b", 40)
+
+    canonical = %{
+      "schema_version" => 1,
+      "subject_sha" => prior_sha,
+      "detectors" => [%{"id" => "detector-a", "status" => "pass"}]
+    }
+
+    candidate = Map.put(canonical, "subject_sha", current_sha)
+    candidate_bytes = Jason.encode!(candidate)
+
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "phase133-plan278-ledger-#{System.unique_integer([:positive])}.json"
+      )
+
+    File.write!(path, candidate_bytes)
+
+    on_exit(fn -> File.rm(path) end)
+
+    candidate_digest =
+      :crypto.hash(:sha256, candidate_bytes)
+      |> Base.encode16(case: :lower)
+
+    assert :ok =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_files_for_test(
+               Jason.encode!(canonical),
+               path,
+               current_sha,
+               candidate_digest
+             )
+
+    unrelated_canonical =
+      Map.put(canonical, "detectors", [%{"id" => "detector-a", "status" => "forged"}])
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_files_for_test(
+               Jason.encode!(unrelated_canonical),
+               path,
+               current_sha,
+               candidate_digest
+             )
+
+    File.write!(path, Jason.encode!(Map.put(candidate, "extra", true)))
+
+    assert {:error, _} =
+             Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_files_for_test(
+               Jason.encode!(canonical),
+               path,
+               current_sha,
+               candidate_digest
+             )
+  end
+
+  test "Plan 278 rolls back promotion when the pinned review or census ledger changes" do
+    for changed_input <- [:review, :ledger] do
+      root =
+        Path.join(
+          System.tmp_dir!(),
+          "phase133-plan278-postcheck-#{changed_input}-#{System.unique_integer([:positive])}"
+        )
+
+      phase = Path.join(root, ".planning/phases/133-evidence-charter-and-live-truth")
+      File.mkdir_p!(phase)
+      requirements = Path.join(root, ".planning/REQUIREMENTS.md")
+      canonical = Path.join(phase, "133-EVIDENCE-CENSUS.json")
+      nightly = Path.join(phase, "133-NIGHTLY-EVIDENCE.json")
+      ledger = Path.join(phase, "133-278-CENSUS-LEDGER.json")
+      review = Path.join(root, "133-278-CODE-REVIEW.md")
+      prior_sha = String.duplicate("a", 40)
+      current_sha = String.duplicate("b", 40)
+      tree = String.duplicate("c", 40)
+
+      prior_ledger = %{
+        "schema_version" => 1,
+        "subject_sha" => prior_sha,
+        "detectors" => [%{"id" => "detector-a", "status" => "pass"}]
+      }
+
+      candidate = Map.put(prior_ledger, "subject_sha", current_sha)
+      candidate_bytes = Jason.encode!(candidate)
+      candidate_digest = :crypto.hash(:sha256, candidate_bytes) |> Base.encode16(case: :lower)
+      valid_review = plan278_review_report(current_sha, tree)
+      review_digest = :crypto.hash(:sha256, valid_review) |> Base.encode16(case: :lower)
+
+      originals = %{
+        requirements => "prior requirements\n",
+        canonical => Jason.encode!(prior_ledger),
+        nightly => "prior nightly\n"
+      }
+
+      Enum.each(originals, fn {path, bytes} -> File.write!(path, bytes) end)
+      File.write!(ledger, candidate_bytes)
+      File.write!(review, valid_review)
+      on_exit(fn -> File.rm_rf!(root) end)
+
+      updates = %{
+        requirements => "promoted requirements\n",
+        canonical => candidate_bytes,
+        nightly => "promoted nightly\n"
+      }
+
+      postcheck = fn ->
+        case changed_input do
+          :review ->
+            changed_review = String.replace(valid_review, "verdict: PASS\n", "verdict: FAIL\n")
+            File.write!(review, changed_review)
+
+            Rindle.ValidatePhase133Reconciliation.plan278_review_binding_digest_for_test(
+              review,
+              current_sha,
+              tree,
+              review_digest
+            )
+
+          :ledger ->
+            File.write!(ledger, Jason.encode!(Map.put(candidate, "extra", true)))
+
+            Rindle.ValidatePhase133Reconciliation.plan278_census_ledger_binding_files_for_test(
+              File.read!(canonical),
+              ledger,
+              current_sha,
+              candidate_digest
+            )
+        end
+      end
+
+      assert {:error, message} =
+               Rindle.ValidatePhase133Reconciliation.plan278_apply_transaction_for_test(
+                 root,
+                 originals,
+                 updates,
+                 postcheck
+               )
+
+      assert message =~ "post-promotion validation failed"
+      Enum.each(originals, fn {path, bytes} -> assert File.read!(path) == bytes end)
+      refute File.exists?(Path.join(phase, "133-278-TERMINAL.json"))
+      refute File.exists?(Path.join(phase, "133-278-TRANSACTION.json"))
+    end
   end
 
   test "Plan 278 crash recovery restores canonical and requirement bytes before accepting new evidence" do
