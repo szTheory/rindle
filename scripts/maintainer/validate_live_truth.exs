@@ -1230,8 +1230,7 @@ defmodule Rindle.ValidateLiveTruth do
     )
 
     assert!(
-      Map.take(gate["outputs"] || %{}, ["checkout_ref", "release_sha", "ci_run_url"]) == %{
-        "checkout_ref" => "${{ steps.resolve.outputs.checkout_ref }}",
+      Map.take(gate["outputs"] || %{}, ["release_sha", "ci_run_url"]) == %{
         "release_sha" => "${{ steps.resolve.outputs.release_sha }}",
         "ci_run_url" => "${{ steps.ci.outputs.ci_run_url }}"
       },
@@ -1240,13 +1239,35 @@ defmodule Rindle.ValidateLiveTruth do
 
     resolve_step = exact_active_step!(gate, "resolve")
 
+    assert!(
+      resolve_step["env"] == %{
+        "CHECKOUT_REF" => "${{ needs.recovery-validation.outputs.checkout_ref }}",
+        "RELEASE_TAG" => "${{ needs.recovery-validation.outputs.release_tag }}"
+      },
+      "release SHA resolution mismatch"
+    )
+
+    resolve_script = resolve_step["with"]["script"]
+
     assert_script_lines!(
-      resolve_step["with"]["script"],
+      resolve_script,
       [
-        "const ref = '${{ needs.recovery-validation.outputs.checkout_ref }}';",
-        "core.setOutput('checkout_ref', ref);",
-        "core.setOutput('release_sha', commit.data.sha);"
+        "const ref = process.env.CHECKOUT_REF || '';",
+        "const releaseTag = process.env.RELEASE_TAG || '';",
+        "const commit = await github.rest.repos.getCommit({",
+        "owner: context.repo.owner,",
+        "repo: context.repo.repo,",
+        "ref",
+        "});",
+        "if (!/^[0-9a-f]{40}$/.test(commit.data.sha)) {",
+        "core.setOutput('release_sha', commit.data.sha);",
+        "core.setOutput('release_tag', releaseTag || '');"
       ],
+      "release SHA resolution mismatch"
+    )
+
+    assert!(
+      not String.contains?(resolve_script, "${{"),
       "release SHA resolution mismatch"
     )
 
@@ -1254,21 +1275,34 @@ defmodule Rindle.ValidateLiveTruth do
       exact_active_step_by_name!(gate, "Checkout release target for version resolution")
 
     assert!(
-      checkout_step["with"]["ref"] == "${{ steps.resolve.outputs.checkout_ref }}",
-      "release checkout ref mismatch"
+      checkout_step["with"]["ref"] == "${{ steps.resolve.outputs.release_sha }}",
+      "release checkout SHA mismatch"
     )
 
     ci_step = exact_active_step!(gate, "ci")
 
+    assert!(
+      ci_step["env"]["RELEASE_SHA"] == "${{ steps.resolve.outputs.release_sha }}",
+      "release CI run selection mismatch"
+    )
+
+    ci_script = ci_step["with"]["script"]
+
     assert_script_lines!(
-      ci_step["with"]["script"],
+      ci_script,
       [
-        "const sha = '${{ steps.resolve.outputs.release_sha }}';",
+        "const sha = process.env.RELEASE_SHA || '';",
+        "if (!/^[0-9a-f]{40}$/.test(sha)) {",
         "workflow_id: 'ci.yml',",
         "head_sha: sha,",
         "const runs = data.workflow_runs.filter((run) => run.head_sha === sha);",
         "if (latest.conclusion !== 'success') {"
       ],
+      "release CI run selection mismatch"
+    )
+
+    assert!(
+      not String.contains?(ci_script, "${{"),
       "release CI run selection mismatch"
     )
 
@@ -1287,10 +1321,19 @@ defmodule Rindle.ValidateLiveTruth do
 
     source_step = exact_active_step!(publish, "release_source")
 
+    assert!(
+      source_step["env"] == %{
+        "RELEASE_SHA" => "${{ needs.gate-ci-green.outputs.release_sha }}"
+      },
+      "release source SHA mismatch"
+    )
+
     assert_script_lines!(
       source_step["run"],
       [
-        "git worktree add --detach \"$RELEASE_ROOT\" \"${{ needs.gate-ci-green.outputs.checkout_ref }}\"",
+        "if [[ ! \"$RELEASE_SHA\" =~ ^[0-9a-f]{40}$ ]]; then",
+        "git worktree add --detach \"$RELEASE_ROOT\" \"$RELEASE_SHA\"",
+        "test \"$(git -C \"$RELEASE_ROOT\" rev-parse HEAD)\" = \"$RELEASE_SHA\"",
         "echo \"project_root=$RELEASE_ROOT\" >> \"$GITHUB_OUTPUT\""
       ],
       "release source materialization mismatch"

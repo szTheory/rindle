@@ -637,13 +637,17 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
   defp census_fixture!, do: registry_fixture!([@inapplicable_dimension])
 
   defp registry_fixture!(inapplicable_dimensions) do
-    base =
-      Path.join(System.tmp_dir!(), "rindle-evidence-census-#{System.unique_integer([:positive])}")
+    nonce = Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
+    base = Path.join(System.tmp_dir!(), "rindle-evidence-census-#{nonce}")
 
     root = Path.join(base, "subject")
     ledger_path = Path.join(base, "ledger.json")
     receipt_path = Path.join(base, "receipt.json")
 
+    # Claim our own directory atomically; never remove a candidate another VM
+    # may already be using as a live fixture.
+    File.mkdir!(base)
+    on_exit(fn -> File.rm_rf!(base) end)
     File.mkdir_p!(root)
 
     for {_id, _dimension, _command, inputs} <- @detector_registry,

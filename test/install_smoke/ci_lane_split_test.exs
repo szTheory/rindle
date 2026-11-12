@@ -582,16 +582,9 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
 
     script = step |> Map.fetch!("with") |> get.("script")
 
-    script =
-      String.replace(
-        script,
-        "${{ steps.resolve.outputs.release_sha }}",
-        String.duplicate("a", 40)
-      )
-
     harness = ~S"""
     const assert = require('node:assert/strict');
-    const sha = 'a'.repeat(40);
+    const sha = process.env.RELEASE_SHA;
     const conclusion = process.argv[2];
     let failed = false;
     let reported = false;
@@ -613,7 +606,10 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
       }).catch((error) => {console.error(error); process.exit(2);});
     """
 
-    System.cmd("node", ["--eval", harness, script, conclusion], stderr_to_stdout: true)
+    System.cmd("node", ["--eval", harness, script, conclusion],
+      env: [{"RELEASE_SHA", String.duplicate("a", 40)}],
+      stderr_to_stdout: true
+    )
   end
 
   defp full_matrix_commands(ci) do

@@ -88,6 +88,22 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @plan278_nightly Path.join(@phase_dir, "133-NIGHTLY-EVIDENCE.json")
   @plan278_journal Path.join(@phase_dir, "133-278-TRANSACTION.json")
   @plan278_terminal Path.join(@phase_dir, "133-278-TERMINAL.json")
+  @plan279_reviewed_files ~w(
+    .github/workflows/release.yml
+    scripts/ci/test_readiness_runs.sh
+    scripts/maintainer/validate_exact_head_readiness.exs
+    scripts/maintainer/validate_live_truth.exs
+    scripts/maintainer/validate_phase_133_reconciliation.exs
+    test/install_smoke/ci_lane_split_test.exs
+    test/install_smoke/evidence_census_test.exs
+    test/install_smoke/live_truth_parity_test.exs
+    test/install_smoke/phase_133_reconciliation_test.exs
+    test/install_smoke/quality_signal_policy_test.exs
+    test/install_smoke/release_guard_meta_test.exs
+    test/rindle/admin/queries_test.exs
+  )
+  @plan279_journal Path.join(@phase_dir, "133-279-TRANSACTION.json")
+  @plan279_terminal Path.join(@phase_dir, "133-279-TERMINAL.json")
   @validation_path Path.join(@phase_dir, "133-VALIDATION.md")
   @census_path Path.join(@phase_dir, "133-EVIDENCE-CENSUS.json")
   @roadmap_path ".planning/ROADMAP.md"
@@ -302,6 +318,9 @@ defmodule Rindle.ValidatePhase133Reconciliation do
 
   def run(argv) do
     cond do
+      Enum.any?(argv, &(&1 == "--expect-plan279-terminal")) ->
+        run_plan279_terminal(argv)
+
       Enum.any?(argv, &(&1 == "--expect-plan278-terminal")) ->
         run_plan278_terminal(argv)
 
@@ -378,6 +397,55 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   end
 
   def recover_plan278_transaction(root), do: plan278_recover_journal(root)
+
+  if Code.ensure_loaded?(ExUnit) and Process.whereis(ExUnit.Server) do
+    @doc false
+    def plan279_reviewed_paths_for_test, do: @plan279_reviewed_files
+
+    @doc false
+    def plan279_review_binding_for_test(bytes, sha, tree),
+      do: plan279_review_binding_bytes(bytes, sha, tree)
+
+    @doc false
+    def plan279_source_for_test(active_root, source_root, sha),
+      do: plan279_source(active_root, source_root, sha)
+
+    @doc false
+    def plan279_census_roots_for_test(source_root, census_a_root, census_b_root, sha, tree),
+      do: plan279_census_roots(source_root, census_a_root, census_b_root, sha, tree)
+
+    @doc false
+    def plan279_sealed_history_for_test(root), do: plan278_sealed_history(root)
+
+    @doc false
+    def plan279_sealed_history_paths_for_test do
+      @plan278_sealed_history_files_by_plan
+      |> Enum.flat_map(fn {_plan, names} -> Enum.map(names, &Path.join(@phase_dir, &1)) end)
+      |> Enum.sort()
+    end
+
+    @doc false
+    def plan279_apply_transaction_for_test(root, originals, updates, postcheck) do
+      root = Path.expand(root)
+      terminal = Path.join(root, @plan279_terminal)
+      journal = Path.join(root, @plan279_journal)
+
+      plan279_apply_transaction(
+        root,
+        originals,
+        updates,
+        terminal,
+        journal,
+        "journal\n",
+        "terminal\n",
+        postcheck,
+        &atomic_write/2
+      )
+    end
+
+    @doc false
+    def plan279_recover_journal_for_test(root), do: plan279_recover_journal(root)
+  end
 
   if Code.ensure_loaded?(ExUnit) and Process.whereis(ExUnit.Server) do
     @doc false
@@ -506,6 +574,615 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     case :binary.matches(bytes, old) do
       [{start, length}] -> {:ok, :binary.replace(bytes, old, replacement, scope: {start, length})}
       _ -> {:error, "the stale Plan 133-37 prerequisite paragraph is not present exactly once"}
+    end
+  end
+
+  defp run_plan279_terminal(argv) do
+    switches = [
+      root: :string,
+      source_root: :string,
+      census_a_root: :string,
+      census_b_root: :string,
+      expect_plan279_terminal: :boolean
+    ]
+
+    with {opts, [], []} <- OptionParser.parse(argv, strict: switches),
+         true <- length(opts) == length(Enum.uniq_by(opts, &elem(&1, 0))),
+         true <- Keyword.get(opts, :expect_plan279_terminal) == true,
+         {:ok, root} <- resolve_root(Keyword.get(opts, :root)),
+         source_root when is_binary(source_root) <- Keyword.get(opts, :source_root),
+         census_a_root when is_binary(census_a_root) <- Keyword.get(opts, :census_a_root),
+         census_b_root when is_binary(census_b_root) <- Keyword.get(opts, :census_b_root),
+         {:ok, result} <-
+           validate_plan279_terminal(
+             root,
+             Path.expand(source_root),
+             Path.expand(census_a_root),
+             Path.expand(census_b_root)
+           ) do
+      IO.puts(result)
+      :ok
+    else
+      {:error, _} = error ->
+        error
+
+      _ ->
+        {:error,
+         "Plan 279 requires --expect-plan279-terminal, --root, --source-root, --census-a-root, and --census-b-root"}
+    end
+  end
+
+  def validate_plan279_terminal(root, source_root, census_a_root, census_b_root) do
+    p = fn name -> Path.join([root, @phase_dir, name]) end
+    ci = p.("133-279-CI-EVIDENCE.json")
+    review = p.("133-279-CODE-REVIEW.md")
+    ledger = p.("133-279-CENSUS-LEDGER.json")
+    census_a = p.("133-279-CENSUS-A.json")
+    census_b = p.("133-279-CENSUS-B.json")
+    nightly = p.("133-279-NIGHTLY-EVIDENCE.json")
+    canonical_census = Path.join(root, @census_path)
+    canonical_nightly = Path.join(root, @receipt_path)
+    requirements = Path.join(root, @requirements_path)
+    terminal = p.("133-279-TERMINAL.json")
+    journal = p.("133-279-TRANSACTION.json")
+
+    evidence_paths =
+      [
+        ci,
+        review,
+        ledger,
+        census_a,
+        census_b,
+        nightly,
+        requirements,
+        canonical_census,
+        canonical_nightly
+      ]
+
+    with :ok <- plan279_recover_journal(root),
+         :ok <- plan278_preflight_paths(root, evidence_paths, [journal, terminal]),
+         :ok <- plan279_files(evidence_paths),
+         :ok <- plan278_pending_requirements(requirements),
+         {:ok, original_requirements} <- File.read(requirements),
+         requirements_sha256 <- sha256(original_requirements),
+         {:ok, sha} <- plan278_ci_sha(ci),
+         {:ok, tree} <- plan279_source(root, source_root, sha),
+         :ok <- plan279_census_roots(source_root, census_a_root, census_b_root, sha, tree),
+         {:ok, review_bytes} <- File.read(review),
+         :ok <- plan279_review_binding_bytes(review_bytes, sha, tree),
+         review_sha256 <- sha256(review_bytes),
+         {:ok, canonical_ledger_bytes} <- File.read(canonical_census),
+         {:ok, canonical_ledger} <- Jason.decode(canonical_ledger_bytes),
+         {:ok, original_nightly_bytes} <- File.read(canonical_nightly),
+         {:ok, candidate_ledger_bytes} <- File.read(ledger),
+         {:ok, candidate_ledger} <- Jason.decode(candidate_ledger_bytes),
+         :ok <- plan278_census_ledger_binding(canonical_ledger, candidate_ledger, sha),
+         :ok <-
+           plan279_external_validators(
+             root,
+             source_root,
+             sha,
+             ci,
+             ledger,
+             census_a_root,
+             census_b_root,
+             census_a,
+             census_b,
+             nightly
+           ),
+         {:ok, bytes_a} <- File.read(census_a),
+         {:ok, bytes_b} <- File.read(census_b),
+         true <-
+           bytes_a == bytes_b or
+             {:error, "Plan 279 census A and B receipts are not byte-identical"},
+         {:ok, nightly_bytes} <- File.read(nightly),
+         {:ok, sealed_history} <- plan278_sealed_history(root),
+         :ok <- plan279_remote_main(source_root, sha),
+         {:ok, new_census} <- plan278_promote_census(canonical_ledger_bytes, sha),
+         {:ok, terminal_bytes} <-
+           plan279_terminal_bytes(
+             sha,
+             tree,
+             ledger,
+             ci,
+             review_sha256,
+             census_a,
+             census_b,
+             nightly,
+             sealed_history
+           ),
+         :ok <-
+           plan279_transaction(
+             root,
+             canonical_census,
+             canonical_ledger_bytes,
+             new_census,
+             canonical_nightly,
+             original_nightly_bytes,
+             nightly_bytes,
+             terminal,
+             journal,
+             terminal_bytes,
+             fn ->
+               with :ok <- plan279_remote_main(source_root, sha),
+                    {:ok, post_tree} <- plan279_source(root, source_root, sha),
+                    true <- post_tree == tree,
+                    :ok <-
+                      plan279_census_roots(
+                        source_root,
+                        census_a_root,
+                        census_b_root,
+                        sha,
+                        tree
+                      ),
+                    :ok <- plan279_review_binding_bytes(review_bytes, sha, tree),
+                    :ok <- plan278_pending_requirements(requirements),
+                    {:ok, current_requirements} <- File.read(requirements),
+                    true <- sha256(current_requirements) == requirements_sha256,
+                    :ok <- plan278_sealed_history_unchanged(root, sealed_history),
+                    {:ok, promoted} <- File.read(canonical_census),
+                    :ok <-
+                      plan278_census_ledger_binding_files(
+                        promoted,
+                        ledger,
+                        sha,
+                        sha256(candidate_ledger_bytes)
+                      ) do
+                 :ok
+               else
+                 {:error, _} = error -> error
+                 _ -> {:error, "Plan 279 post-promotion identity check failed"}
+               end
+             end
+           ) do
+      {:ok,
+       "Plan 279 exact-subject census, CI, scheduled Nightly, review, and terminal reconciliation valid; requirements remain Pending"}
+    else
+      {:error, _} = error -> error
+      false -> {:error, "Plan 279 exact-subject validation failed"}
+      _ -> {:error, "Plan 279 terminal evidence is incomplete or malformed"}
+    end
+  end
+
+  defp plan279_files(paths) do
+    case Enum.find(paths, &(not File.regular?(&1))) do
+      nil -> :ok
+      path -> {:error, "Plan 279 evidence file is missing: #{Path.basename(path)}"}
+    end
+  end
+
+  defp plan279_source(active_root, source_root, expected_sha) do
+    with true <- File.dir?(source_root) or {:error, "Plan 279 source root is missing"},
+         {:ok, sha} <- git(source_root, ["rev-parse", "--verify", "HEAD"]),
+         {:ok, tree} <- git(source_root, ["rev-parse", "HEAD^{tree}"]),
+         {:ok, status} <- git(source_root, ["status", "--porcelain", "--untracked-files=all"]),
+         true <- String.trim(status) == "" or {:error, "Plan 279 source root is not clean"},
+         true <-
+           sha == expected_sha or
+             {:error, "Plan 279 source root SHA differs from exact CI evidence"},
+         :ok <- plan279_active_code_parity(active_root, source_root) do
+      {:ok, tree}
+    else
+      {:error, _} = error -> error
+      _ -> {:error, "Plan 279 source identity is invalid"}
+    end
+  end
+
+  defp plan279_active_code_parity(active_root, source_root) do
+    Enum.reduce_while(@plan279_reviewed_files, :ok, fn relative, :ok ->
+      active = Path.join(active_root, relative)
+      source = Path.join(source_root, relative)
+
+      with {:ok, active_bytes} <- File.read(active),
+           {:ok, source_bytes} <- File.read(source),
+           true <- active_bytes == source_bytes do
+        {:cont, :ok}
+      else
+        _ ->
+          {:halt,
+           {:error, "active Plan 279 code path differs from reviewed main source: #{relative}"}}
+      end
+    end)
+  end
+
+  defp plan279_census_roots(source_root, census_a_root, census_b_root, sha, tree) do
+    roots = [census_a_root, census_b_root]
+
+    with {:ok, source_toplevel} <- git(source_root, ["rev-parse", "--show-toplevel"]),
+         {:ok, canonical_roots} <-
+           Enum.reduce_while(roots, {:ok, []}, fn root, {:ok, acc} ->
+             case git(root, ["rev-parse", "--show-toplevel"]) do
+               {:ok, toplevel} -> {:cont, {:ok, [Path.expand(toplevel) | acc]}}
+               _ -> {:halt, {:error, "Plan 279 census root is missing or not a Git checkout"}}
+             end
+           end),
+         true <-
+           Path.expand(source_toplevel) not in canonical_roots or
+             {:error, "Plan 279 census roots must be separate from the source root"},
+         true <-
+           length(Enum.uniq(canonical_roots)) == 2 or
+             {:error, "Plan 279 census A and B require independent roots"},
+         :ok <-
+           Enum.reduce_while(roots, :ok, fn root_arg, :ok ->
+             root = Path.expand(root_arg)
+
+             with {:ok, actual_sha} <- git(root, ["rev-parse", "--verify", "HEAD"]),
+                  {:ok, actual_tree} <- git(root, ["rev-parse", "HEAD^{tree}"]),
+                  {:ok, status} <- git(root, ["status", "--porcelain", "--untracked-files=all"]),
+                  true <- actual_sha == sha and actual_tree == tree,
+                  true <- census_root_detached?(root),
+                  true <- String.trim(status) == "" do
+               {:cont, :ok}
+             else
+               _ ->
+                 {:halt,
+                  {:error, "Plan 279 census root is not a clean detached exact-subject checkout"}}
+             end
+           end) do
+      :ok
+    else
+      {:error, _} = error -> error
+      _ -> {:error, "Plan 279 census roots do not independently bind to the exact source"}
+    end
+  end
+
+  defp census_root_detached?(root) do
+    case System.cmd("git", ["symbolic-ref", "--quiet", "HEAD"], cd: root, stderr_to_stdout: true) do
+      {_branch, status} when status != 0 -> true
+      _ -> false
+    end
+  end
+
+  defp plan279_review_binding_bytes(bytes, sha, tree) do
+    with {:ok, frontmatter, body} <- bounded_frontmatter(bytes),
+         :ok <- plan278_review_frontmatter_keys(frontmatter),
+         :ok <- reject_second_frontmatter(body),
+         {:ok, metadata} <- decode_frontmatter(frontmatter),
+         true <- metadata["phase"] == "133-279",
+         true <- metadata["verdict"] == "PASS",
+         true <- metadata["status"] == "clean",
+         true <- metadata["source_commit"] == sha,
+         true <- metadata["source_tree"] == tree,
+         true <- metadata["files_reviewed"] == length(@plan279_reviewed_files),
+         paths when is_list(paths) <- metadata["files_reviewed_list"],
+         true <- Enum.sort(paths) == Enum.sort(@plan279_reviewed_files),
+         findings when is_map(findings) <- metadata["findings"],
+         true <-
+           Enum.sort(Map.keys(findings)) == ~w(blocker critical info necessity total warning),
+         true <- Enum.all?(Map.values(findings), &(&1 == 0)) do
+      :ok
+    else
+      _ ->
+        {:error,
+         "Plan 279 independent PASS review is not bound to the exact main commit/tree and code paths"}
+    end
+  end
+
+  defp plan279_external_validators(
+         root,
+         source_root,
+         sha,
+         ci,
+         ledger,
+         census_a_root,
+         census_b_root,
+         census_a,
+         census_b,
+         nightly
+       ) do
+    mix_env = [
+      {"MIX_ENV", "test"},
+      {"MIX_DEPS_PATH", Path.join(source_root, "deps")},
+      {"MIX_BUILD_PATH", Path.join(source_root, "_build")}
+    ]
+
+    checks = [
+      {"bash",
+       [
+         "scripts/ci/verify_nightly_run.sh",
+         "verify-main-ci-receipt",
+         "--repo",
+         "szTheory/rindle",
+         "--expected-sha",
+         sha,
+         "--receipt",
+         ci
+       ]},
+      {"mix",
+       [
+         "run",
+         "--no-start",
+         "--no-deps-check",
+         "--no-compile",
+         "scripts/maintainer/validate_evidence_census.exs",
+         "--root",
+         census_a_root,
+         "--ledger",
+         ledger,
+         "--receipt",
+         census_a
+       ], census_a_root},
+      {"mix",
+       [
+         "run",
+         "--no-start",
+         "--no-deps-check",
+         "--no-compile",
+         "scripts/maintainer/validate_evidence_census.exs",
+         "--root",
+         census_b_root,
+         "--ledger",
+         ledger,
+         "--receipt",
+         census_b
+       ], census_b_root},
+      {"bash",
+       [
+         "scripts/ci/verify_nightly_run.sh",
+         "verify-scheduled-receipt",
+         "--source-root",
+         source_root,
+         "--evidence-root",
+         root,
+         "--repo",
+         "szTheory/rindle",
+         "--workflow",
+         "nightly.yml",
+         "--ref",
+         "main",
+         "--expected-sha",
+         sha,
+         "--receipt",
+         nightly
+       ]},
+      {"mix",
+       [
+         "run",
+         "--no-start",
+         "--no-deps-check",
+         "--no-compile",
+         "-e",
+         "Code.require_file(\"scripts/maintainer/validate_live_truth.exs\"); Rindle.ValidateLiveTruth.run([\"--root\", \".\", \"--format\", \"json\"])"
+       ]}
+    ]
+
+    Enum.reduce_while(checks, :ok, fn
+      {command, args, cwd}, :ok ->
+        {out, status} = System.cmd(command, args, cd: cwd, env: mix_env, stderr_to_stdout: true)
+
+        if status == 0,
+          do: {:cont, :ok},
+          else:
+            {:halt,
+             {:error,
+              "Plan 279 validator failed (#{Path.basename(command)}): #{String.slice(out, 0, 400)}"}}
+
+      {command, args}, :ok ->
+        {out, status} =
+          System.cmd(command, args, cd: source_root, env: mix_env, stderr_to_stdout: true)
+
+        if status == 0,
+          do: {:cont, :ok},
+          else:
+            {:halt,
+             {:error,
+              "Plan 279 validator failed (#{Path.basename(command)}): #{String.slice(out, 0, 400)}"}}
+    end)
+  end
+
+  defp plan279_remote_main(source_root, expected_sha) do
+    case System.cmd("git", ["ls-remote", "origin", "refs/heads/main"],
+           cd: source_root,
+           stderr_to_stdout: true
+         ) do
+      {output, 0} ->
+        case String.split(String.trim(output), "\t") do
+          [^expected_sha, "refs/heads/main"] -> :ok
+          _ -> {:error, "remote main moved away from the exact Plan 279 subject"}
+        end
+
+      {_output, _status} ->
+        {:error, "could not recheck remote main before Plan 279 promotion"}
+    end
+  end
+
+  defp plan279_terminal_bytes(
+         sha,
+         tree,
+         ledger,
+         ci,
+         review_sha256,
+         census_a,
+         census_b,
+         nightly,
+         sealed_history
+       ) do
+    proof = %{
+      "schema_version" => 1,
+      "plan" => "133-279",
+      "status" => "validated",
+      "source_sha" => sha,
+      "source_tree" => tree,
+      "ledger_sha256" => file_sha(ledger),
+      "ci_sha256" => file_sha(ci),
+      "review_sha256" => review_sha256,
+      "census_a_sha256" => file_sha(census_a),
+      "census_b_sha256" => file_sha(census_b),
+      "nightly_sha256" => file_sha(nightly),
+      "sealed_history_sha256" => sealed_history,
+      "requirements_pending" => true
+    }
+
+    {:ok, Jason.encode!(proof, pretty: true) <> "\n"}
+  rescue
+    _ -> {:error, "Plan 279 terminal proof could not be encoded"}
+  end
+
+  defp plan279_transaction(
+         root,
+         canonical_census,
+         original_census,
+         new_census,
+         canonical_nightly,
+         original_nightly,
+         new_nightly,
+         terminal,
+         journal,
+         terminal_bytes,
+         postcheck
+       ) do
+    prior = %{
+      @census_path => Base.encode64(original_census),
+      @receipt_path => Base.encode64(original_nightly)
+    }
+
+    plan279_apply_transaction(
+      root,
+      %{canonical_census => original_census, canonical_nightly => original_nightly},
+      %{canonical_census => new_census, canonical_nightly => new_nightly},
+      terminal,
+      journal,
+      Jason.encode!(
+        %{
+          "schema_version" => 1,
+          "plan" => "133-279",
+          "status" => "applying",
+          "terminal_path" => @plan279_terminal,
+          "prior_bytes" => prior
+        },
+        pretty: true
+      ) <> "\n",
+      terminal_bytes,
+      postcheck,
+      &atomic_write/2
+    )
+  end
+
+  defp plan279_apply_transaction(
+         root,
+         originals,
+         updates,
+         terminal,
+         journal,
+         journal_bytes,
+         terminal_bytes,
+         postcheck,
+         write
+       ) do
+    files = Map.keys(originals) |> Enum.sort()
+
+    with :ok <- plan278_preflight_paths(root, files, [journal, terminal]),
+         true <-
+           not File.exists?(terminal) or {:error, "Plan 279 terminal artifact already exists"},
+         :ok <- plan279_originals_unchanged(originals) do
+      try do
+        write.(journal, journal_bytes)
+        Enum.each(files, &write.(&1, Map.fetch!(updates, &1)))
+        write.(terminal, terminal_bytes)
+
+        case postcheck.() do
+          :ok ->
+            File.rm!(journal)
+            :ok
+
+          {:error, reason} ->
+            case plan278_restore_backups(Map.to_list(originals)) do
+              :ok ->
+                case plan278_remove_terminal_and_journal(terminal, journal) do
+                  :ok ->
+                    {:error,
+                     "Plan 279 post-promotion check failed; canonical evidence was restored: #{reason}"}
+
+                  {:error, rollback} ->
+                    {:error,
+                     "Plan 279 postcheck failed and transaction cleanup failed: #{inspect(rollback)}"}
+                end
+
+              {:error, restore} ->
+                {:error, "Plan 279 rollback failed: #{inspect(restore)}"}
+            end
+        end
+      rescue
+        error ->
+          case plan278_restore_backups(Map.to_list(originals)) do
+            :ok ->
+              case plan278_remove_terminal_and_journal(terminal, journal) do
+                :ok ->
+                  {:error,
+                   "Plan 279 terminal transaction rolled back: #{Exception.message(error)}"}
+
+                {:error, rollback} ->
+                  {:error, "Plan 279 transaction failed and cleanup failed: #{inspect(rollback)}"}
+              end
+
+            {:error, restore} ->
+              {:error, "Plan 279 transaction and rollback failed: #{inspect(restore)}"}
+          end
+      end
+    else
+      {:error, _} = error -> error
+      _ -> {:error, "Plan 279 terminal paths are unsafe or terminal output already exists"}
+    end
+  end
+
+  defp plan279_originals_unchanged(originals) do
+    unchanged? =
+      Enum.all?(originals, fn {path, expected} -> File.read(path) == {:ok, expected} end)
+
+    if unchanged?,
+      do: :ok,
+      else: {:error, "Plan 279 canonical evidence changed during validation"}
+  end
+
+  defp plan279_recover_journal(root) do
+    root = Path.expand(root)
+    journal = Path.join(root, @plan279_journal)
+    terminal = Path.join(root, @plan279_terminal)
+    canonical = [Path.join(root, @census_path), Path.join(root, @receipt_path)]
+
+    with :ok <- plan278_preflight_paths(root, [], [journal, terminal | canonical]) do
+      case File.lstat(journal) do
+        {:error, :enoent} ->
+          :ok
+
+        {:ok, %{type: :regular}} ->
+          with {:ok, bytes} <- File.read(journal),
+               {:ok, doc} <- Jason.decode(bytes),
+               true <- is_map(doc),
+               true <-
+                 Map.keys(doc) |> Enum.sort() ==
+                   ~w(plan prior_bytes schema_version status terminal_path),
+               1 <- doc["schema_version"],
+               "133-279" <- doc["plan"],
+               "applying" <- doc["status"],
+               @plan279_terminal <- doc["terminal_path"],
+               prior when is_map(prior) <- doc["prior_bytes"],
+               true <- Map.keys(prior) |> Enum.sort() == Enum.sort([@census_path, @receipt_path]),
+               {:ok, backups} <-
+                 Enum.reduce_while(prior, {:ok, []}, fn {relative, encoded}, {:ok, acc} ->
+                   path = Path.expand(relative, root)
+
+                   with true <- relative in [@census_path, @receipt_path],
+                        true <- String.starts_with?(path, root <> "/"),
+                        true <- is_binary(encoded),
+                        {:ok, original} <- Base.decode64(encoded) do
+                     {:cont, {:ok, [{path, original} | acc]}}
+                   else
+                     _ -> {:halt, {:error, :invalid_backup}}
+                   end
+                 end),
+               :ok <- plan278_restore_backups(backups),
+               :ok <- plan278_remove_terminal_and_journal(terminal, journal) do
+            :ok
+          else
+            _ -> {:error, "Plan 279 journal is malformed; refusing evidence recovery"}
+          end
+
+        _ ->
+          {:error, "Plan 279 journal is not a regular file"}
+      end
+    else
+      {:error, reason} -> {:error, "Plan 279 recovery paths are unsafe: #{inspect(reason)}"}
     end
   end
 

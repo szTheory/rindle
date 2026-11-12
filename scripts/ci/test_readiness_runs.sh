@@ -24,6 +24,11 @@ topologies={event:policy({'operation':'topology','yaml':(root/'.github/workflows
     'context':{'repository':repo,'event':event,'branch':'main'}}) for event,file in [('push','ci.yml'),('schedule','nightly.yml')]}
 
 class Runs(unittest.TestCase):
+    def test_release_workflow_exact_sha_guard_matches_committed_bytes(self):
+        validator=(root/'scripts/maintainer/validate_exact_head_readiness.exs').read_text()
+        digest=hashlib.sha256((root/'.github/workflows/release.yml').read_bytes()).hexdigest()
+        self.assertIn(f'@release_guard "{digest}"',validator)
+
     def timed_collection(self, elapsed):
         clock=[0.0];observations=c.Collector.observations
         def observe(owner):

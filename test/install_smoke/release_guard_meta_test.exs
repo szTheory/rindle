@@ -47,6 +47,7 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
      %{
        ci: File.read!(@ci_path),
        release: File.read!(@release_path),
+       release_yaml: YamlElixir.read_from_file!(@release_path),
        drift: File.read!(@drift_path),
        drift_template: File.read!(@drift_template_path),
        progress_guard: File.read!(@progress_guard_path),
@@ -129,6 +130,64 @@ defmodule Rindle.InstallSmoke.ReleaseGuardMetaTest do
 
     refute release =~ "name: Validate RELEASE_PLEASE_TOKEN Job",
            "the token guard must not surface as a new job/check name"
+  end
+
+  test "recovery dispatch inputs reach the validation shell only through environment variables",
+       %{release_yaml: workflow} do
+    validation_job = workflow["jobs"]["recovery-validation"]
+
+    validation =
+      Enum.find(validation_job["steps"], &(&1["id"] == "validate"))
+
+    assert validation["env"]["RECOVERY_REASON"] == "${{ inputs.recovery_reason }}"
+    assert validation["env"]["RECOVERY_REF"] == "${{ inputs.recovery_ref }}"
+    assert validation["run"] =~ ~s(test -n "$RECOVERY_REASON")
+    assert validation["run"] =~ ~s(recovery_ref="$RECOVERY_REF")
+    refute validation["run"] =~ "${{ inputs."
+  end
+
+  test "recovery refs and release SHA reach github-script as data and SHA is validated",
+       %{release_yaml: workflow} do
+    gate = workflow["jobs"]["gate-ci-green"]
+    resolve = Enum.find(gate["steps"], &(&1["id"] == "resolve"))
+    ci = Enum.find(gate["steps"], &(&1["id"] == "ci"))
+
+    checkout =
+      Enum.find(gate["steps"], &(&1["name"] == "Checkout release target for version resolution"))
+
+    resolve_script = resolve["with"]["script"]
+    ci_script = ci["with"]["script"]
+
+    assert resolve["env"]["CHECKOUT_REF"] ==
+             "${{ needs.recovery-validation.outputs.checkout_ref }}"
+
+    assert resolve["env"]["RELEASE_TAG"] ==
+             "${{ needs.recovery-validation.outputs.release_tag }}"
+
+    assert resolve_script =~ "const ref = process.env.CHECKOUT_REF || '';"
+    assert resolve_script =~ "const releaseTag = process.env.RELEASE_TAG || '';"
+    assert resolve_script =~ "if (!/^[0-9a-f]{40}$/.test(commit.data.sha))"
+    refute resolve_script =~ "${{"
+    assert checkout["with"]["ref"] == "${{ steps.resolve.outputs.release_sha }}"
+
+    publish = workflow["jobs"]["publish"]
+    source = Enum.find(publish["steps"], &(&1["id"] == "release_source"))
+    assert source["env"]["RELEASE_SHA"] == "${{ needs.gate-ci-green.outputs.release_sha }}"
+    assert source["run"] =~ "git worktree add --detach \"$RELEASE_ROOT\" \"$RELEASE_SHA\""
+    assert source["run"] =~ "rev-parse HEAD)\" = \"$RELEASE_SHA\""
+
+    assert ci["env"]["RELEASE_SHA"] == "${{ steps.resolve.outputs.release_sha }}"
+    assert ci_script =~ "const sha = process.env.RELEASE_SHA || '';"
+    assert ci_script =~ "if (!/^[0-9a-f]{40}$/.test(sha))"
+    refute ci_script =~ "${{"
+  end
+
+  test "release workflow jobs have bounded execution time", %{release_yaml: workflow} do
+    Enum.each(workflow["jobs"], fn {name, job} ->
+      timeout = job["timeout-minutes"]
+      assert is_integer(timeout), "release job #{name} must declare timeout-minutes"
+      assert timeout in 1..60, "release job #{name} timeout must stay at or below 60 minutes"
+    end)
   end
 
   test "App tokens use the reviewed per-role subset, one repository and post-job revocation" do
