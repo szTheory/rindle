@@ -644,6 +644,10 @@ defmodule Rindle.InstallSmoke.EvidenceCensusTest do
     ledger_path = Path.join(base, "ledger.json")
     receipt_path = Path.join(base, "receipt.json")
 
+    # `unique_integer/1` can repeat across separate BEAM invocations. Clear a
+    # prior fixture at the same deterministic temp path before initializing Git.
+    File.rm_rf!(base)
+    on_exit(fn -> File.rm_rf!(base) end)
     File.mkdir_p!(root)
 
     for {_id, _dimension, _command, inputs} <- @detector_registry,

@@ -92,22 +92,26 @@ defmodule Rindle.Admin.QueriesTest do
   test "assets/1 cursor follows inserted_at and id ordering" do
     newer_time = ~N[2026-01-02 00:00:00]
     older_time = ~N[2026-01-01 00:00:00]
+    cursor_profile = "cursor-order-#{System.unique_integer([:positive])}"
 
     newer =
-      insert_asset(%{state: "ready", profile: to_string(AdminImageProfile), kind: "image"})
+      insert_asset(%{state: "ready", profile: cursor_profile, kind: "image"})
       |> set_inserted_at!(MediaAsset, newer_time)
 
     older =
-      insert_asset(%{state: "ready", profile: to_string(AdminImageProfile), kind: "image"})
+      insert_asset(%{state: "ready", profile: cursor_profile, kind: "image"})
       |> set_inserted_at!(MediaAsset, older_time)
 
-    assert {:ok, first_page} = Queries.assets(state: "ready", limit: 1)
+    assert {:ok, first_page} =
+             Queries.assets(state: "ready", profile: cursor_profile, limit: 1)
+
     assert [%{id: first_id, inserted_at: first_inserted_at}] = first_page.rows
     assert first_id == newer.id
 
     assert {:ok, second_page} =
              Queries.assets(
                state: "ready",
+               profile: cursor_profile,
                limit: 1,
                cursor: %{inserted_at: first_inserted_at, id: first_id}
              )

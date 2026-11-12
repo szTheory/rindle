@@ -426,12 +426,11 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
 
   defp release_gate_result(script, scenario) do
     sha = String.duplicate("a", 40)
-    script = String.replace(script, "${{ steps.resolve.outputs.release_sha }}", sha)
 
     harness = ~S"""
     const failures = [], outputs = {};
     globalThis.setTimeout = callback => { callback(); return 0; };
-    const sha = 'a'.repeat(40);
+    const sha = process.env.RELEASE_SHA;
     const github = {rest: {actions: {listWorkflowRuns: async args => {
       if (args.workflow_id !== 'ci.yml' || args.head_sha !== sha) throw new Error('unbound CI lookup');
       return {data: {workflow_runs: [{head_sha: process.env.SCENARIO === 'wrong-sha' ? 'b'.repeat(40) : sha,
@@ -448,7 +447,7 @@ defmodule Rindle.InstallSmoke.QualitySignalPolicyTest do
 
     {output, 0} =
       System.cmd("node", ["--input-type=module", "-e", harness],
-        env: [{"GATE_SCRIPT", script}, {"SCENARIO", scenario}],
+        env: [{"GATE_SCRIPT", script}, {"SCENARIO", scenario}, {"RELEASE_SHA", sha}],
         stderr_to_stdout: true
       )
 
