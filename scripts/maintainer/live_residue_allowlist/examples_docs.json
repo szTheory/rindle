@@ -37,10 +37,18 @@
     {
       "path": "AGENTS.md",
       "class": "planning-path",
-      "text": "This project runs GSD through **Codex**. `.planning/config.json` sets `runtime` to",
+      "text": "This project currently runs GSD through **Codex**: `.planning/config.json` sets",
       "count": 1,
       "reason_class": "policy",
       "reason": "Contributor policy names the actual project-level GSD runtime and model-routing configuration authority."
+    },
+    {
+      "path": "AGENTS.md",
+      "class": "planning-path",
+      "text": "optimization and record new reusable lessons under `.planning/research/`. Distinguish",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "Agent instructions point at the maintained research directory for bounded CI learning."
     },
     {
       "path": "AGENTS.md",

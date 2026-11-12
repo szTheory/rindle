@@ -799,6 +799,24 @@ defmodule Rindle.InstallSmoke.Plan279TerminalTest do
     assert message =~ "Plan 279 requires"
   end
 
+  test "Plan 279 review scope binds all final changed code paths" do
+    assert Rindle.ValidatePhase133Reconciliation.plan279_reviewed_paths_for_test() ==
+             ~w(
+               .github/workflows/release.yml
+               scripts/ci/test_readiness_runs.sh
+               scripts/maintainer/validate_exact_head_readiness.exs
+               scripts/maintainer/validate_live_truth.exs
+               scripts/maintainer/validate_phase_133_reconciliation.exs
+               test/install_smoke/ci_lane_split_test.exs
+               test/install_smoke/evidence_census_test.exs
+               test/install_smoke/live_truth_parity_test.exs
+               test/install_smoke/phase_133_reconciliation_test.exs
+               test/install_smoke/quality_signal_policy_test.exs
+               test/install_smoke/release_guard_meta_test.exs
+               test/rindle/admin/queries_test.exs
+             )
+  end
+
   test "Plan 279 review requires exact source, tree, full code-path list, clean status, and zero findings" do
     sha = String.duplicate("a", 40)
     tree = String.duplicate("b", 40)
@@ -848,7 +866,7 @@ defmodule Rindle.InstallSmoke.Plan279TerminalTest do
 
     assert {:error, _} =
              Rindle.ValidatePhase133Reconciliation.plan279_review_binding_for_test(
-               String.replace(report, "files_reviewed: 11", "files_reviewed: 10"),
+               String.replace(report, "files_reviewed: 12", "files_reviewed: 11"),
                sha,
                tree
              )
@@ -1131,8 +1149,12 @@ defmodule Rindle.InstallSmoke.Plan279TerminalTest do
     refute File.exists?(journal)
   end
 
-  defp temp_root(label),
-    do: Path.join(System.tmp_dir!(), "#{label}-#{System.unique_integer([:positive])}")
+  defp temp_root(label) do
+    nonce = Base.encode16(:crypto.strong_rand_bytes(16), case: :lower)
+    root = Path.join(System.tmp_dir!(), "#{label}-#{nonce}")
+    File.mkdir!(root)
+    root
+  end
 
   defp git_output(root, args) do
     {output, 0} = System.cmd("git", args, cd: root, stderr_to_stdout: true)

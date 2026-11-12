@@ -90,8 +90,10 @@ defmodule Rindle.ValidatePhase133Reconciliation do
   @plan278_terminal Path.join(@phase_dir, "133-278-TERMINAL.json")
   @plan279_reviewed_files ~w(
     .github/workflows/release.yml
-    scripts/maintainer/live_residue_allowlist/examples_docs.json
+    scripts/ci/test_readiness_runs.sh
+    scripts/maintainer/validate_exact_head_readiness.exs
     scripts/maintainer/validate_live_truth.exs
+    scripts/maintainer/validate_phase_133_reconciliation.exs
     test/install_smoke/ci_lane_split_test.exs
     test/install_smoke/evidence_census_test.exs
     test/install_smoke/live_truth_parity_test.exs
@@ -99,7 +101,6 @@ defmodule Rindle.ValidatePhase133Reconciliation do
     test/install_smoke/quality_signal_policy_test.exs
     test/install_smoke/release_guard_meta_test.exs
     test/rindle/admin/queries_test.exs
-    scripts/maintainer/validate_phase_133_reconciliation.exs
   )
   @plan279_journal Path.join(@phase_dir, "133-279-TRANSACTION.json")
   @plan279_terminal Path.join(@phase_dir, "133-279-TERMINAL.json")
