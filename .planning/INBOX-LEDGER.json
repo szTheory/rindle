@@ -1322,6 +1322,20 @@
         "merged": true,
         "state_reason": null
       }
+    },
+    {
+      "kind": "pr",
+      "number": 220,
+      "disposition": "retain",
+      "head_sha": "61d240550253fe7447625308504d01b6b56d039e",
+      "rationale": "Observed open Dependabot image 0.73.0 candidate on 2026-11-13 at exact head 61d24055, based on main. GitHub reports it behind current main 9c971475 with no review decision. Retain this head pending rebase, fresh exact-head CI and dependency review; this entry does not approve the upgrade or grant readiness credit."
+    },
+    {
+      "kind": "pr",
+      "number": 222,
+      "disposition": "retain",
+      "head_sha": "d20e2ab53e19f4672d64fb8c489a13a36e5a553b",
+      "rationale": "Observed open Dependabot dev-dependency lazy_html 0.1.14 candidate on 2026-11-13 at exact head d20e2ab5, based on main. GitHub reports it behind current main 9c971475 with no review decision. Retain this head pending rebase, fresh exact-head CI and dependency review; this entry does not approve the upgrade or grant readiness credit."
     }
   ],
   "landings": [
