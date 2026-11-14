@@ -1039,6 +1039,7 @@ verify_main_ci_case() {
       --expected-sha "$scheduled_sha" --receipt "${temp}/receipt.json" >"${temp}/output" 2>&1 || got=$?
   if [ "$want" = pass ]; then
     if [ "$got" -eq 0 ] && [ "$(jq -r '.check_id' "${temp}/receipt.json")" = 42 ] &&
+       [ "$(jq -r '.check_app_id' "${temp}/receipt.json")" = 15368 ] &&
        [ "$(jq -r '.subject_sha' "${temp}/receipt.json")" = "$scheduled_sha" ] &&
        ! grep -Ev '^api --paginate --slurp repos/szTheory/rindle/commits/' "${temp}/calls" | grep -q .; then
       record "$name" true
@@ -1054,6 +1055,7 @@ verify_main_ci_case() {
 }
 
 verify_main_ci_case "exact-SHA CI Summary receipt records check identity" success pass
+verify_main_ci_case "same-name CI Summary from another app is rejected" wrong_app fail
 verify_main_ci_case "CI Summary with a different SHA is rejected" wrong_sha fail
 verify_main_ci_case "duplicate exact-SHA CI Summary checks are rejected" duplicate fail
 verify_main_ci_case "pending CI Summary is rejected" pending fail
@@ -1426,15 +1428,17 @@ sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 status=completed
 conclusion=success
 name='CI Summary'
+app_id=15368
 case "$state" in
   wrong_sha) sha=cccccccccccccccccccccccccccccccccccccccc ;;
   duplicate) ;;
   pending) status=in_progress; conclusion=null ;;
   failure) conclusion=failure ;;
   missing) name='Quality' ;;
+  wrong_app) app_id=12345 ;;
 esac
-jq -cn --arg sha "$sha" --arg status "$status" --arg conclusion "$conclusion" --arg name "$name" --arg state "$state" \
-  '{check_runs:([{id:42,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/42",completed_at:(if $status == "completed" then "2026-10-15T07:30:00Z" else null end)}] + (if $state == "duplicate" then [{id:43,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/43",completed_at:"2026-10-15T07:30:01Z"}] else [] end))}'
+jq -cn --arg sha "$sha" --arg status "$status" --arg conclusion "$conclusion" --arg name "$name" --arg state "$state" --argjson app_id "$app_id" \
+  '{check_runs:([{id:42,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/42",completed_at:(if $status == "completed" then "2026-10-15T07:30:00Z" else null end),app:{id:$app_id}}] + (if $state == "duplicate" then [{id:43,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/43",completed_at:"2026-10-15T07:30:01Z",app:{id:$app_id}}] else [] end))}'
 # END EMBEDDED MAIN CI FAKE GH
 
 # BEGIN EMBEDDED PLAN278 FAKE MIX
