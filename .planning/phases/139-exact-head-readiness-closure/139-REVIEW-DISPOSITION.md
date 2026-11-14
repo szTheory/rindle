@@ -1,16 +1,33 @@
 ---
-phase: "139"
+phase: 139
 review: 139-REVIEW.md
-recorded: "2026-10-29"
-critical: 0
-warning: 2
+titles: json
+findings:
+  - id: CR-01
+    severity: critical
+    disposition: open
+    title: "BLOCKER — CI receipt accepts a check from the wrong GitHub App"
+  - id: WR-01
+    severity: warning
+    disposition: deferred
+    title: "A nonzero offset default can satisfy the Doctor check (preexisting)"
+  - id: WR-02
+    severity: warning
+    disposition: deferred
+    title: "An unfiltered expiry index can satisfy the Doctor check (preexisting)"
+open: 1
+total: 3
+recorded: 2026-11-14T00:43:47.847Z
 ---
 
-# Review disposition
+# Phase 139: Code Review Disposition
 
-| Finding | Disposition | Evidence and follow-up |
-|---|---|---|
-| WR-01 | deferred — preexisting, tracked | Zero-default substring check dates to47d1d5dc (August22); Phase139 did not change it. Accepted shipped migration declares real default0 and actual package qualification passed. Track strict catalog diagnosis in `.planning/todos/pending/2026-10-29-doctor-resumable-schema-drift.md`. |
-| WR-02 | deferred — preexisting, tracked | Partial-index substring check has the same provenance. Accepted shipped migration creates the correct predicate and retained qualification passed. Track real database mutations and false-name/column negatives in the same bounded follow-up. |
+| Finding | Severity | Disposition | Source |
+|---------|----------|-------------|--------|
+| CR-01 | critical | open | - |
+| WR-01 | warning | deferred | Preexisting since 47d1d5dc; Phase 139 did not change it. Retained accepted migration declares DEFAULT 0 and package qualification passed. Follow-up: `.planning/todos/pending/2026-10-29-doctor-resumable-schema-drift.md`. (not in the current review) |
+| WR-02 | warning | deferred | Preexisting since 47d1d5dc; Phase 139 did not change it. Retained accepted migration creates the filtered expiry index and qualification passed. Follow-up: `.planning/todos/pending/2026-10-29-doctor-resumable-schema-drift.md`. (not in the current review) |
 
-The reviewer independently rechecked provenance and accepted-scope impact, revised the findings to two warnings and found no evidenced Phase139 regression or unmet must-have. No risk acceptance or synthetic proof was used to erase either defect. Historical acceptance remains limited to its retained source and interval; no claim about arbitrary externally drifted schemas is added.
+Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
+Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
+Re-running the gate keeps every row it can. A row the current review no longer reports is kept and its Source cell flagged, so a finding does not leave this record silently. ONE exception: when a finding id is REUSED by a different finding, the earlier decision cannot keep a row — the id is taken — and it is dropped. A RECORDED decision (anything but `open`) is named on the console when that happens; a row still at `open` is replaced silently, because `open` records no decision to lose.
