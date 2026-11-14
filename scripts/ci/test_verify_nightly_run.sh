@@ -1054,13 +1054,46 @@ verify_main_ci_case() {
   rm -rf "$temp"
 }
 
+verify_main_ci_mutated_receipt_case() {
+  local name="$1" mutation="$2" temp got=0
+  temp="$(mktemp -d)"
+  make_main_ci_fake_gh "${temp}/bin"
+  : >"${temp}/calls"
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_CI_STATE=success \
+    bash "$collector" verify-main-ci-receipt --repo szTheory/rindle \
+      --expected-sha "$scheduled_sha" --receipt "${temp}/receipt.json" >"${temp}/output" 2>&1 || got=$?
+  if [ "$got" -ne 0 ] || [ "$(jq -r '.check_app_id' "${temp}/receipt.json" 2>/dev/null)" != 15368 ]; then
+    record "$name" false "could not create legitimate receipt: exit ${got}: $(tail -1 "${temp}/output")"
+    rm -rf "$temp"
+    return
+  fi
+  jq "$mutation" "${temp}/receipt.json" >"${temp}/mutated.json"
+  mv "${temp}/mutated.json" "${temp}/receipt.json"
+  got=0
+  PATH="${temp}/bin:${PATH}" FAKE_GH_LOG="${temp}/calls" FAKE_CI_STATE=success \
+    bash "$collector" verify-main-ci-receipt --repo szTheory/rindle \
+      --expected-sha "$scheduled_sha" --receipt "${temp}/receipt.json" >"${temp}/revalidation-output" 2>&1 || got=$?
+  if [ "$got" -ne 0 ]; then
+    record "$name" true
+  else
+    record "$name" false "altered retained receipt was accepted"
+  fi
+  rm -rf "$temp"
+}
+
 verify_main_ci_case "exact-SHA CI Summary receipt records check identity" success pass
 verify_main_ci_case "same-name CI Summary from another app is rejected" wrong_app fail
+verify_main_ci_case "CI Summary without an app is rejected" missing_app fail
+verify_main_ci_case "CI Summary without app.id is rejected" missing_app_id fail
+verify_main_ci_case "CI Summary with null app.id is rejected" null_app_id fail
+verify_main_ci_case "CI Summary with nonnumeric app.id is rejected" nonnumeric_app_id fail
 verify_main_ci_case "CI Summary with a different SHA is rejected" wrong_sha fail
 verify_main_ci_case "duplicate exact-SHA CI Summary checks are rejected" duplicate fail
 verify_main_ci_case "pending CI Summary is rejected" pending fail
 verify_main_ci_case "failed CI Summary is rejected" failure fail
 verify_main_ci_case "missing CI Summary is rejected" missing fail
+verify_main_ci_mutated_receipt_case "retained receipt with changed app ID is rejected" '.check_app_id = 1'
+verify_main_ci_mutated_receipt_case "retained receipt with removed app ID is rejected" 'del(.check_app_id)'
 
 echo "—"
 echo "passed: ${pass}  failed: ${fail}"
@@ -1428,17 +1461,20 @@ sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 status=completed
 conclusion=success
 name='CI Summary'
-app_id=15368
+app='{"id":15368}'
 case "$state" in
   wrong_sha) sha=cccccccccccccccccccccccccccccccccccccccc ;;
   duplicate) ;;
   pending) status=in_progress; conclusion=null ;;
   failure) conclusion=failure ;;
   missing) name='Quality' ;;
-  wrong_app) app_id=12345 ;;
+  wrong_app) app='{"id":12345}' ;;
+  missing_app_id) app='{}' ;;
+  null_app_id) app='{"id":null}' ;;
+  nonnumeric_app_id) app='{"id":"15368"}' ;;
 esac
-jq -cn --arg sha "$sha" --arg status "$status" --arg conclusion "$conclusion" --arg name "$name" --arg state "$state" --argjson app_id "$app_id" \
-  '{check_runs:([{id:42,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/42",completed_at:(if $status == "completed" then "2026-10-15T07:30:00Z" else null end),app:{id:$app_id}}] + (if $state == "duplicate" then [{id:43,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/43",completed_at:"2026-10-15T07:30:01Z",app:{id:$app_id}}] else [] end))}'
+jq -cn --arg sha "$sha" --arg status "$status" --arg conclusion "$conclusion" --arg name "$name" --arg state "$state" --argjson app "$app" \
+  '{check_runs:([{id:42,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/42",completed_at:(if $status == "completed" then "2026-10-15T07:30:00Z" else null end),app:$app}] + (if $state == "duplicate" then [{id:43,name:$name,head_sha:$sha,status:$status,conclusion:(if $conclusion == "null" then null else $conclusion end),html_url:"https://github.test/checks/43",completed_at:"2026-10-15T07:30:01Z",app:$app}] else [] end))} | if $state == "missing_app" then .check_runs |= map(del(.app)) else . end'
 # END EMBEDDED MAIN CI FAKE GH
 
 # BEGIN EMBEDDED PLAN278 FAKE MIX
