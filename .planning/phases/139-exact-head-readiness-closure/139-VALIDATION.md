@@ -49,8 +49,10 @@ The first task of each plan creates its own fixture driver before that command i
 | 139-06 T2 | `bash scripts/ci/test_readiness_adoption.sh` and `bash scripts/ci/test_readiness_acceptance.sh` | 139-06 T2 | nonzero exit or missing synthetic-rejection or historical-metadata/current-head parity assertion |
 | 139-07 T1 | `bash scripts/maintainer/exact_head_readiness.sh verify-subject --snapshot --subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR-subject"` | 139-06 T2 | nonzero exit, missing tracked Phase 139 change, dirty checkout, arbitrary PR/fork ancestry, candidate substitution or policy mismatch |
 | 139-07 T2 | `bash scripts/maintainer/exact_head_readiness.sh accept --snapshot --subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"` | 139-06 T2 | nonzero exit, non-ready terminal verdict, incomplete fresh live input, substituted candidate, missing producer sidecar, invalid refresh envelope, or missing verified durable copy; normal post-task metadata is then subject/interval qualified and checked by `claim-status` |
+| 139-08 T1–T2 | `bash scripts/ci/test_verify_nightly_run.sh` | 139-08 T1 | nonzero exit, app ID other than numeric 15368 accepted, or changed/removed retained `check_app_id` accepted |
 | 139-01–06 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after each plan's SUMMARY.md is written, before its metadata commit | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks summary closeout and commit |
 | 139-07 post-summary and final metadata closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after 139-07-SUMMARY.md and REQUIREMENTS/ROADMAP/STATE edits plus `claim-status` parity, before `git_commit_metadata` | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks metadata closeout and commit |
+| 139-08 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh` after 139-08-SUMMARY.md and before plan metadata commit | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks summary closeout and metadata commit |
 
 Terminal automated acceptance: after all tracked implementation, workflow, documentation, and planning changes are merged, Plan 07 runs `verify-subject` and then `accept` for one explicit authenticated previously-main snapshot from its clean checkout on the restricted durable maintainer host with an external evidence directory. `accept` triggers a matching main workflow run, waits for upload, retrieves the exact run/attempt producer digest sidecar and archive, verifies retained archive and manifest bytes, validates the subject-preserving refresh envelope against new mutable receipt bytes and authoritative adoption parity, and checks the final machine-readable ready verdict. A nonzero exit, `not_ready`, candidate substitution, missing candidate Nightly qualification or scheduled health, incomplete upstream acceptance, or absent verified local copy leaves READY-01–05 open. Only after actual acceptance may normal GSD summary/requirement/progress metadata record historical completion, qualified by accepted SHA and observation interval. Its later commit cannot inherit current-head readiness; `claim-status` proves this in a negative fixture and on any advanced main. The controller has bounded waiting; fixture checks and a candidate `close` verdict are implementation progress only.
 
@@ -151,6 +153,14 @@ All five requirements are COVERED by the mapped executable fixtures and actual h
 Historical scope: accepted48407bac7691c459395760b06f7714bbb6c3545b, interval2026-10-29T11:22:36.801043Z–2026-10-29T15:56:53.252718Z, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. Later control cleanup and CI scheduling changes inherit no current readiness. PILOT and deferred CI-16 remain open; no exact-ten sampler ran.
 
 ## Validation Audit 2026-10-29
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+## Validation Audit — Plan 139-08 (2026-11-14)
 
 | Metric | Count |
 |---|---|
