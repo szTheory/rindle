@@ -828,9 +828,11 @@ Plans:
   4. One fail-closed readiness manifest rejects missing, stale, partial, impermissibly skipped, foreign-SHA, unclean, residue-bearing, or unexplained evidence.
   5. Automated release and adoption-truth checks keep the named independent Phoenix pilot open and reject any claim that the synthetic twin satisfies real-adopter validation or authorizes 1.0.
 
-**Plans**: 8/8 plans complete
+**Plans**: 9/9 plans executed
 
 Plans:
+- [x] 139-08-PLAN.md
+
 **Wave 1**
 - [x] 139-00-PLAN.md — Correct public Doctor's versioned host migration ledger inspection
 - [x] 139-01-PLAN.md — Validate the immutable readiness evidence graph
@@ -863,7 +865,7 @@ Plans:
 | 136. Measured Quality and CI Ratchets | 15/15 | Complete    | 2026-10-21 |
 | 137. Built-Package Twin Foundation | 6/6 | Complete    | 2026-10-21 |
 | 138. Lifecycle Failure and Recovery Matrix | 6/6 | Complete    | 2026-10-22 |
-| 139. Exact-Head Readiness Closure | 8/8 | Complete — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` | 2026-10-29 |
+| 139. Exact-Head Readiness Closure | 9/9 | In Progress — historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |  |
 
 ---
 *Last updated: 2026-10-29. Phase139 has historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, interval `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. Numeric CI speed remains deferred unfinished with zero credit; independent adoption and publication remain outside this acceptance.*
