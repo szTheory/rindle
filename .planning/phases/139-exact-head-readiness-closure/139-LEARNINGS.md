@@ -2,12 +2,12 @@
 phase: 139
 phase_name: "Exact-Head Readiness Closure"
 project: Rindle
-generated: "2026-10-29"
+generated: "2026-11-14"
 counts:
-  decisions: 2
-  lessons: 3
-  patterns: 2
-  surprises: 2
+  decisions: 3
+  lessons: 4
+  patterns: 3
+  surprises: 3
 missing_artifacts: ["UAT.md"]
 ---
 
@@ -26,6 +26,12 @@ Overlap independent main package work with Quality while preserving Optional Dep
 
 **Rationale:** Scheduling can improve feedback without deleting proof, adding dependencies or claiming measured savings prematurely.
 **Source:** ../../research/2026-10-29-ci-efficiency/REPORT.md.
+
+### Bind CI receipts to the issuing app
+Require the expected GitHub Actions app ID on the unique exact-name and exact-SHA CI Summary check, and retain the ID in the receipt for live revalidation.
+
+**Rationale:** A matching name, SHA and success conclusion do not establish which app issued a check.
+**Source:** 139-08-SUMMARY.md.
 
 ## Lessons
 
@@ -47,6 +53,12 @@ Two permissive Doctor predicates were real preexisting defects, unchanged since 
 **Context:** Independent reviewer revised initial blocker classification after Git provenance and actual retained schema evidence.
 **Source:** 139-REVIEW.md;139-REVIEW-DISPOSITION.md.
 
+### Revalidate retained identity fields against fresh evidence
+Identity required during receipt capture must also be retained and compared with a fresh live observation when the receipt is reused.
+
+**Context:** The receipt is authoritative only when stored identity cannot be removed or altered independently of the current check.
+**Source:** 139-08-SUMMARY.md.
+
 ## Patterns
 
 ### Separate transport hashes and retained object hashes
@@ -61,6 +73,12 @@ Use a small existing-case ABBA experiment, verify actual child/parent scope, pre
 **When to use:** A low-impact runtime-policy hypothesis during an existing long wait.
 **Source:** ../../research/2026-10-29-ci-efficiency/census-pilot.md.
 
+### Pair positive identity cases with malformed and retained-receipt negatives
+Exercise the valid issuer, foreign or missing issuer, wrong JSON types, and changed or removed retained identity using deterministic fake API responses.
+
+**When to use:** Evidence receipts that bind a remote check during capture and later revalidation.
+**Source:** 139-08-SUMMARY.md.
+
 ## Surprises
 
 ### Native isolation dominates outer bootstrap
@@ -74,6 +92,12 @@ A nonempty secret failed actual producer authentication. Maintainer renewal, fre
 
 **Impact:** Distinguish secret replacement metadata from actual authenticated producer success. Never retain token values in chat or evidence.
 **Source:** 139-07-SUMMARY.md.
+
+### Same-name checks can come from an unexpected app
+The original exact-SHA selector accepted a successful `CI Summary` from another app and emitted no app identity in the receipt.
+
+**Impact:** The Phase 133 reconciliation caller could have treated non-CI evidence as authoritative; Plan 139-08 added issuer binding and rejection fixtures.
+**Source:** 139-08-SUMMARY.md.
 
 ## Earlier retained execution context
 

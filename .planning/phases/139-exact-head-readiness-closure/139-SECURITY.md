@@ -32,6 +32,8 @@ Remote GitHub/security/registry facts enter authenticated bounded collectors; un
 | T-139-11 | high | `readiness_subject.py`, acceptance and retention bind admitted protected-main candidate separately from producer head; ancestry/control/authentication rechecks and substitution negatives | closed |
 | T-139-12 | high | `stored_bytes` and original validator independently re-read archive/sidecar/manifest/refresh graph; metadata parity and advanced-head claim reject unqualified current readiness | closed |
 | T-139-13 | medium | Doctor host-ledger/catalog/version inspection rejects down/unknown/error/missing marker while preserving legacy/Oban failures; Doctor regressions and actual generated-consumer probe | closed |
+| T-139-14 | high | `scripts/ci/verify_nightly_run.sh` requires numeric `.app.id == 15368` for the sole successful exact-name/exact-SHA CI Summary check; fake API fixtures reject foreign, missing, null, and nonnumeric IDs | closed |
+| T-139-15 | high | Receipt rendering retains `check_app_id` and strict fresh-check equality; fake API fixtures reject retained receipts with changed or removed app IDs | closed |
 | T-139-SC | high | No new dependency introduced by acceptance. Root/demo signed registry/advisory audits and lock-bound package gates ran; newly disclosed demo Bandit issue repaired through PR217 before accepted source | closed |
 
 ## Execution evidence and limits
@@ -43,3 +45,21 @@ No accepted risk was used to close an open mitigation. Credentials were replaced
 ## Security audit
 
 2026-10-29:14 distinct registered threats,14 closed,0 open; configured ASVS L1, high blocking threshold. Inline mitigation audit by the executing maintainer agent; no independent penetration-test claim.
+
+Plan 139-08 adds two plan-time threats for CI Summary app spoofing and retained-receipt tampering. At configured ASVS L1 depth, source checks and the focused fake-API regressions confirm the registered mitigations. This local evidence does not refresh historical readiness or establish current remote CI.
+
+## Security Audit 2026-11-14
+
+| Metric | Count |
+|---|---|
+| Threats found | 14 |
+| Closed | 14 |
+| Open | 0 |
+
+## Security Audit — Plan 139-08 (2026-11-14)
+
+| Metric | Count |
+|---|---|
+| Threats found | 2 |
+| Closed | 2 |
+| Open | 0 |
