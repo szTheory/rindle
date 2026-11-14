@@ -43,3 +43,11 @@ No accepted risk was used to close an open mitigation. Credentials were replaced
 ## Security audit
 
 2026-10-29:14 distinct registered threats,14 closed,0 open; configured ASVS L1, high blocking threshold. Inline mitigation audit by the executing maintainer agent; no independent penetration-test claim.
+
+## Security Audit 2026-11-14
+
+| Metric | Count |
+|---|---|
+| Threats found | 14 |
+| Closed | 14 |
+| Open | 0 |
