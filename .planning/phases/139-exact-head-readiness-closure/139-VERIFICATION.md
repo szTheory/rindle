@@ -1,12 +1,13 @@
 ---
 phase: 139-exact-head-readiness-closure
-verified: 2026-10-29T17:30:42Z
+verified: 2026-11-14T04:41:14Z
 status: passed
-score: 15/15 must-haves verified
+score: 17/17 must-haves verified
 covered_files:
   - .github/workflows/ci.yml
   - .github/workflows/nightly.yml
   - .github/workflows/readiness-retention.yml
+  - .github/workflows/release.yml
   - .planning/INBOX-LEDGER.json
   - .planning/forensics/20261029T1556Z-phase139-historical-acceptance/REGRESSION-EVIDENCE.json
   - .planning/forensics/20261029T1556Z-phase139-historical-acceptance/SOURCE11-ORIGINAL-CLAIM.json
@@ -27,6 +28,8 @@ covered_files:
   - .planning/phases/139-exact-head-readiness-closure/139-06-SUMMARY.md
   - .planning/phases/139-exact-head-readiness-closure/139-07-PLAN.md
   - .planning/phases/139-exact-head-readiness-closure/139-07-SUMMARY.md
+  - .planning/phases/139-exact-head-readiness-closure/139-08-PLAN.md
+  - .planning/phases/139-exact-head-readiness-closure/139-08-SUMMARY.md
   - .planning/phases/139-exact-head-readiness-closure/139-CONTEXT.md
   - .planning/phases/139-exact-head-readiness-closure/139-REVIEW-DISPOSITION.md
   - .planning/phases/139-exact-head-readiness-closure/139-REVIEW.md
@@ -44,6 +47,7 @@ covered_files:
   - lib/rindle/ops/runtime_checks/ownership_checks.ex
   - mix.exs
   - scripts/ci/install_apt_packages.sh
+  - scripts/ci/install_ffmpeg.sh
   - scripts/ci/manage_nightly_incident.sh
   - scripts/ci/prepare_readiness_fixture_runtime.sh
   - scripts/ci/readiness_fixture.exs
@@ -60,6 +64,8 @@ covered_files:
   - scripts/ci/test_readiness_remote.sh
   - scripts/ci/test_readiness_retention.sh
   - scripts/ci/test_readiness_runs.sh
+  - scripts/ci/test_verify_nightly_run.sh
+  - scripts/ci/verify_nightly_run.sh
   - scripts/ci/test_readiness_snapshot.py
   - scripts/ci/test_repo_hygiene_check.sh
   - scripts/ci/test_script_test_groups.sh
@@ -86,29 +92,41 @@ covered_files:
   - scripts/maintainer/readiness_workflow.exs
   - scripts/maintainer/repo_hygiene_check.sh
   - scripts/maintainer/retain_readiness_bundle.sh
+  - scripts/maintainer/scan_live_residue.exs
   - scripts/maintainer/validate_exact_head_readiness.exs
   - scripts/maintainer/validate_live_truth.exs
+  - scripts/maintainer/validate_phase_133_reconciliation.exs
   - test/install_smoke/ci_cache_hygiene_test.exs
   - test/install_smoke/ci_lane_split_test.exs
+  - test/install_smoke/evidence_census_test.exs
   - test/install_smoke/live_truth_parity_test.exs
   - test/install_smoke/nightly_policy_test.exs
+  - test/install_smoke/phase_133_reconciliation_test.exs
+  - test/install_smoke/release_guard_meta_test.exs
   - test/install_smoke/support/generated_app/patcher.ex
   - test/rindle/doctor_test.exs
-covered_digest: "v4:sha256:7f3b3438f0192a8703a32b08259d2f8ad6dbc7c98e6ab80e57ab62b278951e2f"
+covered_digest: "v2:sha256:0cef410c4a4354263339bda44c3818aec44405a24d70bc43a4435458b7f02bc4"
 behavior_unverified: 0
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 14/15
+  gaps_closed:
+    - "CI receipt is bound to GitHub Actions app ID 15368 and altered or missing identity is rejected."
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 139: Exact-Head Readiness Closure Verification Report
 
 **Phase Goal:** Maintainers can obtain one authoritative readiness verdict for the current immutable revision without overstating synthetic evidence as real adoption.
-**Verified:** 2026-10-29T17:30:42Z
+**Verified:** 2026-11-14T04:41:14Z
 **Status:** passed
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — after Plan 139-08 gap closure
 
 ## Goal Achievement
 
-The approved snapshot-v3 amendment permits acceptance of the explicitly admitted previously-main subject while independently refreshing scheduled operational health and current remote/adoption authority. The result is historical by definition. I did not use the current checkout's changed CI matrix or removed temporary cron to revalidate the frozen acceptance graph.
+The approved snapshot-v3 amendment permits acceptance of the explicitly admitted previously-main subject while independently refreshing scheduled operational health and current remote/adoption authority. The accepted result is historical by definition. Plan 139-08 fixes local CI receipt provenance and tests it; those changes do not refresh or extend the accepted terminal verdict.
 
 | # | Truth | Status | Evidence |
 |---|---|---|---|
@@ -120,15 +138,17 @@ The approved snapshot-v3 amendment permits acceptance of the explicitly admitted
 | 6 | Public Doctor accepts the supported applied host-owned versioned migration while retaining adverse diagnostics. | ✓ VERIFIED | Doctor and generated-consumer receipts passed for the accepted source; `139-00` regression suite is mapped to actual host-ledger/catalog/marker and negative states. Implementation is present in `runtime_checks.ex` and `ownership_checks.ex`, and the public Doctor path remains the consumer. |
 | 7 | The evidence graph validates the real receipt bytes and does not treat incomplete attempts as ready. | ✓ VERIFIED | `validate_exact_head_readiness.exs` is the acceptance graph validator; its documented adverse fixtures cover changed/missing/foreign graph states. Actual execution terminal points to the original frozen-source validation record; `stored_bytes` returned PASS on the retained graph. |
 | 8 | Qualification runs an isolated exact-subject checkout and records package, cleanup and residue evidence. | ✓ VERIFIED | Accepted `package`, `generated-consumer`, `twin-recovery`, and `hygiene` receipts are execution-mode and subject-bound. Twin receipt records before/after cleanup inventories and no run-owned live service residue. |
-| 9 | CI and Nightly selection rejects incomplete attempts, PR-skip substitution and protection drift. | ✓ VERIFIED | Collector artifacts and executable fixture suites are present and used by the validation path; actual archive contains complete passed CI, Nightly, scheduled-health, and protection receipts. Current phase validation records 64 collector fixture checks passed. |
+| 9 | CI and Nightly selection rejects incomplete attempts, PR-skip substitution and protection drift. | ✓ VERIFIED | The accepted historical receipt graph contains execution-mode exact-subject CI/Nightly, scheduled-health, and protection receipts. Current exact-SHA receipt selection also requires numeric `.app.id == 15368`; Plan 139-08's fake-API cases reject a wrong app. No live API call was made, and the local fix does not create current readiness. |
 | 10 | Remote observations are complete and disposition changes invalidate acceptance. | ✓ VERIFIED | Remote collector and regression suite feed the graph validator; execution archive includes the remote inventory and inbox ledger receipts. Current cheap fixture run recorded 64 collector checks passed. |
 | 11 | One bounded acceptance invocation joins local and remote evidence, refreshes mutable facts, and validates the refresh envelope. | ✓ VERIFIED | Terminal references include original manifest, refreshed manifest, refresh envelope, and validator output. `stored_bytes` verifies eight terminal refs and original manifest equality with the refreshed manifest. |
 | 12 | Producer archive and digest sidecar are durably retained and tied to the exact run/attempt. | ✓ VERIFIED | Terminal and durable locator name producer run 40864930767/1, distinct producer head `b2a60c51687293df5498920cc2bddb4e25349251`, archive SHA-256 `8737a63f…758f91`, sidecar SHA-256 `34c5a691…30b28`, and `bytes_verified=true`; all hashes were checked by original-source `stored_bytes`. |
 | 13 | Completed requirements and phase metadata retain historical scope, subject, interval, and terminal locator. | ✓ VERIFIED | Original frozen-source `metadata_parity(current_root, subject, interval)` returned PASS. All five checked requirement rows and all five complete traceability rows name the exact subject, full interval and terminal-verdict locator as historical. |
 | 14 | Phase artifacts do not claim visual UI changes or human-only completion. | ✓ VERIFIED | UI review is `not_applicable`; scope is CLI, collectors, workflows, validator, tests, and Doctor. Active requirements close through executable accepted receipts. |
 | 15 | The decision record is reflected in shipped artifacts. | ✓ VERIFIED | `check.decision-coverage-verify` returned `total:25`, `honored:25`, `not_honored:[]` (nonblocking gate). |
+| 16 | An exact-SHA CI Summary earns a receipt only when issued by GitHub Actions app ID 15368. | ✓ VERIFIED | `main_ci_evidence` checks numeric `.app.id == 15368`, and the successful fixture asserts `check_app_id:15368`; wrong-app API data is rejected without a receipt. Focused test command passed 217 checks (reported for Plan 139-08). |
+| 17 | Missing, malformed, changed, or removed app identity cannot yield or preserve a valid receipt. | ✓ VERIFIED | Fake-API cases reject missing app, missing/null/nonnumeric IDs, and foreign ID; retained-receipt mutations changing or removing `check_app_id` fail strict equality against fresh evidence. Focused test command passed 217 checks. |
 
-**Score:** 15/15 truths verified (0 present, behavior-unverified)
+**Score:** 17/17 truths verified (0 present, behavior-unverified)
 
 ### Historical acceptance identity
 
@@ -153,7 +173,8 @@ No failed phase truth is deferred. The independent Phoenix pilot remains intenti
 | Doctor ledger inspection | Present and substantive in `lib/rindle/ops/runtime_checks{,/ownership_checks}.ex` with focused regression tests | Public `mix rindle.doctor` path uses runtime checks | ✓ VERIFIED; accepted Doctor and generated-consumer receipts passed |
 | Offline graph validator | Present and substantive in `scripts/maintainer/validate_exact_head_readiness.exs` | Acceptance and retention validation invoke it; CLI fixtures exercise it | ✓ VERIFIED; original-source graph validation passed on execution bytes |
 | Exact-subject qualification | `scripts/maintainer/exact_head_readiness.py` and shell entry point are substantive | Required receipt registry reaches validator | ✓ VERIFIED; all 18 native gate results and local proof receipts passed |
-| CI/Nightly/protection collection | Collectors and workflow-specific policy modules present | Collector output feeds the accepted manifest | ✓ VERIFIED; corresponding execution receipts passed |
+| CI/Nightly/protection collection | Collectors and workflow-specific policy modules present | Collector output feeds the accepted manifest; separate reconciliation receipt path is app-bound | ✓ VERIFIED; historical execution receipts passed and current app-ID fix is covered by focused regression |
+| Main CI app identity | `scripts/ci/verify_nightly_run.sh` requires numeric app ID 15368 and records it as `check_app_id` | `validate_phase_133_reconciliation.exs` invokes `verify-main-ci-receipt` | ✓ VERIFIED; strict live equality and fake API negatives cover capture and revalidation |
 | Remote inventory | Authenticated remote collector and tests present | Remote source receipt feeds terminal graph | ✓ VERIFIED; remote inventory and inbox receipts passed |
 | Acceptance orchestration | Bounded acceptance, closure, refresh and adoption modules present | Producer/archive → sidecar → refresh envelope → terminal verdict chain validated | ✓ VERIFIED; eight terminal refs and graph passed |
 | Durable retention | Producer workflow, sidecar and host retrieval implementation present | Producer run/attempt and stored bytes bind to locator and terminal | ✓ VERIFIED; bytes and producer identity verified |
@@ -169,6 +190,7 @@ No failed phase truth is deferred. The independent Phoenix pilot remains intenti
 | Remote collector | Terminal manifest | Complete source receipt inventory | ✓ WIRED | `remote-inventory` and `inbox-ledger` receipts are present and pass validation. |
 | Producer workflow | Durable local archive | Run/attempt-bound sidecar and archive | ✓ WIRED | Producer 40864930767/1; archive, sidecar and locator digests verified. |
 | Original manifest + refresh envelope | Terminal verdict | Frozen validator checks byte graph | ✓ WIRED | Original manifest equals refreshed manifest; terminal validation and original `stored_bytes` passed. |
+| Exact-SHA CI receipt | `verify-main-ci-receipt` | Exact check name/SHA, success, GitHub Actions app ID, strict receipt revalidation | ✓ WIRED | Consumer invokes the verifier; it requires numeric app ID 15368, writes `check_app_id`, and compares the complete receipt against a fresh check object. |
 | Historical metadata | Claim status | `metadata_parity` and `claim-status` | ✓ WIRED | Parity passed against current worktree; independent claim record is historical-only. |
 
 ## Data-Flow Trace (Level 4)
@@ -189,9 +211,10 @@ No UI-rendered dynamic data is in scope.
 | Native source regression outcomes | Read-only `REGRESSION-EVIDENCE.json` | 18 native gate commands exit 0; coverage 3 doctests/1770 tests/0 failures (88 excluded, 4 skipped); contracts 103 tests/0 failures; twin recovery and 25 fresh full-isolation seeds exit 0 | ✓ PASS (retained execution evidence) |
 | Execution-mode evidence graph | Read-only receipt walk through retained gzip archive | All 24 proof receipts have `passed`; state is complete; snapshot policy is v3 | ✓ PASS |
 | Bounded post-completion maintenance validation | `mix test test/install_smoke/live_residue_scan_test.exs --seed 0` (root-observed, log `/private/tmp/rindle-pr219-residue-repair-mix-20261029.log`); cheap fixture validation | Residue scan 31 tests/0 failures; cheap fixtures completed in 112 seconds. This is follow-up maintenance evidence, not a rerun of qualification and not hosted CI success. Phase plan completion is recorded as 8/8; that count is not used as evidence for the historical verdict. | ✓ PASS (bounded follow-up) |
+| App-bound exact-SHA CI receipt | Hosted PR CI run 43553795304 (user-provided evidence); local focused ExUnit attempt | Hosted full CI was green for code head `e408ea91830cc456aa75691e5eceadf30dfa215d`; the focused local regression attempt could not start because Mix dependencies were unavailable in this scratch checkout. Source and fixtures inspected: app ID must be numeric 15368, is serialized into `check_app_id`, and revalidation compares it; fixtures cover wrong/missing/malformed app IDs and changed/removed receipt identity. | ✓ PASS (hosted CI; local attempt unavailable) |
+| Current main-CI receipt validation | Code inspection of `main_ci_evidence` and fake API fixtures | Requires numeric app ID 15368 and retains `check_app_id`; missing, malformed, foreign and mutated receipt cases fail closed | ✓ PASS — local implementation evidence only |
 
-No current-source readiness/qualification or collector was rerun because this verification is for the accepted historical snapshot; current checkout control changes cannot inherit that result.
-The independent maintenance PR's latest hosted CI is not reported green here; it is outside the accepted source run and remains pending repair/verification.
+No current-source readiness/qualification, collector, live API, or workflow was run. The app-ID fix and its regression fixtures are present in the tested source; the hosted CI evidence covers implementation checks but does not refresh the accepted historical verdict or confer readiness on current main. The broad `mix ci` and compatibility suites exceeded their 600-second cap earlier and were not retried; the configured general test command is empty and regression fallback is `true`.
 
 ## Probe Execution
 
@@ -202,9 +225,9 @@ No `probe-*.sh` is declared by the phase plans or summaries. Historical acceptan
 | Requirement | Source plan | Description | Status | Evidence |
 |---|---|---|---|---|
 | READY-01 | 139-00, 139-02, 139-05, 139-07 | Supported isolated qualification and local gates | ✓ SATISFIED — historical | Actual execution manifest, 24 passed proofs, subject/interval/terminal locator; Doctor correction receipt passed |
-| READY-02 | 139-03, 139-05, 139-07 | Same-subject main CI/Nightly, real scheduled operational health and protection | ✓ SATISFIED — historical | Four passed archived execution receipts, validated against frozen graph |
+| READY-02 | 139-03, 139-05, 139-07, 139-08 | Same-subject main CI/Nightly, real scheduled operational health and protection | ✓ SATISFIED — historical | Four passed archived execution receipts, validated against frozen graph. Plan 139-08 fixes a local reconciliation verifier and its test, without claiming new current-main CI evidence. |
 | READY-03 | 139-04, 139-05, 139-07 | Current observed remote dispositions | ✓ SATISFIED — historical | Passed remote inventory, inbox ledger, and adoption parity receipts in accepted archive |
-| READY-04 | 139-01–139-07 | Fail-closed exact-subject manifest and durable evidence | ✓ SATISFIED — historical | Original-source `stored_bytes` passed for actual execution terminal graph and retained archive |
+| READY-04 | 139-01–139-08 | Fail-closed exact-subject manifest and durable evidence | ✓ SATISFIED — historical | Retained graph passed original-source byte validation. Plan 139-08 additionally binds the reconciliation CI receipt to app ID 15368 and rejects altered identity; this local regression evidence does not refresh the historical verdict. |
 | READY-05 | 139-01, 139-06, 139-07 | Keep independent pilot open; no real-adopter/1.0 claim | ✓ SATISFIED — historical | Adoption parity receipt and manifest explicitly retain PILOT-01/02 open and both authority flags false |
 
 The original full requirement descriptions and completion rows each state historical scope. No requirement receives credit for the later checkout or current main.
@@ -218,9 +241,13 @@ The original full requirement descriptions and completion rows each state histor
 | File | Pattern | Severity | Impact |
 |---|---|---|---|
 | `scripts/ci/readiness_fixture.exs` and fixture-backed readiness tests | The positive synthetic fixture obtains policy/proof IDs and hashes from the validator module it tests. | ⚠️ WARNING | These fixture tests are useful for schema and rejection-path coverage but are not an independent correctness oracle. They were not credited as readiness evidence; the accepted execution receipts, separately retained producer bytes, and original-source stored-byte check establish this historical result. |
-| `139-REVIEW.md` | Two preexisting Doctor schema-check false-green warnings (offset default substring and unfiltered index predicate) | ℹ️ INFO | Both are tracked in `139-REVIEW-DISPOSITION.md` as preexisting follow-up work; accepted shipped migration and actual Doctor receipt satisfy this phase's supported path. They do not establish a Phase 139 regression or invalidate the bounded accepted run. |
+| `139-REVIEW.md` | No current findings; CR-01 is fixed and WR-01/WR-02 remain deferred | ℹ️ INFO | The clean review confirms the app-ID bind and receipt identity retention. The deferred Doctor warnings are preexisting, documented in the disposition ledger, and outside the READY-02/04 gap closure. |
 
-Disabled/skipped test scan of requirement-linked Doctor, readiness collector, acceptance, retention and adoption tests found no disabled test markers. Debt-marker scan found no completion-blocking marker in declared implementation files; the only `placeholder` match is a non-secret `dryrun-placeholder` value in the CI workflow. Review found zero blockers and two tracked preexisting warnings. UI review is not applicable; no front-end files changed.
+The supplied hosted CI result for run 43553795304 is green on code head `e408ea91830cc456aa75691e5eceadf30dfa215d`. The focused local regression attempt could not start because this scratch checkout lacks fetched Mix dependencies; no local test pass is claimed. The app-ID branch and its fake-API/revalidation fixtures were inspected directly. The fixtures are synthetic and make no live GitHub request. No implementation was changed during this verification. UI review is not applicable; no front-end files changed.
+
+The disabled-test scan found no skipped or pending markers in `scripts/ci/test_verify_nightly_run.sh`. Plan 139-08's seven flagged edge-probe assumptions remain unclassified/unverified as specified; they are not promoted to resolved requirements or readiness credit. Its transparency prohibition remains descriptor-less and carries no independent acceptance credit; the implemented app-ID behavior itself is covered by the focused executable fixtures.
+
+CR-01 is closed by verified app identity checks and retained-receipt revalidation. The terminal remains byte-verified for its original finite interval; the local follow-up does not create current readiness.
 
 ## Human Verification Required
 
@@ -228,9 +255,9 @@ None. Requirements close through executable terminal, graph, parity, and retaine
 
 ## Gaps Summary
 
-No phase-goal gaps found under the user-approved snapshot-v3 historical scope. The actual terminal verdict is `ready` for the admitted previously-main SHA and finite observation interval only. Independent pilot requirements remain open; CI-16 remains unfinished with zero credit; PR185/188 holds and PR189 draft/unmerged/no-auto posture are preserved. This report confers no publication, merge, or 1.0 authority.
+The retained terminal verdict is `ready` for admitted previously-main SHA `48407bac7691c459395760b06f7714bbb6c3545b` during `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z`, and only that scope. Plan 139-08 closes the local app-provenance defect and its focused fixtures pass, but no new live acceptance ran and the accepted historical graph was not regenerated. Independent pilot requirements remain open; CI-16 remains unfinished with zero credit; PR185/188 holds and PR189 draft/unmerged/no-auto posture are preserved. No blocker remains for the historical phase goal; there is no current-readiness claim or publication, merge, or 1.0 authority.
 
 ---
 
-_Verified: 2026-10-29T17:30:42Z_  
+_Verified: 2026-11-14T04:41:14Z_
 _Verifier: the agent (gsd-verifier)_
