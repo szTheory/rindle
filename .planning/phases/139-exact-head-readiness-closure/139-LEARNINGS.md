@@ -5,9 +5,9 @@ project: Rindle
 generated: "2026-11-14"
 counts:
   decisions: 3
-  lessons: 4
+  lessons: 5
   patterns: 3
-  surprises: 3
+  surprises: 4
 missing_artifacts: ["UAT.md"]
 ---
 
@@ -59,6 +59,12 @@ Identity required during receipt capture must also be retained and compared with
 **Context:** The receipt is authoritative only when stored identity cannot be removed or altered independently of the current check.
 **Source:** 139-08-SUMMARY.md.
 
+### Explicitly distinguish an unavailable local test run from a pass
+The regression resolver falls back to `true` when this Elixir project has no configured test command and no recognized Makefile target. In this refresh the scoped ExUnit run could not start because Mix dependencies were absent; the exact source head's hosted CI was green. Record the local run as unavailable and use explicit exact-head evidence, rather than treating the resolver's fallback as a test pass.
+
+**Context:** The supported OTP override worked, but fetching a second dependency tree would have repeated validation already supplied by full CI. A project-scoped Elixir regression command would make future local gate behavior explicit.
+**Source:** 139-VERIFICATION.md.
+
 ## Patterns
 
 ### Separate transport hashes and retained object hashes
@@ -80,6 +86,13 @@ Exercise the valid issuer, foreign or missing issuer, wrong JSON types, and chan
 **Source:** 139-08-SUMMARY.md.
 
 ## Surprises
+
+### The checkout's pinned OTP was not installed locally
+The scratch checkout selected Erlang/OTP 27.2, while the installed supported OTP 27 runtime was 27.3.4.15. An environment-only override restored `mix`, but missing Mix dependencies still prevented local ExUnit execution.
+
+**Impact:** Checking runtime availability first avoided wasting time on repeated test attempts; the hosted CI result remained the applicable full-suite evidence.
+**Source:** 139-VERIFICATION.md.
+
 
 ### Native isolation dominates outer bootstrap
 The completed current acceptance spent3h11m53s in25 fresh seeds,82.3% of native command intervals. Host refresh independently took14m05s with1,311 collector requests. These nested intervals are not summed runner-minutes.

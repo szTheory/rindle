@@ -1,6 +1,6 @@
 ---
 phase: 139-exact-head-readiness-closure
-verified: 2026-11-14T03:02:53Z
+verified: 2026-11-14T04:41:14Z
 status: passed
 score: 17/17 must-haves verified
 covered_files:
@@ -105,7 +105,7 @@ covered_files:
   - test/install_smoke/release_guard_meta_test.exs
   - test/install_smoke/support/generated_app/patcher.ex
   - test/rindle/doctor_test.exs
-covered_digest: "v2:sha256:ec8358d7b20db4e610334b25882a87a83c008f5a78730092bfd3ee422e564536"
+covered_digest: "v2:sha256:0cef410c4a4354263339bda44c3818aec44405a24d70bc43a4435458b7f02bc4"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -120,7 +120,7 @@ re_verification:
 # Phase 139: Exact-Head Readiness Closure Verification Report
 
 **Phase Goal:** Maintainers can obtain one authoritative readiness verdict for the current immutable revision without overstating synthetic evidence as real adoption.
-**Verified:** 2026-11-14T03:02:53Z
+**Verified:** 2026-11-14T04:41:14Z
 **Status:** passed
 **Re-verification:** Yes — after Plan 139-08 gap closure
 
@@ -211,10 +211,10 @@ No UI-rendered dynamic data is in scope.
 | Native source regression outcomes | Read-only `REGRESSION-EVIDENCE.json` | 18 native gate commands exit 0; coverage 3 doctests/1770 tests/0 failures (88 excluded, 4 skipped); contracts 103 tests/0 failures; twin recovery and 25 fresh full-isolation seeds exit 0 | ✓ PASS (retained execution evidence) |
 | Execution-mode evidence graph | Read-only receipt walk through retained gzip archive | All 24 proof receipts have `passed`; state is complete; snapshot policy is v3 | ✓ PASS |
 | Bounded post-completion maintenance validation | `mix test test/install_smoke/live_residue_scan_test.exs --seed 0` (root-observed, log `/private/tmp/rindle-pr219-residue-repair-mix-20261029.log`); cheap fixture validation | Residue scan 31 tests/0 failures; cheap fixtures completed in 112 seconds. This is follow-up maintenance evidence, not a rerun of qualification and not hosted CI success. Phase plan completion is recorded as 8/8; that count is not used as evidence for the historical verdict. | ✓ PASS (bounded follow-up) |
-| App-bound exact-SHA CI receipt | `bash scripts/ci/test_verify_nightly_run.sh` (result supplied for Plan 139-08) | 217 checks passed; fixtures cover correct, wrong, absent, null and nonnumeric app IDs, plus changed/removed receipt identity | ✓ PASS |
+| App-bound exact-SHA CI receipt | Hosted PR CI run 43553795304 (user-provided evidence); local focused ExUnit attempt | Hosted full CI was green for code head `e408ea91830cc456aa75691e5eceadf30dfa215d`; the focused local regression attempt could not start because Mix dependencies were unavailable in this scratch checkout. Source and fixtures inspected: app ID must be numeric 15368, is serialized into `check_app_id`, and revalidation compares it; fixtures cover wrong/missing/malformed app IDs and changed/removed receipt identity. | ✓ PASS (hosted CI; local attempt unavailable) |
 | Current main-CI receipt validation | Code inspection of `main_ci_evidence` and fake API fixtures | Requires numeric app ID 15368 and retains `check_app_id`; missing, malformed, foreign and mutated receipt cases fail closed | ✓ PASS — local implementation evidence only |
 
-No current-source readiness/qualification, collector, live API, or workflow was run. The app-ID fix and local fixture pass establish code behavior only; they do not refresh the accepted historical verdict or confer readiness on current main. The broad `mix ci` and compatibility suites exceeded their 600-second cap earlier and were not retried; the configured general test command is empty and regression fallback is `true`.
+No current-source readiness/qualification, collector, live API, or workflow was run. The app-ID fix and its regression fixtures are present in the tested source; the hosted CI evidence covers implementation checks but does not refresh the accepted historical verdict or confer readiness on current main. The broad `mix ci` and compatibility suites exceeded their 600-second cap earlier and were not retried; the configured general test command is empty and regression fallback is `true`.
 
 ## Probe Execution
 
@@ -243,7 +243,7 @@ The original full requirement descriptions and completion rows each state histor
 | `scripts/ci/readiness_fixture.exs` and fixture-backed readiness tests | The positive synthetic fixture obtains policy/proof IDs and hashes from the validator module it tests. | ⚠️ WARNING | These fixture tests are useful for schema and rejection-path coverage but are not an independent correctness oracle. They were not credited as readiness evidence; the accepted execution receipts, separately retained producer bytes, and original-source stored-byte check establish this historical result. |
 | `139-REVIEW.md` | No current findings; CR-01 is fixed and WR-01/WR-02 remain deferred | ℹ️ INFO | The clean review confirms the app-ID bind and receipt identity retention. The deferred Doctor warnings are preexisting, documented in the disposition ledger, and outside the READY-02/04 gap closure. |
 
-Plan 139-08 focused tests passed 217 checks and the automation-first contract passed. Review is clean, CR-01 is dispositioned fixed, and the security addendum records both new app-spoofing/tampering threats closed. The test fixtures are synthetic and make no live GitHub request. No implementation was changed during this verification. UI review is not applicable; no front-end files changed.
+The supplied hosted CI result for run 43553795304 is green on code head `e408ea91830cc456aa75691e5eceadf30dfa215d`. The focused local regression attempt could not start because this scratch checkout lacks fetched Mix dependencies; no local test pass is claimed. The app-ID branch and its fake-API/revalidation fixtures were inspected directly. The fixtures are synthetic and make no live GitHub request. No implementation was changed during this verification. UI review is not applicable; no front-end files changed.
 
 The disabled-test scan found no skipped or pending markers in `scripts/ci/test_verify_nightly_run.sh`. Plan 139-08's seven flagged edge-probe assumptions remain unclassified/unverified as specified; they are not promoted to resolved requirements or readiness credit. Its transparency prohibition remains descriptor-less and carries no independent acceptance credit; the implemented app-ID behavior itself is covered by the focused executable fixtures.
 
@@ -259,5 +259,5 @@ The retained terminal verdict is `ready` for admitted previously-main SHA `48407
 
 ---
 
-_Verified: 2026-11-14T03:02:53Z_
+_Verified: 2026-11-14T04:41:14Z_
 _Verifier: the agent (gsd-verifier)_
