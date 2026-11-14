@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: CR-01
     severity: critical
-    disposition: open
+    disposition: fixed
     title: "BLOCKER — CI receipt accepts a check from the wrong GitHub App"
   - id: WR-01
     severity: warning
@@ -15,16 +15,16 @@ findings:
     severity: warning
     disposition: deferred
     title: "An unfiltered expiry index can satisfy the Doctor check (preexisting)"
-open: 1
+open: 0
 total: 3
-recorded: 2026-11-14T00:43:47.847Z
+recorded: 2026-11-14T02:59:49Z
 ---
 
 # Phase 139: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| CR-01 | critical | open | - |
+| CR-01 | critical | fixed | Fixed by Plan 139-08; standard review confirms numeric Actions app ID binding and retained receipt revalidation. Focused fixtures reject wrong, missing, malformed, changed, and removed IDs. (not in the current review) |
 | WR-01 | warning | deferred | Preexisting since 47d1d5dc; Phase 139 did not change it. Retained accepted migration declares DEFAULT 0 and package qualification passed. Follow-up: `.planning/todos/pending/2026-10-29-doctor-resumable-schema-drift.md`. (not in the current review) |
 | WR-02 | warning | deferred | Preexisting since 47d1d5dc; Phase 139 did not change it. Retained accepted migration creates the filtered expiry index and qualification passed. Follow-up: `.planning/todos/pending/2026-10-29-doctor-resumable-schema-drift.md`. (not in the current review) |
 
