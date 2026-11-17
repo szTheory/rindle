@@ -511,9 +511,16 @@ class Remote(unittest.TestCase):
         self.responses[path][0]['headers']['link']='<https://api.github.com/'+prefix+'security-advisories?per_page=100&after=opaque>; rel="next"'
         self.full_reject('pagination_query_drift')
     def test_expired_exception_cannot_be_overridden_by_injected_clock(self):
-        raw=copy.deepcopy(ledger);record=next(a for a in raw['advisories'] if a['status']=='exception')
-        record['exception']['expires']='2020-01-01';record['exception']['trigger']['not_after']='2020-01-01'
+        raw=copy.deepcopy(ledger);packages={p['package'] for p in self.hex_payload[0]['packages']}
+        record=next(a for a in raw['advisories'] if a['scope']=='root' and a['package'] in packages)
+        record['status']='exception'
+        record['exception']={'expires':'2020-01-01','rationale':'fixture for expired-exception clock rejection',
+            'trigger':{'type':'date','not_after':'2020-01-01'}}
         self.subject_file(c.LEDGER,c.canonical(raw))
+        payloads=copy.deepcopy(self.hex_payload)
+        package=next(p for p in payloads[0]['packages'] if p['package']==record['package'])
+        package['advisories']=[{'id':record['id'],'severity':'SEVERITY_MEDIUM'}]
+        self.set_hex([payloads,payloads])
         with patch.dict(os.environ,{'INBOX_NOW_EPOCH':'1'}):self.full_reject('ledger_reconciliation_failed')
     def set_hex(self,rows):
         (self.fixture/'hex.json').write_bytes(c.canonical(rows))

@@ -59,8 +59,8 @@ defmodule Rindle.ExactHeadReadiness do
                          )
                          |> Base.encode16(case: :lower)}
                       end)
-  @ci_guard "75bedd220f51673361e824a61cfb98468bbf5490e94a68606193ed61da2c5187"
-  @release_guard "410d6344b98fb7a6e1e8ccae83220e9f20070afbdf53046e758a281e04698f98"
+  @ci_guard "335a6d7f9bbbb6a25566602eb276d6efff0c483b109b02dc49892ea2a18b26fa"
+  @release_guard "1158a7e8aee99cfcc55f0ccde0c43ffcddf87ed47e03fbf1cffd8ad1708ccece"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
   @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
   @snapshot_mutable ~w(ci-main nightly-qualification scheduled-incident-health protection remote-inventory adoption-parity)
@@ -84,7 +84,7 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/readiness_adoption.py scripts/maintainer/readiness_retention.py
     scripts/maintainer/readiness_acceptance.py scripts/maintainer/retain_readiness_bundle.sh
     scripts/maintainer/exact_head_readiness.sh
-    .planning/phases/139-exact-head-readiness-closure/139-preflight.sh
+    .planning/evidence/runtime/139-preflight.sh
     scripts/maintainer/readiness_hex_audit.exs scripts/maintainer/validate_inbox_ledger.sh
     examples/adoption_demo/mix.lock
     scripts/ci/run_nightly_dialyzer.sh scripts/maintainer/verify_contributor_bootstrap.sh

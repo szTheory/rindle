@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "base_commit": "30c72b70d5920d9621b1ecac74ed1c6a6ce643c3",
+  "workflow_paths": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "base_sha256": "ab135123f378ec7157e2221fabe01d9679bbbc4ed1025501c37d852584505b25",
+      "final_sha256": "b5afc0b09fa3caa62d35397bc87dce5276bf650a62709eb8218e32715b2f1d0b"
+    },
+    {
+      "path": ".github/workflows/nightly.yml",
+      "base_sha256": "b2e02590c38da533180e40243b2bcd9840d914affcb09fdcbf7a77d796ee741b",
+      "final_sha256": "bd4c454a754c53a2013e7b1598b63234520aa1d8320c4001275e91090caf4fbd"
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "base_sha256": "b849f7fd889d9081f87dff5b6c8021de6480c967414a76a7ece19336996ea6aa",
+      "final_sha256": "a68c3487701af3f618c66ec37ebee3b22cdef735cca1b4c6dc7039c3ad7ec379"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "base_sha256": "410d6344b98fb7a6e1e8ccae83220e9f20070afbdf53046e758a281e04698f98",
+      "final_sha256": "1158a7e8aee99cfcc55f0ccde0c43ffcddf87ed47e03fbf1cffd8ad1708ccece"
+    }
+  ],
+  "reviewed_hunks": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "hunk_sha256": "8d7fe6d9363bbbfee06ae72317a9fe4074894d0e7d88ad69bb94668e8dd8f777",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "hunk_sha256": "a65dd8af7cb306903fd774e44464b3f0305572cd6b6605c844e2fdc3b79da0ec",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "hunk_sha256": "9cca74f03cf5bd7d4da82071bcfcde7d7e0fd6db4495769bd7916527e173f0f2",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "hunk_sha256": "1f9dc5b4dcb64822ae52ddf2cf6e575cdd494e9037af7a32d1c46e0fec2542aa",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "hunk_sha256": "404db630d9fde895d2ec4936759148578f4915b8ce1c8e17acab1cc8e98c14ff",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    },
+    {
+      "path": ".github/workflows/nightly.yml",
+      "hunk_sha256": "d2d1dd035eda36db9009c1a0386e1cadf117e4cd5516376e6aadaf73cb48c7c7",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "hunk_sha256": "2bbc9feb3895eb42c8b2f2001e9350c28e1be272826fe82b4f7deceac7bfb383",
+      "disposition": "approved",
+      "rationale": "Remove job-wide credentials so native package and dependency setup steps cannot inherit the read token; scope it to the two steps that call trusted admission or collection code."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "hunk_sha256": "d3ced6a5215f30f9eda26fba1e784dc8fd5b334a99e8705560ddb6f93561c646",
+      "disposition": "approved",
+      "rationale": "Snapshot admission and dispatch binding require the read credential; expose it only to this binding step, which also checks request and subject identity before candidate code runs."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "hunk_sha256": "f3de921861f2cd6915ef2cdf5b11046d47ca9fb2ae1a2e560ca2a5d4de25e3c5",
+      "disposition": "approved",
+      "rationale": "Separate public apt and checksum-pinned FFmpeg installation from dependency preparation so the credential-bearing GitHub steps remain isolated from native installers."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "hunk_sha256": "0dbf197aa6b3b029c7b9d5daf91da888ad6b8601d0b18264f2927839f0209693",
+      "disposition": "approved",
+      "rationale": "Move the existing apt and FFmpeg commands into their dedicated steps exactly once, preserving installation behavior while making the credential boundary explicit."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "hunk_sha256": "7e79a6b90dcffbdd3b49ca0e33f6bf10edd7fb553dae8de9256ec3be20d7c77f",
+      "disposition": "approved",
+      "rationale": "Dependency preparation uses pinned project dependencies and local build commands only; it does not require a GitHub token."
+    },
+    {
+      "path": ".github/workflows/readiness-retention.yml",
+      "hunk_sha256": "7daa1d3b0afb3702647eae08c76c33827bb8ecf7db636a2a02234f79f5bff0c7",
+      "disposition": "approved",
+      "rationale": "The candidate collector reads private source evidence; scope READINESS_READ_TOKEN to this exact collection step rather than the full job."
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "hunk_sha256": "8dffc69d71cd6ca37a23874eec650145b07195da9fbcb855a93979be1852eec4",
+      "disposition": "approved",
+      "rationale": "The static BtbN release asset is public and pinned by archive SHA-256; the installer does not read a GitHub token, so remove unnecessary token exposure from this job."
+    }
+  ],
+  "findings": [],
+  "local_contracts": [
+    {
+      "name": "FFmpeg installation remains public, version-pinned, and SHA-256 checked",
+      "outcome": "pass",
+      "evidence": "install_ffmpeg.sh uses a fixed BtbN release URL and archive_sha256, rejects overrides, and reads no GitHub token."
+    },
+    {
+      "name": "CI remains named CI with pull_request safety and CI Summary as its sole required context",
+      "outcome": "pass",
+      "evidence": "Workflow diff changes only FFmpeg step token scopes; CI name, pull_request trigger, and config/ci_required_checks.json remain unchanged."
+    },
+    {
+      "name": "Nightly incident and qualification controls remain event-specific",
+      "outcome": "pass",
+      "evidence": "Workflow diff changes only the FFmpeg installer token scope; schedule-only incident jobs and Nightly trigger remain unchanged."
+    },
+    {
+      "name": "Release continues to bind CI evidence to the exact source SHA",
+      "outcome": "pass",
+      "evidence": "Workflow diff changes only the FFmpeg installer token scope; the release gate still queries workflow runs by head_sha and filters exact equality."
+    },
+    {
+      "name": "Readiness retention credentials are limited to admission and candidate collection",
+      "outcome": "pass",
+      "evidence": "READINESS_READ_TOKEN is present only on the dispatch-binding step and authenticated collector step; native package and dependency setup has no token."
+    }
+  ]
+}
