@@ -84,7 +84,7 @@ defmodule Rindle.ExactHeadReadiness do
     scripts/maintainer/readiness_adoption.py scripts/maintainer/readiness_retention.py
     scripts/maintainer/readiness_acceptance.py scripts/maintainer/retain_readiness_bundle.sh
     scripts/maintainer/exact_head_readiness.sh
-    .planning/evidence/runtime/139-preflight.sh
+    .planning/phases/139-exact-head-readiness-closure/139-preflight.sh
     scripts/maintainer/readiness_hex_audit.exs scripts/maintainer/validate_inbox_ledger.sh
     examples/adoption_demo/mix.lock
     scripts/ci/run_nightly_dialyzer.sh scripts/maintainer/verify_contributor_bootstrap.sh

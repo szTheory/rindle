@@ -105,7 +105,7 @@ covered_files:
   - test/install_smoke/release_guard_meta_test.exs
   - test/install_smoke/support/generated_app/patcher.ex
   - test/rindle/doctor_test.exs
-covered_digest: "v4:sha256:dc1ec77573fb7fce043a9f685234d5584b364e9eab200e067d928421e26af784"
+covered_digest: "v4:sha256:a95b63195ca1abd584048cf114f3a03f0d396d55b8976551413310900744a80d"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
