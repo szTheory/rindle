@@ -1,6 +1,6 @@
 ---
 phase: 139-exact-head-readiness-closure
-verified: 2026-11-17T21:36:24Z
+verified: 2026-11-17T23:18:54Z
 status: human_needed
 score: 11/20 truths verified
 covered_files:
@@ -105,7 +105,7 @@ covered_files:
   - test/install_smoke/release_guard_meta_test.exs
   - test/install_smoke/support/generated_app/patcher.ex
   - test/rindle/doctor_test.exs
-covered_digest: "v4:sha256:a95b63195ca1abd584048cf114f3a03f0d396d55b8976551413310900744a80d"
+covered_digest: "v4:sha256:7f2de79a499111afb664c0b39969e59c239093b843c62dc231d35b8e4e203f18"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
@@ -255,9 +255,9 @@ No unreferenced TBD/FIXME/XXX markers or stub implementations were found in the 
 
 ## Gaps Summary
 
-The carried-forward workflow identity mismatch is fixed: the machine-checked review record matches the candidate-base workflow bytes and all hunks, the workflow review fixtures pass, and the canonical exact-head validator fixture suite now passes with its specific negative reasons. The remote-disposition fixtures also pass all 84 cases under the pinned toolchain. Current remote state, current-head qualification, live CI/Nightly/protection, and durable external retrieval were not exercised and receive no refreshed credit. The already-authorized collection remains gated on protected-main delivery of the reviewed candidate. Historical acceptance remains historical only. Phase 133 Plan 230 remains `OPEN_THREATS`; no security clearance or proof replay is implied.
+The carried-forward workflow identity mismatch is fixed: the machine-checked review record matches the candidate-base workflow bytes and all hunks, the workflow review fixtures pass, and the canonical exact-head validator fixture suite now passes with its specific negative reasons. The remote-disposition fixtures also pass all 84 cases under the pinned toolchain. The first hosted PR CI run exposed a stale FFmpeg token expectation and three missing residue contracts; the candidate follow-up updates the test and records those exact references, and the two focused install-smoke suites pass 56 tests locally. Hosted rerun evidence is still required for candidate delivery. Current-head qualification, live Nightly/protection, and durable external retrieval were not exercised and receive no refreshed credit. The already-authorized collection remains gated on protected-main delivery of the reviewed candidate. Historical acceptance remains historical only. Phase 133 Plan 230 remains `OPEN_THREATS`; no security clearance or proof replay is implied.
 
 ---
 
-_Verified: 2026-11-17T21:36:24Z_
+_Verified: 2026-11-17T23:18:54Z_
 _Verifier: the agent (gsd-verifier)_

@@ -27,6 +27,9 @@ key-files:
     - scripts/maintainer/readiness_nightly.exs
     - scripts/ci/test_readiness_remote.sh
     - scripts/maintainer/readiness_acceptance.py
+    - test/install_smoke/ci_cache_hygiene_test.exs
+    - scripts/maintainer/live_residue_allowlist/automation_generators.json
+    - scripts/maintainer/live_residue_allowlist/automation_workflows.json
 requirements-completed: [READY-02, READY-04]
 coverage:
   - id: D1
@@ -106,10 +109,14 @@ Three narrow corrections were needed to make the planned local graph pass agains
 
 These changes affect local identity and fixture wiring only. No current remote state was collected and no live acceptance was replayed.
 
+The first hosted candidate CI run exposed two omissions in the Plan 09 delivery. The existing FFmpeg workflow test still required a token even though the reviewed installer downloads a fixed public asset, verifies its pinned SHA-256, and never reads GitHub credentials; the test now enforces the reviewed no-token boundary. The live-residue scanner also found three unclassified Phase 139 planning-path references in the new workflow and acceptance scripts; they are now recorded as contract entries with reasons. The two focused install-smoke suites pass (56 tests), and the live-residue scan passes with no pending entries. The hosted retry is the remaining candidate-delivery check; the PR remains unmerged, and current-evidence collection stays gated on protected-main delivery.
+
 ## Verification
 
 - `git diff --check` passed.
 - `bash scripts/ci/test_workflow_review_gate.sh` passed all positive and adverse cases.
+- `mix test test/install_smoke/ci_cache_hygiene_test.exs test/install_smoke/live_residue_scan_test.exs` passed 56 tests after aligning the FFmpeg assertion with the reviewed credential boundary and adding the three residue contracts.
+- The live-residue scan passed across 712 tracked files, accounting for 291 hits with 258 entries and zero pending removals.
 - The real workflow review gate passed for four workflow files, 13 hunks, zero unresolved findings, and five local contracts.
 - `bash scripts/ci/test_exact_head_readiness.sh` passed 69 tests.
 - `bash scripts/ci/test_readiness_runs.sh` passed 65 tests.

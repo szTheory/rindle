@@ -369,6 +369,14 @@
       "count": 2,
       "reason_class": "immutable-receipt",
       "reason": "The committed receipt records this evidence path, so moving it changes receipt identity."
+    },
+    {
+      "path": "scripts/ci/test_workflow_review_gate.sh",
+      "class": "planning-path",
+      "text": "RECORD_REL = \".planning/phases/139-exact-head-readiness-closure/139-09-WORKFLOW-REVIEW.json\"",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "The test exercises the machine-enforced Phase 139 workflow-review contract; this exact record path is an input under test."
     }
   ]
 }

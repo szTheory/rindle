@@ -291,6 +291,14 @@
       "reason": "Exclusion pattern: maintainer planning files are outside the adopter-docs link check."
     },
     {
+      "path": "scripts/maintainer/check_workflow_review.py",
+      "class": "planning-path",
+      "text": "DEFAULT_RECORD = \".planning/phases/139-exact-head-readiness-closure/139-09-WORKFLOW-REVIEW.json\"",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "The checker resolves the Phase 139 review record from the repository root by default; that path is part of its CLI contract."
+    },
+    {
       "path": "scripts/maintainer/collect_readiness_remote.py",
       "class": "phase-ref",
       "text": "verdict['next_action']='Phase 134 disposition owner: reconcile the current ledger against restricted collected evidence, then collect again'",
@@ -585,6 +593,14 @@
       "count": 1,
       "reason_class": "policy",
       "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "planning-path",
+      "text": "RELOCATED_PHASE_FILES={f'{PHASE}/139-preflight.sh':'.planning/evidence/runtime/139-preflight.sh'}",
+      "count": 1,
+      "reason_class": "contract",
+      "reason": "The acceptance fixture supports both the tracked historical preflight and its runtime-relocated copy; this exact mapping is part of its input contract."
     },
     {
       "path": "scripts/maintainer/readiness_acceptance.py",

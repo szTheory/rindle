@@ -1,8 +1,8 @@
 ---
 phase: 139-exact-head-readiness-closure
-reviewed: 2026-11-17T22:32:45Z
+reviewed: 2026-11-17T23:18:54Z
 depth: standard
-files_reviewed: 11
+files_reviewed: 14
 files_reviewed_list:
   - .github/workflows/ci.yml
   - .github/workflows/nightly.yml
@@ -15,6 +15,9 @@ files_reviewed_list:
   - scripts/ci/test_readiness_remote.sh
   - scripts/maintainer/readiness_acceptance.py
   - scripts/ci/test_readiness_acceptance.sh
+  - test/install_smoke/ci_cache_hygiene_test.exs
+  - scripts/maintainer/live_residue_allowlist/automation_generators.json
+  - scripts/maintainer/live_residue_allowlist/automation_workflows.json
 findings:
   critical: 0
   warning: 0
@@ -25,14 +28,14 @@ status: clean
 
 # Phase 139: Code Review Report
 
-**Reviewed:** 2026-11-17T22:32:45Z
+**Reviewed:** 2026-11-17T23:18:54Z
 **Depth:** standard
-**Files Reviewed:** 11
+**Files Reviewed:** 14
 **Status:** clean
 
 ## Summary
 
-Reviewed the four workflow changes, the exact-byte workflow review gate and fixtures, the readiness validator and collectors, and the acceptance inventory's tracked-preflight/relocated-artifact path selection. The FIFO fixture confirms a non-regular workflow path is rejected as `final_workflow_not_regular` within the bounded subprocess timeout. The real review-record gate accepts the candidate baseline, digests, all 13 changed hunks, resolved findings, and passing local contracts. No correctness or security defects found in this scope.
+Reviewed the four workflow changes, the exact-byte workflow review gate and fixtures, the readiness validator and collectors, the acceptance inventory's tracked-preflight/relocated-artifact path selection, and the hosted-CI follow-up. The FFmpeg test now matches the reviewed fixed public URL and checksum contract without exposing an unused token. The three new planning-path hits have exact-count contract entries with reasons. The focused 56-test install-smoke run and live-residue check pass; the workflow-review gate still accepts all 13 reviewed hunks and five local contracts. No correctness or security defects found in this scope.
 
 All reviewed files meet quality standards. No issues found.
 
@@ -40,6 +43,6 @@ All reviewed files meet quality standards. No issues found.
 
 ---
 
-_Reviewed: 2026-11-17T22:32:45Z_
+_Reviewed: 2026-11-17T23:18:54Z_
 _Reviewer: the agent (gsd-code-reviewer)_
 _Depth: standard_
