@@ -34,10 +34,13 @@ class Acceptance(unittest.TestCase):
         self.tmp=pathlib.Path(tempfile.mkdtemp(prefix='rindle139-acceptance-')).resolve()
         self.metadata_root=self.tmp/'metadata';self.metadata_root.mkdir()
         checker=a.metadata_parity
+        preflight=a.metadata_preflight
         # Controller examples own their metadata; direct counterexamples keep their explicit roots.
         adapter=patch.object(a,'metadata_parity',side_effect=lambda owner_root,subject,interval:
             checker(self.metadata_root if owner_root==a.ROOT else owner_root,subject,interval))
-        adapter.start();self.addCleanup(adapter.stop)
+        preflight_adapter=patch.object(a,'metadata_preflight',side_effect=lambda owner_root:
+            preflight(self.metadata_root if owner_root==a.ROOT else owner_root))
+        adapter.start();preflight_adapter.start();self.addCleanup(adapter.stop);self.addCleanup(preflight_adapter.stop)
     def tearDown(self):shutil.rmtree(self.tmp)
     def subject(self):return {'repository':repo,'subject_sha':sha,'tracked_inventory':{},'requirements_credit':False}
     def retained(self,_repo,_run,_attempt,destination,_fixture):
@@ -114,8 +117,40 @@ class Acceptance(unittest.TestCase):
         path=self.tmp/'.planning';path.mkdir();(path/'REQUIREMENTS.md').write_text('- [x] **READY-01**: Complete\n')
         with self.assertRaisesRegex(a.NotReady,'unqualified_readiness_metadata'):a.metadata_parity(self.tmp,sha,{'started_at':'start','completed_at':'end'})
     def test_historical_checked_requirement_is_qualified(self):
-        path=self.tmp/'.planning';path.mkdir();(path/'REQUIREMENTS.md').write_text('- [x] **READY-01**: historical '+sha+' start end terminal-verdict\n')
-        a.metadata_parity(self.tmp,sha,{'started_at':'start','completed_at':'end'})
+        path=self.tmp/'.planning';path.mkdir()
+        prior='b'*40;started='2026-10-29T11:22:36.801043Z';completed='2026-10-29T15:56:53.252718Z'
+        line=f'- [x] **READY-01**: historical acceptance of `{prior}`, interval `{started}`–`{completed}`, terminal-verdict `/evidence/terminal-verdict.json`\n'
+        (path/'REQUIREMENTS.md').write_text(line)
+        # A later collection has a different subject and interval. It must not
+        # invalidate the prior machine-qualified historical completion.
+        current={'started_at':'2026-11-18T19:02:44Z','completed_at':'2026-11-18T22:14:43Z'}
+        a.metadata_preflight(self.tmp)
+        with self.assertRaisesRegex(a.NotReady,'unqualified_readiness_metadata'):
+            a.metadata_parity(self.tmp,sha,current)
+    def test_claim_status_metadata_matches_its_own_historical_receipt(self):
+        path=self.tmp/'.planning';path.mkdir()
+        prior='b'*40;started='2026-10-29T11:22:36.801043Z';completed='2026-10-29T15:56:53.252718Z'
+        line=f'- [x] **READY-01**: historical acceptance of `{prior}`, interval `{started}`–`{completed}`, terminal-verdict `/evidence/terminal-verdict.json`\n'
+        (path/'REQUIREMENTS.md').write_text(line)
+        a.metadata_parity(self.tmp,prior,{'started_at':started,'completed_at':completed})
+    def test_milestone_complete_state_is_not_a_phase_readiness_claim(self):
+        path=self.tmp/'.planning';path.mkdir();(path/'STATE.md').write_text('status: complete\n')
+        a.metadata_preflight(self.tmp)
+    def test_completed_roadmap_phase_uses_historical_summary_record(self):
+        path=self.tmp/'.planning';path.mkdir();(path/'ROADMAP.md').write_text('- [x] **Phase 139: Exact-Head Readiness Closure**\n')
+        phase=path/'phases'/a.PHASE.rsplit('/',1)[-1];phase.mkdir(parents=True)
+        prior='b'*40;started='2026-10-29T11:22:36.801043Z';completed='2026-10-29T15:56:53.252718Z'
+        summary=f'''---\naccepted_subject_sha: "{prior}"\nevidence_scope: historical\nobservation_interval:\n  started_at: "{started}"\n  completed_at: "{completed}"\nterminal_verdict: "/evidence/terminal-verdict.json"\nstatus: complete\n---\n'''
+        (phase/'139-07-SUMMARY.md').write_text(summary)
+        current={'started_at':'2026-11-18T19:02:44Z','completed_at':'2026-11-18T22:14:43Z'}
+        a.metadata_preflight(self.tmp)
+        with self.assertRaisesRegex(a.NotReady,'unqualified_readiness_metadata'):
+            a.metadata_parity(self.tmp,sha,current)
+    def test_historical_acceptance_cannot_claim_current_readiness(self):
+        path=self.tmp/'.planning';path.mkdir();started='2026-10-29T11:22:36.801043Z';completed='2026-10-29T15:56:53.252718Z'
+        (path/'STATE.md').write_text(f'current-main readiness is ready; historical {"b"*40} interval {started}–{completed} terminal-verdict /evidence/terminal-verdict.json\n')
+        with self.assertRaisesRegex(a.NotReady,'unqualified_readiness_metadata'):
+            a.metadata_preflight(self.tmp)
     def test_unqualified_complete_traceability_row_rejected(self):
         path=self.tmp/'.planning';path.mkdir();(path/'REQUIREMENTS.md').write_text('| READY-05 | Phase 139 | Complete |\n')
         with self.assertRaises(a.NotReady):a.metadata_parity(self.tmp,sha,{'started_at':'start','completed_at':'end'})

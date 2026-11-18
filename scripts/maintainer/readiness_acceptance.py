@@ -73,22 +73,86 @@ def verify_subject(api,repo,root=ROOT,subject=None,snapshot=False):
     return record
 
 
-def metadata_parity(root,subject,interval):
-    """A completed READY record must name its historical SHA, interval and locator."""
-    paths=[root/'.planning/REQUIREMENTS.md',root/'.planning/ROADMAP.md',root/'.planning/STATE.md',
-           *sorted((root/PHASE).glob('*SUMMARY.md'))]
+HISTORICAL_TIMESTAMP = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z'
+
+
+def historical_completion_line(line,subject=None,interval=None):
+    timestamps=re.findall(HISTORICAL_TIMESTAMP,line)
+    qualified=('historical' in line.lower() and
+        re.search(r'(?<![0-9a-f])[0-9a-f]{40}(?![0-9a-f])',line) is not None and
+        len(timestamps)>=2 and re.search(r'terminal[-_ ]verdict|locator',line,re.I) is not None)
+    if subject is not None:
+        qualified=qualified and subject in line and interval is not None and all(v in line for v in interval.values())
+    return qualified
+
+
+def historical_phase_summary(text,subject=None,interval=None):
+    """Require Plan 07's own historical receipt identity, not the run refreshing it."""
+    qualified=all((
+        re.search(r'(?im)^status:\s*complete\s*$',text),
+        re.search(r'(?im)^evidence_scope:\s*historical\s*$',text),
+        re.search(r'(?im)^accepted_subject_sha:\s*["\']?[0-9a-f]{40}["\']?\s*$',text),
+        re.search(rf'(?im)^\s*started_at:\s*["\']?{HISTORICAL_TIMESTAMP}["\']?\s*$',text),
+        re.search(rf'(?im)^\s*completed_at:\s*["\']?{HISTORICAL_TIMESTAMP}["\']?\s*$',text),
+        re.search(r'(?im)^terminal_verdict:\s*.*(?:terminal-verdict|locator)',text)))
+    if subject is not None:
+        qualified=qualified and subject in text and interval is not None and all(v in text for v in interval.values())
+    return qualified
+
+
+def metadata_paths(root):
+    return [root/'.planning/REQUIREMENTS.md',root/'.planning/ROADMAP.md',root/'.planning/STATE.md',
+            *sorted((root/PHASE).glob('*SUMMARY.md'))]
+
+
+def metadata_preflight(root):
+    """Reject unqualified claims while preserving already accepted historical records.
+
+    The acceptance interval is produced by this invocation, so existing historical
+    completion records cannot be required to name it before the terminal verdict is
+    written. Before terminalization, existing records must carry their own historical
+    SHA, interval and locator. Claim-status remains strict through metadata_parity.
+    """
+    paths=metadata_paths(root)
+    summary_path=root/PHASE/'139-07-SUMMARY.md'
+    summary_text=summary_path.read_text() if summary_path.is_file() else ''
+    phase_summary_qualified=historical_phase_summary(summary_text)
     for path in paths:
         if not path.is_file():continue
         text=path.read_text()
         # Scope to completion/readiness assertions, not negative policy prose.
         for line in text.splitlines():
-            closed=bool(re.search(r'(?i)(?:\[[xX]\].*READY-0[1-5]|READY-0[1-5].*\|\s*Complete\b|(?:current[- ]head|current[- ]main) readiness\s*(?:is|:)\s*(?:ready|complete|passed))',line))
-            if closed:
-                require('historical' in line.lower() and subject in line and interval['started_at'] in line and
-                    interval['completed_at'] in line and re.search(r'terminal-verdict|locator',line),'unqualified_readiness_metadata')
-        if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\s*complete\s*$|.*\|\s*(?:139|Phase 139)[^\n]*\|\s*Complete\s*\||.*Phase 139:\s*Complete\b)',text):
-            require('historical' in text.lower() and subject in text and all(v in text for v in interval.values()) and
-                re.search(r'terminal-verdict|locator',text),'unqualified_readiness_metadata')
+            current_ready=bool(re.search(r'(?i)(?:current[- ]head|current[- ]main) readiness\s*(?:is|:)\s*(?:ready|complete|passed)',line))
+            ready_complete=bool(re.search(r'(?i)(?:\[[xX]\].*READY-0[1-5]|READY-0[1-5].*\|\s*Complete\b)',line))
+            if current_ready:raise NotReady('unqualified_readiness_metadata')
+            if ready_complete:
+                require(historical_completion_line(line),'unqualified_readiness_metadata')
+            if path.name=='139-07-SUMMARY.md' and re.search(r'(?im)^status:\s*complete\s*$',text):
+                require(phase_summary_qualified,'unqualified_readiness_metadata')
+            phase_roadmap_complete=path.name=='ROADMAP.md' and re.search(r'(?i)\bPhase\s*139\b',line) and re.search(r'\[[xX]\]|\|\s*Complete\b|:\s*Complete\b',line,re.I)
+            phase_state_complete=path.name=='STATE.md' and re.search(r'(?i)\bPhase\s*139\b.*\bComplete\b',line)
+            if phase_roadmap_complete or phase_state_complete:
+                require(phase_summary_qualified,'unqualified_readiness_metadata')
+
+
+def metadata_parity(root,subject,interval):
+    """Bind published readiness claims to the exact historical terminal record."""
+    metadata_preflight(root)
+    for path in metadata_paths(root):
+        if not path.is_file():continue
+        text=path.read_text()
+        for line in text.splitlines():
+            ready_complete=bool(re.search(r'(?i)(?:\[[xX]\].*READY-0[1-5]|READY-0[1-5].*\|\s*Complete\b)',line))
+            if ready_complete:
+                require(historical_completion_line(line,subject,interval),'unqualified_readiness_metadata')
+        phase_complete=path.name in ('ROADMAP.md','STATE.md') and any(
+            (path.name=='ROADMAP.md' and re.search(r'(?i)\bPhase\s*139\b',line) and re.search(r'\[[xX]\]|\|\s*Complete\b|:\s*Complete\b',line,re.I)) or
+            (path.name=='STATE.md' and re.search(r'(?i)\bPhase\s*139\b.*\bComplete\b',line))
+            for line in text.splitlines())
+        if (path.name=='139-07-SUMMARY.md' and re.search(r'(?im)^status:\s*complete\s*$',text)) or phase_complete:
+            require(historical_phase_summary(text if path.name=='139-07-SUMMARY.md' else
+                (root/PHASE/'139-07-SUMMARY.md').read_text() if (root/PHASE/'139-07-SUMMARY.md').is_file() else '',
+                subject,interval),'unqualified_readiness_metadata')
 
 
 class Acceptance:
@@ -157,7 +221,7 @@ class Acceptance:
             self.adoption(manifest);require(self.subject_record()['subject_sha']==self.subject,'main_changed')
             # Independently re-read stored bytes, not the refresh scalar verdict.
             verify=verifier(self.repo,self.output/'terminal-validation',self.output/'refresh/portable',self.subject);verify.validate(verify.portable/'manifest.json',verify.portable/'refresh-envelope.json')
-            interval={'started_at':self.started,'completed_at':now()};metadata_parity(ROOT,self.subject,interval)
+            interval={'started_at':self.started,'completed_at':now()};metadata_preflight(ROOT)
             references={name:reference(self.output,self.output/path) for name,path in {
                 'subject':'subject.json','locator':'durable/locator.json','manifest':'durable/bundle/manifest.json',
                 'sidecar':'durable/readiness-digest.json','archive':'durable/readiness-evidence.tar.gz',
