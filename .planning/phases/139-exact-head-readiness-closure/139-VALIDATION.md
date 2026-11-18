@@ -49,8 +49,15 @@ The first task of each plan creates its own fixture driver before that command i
 | 139-06 T2 | `bash scripts/ci/test_readiness_adoption.sh` and `bash scripts/ci/test_readiness_acceptance.sh` | 139-06 T2 | nonzero exit or missing synthetic-rejection or historical-metadata/current-head parity assertion |
 | 139-07 T1 | `bash scripts/maintainer/exact_head_readiness.sh verify-subject --snapshot --subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR-subject"` | 139-06 T2 | nonzero exit, missing tracked Phase 139 change, dirty checkout, arbitrary PR/fork ancestry, candidate substitution or policy mismatch |
 | 139-07 T2 | `bash scripts/maintainer/exact_head_readiness.sh accept --snapshot --subject "$READINESS_SUBJECT_SHA" --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"` | 139-06 T2 | nonzero exit, non-ready terminal verdict, incomplete fresh live input, substituted candidate, missing producer sidecar, invalid refresh envelope, or missing verified durable copy; normal post-task metadata is then subject/interval qualified and checked by `claim-status` |
+| 139-08 T1–T2 | `bash scripts/ci/test_verify_nightly_run.sh` | 139-08 T1 | nonzero exit, app ID other than numeric 15368 accepted, or changed/removed retained `check_app_id` accepted |
 | 139-01–06 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after each plan's SUMMARY.md is written, before its metadata commit | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks summary closeout and commit |
 | 139-07 post-summary and final metadata closeout | `./scripts/maintainer/automation_first_contract.sh --phase-dir .planning/phases/139-exact-head-readiness-closure` after 139-07-SUMMARY.md and REQUIREMENTS/ROADMAP/STATE edits plus `claim-status` parity, before `git_commit_metadata` | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks metadata closeout and commit |
+| 139-08 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh` after 139-08-SUMMARY.md and before plan metadata commit | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks summary closeout and metadata commit |
+| 139-09 T1 | `git diff --check -- .github/workflows/ci.yml .github/workflows/nightly.yml .github/workflows/readiness-retention.yml .github/workflows/release.yml` and the real workflow review gate | 139-09 T1–T2 | nonzero exit, changed workflow digest, missing hunk, unresolved finding, or failed local contract |
+| 139-09 T2 | `bash scripts/ci/test_workflow_review_gate.sh` | 139-09 T2 | nonzero exit or any missing/malformed record, digest, ancestry, hunk, finding, rationale, contract, symlink or FIFO adverse case accepted |
+| 139-09 T3 | `python3 scripts/maintainer/check_workflow_review.py --record .planning/phases/139-exact-head-readiness-closure/139-09-WORKFLOW-REVIEW.json`, `bash scripts/ci/test_exact_head_readiness.sh`, and `bash scripts/ci/test_readiness_fixtures.sh` | 139-09 T1–T3 | nonzero exit, changed reviewed bytes, missing valid-graph success, or loss of source-specific negative assertions |
+| 139-09 hosted-CI follow-up | `mix test test/install_smoke/ci_cache_hygiene_test.exs test/install_smoke/live_residue_scan_test.exs` and the live-residue scan | Hosted PR CI findings | nonzero exit, an FFmpeg token-scope assertion that contradicts the reviewed installer, or unclassified Phase 139 planning-path references |
+| 139-09 post-summary closeout | `./scripts/maintainer/automation_first_contract.sh` after 139-09-SUMMARY.md and audit metadata updates | Existing `scripts/maintainer/automation_first_contract.sh` | nonzero exit or automation-first contract rejection blocks planning closeout |
 
 Terminal automated acceptance: after all tracked implementation, workflow, documentation, and planning changes are merged, Plan 07 runs `verify-subject` and then `accept` for one explicit authenticated previously-main snapshot from its clean checkout on the restricted durable maintainer host with an external evidence directory. `accept` triggers a matching main workflow run, waits for upload, retrieves the exact run/attempt producer digest sidecar and archive, verifies retained archive and manifest bytes, validates the subject-preserving refresh envelope against new mutable receipt bytes and authoritative adoption parity, and checks the final machine-readable ready verdict. A nonzero exit, `not_ready`, candidate substitution, missing candidate Nightly qualification or scheduled health, incomplete upstream acceptance, or absent verified local copy leaves READY-01–05 open. Only after actual acceptance may normal GSD summary/requirement/progress metadata record historical completion, qualified by accepted SHA and observation interval. Its later commit cannot inherit current-head readiness; `claim-status` proves this in a negative fixture and on any advanced main. The controller has bounded waiting; fixture checks and a candidate `close` verdict are implementation progress only.
 
@@ -151,6 +158,22 @@ All five requirements are COVERED by the mapped executable fixtures and actual h
 Historical scope: accepted48407bac7691c459395760b06f7714bbb6c3545b, interval2026-10-29T11:22:36.801043Z–2026-10-29T15:56:53.252718Z, terminal-verdict `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json`. Later control cleanup and CI scheduling changes inherit no current readiness. PILOT and deferred CI-16 remain open; no exact-ten sampler ran.
 
 ## Validation Audit 2026-10-29
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+## Validation Audit — Plan 139-08 (2026-11-14)
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+## Validation Audit — Plan 139-09 2026-11-17
 
 | Metric | Count |
 |---|---|

@@ -1,16 +1,13 @@
 ---
 phase: 139-exact-head-readiness-closure
-verified: 2026-10-29T17:30:42Z
-status: passed
-score: 15/15 must-haves verified
+verified: 2026-11-17T23:18:54Z
+status: human_needed
+score: 11/20 truths verified
 covered_files:
   - .github/workflows/ci.yml
   - .github/workflows/nightly.yml
   - .github/workflows/readiness-retention.yml
-  - .planning/INBOX-LEDGER.json
-  - .planning/forensics/20261029T1556Z-phase139-historical-acceptance/REGRESSION-EVIDENCE.json
-  - .planning/forensics/20261029T1556Z-phase139-historical-acceptance/SOURCE11-ORIGINAL-CLAIM.json
-  - .planning/forensics/20261029T1556Z-phase139-historical-acceptance/SOURCE11-TERMINAL-INDEPENDENT.json
+  - .github/workflows/release.yml
   - .planning/phases/139-exact-head-readiness-closure/139-00-PLAN.md
   - .planning/phases/139-exact-head-readiness-closure/139-00-SUMMARY.md
   - .planning/phases/139-exact-head-readiness-closure/139-01-PLAN.md
@@ -27,6 +24,11 @@ covered_files:
   - .planning/phases/139-exact-head-readiness-closure/139-06-SUMMARY.md
   - .planning/phases/139-exact-head-readiness-closure/139-07-PLAN.md
   - .planning/phases/139-exact-head-readiness-closure/139-07-SUMMARY.md
+  - .planning/phases/139-exact-head-readiness-closure/139-08-PLAN.md
+  - .planning/phases/139-exact-head-readiness-closure/139-08-SUMMARY.md
+  - .planning/phases/139-exact-head-readiness-closure/139-09-PLAN.md
+  - .planning/phases/139-exact-head-readiness-closure/139-09-SUMMARY.md
+  - .planning/phases/139-exact-head-readiness-closure/139-09-WORKFLOW-REVIEW.json
   - .planning/phases/139-exact-head-readiness-closure/139-CONTEXT.md
   - .planning/phases/139-exact-head-readiness-closure/139-REVIEW-DISPOSITION.md
   - .planning/phases/139-exact-head-readiness-closure/139-REVIEW.md
@@ -34,7 +36,6 @@ covered_files:
   - .planning/phases/139-exact-head-readiness-closure/139-UI-REVIEW.md
   - .planning/phases/139-exact-head-readiness-closure/139-VALIDATION.md
   - .planning/phases/139-exact-head-readiness-closure/139-preflight-test.sh
-  - .planning/phases/139-exact-head-readiness-closure/139-preflight.sh
   - .planning/phases/139-exact-head-readiness-closure/COVERAGE.md
   - AGENTS.md
   - RUNNING.md
@@ -44,6 +45,7 @@ covered_files:
   - lib/rindle/ops/runtime_checks/ownership_checks.ex
   - mix.exs
   - scripts/ci/install_apt_packages.sh
+  - scripts/ci/install_ffmpeg.sh
   - scripts/ci/manage_nightly_incident.sh
   - scripts/ci/prepare_readiness_fixture_runtime.sh
   - scripts/ci/readiness_fixture.exs
@@ -63,6 +65,10 @@ covered_files:
   - scripts/ci/test_readiness_snapshot.py
   - scripts/ci/test_repo_hygiene_check.sh
   - scripts/ci/test_script_test_groups.sh
+  - scripts/ci/test_verify_nightly_run.sh
+  - scripts/ci/test_workflow_review_gate.sh
+  - scripts/ci/verify_nightly_run.sh
+  - scripts/maintainer/check_workflow_review.py
   - scripts/maintainer/collect_readiness_remote.py
   - scripts/maintainer/collect_readiness_remote.sh
   - scripts/maintainer/collect_readiness_runs.py
@@ -86,151 +92,172 @@ covered_files:
   - scripts/maintainer/readiness_workflow.exs
   - scripts/maintainer/repo_hygiene_check.sh
   - scripts/maintainer/retain_readiness_bundle.sh
+  - scripts/maintainer/scan_live_residue.exs
   - scripts/maintainer/validate_exact_head_readiness.exs
   - scripts/maintainer/validate_live_truth.exs
+  - scripts/maintainer/validate_phase_133_reconciliation.exs
   - test/install_smoke/ci_cache_hygiene_test.exs
   - test/install_smoke/ci_lane_split_test.exs
+  - test/install_smoke/evidence_census_test.exs
   - test/install_smoke/live_truth_parity_test.exs
   - test/install_smoke/nightly_policy_test.exs
+  - test/install_smoke/phase_133_reconciliation_test.exs
+  - test/install_smoke/release_guard_meta_test.exs
   - test/install_smoke/support/generated_app/patcher.ex
   - test/rindle/doctor_test.exs
-covered_digest: "v4:sha256:7f3b3438f0192a8703a32b08259d2f8ad6dbc7c98e6ab80e57ab62b278951e2f"
+covered_digest: "v4:sha256:7f2de79a499111afb664c0b39969e59c239093b843c62dc231d35b8e4e203f18"
 behavior_unverified: 0
 overrides_applied: 0
+re_verification:
+  previous_status: gaps_found
+  previous_score: 5/17 truths verified
+  gaps_closed:
+    - "A complete immutable evidence graph returns ready when all source, policy, and receipt identities validate."
+  regressions: []
+human_verification:
+  - test: "Decide whether to authorize a separate automated current-head qualification and remote evidence collection."
+    expected: "The automated run binds local qualification, main CI/Nightly/protection, remote dispositions, and adoption parity to one exact subject; its output distinguishes current evidence from historical acceptance and synthetic fixtures."
+    why_human: "This verification explicitly did not perform live collection or acceptance. Fixture tests cannot establish current external facts; a human decision may authorize a separate evidence run but cannot itself satisfy READY-01 through READY-03."
+
 ---
 
 # Phase 139: Exact-Head Readiness Closure Verification Report
 
 **Phase Goal:** Maintainers can obtain one authoritative readiness verdict for the current immutable revision without overstating synthetic evidence as real adoption.
-**Verified:** 2026-10-29T17:30:42Z
-**Status:** passed
-**Re-verification:** No — initial verification
+**Verified:** 2026-11-17T21:36:24Z
+**Status:** human_needed
+**Re-verification:** Yes — after closure of the carried-forward workflow-policy drift gap.
 
 ## Goal Achievement
 
-The approved snapshot-v3 amendment permits acceptance of the explicitly admitted previously-main subject while independently refreshing scheduled operational health and current remote/adoption authority. The result is historical by definition. I did not use the current checkout's changed CI matrix or removed temporary cron to revalidate the frozen acceptance graph.
+The previous blocking `workflow_policy_drift` gap is closed for the current local fixture graph. The final workflow review record names the four workflow paths, pins raw base and final byte digests, accounts for 13 zero-context diff hunks, has no unresolved findings, and records five passing policy contracts. Running `check_workflow_review.py` against that real record passed. Its isolated positive and adverse fixtures passed. The canonical validator then returned fixture-scoped `ready`, and all 69 readiness graph tests passed with reason-specific negative cases. The current CI and release raw identity pins are accepted by that canonical CLI path; Nightly workflow identity is also covered by local collector fixtures.
+
+This does not refresh the historical acceptance of `48407bac7691c459395760b06f7714bbb6c3545b`, establish readiness for the current checkout, or perform live CI, Nightly, protection, inbox, or security collection. Historical acceptance remains explicitly scoped to its recorded source and interval. The Phase 133 `OPEN_THREATS` stop in Plan 230 remains intact.
+
+### Roadmap Observable Truths
 
 | # | Truth | Status | Evidence |
 |---|---|---|---|
-| 1 | An isolated exact-subject qualification passes supported toolchains and all required local gates. | ✓ VERIFIED | Read the retained execution-mode archive and manifest for subject `48407bac7691c459395760b06f7714bbb6c3545b`. Its 24 required proof IDs, including toolchains, format, compile, Credo, both Dialyzer modes, Doctor, coverage, security, docs, package, generated consumer, twin recovery, and hygiene, each have a `passed` receipt. `REGRESSION-EVIDENCE.json` also binds the accepted subject to native regression outputs (coverage 3 doctests/1770 tests/0 failures; contracts 103/0; twin recovery and 25 fresh isolation seeds exit 0). |
-| 2 | Exact-subject CI/Nightly and independently authenticated scheduled health/protection are complete and compatible. | ✓ VERIFIED | The accepted archive has execution receipts for `ci-main`, `nightly-qualification`, `scheduled-incident-health`, and `protection`; the frozen-source terminal graph validation passed. Summary identifies main run 40853899390/1 and same-source qualification 40857260942/1. Snapshot-v3 explicitly permits manual same-candidate qualification only when independently joined to genuine scheduled operational health. |
-| 3 | Current remote items and advisories have evidence-backed dispositions. | ✓ VERIFIED | The accepted archive includes passed `remote-inventory` and `inbox-ledger` receipts. The phase security/validation records identify authenticated complete collection and disposition coverage. This evidence is bounded by the stated observation interval, not a continuing assertion. |
-| 4 | A fail-closed manifest rejects missing, stale, partial, foreign, dirty, or unexplained evidence. | ✓ VERIFIED | Original frozen-source `readiness_acceptance.stored_bytes("szTheory/rindle", terminal, None)` independently returned PASS after validating the terminal object hashes, eight references, archive/sidecar/manifest consistency, subject, snapshot policy, and receipt graph. Manifest has 24 unique registered proof IDs and complete state. |
-| 5 | Synthetic adoption does not close the independent pilot or assert 1.0 authority. | ✓ VERIFIED | Verified archived `adoption-parity` receipt and manifest adoption fields: `maintainer_operated_synthetic`, `PILOT-01=open`, `PILOT-02=open`, `independent_pilot_credit=false`, and `one_point_zero_authority=false`. |
-| 6 | Public Doctor accepts the supported applied host-owned versioned migration while retaining adverse diagnostics. | ✓ VERIFIED | Doctor and generated-consumer receipts passed for the accepted source; `139-00` regression suite is mapped to actual host-ledger/catalog/marker and negative states. Implementation is present in `runtime_checks.ex` and `ownership_checks.ex`, and the public Doctor path remains the consumer. |
-| 7 | The evidence graph validates the real receipt bytes and does not treat incomplete attempts as ready. | ✓ VERIFIED | `validate_exact_head_readiness.exs` is the acceptance graph validator; its documented adverse fixtures cover changed/missing/foreign graph states. Actual execution terminal points to the original frozen-source validation record; `stored_bytes` returned PASS on the retained graph. |
-| 8 | Qualification runs an isolated exact-subject checkout and records package, cleanup and residue evidence. | ✓ VERIFIED | Accepted `package`, `generated-consumer`, `twin-recovery`, and `hygiene` receipts are execution-mode and subject-bound. Twin receipt records before/after cleanup inventories and no run-owned live service residue. |
-| 9 | CI and Nightly selection rejects incomplete attempts, PR-skip substitution and protection drift. | ✓ VERIFIED | Collector artifacts and executable fixture suites are present and used by the validation path; actual archive contains complete passed CI, Nightly, scheduled-health, and protection receipts. Current phase validation records 64 collector fixture checks passed. |
-| 10 | Remote observations are complete and disposition changes invalidate acceptance. | ✓ VERIFIED | Remote collector and regression suite feed the graph validator; execution archive includes the remote inventory and inbox ledger receipts. Current cheap fixture run recorded 64 collector checks passed. |
-| 11 | One bounded acceptance invocation joins local and remote evidence, refreshes mutable facts, and validates the refresh envelope. | ✓ VERIFIED | Terminal references include original manifest, refreshed manifest, refresh envelope, and validator output. `stored_bytes` verifies eight terminal refs and original manifest equality with the refreshed manifest. |
-| 12 | Producer archive and digest sidecar are durably retained and tied to the exact run/attempt. | ✓ VERIFIED | Terminal and durable locator name producer run 40864930767/1, distinct producer head `b2a60c51687293df5498920cc2bddb4e25349251`, archive SHA-256 `8737a63f…758f91`, sidecar SHA-256 `34c5a691…30b28`, and `bytes_verified=true`; all hashes were checked by original-source `stored_bytes`. |
-| 13 | Completed requirements and phase metadata retain historical scope, subject, interval, and terminal locator. | ✓ VERIFIED | Original frozen-source `metadata_parity(current_root, subject, interval)` returned PASS. All five checked requirement rows and all five complete traceability rows name the exact subject, full interval and terminal-verdict locator as historical. |
-| 14 | Phase artifacts do not claim visual UI changes or human-only completion. | ✓ VERIFIED | UI review is `not_applicable`; scope is CLI, collectors, workflows, validator, tests, and Doctor. Active requirements close through executable accepted receipts. |
-| 15 | The decision record is reflected in shipped artifacts. | ✓ VERIFIED | `check.decision-coverage-verify` returned `total:25`, `honored:25`, `not_honored:[]` (nonblocking gate). |
+| 1 | One isolated exact-head checkout passes all required local gates. | ? UNCERTAIN | The exact-head driver and complete gate registry exist, but no qualification was run in this verification. Prior historical acceptance applies only to its named snapshot. |
+| 2 | The same exact head has green main CI and Nightly conclusions, with automated protection-topology proof. | ? UNCERTAIN | Local collector fixtures pass in `test_readiness_runs.sh`; no current remote observations were collected. |
+| 3 | Current remote items and advisories have evidence-backed dispositions with no undispositioned release blocker. | ? UNCERTAIN | The pinned local suite passes 84 fixtures, but no current remote inventory was collected in this verification. |
+| 4 | The readiness manifest rejects missing, stale, partial, skipped, foreign, unclean, residue-bearing, or unexplained evidence. | ✓ VERIFIED | `bash scripts/ci/test_exact_head_readiness.sh`: 69 tests, 0 failures; canonical complete fixture returns `ready`, and deliberate policy drift / malformed / foreign inputs retain specific reasons. |
+| 5 | Adoption checks keep the independent Phoenix pilot open and reject synthetic-as-real or 1.0 claims. | ✓ VERIFIED | `bash scripts/ci/test_readiness_adoption.sh`: 19 tests passed; fixture-scoped validator asserts `requirements_credit: false`, both pilot requirements open, and no 1.0 authority. |
 
-**Score:** 15/15 truths verified (0 present, behavior-unverified)
+### Plan Must-Have Truths
 
-### Historical acceptance identity
+| Plan | Truth | Status | Evidence |
+|---|---|---|---|
+| 139-00 | Doctor accepts a ready versioned host migration while pending host work fails. | ✓ VERIFIED | Prior focused Doctor regression was green; no Doctor code was changed in the gap-closure plan. |
+| 139-00 | Legacy/populated-upgrade diagnostics, catalog readiness, and host-owned Oban checks retain adverse outcomes. | ✓ VERIFIED | Prior focused Doctor regression was green; quick regression review shows the same wired test and runtime path. |
+| 139-01 | A complete immutable graph returns ready only after bytes/identities validate; unfinished attempts are not_ready. | ✓ VERIFIED | Re-run `bash scripts/ci/test_exact_head_readiness.sh`: 69 tests, 0 failures; output includes canonical `ready` and adverse `not_ready` cases. |
+| 139-02 | Fresh isolated checkout executes the exact supported gate set and preserves source/package/cleanup/residue evidence. | ? UNCERTAIN | Driver and receipt wiring remain present. No qualification execution was requested or performed. |
+| 139-03 | Main CI, scheduled Nightly, incident health and protection are verified without skip substitution. | ? UNCERTAIN | `bash scripts/ci/test_readiness_runs.sh` passes 65 local fixtures; no live runs or protection state were observed. |
+| 139-04 | Current remote source coverage and dispositions are confirmed across bounded reads. | ? UNCERTAIN | The pinned `test_readiness_remote.sh` passes 84 tests; no current remote inventory was collected. |
+| 139-05 | One invocation joins local and remote receipts and validates fresh mutable facts through refresh. | ? UNCERTAIN | Orchestration and refresh-validator paths remain connected; no current closure run or remote refresh was performed. |
+| 139-06 | Durable bundle retrieval and authoritative synthetic parity participate in acceptance. | ? UNCERTAIN | Local adoption parity passes; external durable retrieval was not exercised. |
+| 139-07 | Historical acceptance is limited to its admitted subject/interval; later heads gain no current-readiness credit. | ✓ VERIFIED | Roadmap and requirements retain the historical SHA and interval; code uses `requirements_credit: false` for fixture/historical results. No acceptance was replayed. |
+| 139-07 | Retained bytes, refreshed remote facts and adoption parity form one valid terminal result. | ? UNCERTAIN | The graph is implemented, but no external producer, retention action, or remote refresh was performed. |
+| 139-08 | CI Summary receipts require GitHub Actions App ID 15368 and are consumed by reconciliation. | ✓ VERIFIED | Prior local `test_verify_nightly_run.sh` evidence passed; receipt identity and consumer paths remain wired. |
+| 139-08 | Missing or altered app identity cannot create/preserve a valid receipt. | ✓ VERIFIED | Prior local fake-API regressions passed; current source retains exact app-ID checks. |
+| 139-09 | Final workflow bytes and every changed hunk have a machine-checked resolved review before control identities are accepted. | ✓ VERIFIED | Real gate passed: 4 workflow files, 13 reviewed hunks, zero unresolved findings, five passing local contracts. Adverse gate fixtures reject missing, malformed, changed, incomplete, unresolved and unsafe-path records. |
+| 139-09 | Canonical graph returns fixture-scoped ready while malformed and foreign graphs keep specific reasons. | ✓ VERIFIED | `bash scripts/ci/test_exact_head_readiness.sh`: 69 tests, 0 failures; adoption and workflow-policy drift rejection are explicit. |
+| 139-09 | Historical-only acceptance scope and Phase 133 `OPEN_THREATS` remain intact. | ✓ VERIFIED | Report and requirements preserve historical source/interval only; `.planning/phases/133-evidence-charter-and-live-truth/133-230-SUMMARY.md` remains `OPEN_THREATS`. No proof replay or Phase 133 security edit occurred. |
 
-| Field | Verified value |
-|---|---|
-| Subject | `48407bac7691c459395760b06f7714bbb6c3545b` |
-| Interval | `2026-10-29T11:22:36.801043Z`–`2026-10-29T15:56:53.252718Z` |
-| Verdict | `ready`, `evidence_mode=execution`, `acceptance_scope=historical` |
-| Current readiness | `false`; current main at capture was `b2a60c51687293df5498920cc2bddb4e25349251` |
-| Terminal locator | `/Users/jon/Library/Application Support/Rindle/readiness/accept-v3-48407bac-renewed-20261029/terminal-verdict.json` |
-| Owner observation | Normal controller exit 0, direct owner observation at `...-owner/exit.json` |
-| Original-source checks | `stored_bytes`: PASS; `metadata_parity`: PASS; independent claim record reports `historical_ready`, `current_readiness=false` |
-
-### Deferred Items
-
-No failed phase truth is deferred. The independent Phoenix pilot remains intentionally open and has no READY credit. CI-16 remains unfinished and receives zero credit; the original timing receipt remains unchanged. Later current-main changes require their own qualification.
+**Score:** 11/20 truths verified; 9 uncertain; 0 failed.
 
 ## Required Artifacts
 
-| Plan area | Exists / substantive | Wired | Status and evidence |
+| Artifact | Expected | Status | Details |
 |---|---|---|---|
-| Doctor ledger inspection | Present and substantive in `lib/rindle/ops/runtime_checks{,/ownership_checks}.ex` with focused regression tests | Public `mix rindle.doctor` path uses runtime checks | ✓ VERIFIED; accepted Doctor and generated-consumer receipts passed |
-| Offline graph validator | Present and substantive in `scripts/maintainer/validate_exact_head_readiness.exs` | Acceptance and retention validation invoke it; CLI fixtures exercise it | ✓ VERIFIED; original-source graph validation passed on execution bytes |
-| Exact-subject qualification | `scripts/maintainer/exact_head_readiness.py` and shell entry point are substantive | Required receipt registry reaches validator | ✓ VERIFIED; all 18 native gate results and local proof receipts passed |
-| CI/Nightly/protection collection | Collectors and workflow-specific policy modules present | Collector output feeds the accepted manifest | ✓ VERIFIED; corresponding execution receipts passed |
-| Remote inventory | Authenticated remote collector and tests present | Remote source receipt feeds terminal graph | ✓ VERIFIED; remote inventory and inbox receipts passed |
-| Acceptance orchestration | Bounded acceptance, closure, refresh and adoption modules present | Producer/archive → sidecar → refresh envelope → terminal verdict chain validated | ✓ VERIFIED; eight terminal refs and graph passed |
-| Durable retention | Producer workflow, sidecar and host retrieval implementation present | Producer run/attempt and stored bytes bind to locator and terminal | ✓ VERIFIED; bytes and producer identity verified |
-| Historical claim scope | Claim-status implementation and metadata parity function present | Current worktree metadata checked by frozen source checker | ✓ VERIFIED; `historical_ready`, not current-ready |
+| `scripts/maintainer/check_workflow_review.py` | Validate final workflow identity, hunk coverage, findings and contracts | ✓ VERIFIED | Substantive Python implementation; invoked successfully on the real review record and adversarial temp-git fixtures. |
+| `scripts/ci/test_workflow_review_gate.sh` | Isolated positive and fail-closed review-record fixtures | ✓ VERIFIED | Passed positive case and all recorded negative cases, including FIFO/symlink rejection. |
+| `139-09-WORKFLOW-REVIEW.json` | Pin base/final workflow bytes and disposition every hunk | ✓ VERIFIED | Four paths, 13 unique reviewed hunks, five passing contracts, no findings; real checker accepted exact current bytes. |
+| `scripts/maintainer/validate_exact_head_readiness.exs` and `scripts/ci/test_exact_head_readiness.sh` | Validate the real fixture graph and specific rejection reasons | ✓ VERIFIED | CLI and 69-case suite pass; workflow policy guards run before graph/source acceptance. |
+| `scripts/ci/test_readiness_remote.sh` | Prove remote collector reason-specific behavior | ✓ VERIFIED | With project-pinned Erlang/Elixir/Node versions, all 84 source-specific remote fixture tests pass. |
+| Readiness acceptance/refresh, collectors, retention and adoption | Produce and validate actual local/remote evidence | ⚠️ PRESENT/WIRED | Entry points trace into real validators and collectors; remote data and external durable retrieval were not refreshed. Adoption fixtures pass. |
 
 ## Key Link Verification
 
 | From | To | Via | Status | Details |
 |---|---|---|---|---|
-| Source receipts | `validate_exact_head_readiness.exs` | Subject-bound finite proof registry | ✓ WIRED | Actual manifest's 24 proof records flow through stored-byte graph validation. |
-| Doctor task | Host migration ledger/catalog checks | Public Doctor runtime check | ✓ WIRED | Doctor receipt passed in accepted execution. |
-| CI/Nightly workflows | Run collector and policy validators | Exact run/attempt and topology | ✓ WIRED | `ci-main`, `nightly-qualification`, scheduled health and protection receipts passed. |
-| Remote collector | Terminal manifest | Complete source receipt inventory | ✓ WIRED | `remote-inventory` and `inbox-ledger` receipts are present and pass validation. |
-| Producer workflow | Durable local archive | Run/attempt-bound sidecar and archive | ✓ WIRED | Producer 40864930767/1; archive, sidecar and locator digests verified. |
-| Original manifest + refresh envelope | Terminal verdict | Frozen validator checks byte graph | ✓ WIRED | Original manifest equals refreshed manifest; terminal validation and original `stored_bytes` passed. |
-| Historical metadata | Claim status | `metadata_parity` and `claim-status` | ✓ WIRED | Parity passed against current worktree; independent claim record is historical-only. |
+| Review JSON | Candidate-base four workflows | Raw-byte SHA-256 comparison and base-to-working-tree zero-context hunks | ✓ WIRED | Real check passed for base `30c72b70d5920d9621b1ecac74ed1c6a6ce643c3`, four final digests and 13 hunk identities. |
+| Workflow review gate | Validator guard reconciliation | Exact file and hunk review before accepting pinned CI/release identities | ✓ WIRED | The gate is a sequencing check; the canonical fixture CLI accepts the current CI normalized identity and release raw digest. |
+| Canonical readiness fixture | Exact-head validator | Test fixture invokes production Elixir validator | ✓ WIRED | Complete graph returns fixture-scoped `ready`; policy-drift and source-specific negative cases pass. |
+| Remote collector fixtures | Remote-state validator | `test_readiness_remote.sh` invokes fixture responses and production collector | ✓ WIRED | Pinned local suite passes all 84 cases; no current remote collection was performed. |
+| Adoption state | Acceptance verdict | `readiness_adoption.py` and validator parity checks | ✓ WIRED | 19 local assertions pass and fixture results carry no requirement credit. |
 
 ## Data-Flow Trace (Level 4)
 
-| Artifact | Data variable | Source | Produces real data | Status |
+| Artifact | Data | Source | Produces real data | Status |
 |---|---|---|---|---|
-| Readiness terminal | 24 proof references | Actual accepted execution receipts, separately retrieved producer archive, and refreshed remote receipts | Yes; execution mode, exact subject, receipt SHA-256 values checked against archived bytes | ✓ FLOWING |
-| Adoption decision | Pilot/authority fields | Current authoritative adoption parity receipt | Yes; both pilot IDs remain open and authority flags false | ✓ FLOWING |
-
-No UI-rendered dynamic data is in scope.
+| Readiness manifest | Source receipts and identities | Local proof files and bounded collectors | Yes when collected | ✓ FLOWING for fixture graph; no current acceptance run |
+| Workflow review | Workflow control identity | Exact current file bytes and Git base objects | Yes | ✓ FLOWING; current bytes matched reviewed record |
+| Remote disposition | Issues, advisories and package audit state | GitHub/Hex adapters plus response fixtures | Yes when fetched | ✓ FIXTURE FLOWING (84 pinned cases pass); no current inventory collected |
+| Adoption parity | Pilot and release authority | Project/requirements/release authority files | Yes | ✓ FLOWING; local checks reject synthetic inflation |
 
 ## Behavioral Spot-Checks
 
-| Behavior | Command / evidence | Result | Status |
+| Behavior | Command | Result | Status |
 |---|---|---|---|
-| Terminal graph rejects missing/mismatched bytes and accepts only complete execution graph | `PYTHONDONTWRITEBYTECODE=1 python3` importing frozen `/private/tmp/rindle-v3-source-20261029-11/scripts/maintainer/readiness_acceptance.py`; called `stored_bytes("szTheory/rindle", terminal-verdict.json, None)` | PASS; terminal graph, identities, hashes and archive manifest validated | ✓ PASS |
-| Later metadata stays historical and fully qualified | Same read-only Python process called `metadata_parity(current_root, subject, interval)` | PASS; all five READY checked rows and traceability rows include historical scope, full SHA, interval, and terminal locator | ✓ PASS |
-| Native source regression outcomes | Read-only `REGRESSION-EVIDENCE.json` | 18 native gate commands exit 0; coverage 3 doctests/1770 tests/0 failures (88 excluded, 4 skipped); contracts 103 tests/0 failures; twin recovery and 25 fresh full-isolation seeds exit 0 | ✓ PASS (retained execution evidence) |
-| Execution-mode evidence graph | Read-only receipt walk through retained gzip archive | All 24 proof receipts have `passed`; state is complete; snapshot policy is v3 | ✓ PASS |
-| Bounded post-completion maintenance validation | `mix test test/install_smoke/live_residue_scan_test.exs --seed 0` (root-observed, log `/private/tmp/rindle-pr219-residue-repair-mix-20261029.log`); cheap fixture validation | Residue scan 31 tests/0 failures; cheap fixtures completed in 112 seconds. This is follow-up maintenance evidence, not a rerun of qualification and not hosted CI success. Phase plan completion is recorded as 8/8; that count is not used as evidence for the historical verdict. | ✓ PASS (bounded follow-up) |
-
-No current-source readiness/qualification or collector was rerun because this verification is for the accepted historical snapshot; current checkout control changes cannot inherit that result.
-The independent maintenance PR's latest hosted CI is not reported green here; it is outside the accepted source run and remains pending repair/verification.
+| Real workflow record binds all final workflow bytes and changed hunks | `python3 scripts/maintainer/check_workflow_review.py --record .planning/phases/139-exact-head-readiness-closure/139-09-WORKFLOW-REVIEW.json` | Passed: 4 files, 13 hunks, 0 unresolved findings, 5 contracts | ✓ PASS |
+| Review gate rejects malformed/missing/drifted records and unsafe paths | `bash scripts/ci/test_workflow_review_gate.sh` | All positive/adverse fixtures passed | ✓ PASS |
+| Complete evidence graph returns fixture-scoped ready and negatives retain reasons | `bash scripts/ci/test_exact_head_readiness.sh` | 69 tests, 0 failures | ✓ PASS |
+| Local run/protection/topology fixture suite | `bash scripts/ci/test_readiness_runs.sh` | 65 tests, 0 failures | ✓ PASS |
+| Adoption boundary rejects real-adopter/1.0 inflation | `bash scripts/ci/test_readiness_adoption.sh` | 19 tests passed | ✓ PASS |
+| Remote dispositions retain source-specific outcomes | `env ASDF_ERLANG_VERSION=27.3.4.15 ASDF_ELIXIR_VERSION=1.17.3-otp-27 ASDF_NODEJS_VERSION=20.18.1 bash scripts/ci/test_readiness_remote.sh` | 84 tests passed; no READY credit | ✓ PASS |
 
 ## Probe Execution
 
-No `probe-*.sh` is declared by the phase plans or summaries. Historical acceptance was checked through the dedicated terminal and byte verifiers above.
+No phase-declared probe script applies. This is an implementation and fixture phase; its declared verification commands were used directly.
 
 ## Requirements Coverage
 
-| Requirement | Source plan | Description | Status | Evidence |
+| Requirement | Source Plan | Description | Status | Evidence |
 |---|---|---|---|---|
-| READY-01 | 139-00, 139-02, 139-05, 139-07 | Supported isolated qualification and local gates | ✓ SATISFIED — historical | Actual execution manifest, 24 passed proofs, subject/interval/terminal locator; Doctor correction receipt passed |
-| READY-02 | 139-03, 139-05, 139-07 | Same-subject main CI/Nightly, real scheduled operational health and protection | ✓ SATISFIED — historical | Four passed archived execution receipts, validated against frozen graph |
-| READY-03 | 139-04, 139-05, 139-07 | Current observed remote dispositions | ✓ SATISFIED — historical | Passed remote inventory, inbox ledger, and adoption parity receipts in accepted archive |
-| READY-04 | 139-01–139-07 | Fail-closed exact-subject manifest and durable evidence | ✓ SATISFIED — historical | Original-source `stored_bytes` passed for actual execution terminal graph and retained archive |
-| READY-05 | 139-01, 139-06, 139-07 | Keep independent pilot open; no real-adopter/1.0 claim | ✓ SATISFIED — historical | Adoption parity receipt and manifest explicitly retain PILOT-01/02 open and both authority flags false |
+| READY-01 | 139-02, 139-07 | Exact-subject local qualification | SATISFIED historically only | Existing acceptance is pinned to SHA `48407bac7691c459395760b06f7714bbb6c3545b` and its recorded interval; no current qualification run. |
+| READY-02 | 139-03, 139-05, 139-07, 139-08, 139-09 | Main/Nightly, protection and reviewed workflow controls | PARTIAL for this checkout | Local topology/identity fixtures and workflow review pass; no current remote run/protection observation. |
+| READY-03 | 139-04, 139-05, 139-07 | Current remote items/advisories have dispositions | SATISFIED historically only | Pinned local remote fixtures pass 84 cases; existing acceptance remains bound to its historical subject and interval. No current inventory was collected. |
+| READY-04 | 139-01, 139-02, 139-05, 139-06, 139-08, 139-09 | Fail-closed manifest | SATISFIED for local behavior | Canonical graph and 69 adverse/positive cases pass; fixture output grants no requirements credit. |
+| READY-05 | 139-01, 139-06, 139-07 | Independent pilot remains open; synthetic evidence grants no 1.0/adopter claim | SATISFIED | Adoption parity suite passes 19 cases; fixture verdict has `requirements_credit: false`. |
 
-The original full requirement descriptions and completion rows each state historical scope. No requirement receives credit for the later checkout or current main.
+No Phase 139 requirement IDs are orphaned. READY-01 through READY-03 are not refreshed as current-readiness claims by this verification.
 
-## Decision Coverage
+### Decision Coverage
 
-`check.decision-coverage-verify` returned 25/25 honored decisions, 0 unhonored. This gate is advisory and does not affect status.
+The existing context coverage report records all 25 trackable decisions honored. Plan 09 carries the workflow review, token scope, fixture scope and historical-only boundaries into implementation. This gate is nonblocking.
 
-## Test-Quality and Anti-Patterns Found
+### Test Quality Audit
+
+| Test file | Linked requirement | Active | Circular | Assertion level | Result |
+|---|---|---:|---:|---|---|
+| `scripts/ci/test_exact_head_readiness.sh` | READY-04 | Yes | No | Behavioral/reason-specific | Pass, 69 cases |
+| `scripts/ci/test_workflow_review_gate.sh` | READY-02/04 | Yes | No | Behavioral/adverse mutations | Pass |
+| `scripts/ci/test_readiness_remote.sh` | READY-03 | Yes | No | Source-specific outcomes | Pass, 84 cases under pinned toolchain |
+| `scripts/ci/test_readiness_adoption.sh` | READY-05 | Yes | No | State and claim assertions | Pass, 19 cases |
+| `scripts/ci/test_readiness_acceptance.sh` | READY-01/04 | Yes | No | Inventory path compatibility and no-credit acceptance | Pass, 29 cases |
+
+## Anti-Patterns Found
 
 | File | Pattern | Severity | Impact |
 |---|---|---|---|
-| `scripts/ci/readiness_fixture.exs` and fixture-backed readiness tests | The positive synthetic fixture obtains policy/proof IDs and hashes from the validator module it tests. | ⚠️ WARNING | These fixture tests are useful for schema and rejection-path coverage but are not an independent correctness oracle. They were not credited as readiness evidence; the accepted execution receipts, separately retained producer bytes, and original-source stored-byte check establish this historical result. |
-| `139-REVIEW.md` | Two preexisting Doctor schema-check false-green warnings (offset default substring and unfiltered index predicate) | ℹ️ INFO | Both are tracked in `139-REVIEW-DISPOSITION.md` as preexisting follow-up work; accepted shipped migration and actual Doctor receipt satisfy this phase's supported path. They do not establish a Phase 139 regression or invalidate the bounded accepted run. |
+| None | No blocking anti-patterns found in this pass. | — | — |
 
-Disabled/skipped test scan of requirement-linked Doctor, readiness collector, acceptance, retention and adoption tests found no disabled test markers. Debt-marker scan found no completion-blocking marker in declared implementation files; the only `placeholder` match is a non-secret `dryrun-placeholder` value in the CI workflow. Review found zero blockers and two tracked preexisting warnings. UI review is not applicable; no front-end files changed.
+No unreferenced TBD/FIXME/XXX markers or stub implementations were found in the reviewed Phase 139 paths. The validator's default fail-closed results are populated by real graph reads and are not empty-data stubs.
 
 ## Human Verification Required
 
-None. Requirements close through executable terminal, graph, parity, and retained execution evidence. This verdict is historical and does not describe current-main readiness.
+### 1. Run current evidence collection after protected-main delivery
+
+**Test:** Run the already-authorized automated current-head qualification and remote evidence collection after the reviewed Phase 139 changes reach protected main.
+**Expected:** A later automated run binds fresh local and remote evidence to one exact subject, preserving the historical-only acceptance and synthetic-adoption boundary.
+**Why blocked:** Plan 139-07 admits the subject only after the tracked changes land through the protected-main path. The scoped candidate is for CI review and has not been merged; human confirmation cannot satisfy the requirements.
 
 ## Gaps Summary
 
-No phase-goal gaps found under the user-approved snapshot-v3 historical scope. The actual terminal verdict is `ready` for the admitted previously-main SHA and finite observation interval only. Independent pilot requirements remain open; CI-16 remains unfinished with zero credit; PR185/188 holds and PR189 draft/unmerged/no-auto posture are preserved. This report confers no publication, merge, or 1.0 authority.
+The carried-forward workflow identity mismatch is fixed: the machine-checked review record matches the candidate-base workflow bytes and all hunks, the workflow review fixtures pass, and the canonical exact-head validator fixture suite now passes with its specific negative reasons. The remote-disposition fixtures also pass all 84 cases under the pinned toolchain. The first hosted PR CI run exposed a stale FFmpeg token expectation and three missing residue contracts; the candidate follow-up updates the test and records those exact references, and the two focused install-smoke suites pass 56 tests locally. Hosted rerun evidence is still required for candidate delivery. Current-head qualification, live Nightly/protection, and durable external retrieval were not exercised and receive no refreshed credit. The already-authorized collection remains gated on protected-main delivery of the reviewed candidate. Historical acceptance remains historical only. Phase 133 Plan 230 remains `OPEN_THREATS`; no security clearance or proof replay is implied.
 
 ---
 
-_Verified: 2026-10-29T17:30:42Z_  
+_Verified: 2026-11-17T23:18:54Z_
 _Verifier: the agent (gsd-verifier)_

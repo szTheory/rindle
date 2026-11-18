@@ -16,6 +16,13 @@ from readiness_github import GitHub
 from readiness_retention import WORKFLOW, WORKFLOW_NAME, durable_path, graph_objects, retrieve, reserve, workflow_identity
 
 PHASE='.planning/phases/139-exact-head-readiness-closure'
+RELOCATED_PHASE_FILES={f'{PHASE}/139-preflight.sh':'.planning/evidence/runtime/139-preflight.sh'}
+
+
+def phase_inventory_path(root, relative):
+    relocated=RELOCATED_PHASE_FILES.get(relative)
+    if relocated is not None and not (root/relative).is_file():return relocated
+    return relative
 
 
 def git(root,*args):
@@ -33,12 +40,15 @@ def main_sha(api):
 def declared_files(root=ROOT):
     paths=set(git(root,'ls-files','-z','--',PHASE).decode().split('\0'))-{''}
     paths.update({'RUNNING.md','.github/workflows/ci.yml',WORKFLOW,'scripts/maintainer/exact_head_readiness.sh',
-        PHASE+'/139-preflight.sh'})
+        phase_inventory_path(root,f'{PHASE}/139-preflight.sh')})
     for n in range(8):
         relative=f'{PHASE}/139-{n:02d}-PLAN.md';paths.add(relative);path=root/relative
         require(path.is_file() and not path.is_symlink(),'phase_inventory_missing')
         text=path.read_text();match=re.search(r'(?ms)^files_modified:\s*\n((?:  - [^\n]+\n)+)',text)
-        if match:paths.update(line[4:].strip() for line in match[1].splitlines())
+        if match:
+            for line in match[1].splitlines():
+                declared=line[4:].strip()
+                paths.add(phase_inventory_path(root,declared))
     require(all(p and not p.startswith('/') and all(c not in ('','.','..') for c in p.split('/')) for p in paths),'phase_inventory_invalid')
     return sorted(paths)
 

@@ -658,12 +658,13 @@ main_ci_evidence() {
   [ "$(jq 'length' <<<"$matches")" -eq 1 ] || die "expected exactly one CI Summary check for ${expected_sha}"
   jq -e '.[0] | .status == "completed" and .conclusion == "success" and
     (.id | type == "number" and . > 0 and floor == .) and
+    (.app.id | type == "number" and . == 15368) and
     (.html_url | type == "string" and startswith("https://")) and
     (.completed_at | type == "string" and fromdateiso8601 >= 0)' <<<"$matches" >/dev/null ||
-    die "CI Summary check is not completed and successful"
+    die "CI Summary check is not completed, successful, and issued by GitHub Actions"
   jq -cnS --arg repo "$repo" --arg sha "$expected_sha" --argjson check "$(jq '.[0]' <<<"$matches")" \
     '{schema:"rindle-main-ci-receipt-v1",repository:$repo,subject_sha:$sha,check_id:$check.id,
-      check_name:$check.name,status:$check.status,conclusion:$check.conclusion,url:$check.html_url,
+      check_name:$check.name,check_app_id:$check.app.id,status:$check.status,conclusion:$check.conclusion,url:$check.html_url,
       completed_at:$check.completed_at}'
 }
 

@@ -119,6 +119,15 @@ class Acceptance(unittest.TestCase):
     def test_unqualified_complete_traceability_row_rejected(self):
         path=self.tmp/'.planning';path.mkdir();(path/'REQUIREMENTS.md').write_text('| READY-05 | Phase 139 | Complete |\n')
         with self.assertRaises(a.NotReady):a.metadata_parity(self.tmp,sha,{'started_at':'start','completed_at':'end'})
+    def test_phase_inventory_uses_tracked_preflight_then_relocated_fallback(self):
+        with tempfile.TemporaryDirectory(prefix='rindle139-phase-inventory-') as directory:
+            checkout=pathlib.Path(directory);relative=f'{a.PHASE}/139-preflight.sh'
+            tracked=checkout/relative;relocated=checkout/a.RELOCATED_PHASE_FILES[relative]
+            tracked.parent.mkdir(parents=True);tracked.write_text('tracked preflight')
+            relocated.parent.mkdir(parents=True);relocated.write_text('runtime preflight')
+            self.assertEqual(a.phase_inventory_path(checkout,relative),relative)
+            tracked.unlink()
+            self.assertEqual(a.phase_inventory_path(checkout,relative),a.RELOCATED_PHASE_FILES[relative])
     def test_unqualified_summary_rejected(self):
         path=self.tmp/a.PHASE;path.mkdir(parents=True);(path/'139-07-SUMMARY.md').write_text('---\nstatus: complete\n---\nready\n')
         with self.assertRaises(a.NotReady):a.metadata_parity(self.tmp,sha,{'started_at':'start','completed_at':'end'})

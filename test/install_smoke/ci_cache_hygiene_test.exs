@@ -306,7 +306,7 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
     %{output: output, status: status, log: read_log(log)}
   end
 
-  test "every static FFmpeg install authenticates its release lookup" do
+  test "static FFmpeg installs do not expose GitHub credentials to pinned downloads" do
     for {workflow_name, workflow_path} <- [
           {"ci.yml", @ci_path},
           {"nightly.yml", @nightly_path},
@@ -323,9 +323,9 @@ defmodule Rindle.InstallSmoke.CiCacheHygieneTest do
       assert installer_steps != [], "#{workflow_name} must retain its static FFmpeg install"
 
       assert Enum.all?(installer_steps, fn step ->
-               get_in(step, ["env", "GITHUB_TOKEN"]) == "${{ github.token }}"
+               get_in(step, ["env", "GITHUB_TOKEN"]) == nil
              end),
-             "#{workflow_name} must pass github.token to every static FFmpeg release lookup"
+             "#{workflow_name} must not expose github.token to a public, checksum-pinned FFmpeg download"
     end
   end
 

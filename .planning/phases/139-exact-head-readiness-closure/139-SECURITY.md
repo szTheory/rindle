@@ -32,6 +32,11 @@ Remote GitHub/security/registry facts enter authenticated bounded collectors; un
 | T-139-11 | high | `readiness_subject.py`, acceptance and retention bind admitted protected-main candidate separately from producer head; ancestry/control/authentication rechecks and substitution negatives | closed |
 | T-139-12 | high | `stored_bytes` and original validator independently re-read archive/sidecar/manifest/refresh graph; metadata parity and advanced-head claim reject unqualified current readiness | closed |
 | T-139-13 | medium | Doctor host-ledger/catalog/version inspection rejects down/unknown/error/missing marker while preserving legacy/Oban failures; Doctor regressions and actual generated-consumer probe | closed |
+| T-139-14 | high | `scripts/ci/verify_nightly_run.sh` requires numeric `.app.id == 15368` for the sole successful exact-name/exact-SHA CI Summary check; fake API fixtures reject foreign, missing, null, and nonnumeric IDs | closed |
+| T-139-15 | high | Receipt rendering retains `check_app_id` and strict fresh-check equality; fake API fixtures reject retained receipts with changed or removed app IDs | closed |
+| T-139-16 | high | `check_workflow_review.py` binds the approved base commit, final workflow byte digests, every changed hunk, resolved findings and passing contracts before trusted identities are accepted; adverse fixtures reject missing, changed, incomplete and unresolved review records | closed |
+| T-139-17 | medium | Workflow review confirms `READINESS_READ_TOKEN` is limited to admission binding and candidate collection; the reviewed workflow bytes keep it out of native installers and dependency preparation | closed |
+| T-139-18 | medium | The canonical complete fixture returns fixture-scoped `ready`, while malformed/foreign and policy-drift cases retain source-specific rejection reasons in the 69-case validator suite | closed |
 | T-139-SC | high | No new dependency introduced by acceptance. Root/demo signed registry/advisory audits and lock-bound package gates ran; newly disclosed demo Bandit issue repaired through PR217 before accepted source | closed |
 
 ## Execution evidence and limits
@@ -43,3 +48,39 @@ No accepted risk was used to close an open mitigation. Credentials were replaced
 ## Security audit
 
 2026-10-29:14 distinct registered threats,14 closed,0 open; configured ASVS L1, high blocking threshold. Inline mitigation audit by the executing maintainer agent; no independent penetration-test claim.
+
+Plan 139-08 adds two plan-time threats for CI Summary app spoofing and retained-receipt tampering. At configured ASVS L1 depth, source checks and the focused fake-API regressions confirm the registered mitigations. This local evidence does not refresh historical readiness or establish current remote CI.
+
+## Security Audit 2026-11-14
+
+| Metric | Count |
+|---|---|
+| Threats found | 14 |
+| Closed | 14 |
+| Open | 0 |
+
+## Security Audit — Plan 139-08 (2026-11-14)
+
+| Metric | Count |
+|---|---|
+| Threats found | 2 |
+| Closed | 2 |
+| Open | 0 |
+
+## Security Audit 2026-11-17
+
+| Metric | Count |
+|---|---|
+| Threats found | 16 |
+| Closed | 16 |
+| Open | 0 |
+
+The review-record gate rejects unreviewed or altered workflow identity inputs, the retained token is scoped to the two authenticated collection steps, and the local canonical graph and its negative cases pass. These checks do not exercise live credentials, refresh remote state, or grant current-readiness credit.
+
+## Security Audit — Plan 139-09 2026-11-17
+
+| Metric | Count |
+|---|---|
+| Threats found | 3 |
+| Closed | 3 |
+| Open | 0 |
