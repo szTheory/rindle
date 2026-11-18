@@ -1062,14 +1062,14 @@
       "head_sha": "023ab015c4ad6f2bafac4a43e41cac5a31f9234c",
       "kind": "pr",
       "number": 145,
-      "rationale": "Retain the separate Oban 2.24.2 lock candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406514940 passed on 023ab015; the only dependency delta remains Oban 2.21.1→2.24.2. Current main keeps 2.21.1. This is not an actual dependency landing, and separate dependency-delivery work and post-merge evidence remain outstanding. No upgrade or READY credit."
+      "rationale": "Retain the separate Oban 2.24.2 lock candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406514940 passed on 023ab015; the only dependency delta remains Oban 2.21.1\u21922.24.2. Current main keeps 2.21.1. This is not an actual dependency landing, and separate dependency-delivery work and post-merge evidence remain outstanding. No upgrade or READY credit."
     },
     {
       "disposition": "retain",
       "head_sha": "b3205ebc68afba6c14751c09a8c1302b5182368c",
       "kind": "pr",
       "number": 146,
-      "rationale": "Retain the separate MuonTrap 1.8.0 candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406492180 passed on b3205ebc. Root-lock changes are MuonTrap 1.7.0→1.8.0 and elixir_make 0.10.0→0.10.1; main pins remain unchanged. Separate dependency-delivery work and actual landing proof remain outstanding. No upgrade, CI-speed or READY credit."
+      "rationale": "Retain the separate MuonTrap 1.8.0 candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406492180 passed on b3205ebc. Root-lock changes are MuonTrap 1.7.0\u21921.8.0 and elixir_make 0.10.0\u21920.10.1; main pins remain unchanged. Separate dependency-delivery work and actual landing proof remain outstanding. No upgrade, CI-speed or READY credit."
     },
     {
       "disposition": "merge",
