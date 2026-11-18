@@ -210,9 +210,11 @@ class RemoteCollector:
             n=listed_pr['number'];p,_=self.api.get(self.api.path('pulls/'+str(n)))
             self.pull_inputs.setdefault(self.observation,{})[n]=p
             head=p.get('head',{}).get('sha')
+            mergeable=p.get('mergeable')
+            if mergeable is None and p.get('mergeable_state')=='dirty':mergeable=False
             require(p.get('number')==n and p.get('state')=='open' and re.fullmatch(r'[0-9a-f]{40}',head or '') and
                     p.get('base',{}).get('repo',{}).get('full_name')==self.repo and p['base'].get('ref')=='main' and
-                    p.get('mergeable') in (True,False) and isinstance(p.get('mergeable_state'),str),'pull_decision_inputs_unavailable')
+                    mergeable in (True,False) and isinstance(p.get('mergeable_state'),str),'pull_decision_inputs_unavailable')
             values=stable_records(self.api.pages('commits/'+head+'/check-runs?filter=all&per_page=100','check_runs'),'id')
             head_runs=self.api.pages('actions/runs?head_sha='+head+'&per_page=100','workflow_runs',cap=999) if any(v.get('app',{}).get('id')==15368 for v in values) else []
             suites={};run_jobs={}
@@ -259,7 +261,7 @@ class RemoteCollector:
                     for sign,package,version in re.findall(r'^([-+])  "([a-z0-9_]+)": \{:hex, :[a-z0-9_]+, "([^"\n]+)"',file['patch'],re.M):
                         found.setdefault(package,{'package':package,'lock':file['filename'],'from':None,'to':None})['from' if sign=='-' else 'to']=version
                     delta.extend(found.values())
-            prs.append({'number':n,'head_sha':head,'base':p['base']['ref'],'mergeable':p['mergeable'],
+            prs.append({'number':n,'head_sha':head,'base':p['base']['ref'],'mergeable':mergeable,
                 'mergeable_state':p['mergeable_state'],'behind':p['mergeable_state']=='behind',
                 'decision_identity_sha256':pull_decision_identity(p), 'lock_delta':sorted(delta,key=lambda d:(d['lock'],d['package'])),
                 'ci_summary':{'conclusion':latest.get('conclusion') if latest and latest.get('status')=='completed' else None,
