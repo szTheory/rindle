@@ -120,6 +120,33 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
         "readiness-topology-#{System.unique_integer([:positive])}.json"
       )
 
+    runner =
+      Path.join(
+        System.tmp_dir!(),
+        "readiness-topology-runner-#{System.unique_integer([:positive])}.exs"
+      )
+
+    File.write!(
+      runner,
+      """
+      {:ok, version} = :application.get_key(:crypto, :vsn)
+
+      crypto_ebin =
+        Path.join([
+          :code.root_dir() |> List.to_string(),
+          "lib",
+          "crypto-" <> List.to_string(version),
+          "ebin"
+        ])
+
+      true = :code.add_patha(String.to_charlist(crypto_ebin))
+      :code.purge(:crypto)
+      :code.delete(:crypto)
+      true = :code.del_path(String.to_charlist(crypto_ebin))
+      Code.require_file("scripts/maintainer/readiness_workflow.exs")
+      """
+    )
+
     File.write!(
       request,
       Jason.encode!(%{
@@ -138,7 +165,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
             "--no-start",
             "--no-compile",
             "--no-deps-check",
-            "scripts/maintainer/readiness_workflow.exs",
+            runner,
             "--request",
             request
           ],
@@ -161,6 +188,7 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
       assert is_binary(result["value"]["workflow_sha256"])
     after
       File.rm(request)
+      File.rm(runner)
     end
   end
 

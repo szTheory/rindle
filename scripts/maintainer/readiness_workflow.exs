@@ -3,7 +3,7 @@ defmodule Rindle.ReadinessWorkflow do
 
   # Detailed YAML nodes preserve matrix declaration order and duplicate keys.
   def derive(yaml, context) do
-    {:ok, _} = Application.ensure_all_started(:crypto)
+    ensure_crypto!()
     {:ok, _} = Application.ensure_all_started(:yamerl)
 
     [document] =
@@ -61,7 +61,7 @@ defmodule Rindle.ReadinessWorkflow do
 
   # Preserve the approved CI behavior while allowing the existing script-test seam to add probes.
   def guard_identity(yaml) do
-    {:ok, _} = Application.ensure_all_started(:crypto)
+    ensure_crypto!()
     {:ok, _} = Application.ensure_all_started(:yamerl)
 
     [node] =
@@ -92,6 +92,25 @@ defmodule Rindle.ReadinessWorkflow do
 
   defp stable(values) when is_list(values), do: Enum.map(values, &stable/1)
   defp stable(value), do: value
+
+  defp ensure_crypto! do
+    if :code.which(:crypto) == :non_existing do
+      {:ok, version} = :application.get_key(:crypto, :vsn)
+
+      crypto_ebin =
+        Path.join([
+          :code.root_dir() |> List.to_string(),
+          "lib",
+          "crypto-" <> List.to_string(version),
+          "ebin"
+        ])
+
+      true = :code.add_patha(String.to_charlist(crypto_ebin))
+    end
+
+    {:ok, _} = Application.ensure_all_started(:crypto)
+    :ok
+  end
 
   def condition(value, _context) when is_boolean(value), do: value
 
