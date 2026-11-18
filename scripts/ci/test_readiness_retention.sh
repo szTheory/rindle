@@ -91,6 +91,23 @@ class Retention(unittest.TestCase):
         output=self.tmp/'failed-output';report=r.prepare_failure(candidate,output,self.diagnostic_env())
         self.assertEqual(report['native_state'],'unavailable');self.assertNotIn('pull_changes',report['collections'][0])
         with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:self.assertEqual(archive.getnames(),['failure.json'])
+    def test_failure_diagnostic_exports_only_allowlisted_collection_identity(self):
+        candidate=self.failed_candidate(False)
+        verdict=r.read_json(candidate/'verdict.json');verdict.update(stage='initial_remote',reason='invalid_json')
+        (candidate/'verdict.json').write_bytes(r.canonical(verdict))
+        path=candidate/'restricted/remote-before/verdict.json'
+        r.write_new(path,{'verdict':'not_ready','reason':'invalid_json','source':'pulls',
+            'request_path':'PRIVATE-API-PATH-CANARY','response_body':'PRIVATE-CLOSURE-CANARY'})
+        output=self.tmp/'safe-collection-failure';report=r.prepare_failure(candidate,output,self.diagnostic_env())
+        self.assertEqual(report['collection_failure'],{'kind':'remote','position':'before','source':'pulls','failure_class':'invalid_json'})
+        with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:
+            body=archive.extractfile('failure.json').read()
+            self.assertNotIn(b'PRIVATE-API-PATH-CANARY',body);self.assertNotIn(b'PRIVATE-CLOSURE-CANARY',body)
+        path.write_bytes(r.canonical({'verdict':'not_ready','reason':'invalid_json','source':'PRIVATE-CLOSURE-CANARY'}))
+        output=self.tmp/'unsafe-collection-failure';report=r.prepare_failure(candidate,output,self.diagnostic_env())
+        self.assertNotIn('collection_failure',report)
+        with tarfile.open(output/r.FAILED_ARCHIVE_FILE,'r:gz') as archive:
+            self.assertNotIn(b'PRIVATE-CLOSURE-CANARY',archive.extractfile('failure.json').read())
     def failed_async_candidate(self):
         candidate=self.failed_candidate(False)
         verdict=r.read_json(candidate/'verdict.json');verdict.update(stage='local',reason='command_failed')
