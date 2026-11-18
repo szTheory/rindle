@@ -1,0 +1,43 @@
+{
+  "base_sha": "ffb11c342af7d87b8a8d97d97b5e2aa705614d64",
+  "changed_paths": [
+    "scripts/maintainer/validate_phase_133_reconciliation.exs",
+    "test/install_smoke/phase_133_reconciliation_test.exs"
+  ],
+  "ci16_credit": 0,
+  "mix_lock_sha256": "1c6dcbd156c9da892f752dd5c77fc4e063ee197a6e242f12a98666e406b90710",
+  "plan": "133-230",
+  "plan_inputs_sha256": {
+    "133-228-PLAN.md": "890fee52d1553ab8cef0268f447b70caf1db1aaa1d655434230027f1df05afb1",
+    "133-229-PLAN.md": "3deb28e8722218b1281276f83c397d131b1eee6119a386e8dda85ba6bf3700f0",
+    "133-229-SECURITY-AUDIT.json": "3ef8c9651d93b1bd882f4c2f2d32ee044fce5fc73047b9854798a6ff53b5f4ca",
+    "133-SECURITY.md": "d8467201e105ca243e6284ada351ebdba7e3ad870e9a3d5382476f07df4f6843"
+  },
+  "plan_path": ".planning/phases/133-evidence-charter-and-live-truth/133-230-PLAN.md",
+  "plan_sha256": "c12c711c38deb6182321dd2054ea33c562fd6d34d345a8ff415401a2c14a8dfd",
+  "plan_threat_ids": [
+    "T-133-610",
+    "T-133-611",
+    "T-133-612",
+    "T-133-613",
+    "T-133-SC"
+  ],
+  "remote_action": "none",
+  "requirements_completed": [],
+  "schema_version": 1,
+  "security_preimage_sha256": "d8467201e105ca243e6284ada351ebdba7e3ad870e9a3d5382476f07df4f6843",
+  "source_branch": "worktree-agent-p230-validator-hardening",
+  "source_files": {
+    "mix.lock": "1c6dcbd156c9da892f752dd5c77fc4e063ee197a6e242f12a98666e406b90710",
+    "scripts/maintainer/validate_phase_133_reconciliation.exs": "2e4cac72b630f24b630796c2e5a19053134680e746a78a75da8feabdfb4d7b0a",
+    "test/install_smoke/phase_133_reconciliation_test.exs": "ac0f0750fd5b4c2a3c8d1c1bdf9985c6ed8c282e25952d381c4c93d759aa67e7"
+  },
+  "source_parent": "ffb11c342af7d87b8a8d97d97b5e2aa705614d64",
+  "source_paths": [
+    "mix.lock",
+    "scripts/maintainer/validate_phase_133_reconciliation.exs",
+    "test/install_smoke/phase_133_reconciliation_test.exs"
+  ],
+  "source_subject": "6217a20c61ae47da77bd80af6c3e80f4c0065b8c",
+  "source_tree": "79a719127b334850663a3745bf16247d3f1e97df"
+}
