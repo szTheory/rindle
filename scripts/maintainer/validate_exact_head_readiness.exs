@@ -7,6 +7,8 @@ unless Code.ensure_loaded?(Rindle.ReadinessHexAudit),
 unless Code.ensure_loaded?(Rindle.ReadinessWorkflow),
   do: Code.require_file("readiness_workflow.exs", __DIR__)
 
+Rindle.ReadinessWorkflow.ensure_crypto!()
+
 defmodule Rindle.ExactHeadReadiness do
   @moduledoc false
   @policy "rindle-exact-head-v1"

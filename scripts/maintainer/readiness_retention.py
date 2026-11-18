@@ -24,6 +24,10 @@ FAILED_ARCHIVE_FILE = 'readiness-failed-diagnostic.tar.gz'
 NATIVE_PROOFS = frozenset(('format','compile','credo','dialyzer-fresh','dialyzer-restored',
     'coverage','security','docs','contracts','package','generated-consumer','doctor',
     'twin-recovery','inbox-ledger','contributor-bootstrap','async-isolation','release-truth','hygiene'))
+COLLECTION_SOURCES = frozenset(('repository','ledger','issues','pulls','absent','advisories-triage',
+    'advisories-draft','advisories-published','advisories-closed','dependabot','hex','protection'))
+COLLECTION_PROOFS = frozenset(('ci-main','nightly-qualification','scheduled-incident-health',
+    'nightly-scheduled','protection'))
 
 
 def reserve(path):
@@ -107,6 +111,27 @@ def async_failure(candidate,subject):
         'failure_location':last['failure_location']}
 
 
+def collection_failure(candidate,verdict):
+    """Export only fixed collection identity fields from a failed child collector."""
+    positions={'initial_remote':'before','joining_remote':'join-before','final_remote':'after'}
+    position=positions.get(verdict.get('stage'))
+    reason=verdict.get('reason')
+    if position is None or not isinstance(reason,str):return None
+    matches=[]
+    for kind,key,allowed in (('runs','failed_proof',COLLECTION_PROOFS),('remote','source',COLLECTION_SOURCES)):
+        path=candidate/'restricted'/(kind+'-'+position)/'verdict.json'
+        try:
+            if not path.is_file() or path.is_symlink() or path.stat().st_size>65536 or not path.resolve().is_relative_to(candidate):continue
+            row=read_json(path)
+        except (NotReady,OSError,ValueError,TypeError):continue
+        if not isinstance(row,dict):continue
+        source=row.get(key)
+        if row.get('verdict')!='not_ready' or row.get('reason')!=reason or not isinstance(source,str) or source not in allowed:continue
+        matches.append({'kind':kind,'position':position,'source':source,
+            'failure_class':'invalid_json' if reason=='invalid_json' else 'other'})
+    return matches[0] if len(matches)==1 else None
+
+
 def prepare_failure(candidate,output,environment=None):
     """Retain only redacted diagnostics; a failed producer never gains credit."""
     output=reserve(output);environment=dict(os.environ if environment is None else environment)
@@ -133,6 +158,8 @@ def prepare_failure(candidate,output,environment=None):
         'stage':value.get('stage') if value.get('stage') in stages else 'unknown',
         'reason':value.get('reason') if value.get('reason') in reasons else 'upstream_not_ready',
         'native_state':'unavailable','created_at':now()}
+    failed_collection=collection_failure(candidate,value)
+    if failed_collection is not None:report['collection_failure']=failed_collection
     from readiness_github import PULL_DIAGNOSTIC_FIELDS
     sources={'issues','pulls','checks','statuses','absent','advisories','dependabot','hex','protection'}
     collections=[]
