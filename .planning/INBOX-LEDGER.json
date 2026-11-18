@@ -668,6 +668,31 @@
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
       "status": "resolved"
+    },
+    {
+      "fix_version": "1.20.4",
+      "id": "EEF-CVE-2026-120287",
+      "locked": "1.20.4",
+      "package": "plug",
+      "path": [
+        "plug"
+      ],
+      "reachability": "runtime",
+      "scope": "root",
+      "status": "resolved"
+    },
+    {
+      "fix_version": "1.20.4",
+      "id": "EEF-CVE-2026-120287",
+      "locked": "1.20.4",
+      "package": "plug",
+      "path": [
+        "phoenix",
+        "plug"
+      ],
+      "reachability": "runtime",
+      "scope": "examples/adoption_demo",
+      "status": "resolved"
     }
   ],
   "items": [
@@ -1192,7 +1217,7 @@
       "kind": "pr",
       "number": 185,
       "disposition": "retain",
-      "head_sha": "cdeba8b3a363f66758380d054f3ccb8eaa0b41f2",
+      "head_sha": "0d0b18c03fba388f6856972ce86956c7f806d106",
       "rationale": "Reviewed exact Release Please-owned patch 0.4.14 head cdeba8b3 against8ea98203 after PR215: the complete diff changes only .release-please-manifest.json, mix.exs version, and CHANGELOG.md, with the four previously reviewed readiness fixes plus PR215 sanitized async diagnostics and the release date October29. This records head identity and scope; CI remains separately observed. Retain the explicit do-not-merge and no-auto-merge hold pending a separately authorized release decision. Do not merge, publish, dispatch release, bump manually, or infer release or 1.0 authority from synthetic readiness."
     },
     {
@@ -1206,14 +1231,14 @@
       "kind": "pr",
       "number": 188,
       "disposition": "retain",
-      "head_sha": "ef676639a9fe57b819aaa9983f66c007824c114c",
+      "head_sha": "d2cb3ee368e9dd134d4c00e5d0c18cd23743b545",
       "rationale": "Reviewed the exact Dependabot rebase ef676639 against962f6cf5: the complete diff remains exactly two erlef/setup-beam 1.24.0-to-1.24.1 SHA-pin substitutions in ci.yml and readiness-retention.yml. This records head identity and scope only; CI is separately observed and old-head proofs do not qualify this head. Retain the explicit do-not-merge and no-auto-merge hold pending a separately authorized dependency decision. No dependency upgrade, controller-byte exception, scheduled-health substitution, release authority or READY credit is granted by this review."
     },
     {
       "kind": "pr",
       "number": 189,
       "disposition": "retain",
-      "head_sha": "8699c2c548e8658fa84a14150e2dc40304b43435",
+      "head_sha": "5d893878462a89b31eb05bc58821d31a901ef1ca",
       "rationale": "Docs-truth fail-closed guard repair passed exact-head CI40354516652 on8699c2c5, including CI Summary; prior canonical shard-order failure and local repair remain preserved. Keep draft and do-not-merge until successful validated139 acceptance. The maintainer explicitly preserves this hold through candidate replacement and its compatible actual scheduled proof. validate_exact_head_readiness.exs changes snapshot CONTROL_PATHS. Green PR CI does not remove this hold or grant READY credit."
     },
     {
@@ -1335,7 +1360,12 @@
       "number": 222,
       "disposition": "retain",
       "head_sha": "d20e2ab53e19f4672d64fb8c489a13a36e5a553b",
-      "rationale": "Observed open Dependabot dev-dependency lazy_html 0.1.14 candidate on 2026-11-13 at exact head d20e2ab5, based on main. GitHub reports it behind current main 9c971475 with no review decision. Retain this head pending rebase, fresh exact-head CI and dependency review; this entry does not approve the upgrade or grant readiness credit."
+      "rationale": "Observed open Dependabot dev-dependency lazy_html 0.1.14 candidate on 2026-11-13 at exact head d20e2ab5, based on main. GitHub reports it behind current main 9c971475 with no review decision. Retain this head pending rebase, fresh exact-head CI and dependency review; this entry does not approve the upgrade or grant readiness credit.",
+      "terminal": {
+        "merged": false,
+        "state": "closed",
+        "state_reason": null
+      }
     },
     {
       "kind": "pr",

@@ -118,7 +118,7 @@ class Remote(unittest.TestCase):
             if terminal:
                 self.put(prefix+'issues/'+str(number),value)
                 if record['kind']=='pr':self.put(prefix+'pulls/'+str(number),{'number':number,'state':'closed','merged':terminal['merged'],
-                    'base':{'repo':{'full_name':repo}},'merge_commit_sha':landing['merge_sha']})
+                    'base':{'repo':{'full_name':repo}},'merge_commit_sha':landing['merge_sha'] if terminal['merged'] else None})
             else:issues.append(value)
         self.put(prefix+'pulls/105/files?per_page=100',[{'filename':'mix.lock'}])
         self.landing_run_path=prefix+'actions/workflows/ci.yml/runs?head_sha='+landing['merge_sha']+'&event=push&per_page=5'
