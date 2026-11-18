@@ -580,11 +580,11 @@
     },
     {
       "path": "scripts/maintainer/readiness_acceptance.py",
-      "class": "phase-ref",
-      "text": "if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\\s*complete\\s*$|.*\\|\\s*(?:139|Phase 139)[^\\n]*\\|\\s*Complete\\s*\\||.*Phase 139:\\s*Complete\\b)',text):",
+      "class": "plan-ref",
+      "text": "\"\"\"Require Plan 07's own historical receipt identity, not the run refreshing it.\"\"\"",
       "count": 1,
       "reason_class": "policy",
-      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+      "reason": "The acceptance controller documents that the historical summary must carry its own receipt identity, independent of the run refreshing it."
     },
     {
       "path": "scripts/maintainer/readiness_acceptance.py",
@@ -605,18 +605,50 @@
     {
       "path": "scripts/maintainer/readiness_acceptance.py",
       "class": "planning-path",
-      "text": "paths=[root/'.planning/REQUIREMENTS.md',root/'.planning/ROADMAP.md',root/'.planning/STATE.md',",
+      "text": "return [root/'.planning/REQUIREMENTS.md',root/'.planning/ROADMAP.md',root/'.planning/STATE.md',",
       "count": 1,
       "reason_class": "policy",
-      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+      "reason": "The acceptance controller reads requirements, roadmap, and state metadata to reject unqualified readiness claims."
     },
     {
       "path": "scripts/maintainer/readiness_acceptance.py",
       "class": "spec-ref",
-      "text": "if path.name in ('139-07-SUMMARY.md','STATE.md','ROADMAP.md') and re.search(r'(?im)^(?:status:\\s*complete\\s*$|.*\\|\\s*(?:139|Phase 139)[^\\n]*\\|\\s*Complete\\s*\\||.*Phase 139:\\s*Complete\\b)',text):",
+      "text": "(root/PHASE/'139-07-SUMMARY.md').read_text() if (root/PHASE/'139-07-SUMMARY.md').is_file() else '',",
       "count": 1,
       "reason_class": "policy",
-      "reason": "Executable readiness policy consumes committed authoritative planning inputs and checks scoped historical completion; these exact names are part of the command contract."
+      "reason": "The acceptance controller validates Phase 139 Plan 07 summary metadata as the historical source of completion evidence."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "spec-ref",
+      "text": "if (path.name=='139-07-SUMMARY.md' and re.search(r'(?im)^status:\\s*complete\\s*$',text)) or phase_complete:",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The acceptance controller validates Phase 139 Plan 07 summary metadata as the historical source of completion evidence."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "spec-ref",
+      "text": "if path.name=='139-07-SUMMARY.md' and re.search(r'(?im)^status:\\s*complete\\s*$',text):",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The acceptance controller validates Phase 139 Plan 07 summary metadata as the historical source of completion evidence."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "spec-ref",
+      "text": "require(historical_phase_summary(text if path.name=='139-07-SUMMARY.md' else",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The acceptance controller validates Phase 139 Plan 07 summary metadata as the historical source of completion evidence."
+    },
+    {
+      "path": "scripts/maintainer/readiness_acceptance.py",
+      "class": "spec-ref",
+      "text": "summary_path=root/PHASE/'139-07-SUMMARY.md'",
+      "count": 1,
+      "reason_class": "policy",
+      "reason": "The acceptance controller validates Phase 139 Plan 07 summary metadata as the historical source of completion evidence."
     },
     {
       "path": "scripts/maintainer/readiness_adoption.py",
