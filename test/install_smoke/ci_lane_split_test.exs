@@ -186,6 +186,36 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
       assert result["ok"] == true, output
       assert result["value"]["name"] == "CI"
       assert is_binary(result["value"]["workflow_sha256"])
+
+      File.write!(request, Jason.encode!(%{operation: "hex", payloads: [], locks: %{}}))
+
+      {hex_output, hex_status} =
+        System.cmd(
+          "mix",
+          [
+            "run",
+            "--no-start",
+            "--no-compile",
+            "--no-deps-check",
+            runner,
+            "--request",
+            request
+          ],
+          cd: root,
+          env: [{"MIX_ENV", Atom.to_string(Mix.env())}],
+          stderr_to_stdout: true
+        )
+
+      assert hex_status == 0, hex_output
+
+      hex_result =
+        hex_output
+        |> String.split("\n", trim: true)
+        |> Enum.reverse()
+        |> Enum.find(&String.starts_with?(&1, "{\"ok\":"))
+        |> Jason.decode!()
+
+      assert hex_result == %{"ok" => false, "reason" => "hex_identity"}, hex_output
     after
       File.rm(request)
       File.rm(runner)

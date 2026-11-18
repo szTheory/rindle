@@ -93,7 +93,7 @@ defmodule Rindle.ReadinessWorkflow do
   defp stable(values) when is_list(values), do: Enum.map(values, &stable/1)
   defp stable(value), do: value
 
-  defp ensure_crypto! do
+  def ensure_crypto! do
     if :code.which(:crypto) == :non_existing do
       {:ok, version} = :application.get_key(:crypto, :vsn)
 
@@ -402,6 +402,9 @@ end
 case System.argv() do
   ["--request", path] ->
     request = path |> File.read!() |> Jason.decode!()
+    # Hex and validator operations compile modules with crypto-backed digests.
+    # Bootstrap before requiring those files under `mix run --no-start`.
+    Rindle.ReadinessWorkflow.ensure_crypto!()
 
     result =
       case request["operation"] do
