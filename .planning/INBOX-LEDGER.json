@@ -16,7 +16,7 @@
       "status": "exception",
       "exception": {
         "expires": "2027-01-15",
-        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Every fixed release (2.20.0, 2.21.0) uses the OTP 27 `maybe` expression and fails to compile on OTP 26, which the supported matrix (Elixir 1.15 / OTP 26) still covers (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Re-decide by the date or when OTP 26 leaves the matrix.",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Fixed releases 2.20.0 through 2.22.0 require OTP 27; the supported matrix still includes Elixir 1.15 / OTP 26, where cowlib 2.21.0 fails to compile (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Keep the compatible test lock at 2.19.0 and re-decide by 2027-01-15 or when OTP 26 leaves the matrix.",
         "trigger": {
           "not_after": "2027-01-15",
           "type": "date"
@@ -24,7 +24,7 @@
       }
     },
     {
-      "fix_version": null,
+      "fix_version": "2.22.0",
       "id": "EEF-CVE-2026-43966",
       "locked": "2.19.0",
       "package": "cowlib",
@@ -39,7 +39,7 @@
       "status": "exception",
       "exception": {
         "expires": "2027-01-15",
-        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Every fixed release (2.20.0, 2.21.0) uses the OTP 27 `maybe` expression and fails to compile on OTP 26, which the supported matrix (Elixir 1.15 / OTP 26) still covers (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Re-decide by the date or when OTP 26 leaves the matrix.",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Fixed releases 2.20.0 through 2.22.0 require OTP 27; the supported matrix still includes Elixir 1.15 / OTP 26, where cowlib 2.21.0 fails to compile (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Keep the compatible test lock at 2.19.0 and re-decide by 2027-01-15 or when OTP 26 leaves the matrix.",
         "trigger": {
           "not_after": "2027-01-15",
           "type": "date"
@@ -62,7 +62,7 @@
       "status": "exception",
       "exception": {
         "expires": "2027-01-15",
-        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Every fixed release (2.20.0, 2.21.0) uses the OTP 27 `maybe` expression and fails to compile on OTP 26, which the supported matrix (Elixir 1.15 / OTP 26) still covers (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Re-decide by the date or when OTP 26 leaves the matrix.",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Fixed releases 2.20.0 through 2.22.0 require OTP 27; the supported matrix still includes Elixir 1.15 / OTP 26, where cowlib 2.21.0 fails to compile (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Keep the compatible test lock at 2.19.0 and re-decide by 2027-01-15 or when OTP 26 leaves the matrix.",
         "trigger": {
           "not_after": "2027-01-15",
           "type": "date"
@@ -693,6 +693,51 @@
       "reachability": "runtime",
       "scope": "examples/adoption_demo",
       "status": "resolved"
+    },
+    {
+      "fix_version": "2.22.0",
+      "id": "EEF-CVE-2026-113431",
+      "locked": "2.19.0",
+      "package": "cowlib",
+      "path": [
+        "bypass",
+        "plug_cowboy",
+        "cowboy",
+        "cowlib"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "root",
+      "status": "exception",
+      "exception": {
+        "expires": "2027-01-15",
+        "rationale": "cowlib reaches rindle only as a test-only dep (bypass, only: :test -> plug_cowboy -> cowboy); Hex consumers never receive rindle's mix.lock. Fixed releases 2.20.0 through 2.22.0 require OTP 27; the supported matrix still includes Elixir 1.15 / OTP 26, where cowlib 2.21.0 fails to compile (PR #128 CI run 38831365127: cow_capsule.erl:67 syntax error). Keep the compatible test lock at 2.19.0 and re-decide by 2027-01-15 or when OTP 26 leaves the matrix.",
+        "trigger": {
+          "not_after": "2027-01-15",
+          "type": "date"
+        }
+      }
+    },
+    {
+      "fix_version": "2.21.0",
+      "id": "EEF-CVE-2026-115701",
+      "locked": "2.18.0",
+      "package": "cowboy",
+      "path": [
+        "bypass",
+        "plug_cowboy",
+        "cowboy"
+      ],
+      "reachability": "dev-test-only",
+      "scope": "root",
+      "status": "exception",
+      "exception": {
+        "expires": "2027-01-15",
+        "rationale": "cowboy is present only through the test-only bypass -> plug_cowboy dependency; Hex consumers do not receive rindle's root mix.lock. Cowboy 2.21.0 fixes this advisory but requires Erlang/OTP 27, while the supported CI matrix still includes OTP 26. Keep the compatible test lock at 2.18.0 and re-decide by 2027-01-15 or when OTP 26 leaves the matrix.",
+        "trigger": {
+          "not_after": "2027-01-15",
+          "type": "date"
+        }
+      }
     }
   ],
   "items": [
