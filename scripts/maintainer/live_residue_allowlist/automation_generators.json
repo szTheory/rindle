@@ -172,6 +172,22 @@
     },
     {
       "path": "scripts/ci/test_readiness_acceptance.sh",
+      "class": "phase-ref",
+      "text": "path=self.tmp/'.planning';path.mkdir();(path/'ROADMAP.md').write_text('- [x] **Phase 139: Exact-Head Readiness Closure**\\n')",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Regression fixture writes a completed Phase 139 roadmap row to verify that historical completion claims are qualified without reusing the current run identity."
+    },
+    {
+      "path": "scripts/ci/test_readiness_acceptance.sh",
+      "class": "spec-ref",
+      "text": "(phase/'139-07-SUMMARY.md').write_text(summary)",
+      "count": 1,
+      "reason_class": "fixture",
+      "reason": "Regression fixture writes the Phase 139 Plan 07 summary path to verify historical summary qualification and strict current-run parity."
+    },
+    {
+      "path": "scripts/ci/test_readiness_acceptance.sh",
       "class": "spec-ref",
       "text": "path=self.tmp/a.PHASE;path.mkdir(parents=True);(path/'139-07-SUMMARY.md').write_text('---\\nstatus: complete\\n---\\nready\\n')",
       "count": 1,
