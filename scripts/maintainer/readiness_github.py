@@ -148,13 +148,30 @@ class GitHub:
     def pages(self, suffix, key=None, cap=10000):
         path = self.path(suffix)
         first=urlsplit(path); filters=parse_qs(first.query)
-        require(filters.get('per_page') == ['100'], 'pagination_policy')
+        sizes=filters.get('per_page')
+        require(sizes in (['100'],['5']), 'pagination_policy')
+        page_size=int(sizes[0])
         result=[]; seen=set(); total=None
         while path:
             require(path not in seen and len(seen)<100, 'pagination_loop_or_limit')
-            seen.add(path); body,headers=self.get(path)
+            seen.add(path)
+            try:
+                body,headers=self.get(path)
+            except NotReady as exc:
+                attempts=self.calls[-3:]
+                historical_jobs=(key=='jobs' and page_size==100 and
+                    re.fullmatch(r'repos/'+re.escape(self.repo)+r'/actions/runs/[0-9]+/jobs',first.path) and
+                    filters=={'per_page':['100']})
+                transient_failure=(str(exc)=='remote_unavailable' and len(attempts)==3 and
+                    all(call['path']==path and call['status'] in (502,503,504) and
+                        call['headers'].get('x-ratelimit-remaining')!='0' and 'retry-after' not in call['headers']
+                        for call in attempts))
+                if historical_jobs and transient_failure:
+                    # Keep normal collection to one request; retry large historical job payloads in small pages only after transient failure.
+                    return self.pages(suffix.replace('per_page=100','per_page=5',1),key,cap)
+                raise
             values=body.get(key) if key and isinstance(body,dict) else body if not key else None
-            require(isinstance(values,list) and len(values)<=100, 'incomplete_pages')
+            require(isinstance(values,list) and len(values)<=page_size, 'incomplete_pages')
             if key:
                 count=body.get('total_count')
                 require(isinstance(count,int) and not isinstance(count,bool) and 0<=count<=cap, 'inventory_count_limit')
@@ -165,7 +182,7 @@ class GitHub:
             require(len(nexts)<=1, 'ambiguous_next_page')
             if not nexts:
                 # A full array page without a declared count needs a following page to prove exhaustion.
-                require(key is not None or len(values)<100, 'pagination_exhaustion_unproved')
+                require(key is not None or len(values)<page_size, 'pagination_exhaustion_unproved')
                 break
             nxt=urlsplit(nexts[0])
             require(nxt.scheme=='https' and nxt.netloc=='api.github.com' and not nxt.fragment,
