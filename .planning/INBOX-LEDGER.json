@@ -1336,6 +1336,13 @@
       "disposition": "retain",
       "head_sha": "d20e2ab53e19f4672d64fb8c489a13a36e5a553b",
       "rationale": "Observed open Dependabot dev-dependency lazy_html 0.1.14 candidate on 2026-11-13 at exact head d20e2ab5, based on main. GitHub reports it behind current main 9c971475 with no review decision. Retain this head pending rebase, fresh exact-head CI and dependency review; this entry does not approve the upgrade or grant readiness credit."
+    },
+    {
+      "kind": "pr",
+      "number": 227,
+      "disposition": "retain",
+      "head_sha": "6a624d472b69f68344e484d01507ef9cb64d15a4",
+      "rationale": "Observed open Dependabot dev-dependencies candidate on 2026-11-16 at exact head 6a624d47. It updates dialyxir and lazy_html; exact-head required CI is currently green. Retain for dependency review; this does not approve a merge, record a landing, grant readiness credit, or change the existing PR #188/#189 holds."
     }
   ],
   "landings": [

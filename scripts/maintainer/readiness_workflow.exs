@@ -3,6 +3,7 @@ defmodule Rindle.ReadinessWorkflow do
 
   # Detailed YAML nodes preserve matrix declaration order and duplicate keys.
   def derive(yaml, context) do
+    {:ok, _} = Application.ensure_all_started(:crypto)
     {:ok, _} = Application.ensure_all_started(:yamerl)
 
     [document] =
@@ -60,6 +61,7 @@ defmodule Rindle.ReadinessWorkflow do
 
   # Preserve the approved CI behavior while allowing the existing script-test seam to add probes.
   def guard_identity(yaml) do
+    {:ok, _} = Application.ensure_all_started(:crypto)
     {:ok, _} = Application.ensure_all_started(:yamerl)
 
     [node] =

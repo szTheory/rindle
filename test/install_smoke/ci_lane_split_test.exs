@@ -111,6 +111,59 @@ defmodule Rindle.InstallSmoke.CiLaneSplitTest do
            "the off-PR `package-consumer-full` job must exist"
   end
 
+  test "readiness workflow topology resolves under the no-start Mix policy runner", %{ci: ci} do
+    root = Path.expand("../..", __DIR__)
+
+    request =
+      Path.join(
+        System.tmp_dir!(),
+        "readiness-topology-#{System.unique_integer([:positive])}.json"
+      )
+
+    File.write!(
+      request,
+      Jason.encode!(%{
+        operation: "topology",
+        yaml: ci,
+        context: %{repository: "szTheory/rindle", event: "push", branch: "main"}
+      })
+    )
+
+    try do
+      {output, status} =
+        System.cmd(
+          "mix",
+          [
+            "run",
+            "--no-start",
+            "--no-compile",
+            "--no-deps-check",
+            "scripts/maintainer/readiness_workflow.exs",
+            "--request",
+            request
+          ],
+          cd: root,
+          env: [{"MIX_ENV", Atom.to_string(Mix.env())}],
+          stderr_to_stdout: true
+        )
+
+      assert status == 0, output
+
+      result =
+        output
+        |> String.split("\n", trim: true)
+        |> Enum.reverse()
+        |> Enum.find(&String.starts_with?(&1, "{\"ok\":"))
+        |> Jason.decode!()
+
+      assert result["ok"] == true, output
+      assert result["value"]["name"] == "CI"
+      assert is_binary(result["value"]["workflow_sha256"])
+    after
+      File.rm(request)
+    end
+  end
+
   test "the required image consumer starts independently and carries only image prerequisites",
        %{ci: ci} do
     consumer = package_consumer_block(ci)
