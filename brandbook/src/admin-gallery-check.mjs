@@ -230,6 +230,10 @@ const assertDisabledAndLoadingAffordances = async (page) => {
 
 const assertHashTarget = async (page, id) => {
   await page.waitForFunction((targetId) => window.location.hash === `#${targetId}`, id);
+  await page.waitForFunction((targetId) =>
+    document.querySelector('.rindle-admin-nav__item[aria-current="page"]')?.getAttribute('href') === `#${targetId}`,
+    id,
+  );
   await assertVisible(page, `#${id}`);
   const targetState = await page.locator(`#${id}`).evaluate((element) => {
     const rect = element.getBoundingClientRect();
