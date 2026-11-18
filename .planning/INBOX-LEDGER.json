@@ -1129,14 +1129,14 @@
     },
     {
       "disposition": "retain",
-      "head_sha": "023ab015c4ad6f2bafac4a43e41cac5a31f9234c",
+      "head_sha": "65adcff7e7dd19ae1afb2e74839ce81db578e36b",
       "kind": "pr",
       "number": 145,
       "rationale": "Retain the separate Oban 2.24.2 lock candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406514940 passed on 023ab015; the only dependency delta remains Oban 2.21.1\u21922.24.2. Current main keeps 2.21.1. This is not an actual dependency landing, and separate dependency-delivery work and post-merge evidence remain outstanding. No upgrade or READY credit."
     },
     {
       "disposition": "retain",
-      "head_sha": "b3205ebc68afba6c14751c09a8c1302b5182368c",
+      "head_sha": "afe258a47659a30d2fa20abbdf823084ac5ecab3",
       "kind": "pr",
       "number": 146,
       "rationale": "Retain the separate MuonTrap 1.8.0 candidate after its actual rebase onto JOSE-patched main 1216b962. Fresh full PR CI 40406492180 passed on b3205ebc. Root-lock changes are MuonTrap 1.7.0\u21921.8.0 and elixir_make 0.10.0\u21920.10.1; main pins remain unchanged. Separate dependency-delivery work and actual landing proof remain outstanding. No upgrade, CI-speed or READY credit."
@@ -1269,7 +1269,7 @@
       "kind": "pr",
       "number": 187,
       "disposition": "retain",
-      "head_sha": "bd31f07bd43aa627964ccb2929d54666ad6b75be",
+      "head_sha": "c3e1d95508e27959496e1ec6b31f4eadc23be6ce",
       "rationale": "Retain the rebased LiveView 1.2.13 candidate on bd31f07b for bounded supported-toolchain repair. Its seven-package root-lock delta still includes cowboy 2.20/cowlib 2.21, phoenix 1.8.16, phoenix_pubsub 2.4.1, phoenix_template 1.1.0 and elixir_make 0.10.1. Fresh CI 40406494126 fails Quality and optional-dependency compilation on supported Elixir 1.15 / OTP 26. Earlier CI40320385984 remains historical; no claim that it tested this new head. Require compatible locked transitive versions and fresh exact-head proof without widening support or merging red CI. No upgrade or READY credit."
     },
     {
@@ -1397,7 +1397,7 @@
       "kind": "pr",
       "number": 220,
       "disposition": "retain",
-      "head_sha": "61d240550253fe7447625308504d01b6b56d039e",
+      "head_sha": "2d14af9bf960110bf9484ffe5b5c187ddaba57fb",
       "rationale": "Observed open Dependabot image 0.73.0 candidate on 2026-11-13 at exact head 61d24055, based on main. GitHub reports it behind current main 9c971475 with no review decision. Retain this head pending rebase, fresh exact-head CI and dependency review; this entry does not approve the upgrade or grant readiness credit."
     },
     {
@@ -1416,7 +1416,7 @@
       "kind": "pr",
       "number": 227,
       "disposition": "retain",
-      "head_sha": "6a624d472b69f68344e484d01507ef9cb64d15a4",
+      "head_sha": "d069a220e7bd416935a042eba3bcee1afbfe2c32",
       "rationale": "Observed open Dependabot dev-dependencies candidate on 2026-11-16 at exact head 6a624d47. It updates dialyxir and lazy_html; exact-head required CI is currently green. Retain for dependency review; this does not approve a merge, record a landing, grant readiness credit, or change the existing PR #188/#189 holds."
     }
   ],
