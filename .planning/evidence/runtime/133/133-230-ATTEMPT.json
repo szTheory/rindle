@@ -1,0 +1,16 @@
+{
+  "attempt": 1,
+  "ci16_credit": 0,
+  "mix_lock_sha256": "1c6dcbd156c9da892f752dd5c77fc4e063ee197a6e242f12a98666e406b90710",
+  "plan": "133-230",
+  "plan_sha256": "c12c711c38deb6182321dd2054ea33c562fd6d34d345a8ff415401a2c14a8dfd",
+  "remote_action": "none",
+  "requirements_completed": [],
+  "reserved_at": "2026-11-17T04:53:16Z",
+  "schema_version": 1,
+  "security_preimage_sha256": "d8467201e105ca243e6284ada351ebdba7e3ad870e9a3d5382476f07df4f6843",
+  "source_inventory_sha256": "c7e1239ad50ec16e55b5b05db444f697873cbeb91ae20168752cf425de744c0f",
+  "status": "reserved",
+  "subject_sha": "6217a20c61ae47da77bd80af6c3e80f4c0065b8c",
+  "subject_tree": "79a719127b334850663a3745bf16247d3f1e97df"
+}

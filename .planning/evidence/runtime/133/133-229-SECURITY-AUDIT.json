@@ -1,0 +1,403 @@
+{
+  "schema_version": 1,
+  "phase": "133",
+  "scope": "whole_phase",
+  "verdict": "OPEN_THREATS",
+  "subject_sha": "cfa2f0f81a55c627395d4ab73331b3dfebfd03d3",
+  "subject_tree": "341ec46cbdba4dd17f7c4c7e55a123a6b1fbd6da",
+  "archive_sha256": "17856692ca3a667fe78404417f37eb556566efd50eacb3489c1dc8e3bc68b86b",
+  "receipt_sha256": "889a07b06036b97658e04c357267b188c2b6de9a3a7ba50aa9b4e3078ce59f4e",
+  "reviewed_findings": [
+    {
+      "id": "T-133-01",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact SHA/clean-state, taxonomy, bijection, digest, and mutation checks in `validate_evidence_census.exs` and `evidence_census_test.exs`."
+    },
+    {
+      "id": "T-133-02",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Stable IDs plus required rationale, evidence, triggers, and substitution/transition tests."
+    },
+    {
+      "id": "T-133-03",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Bounded allowlisted fields and repository-relative path enforcement; no raw environment payloads."
+    },
+    {
+      "id": "T-133-04",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: Collector uses bounded repository commands and adds no network or unbounded scanner."
+    },
+    {
+      "id": "T-133-05",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Cache keys include exact resolved patch versions and input hashes with no prefix restore fallback."
+    },
+    {
+      "id": "T-133-06",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact old-PLT fingerprint and at most one rebuild, covered by mode/failure tests."
+    },
+    {
+      "id": "T-133-07",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Normalized bounded provenance and URLs only; raw logs, secrets, and runner paths excluded."
+    },
+    {
+      "id": "T-133-08",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: One explicit build is confined to scheduled/diagnostic Nightly, outside the PR path."
+    },
+    {
+      "id": "T-133-09",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact schema/job-set/result validation with a 49-case false-green matrix."
+    },
+    {
+      "id": "T-133-10",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Applicability, execution, result, and reason are independently typed and structurally tested."
+    },
+    {
+      "id": "T-133-11",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Contexts cross quoted environment variables and are parsed as JSON, never evaluated as shell source."
+    },
+    {
+      "id": "T-133-12",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: The declared job set is fixed and small; complete diagnostics require only bounded iteration."
+    },
+    {
+      "id": "T-133-13",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Scheduled/default-branch/exact-main SHA and strict-verdict identity checks."
+    },
+    {
+      "id": "T-133-14",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact label/title, full cardinality, idempotent evidence markers, and fake-CLI argv/body tests."
+    },
+    {
+      "id": "T-133-15",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Default `contents: read`; only the lifecycle job receives local `issues: write`."
+    },
+    {
+      "id": "T-133-16",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Recovery evidence and exact identifiers are supplied atomically with issue closure."
+    },
+    {
+      "id": "T-133-17",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Version equality and parsed workflow topology with mutation fixtures."
+    },
+    {
+      "id": "T-133-18",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Real built/unpacked report, exact source, and explicit no-repository/no-prebuilt fallback facts."
+    },
+    {
+      "id": "T-133-19",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Fixed archive boundary plus bounded, balanced markers with malformed-boundary tests."
+    },
+    {
+      "id": "T-133-20",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: Model is limited to public topology/version booleans and repository-relative authority paths."
+    },
+    {
+      "id": "T-133-21",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Classified derived-truth scan and mutation-tested active-surface anchors."
+    },
+    {
+      "id": "T-133-22",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Adoption gate invokes derived authority and real generated-consumer package authority."
+    },
+    {
+      "id": "T-133-23",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Historical spans are removed only in memory; archive and malformed-marker behavior is tested."
+    },
+    {
+      "id": "T-133-24",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: One diagnostic dispatch plus read-only inspection; incident snapshots must remain identical."
+    },
+    {
+      "id": "T-133-25",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact repository/workflow/event/ref/SHA/time boundary and first-attempt selection."
+    },
+    {
+      "id": "T-133-26",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Partial output deletion, canonical construction, exact validation, and 28-case collector matrix."
+    },
+    {
+      "id": "T-133-27",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Adapter permits only the declared dispatch and read-only repo/ref/run/job/issue calls; mutation argv are rejected."
+    },
+    {
+      "id": "T-133-28",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Canonical exact-label incident snapshots are compared before and after and embedded in the receipt."
+    },
+    {
+      "id": "T-133-29",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Every receipt is normalized at the claim boundary; forged inline and CLI validation-marker regressions pass."
+    },
+    {
+      "id": "T-133-30",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact source, path existence, metadata, lifecycle, and no-fallback facts are rechecked after normalization."
+    },
+    {
+      "id": "T-133-31",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: Tests expose only generated temporary paths and no credentials or private remote data."
+    },
+    {
+      "id": "T-133-32",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact nested schemas plus canonical live reconstruction reject field, key, order, duplicate, and type mutations."
+    },
+    {
+      "id": "T-133-33",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact job identities and bounded job-scoped logs are the sole source of persisted job and verdict facts."
+    },
+    {
+      "id": "T-133-34",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact-label incident state is freshly collected read-only and compared with both persisted snapshots."
+    },
+    {
+      "id": "T-133-35",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact-subject worktrees and fixed repository-owned validators prevent receipt-controlled command selection."
+    },
+    {
+      "id": "T-133-36",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Positive bounded timeouts, finite API calls, and fixed local commands fail closed on lookup or execution failure."
+    },
+    {
+      "id": "T-133-37",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: Evidence is bounded to public job and incident metadata; no raw-log capture or capability expansion was added."
+    },
+    {
+      "id": "T-133-38",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Anchored numeric component parsing rejects 11.17, 1.170, and 127 near-matches."
+    },
+    {
+      "id": "T-133-39",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Receipt versions reuse the anchored parser and must exactly match live logs and the PLT cache key."
+    },
+    {
+      "id": "T-133-40",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Missing, ambiguous, malformed, and unsupported values fail deterministically without retries or broad capture."
+    },
+    {
+      "id": "T-133-41",
+      "status": "closed — accepted",
+      "evidence": "133-SECURITY.md current Threat Register: Toolchain versions and cache identities are non-secret bounded build metadata."
+    },
+    {
+      "id": "T-133-53",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Reconstruct the subject-owned helper closure and verify its execution against the authenticated generated package."
+    },
+    {
+      "id": "T-133-74",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Bind replay to an authenticated durable epoch and reject expired or tampered replay evidence."
+    },
+    {
+      "id": "T-133-85",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Require event and artifact coverage through the captured high-watermark before mutation."
+    },
+    {
+      "id": "T-133-91",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Execute repository-owned commands against the authenticated package and verify lifecycle results."
+    },
+    {
+      "id": "T-133-105",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Verify append-only issue history and persisted evidence across later open/close transitions."
+    },
+    {
+      "id": "T-133-39-03",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Production mapping validates all Plan 38–56 mappings and the no-decision authorization boundary; production mutation suite verifies the exact caller-root and no-premature-credit paths."
+    },
+    {
+      "id": "T-133-42-03",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Existing destinations are rejected before collection and publication uses same-directory no-clobber semantics; occupied/concurrent destination cases are covered."
+    },
+    {
+      "id": "T-133-55-01",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Exact authenticated failure groups map to focused compile, fixture, stale-binding, and review-gate regressions; disclosure assertions and planning-path hygiene remain enforced."
+    },
+    {
+      "id": "T-133-55-02",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Census A/B, inventory, REVIEW, VALIDATION, and this SECURITY report bind the same exact subject and census digest; all 15 inventory proofs and dispositions reconcile."
+    },
+    {
+      "id": "T-133-55-03",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Production reconciliation requires an authenticated, passing Plan 55 qualification summary and keeps Plan 56 authorization separate; local gates remain blocked."
+    },
+    {
+      "id": "T-133-102",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-102: Plan 26 documentation contains no credential canary`."
+    },
+    {
+      "id": "T-133-33-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-33-SC`."
+    },
+    {
+      "id": "T-133-34-05",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-34-05: reconciliation diagnostics never echo raw planning canaries`."
+    },
+    {
+      "id": "T-133-34-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-34-SC`."
+    },
+    {
+      "id": "T-133-35-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-35-SC`."
+    },
+    {
+      "id": "T-133-36-05",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text`."
+    },
+    {
+      "id": "T-133-36-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-36-SC`."
+    },
+    {
+      "id": "T-133-37-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-37-SC`."
+    },
+    {
+      "id": "T-133-38-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-38-SC`."
+    },
+    {
+      "id": "T-133-39-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-39-SC`."
+    },
+    {
+      "id": "T-133-40-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-40-SC`."
+    },
+    {
+      "id": "T-133-41-05",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-36-05 and T-133-41-05: checkpoint records expose only safe public text`."
+    },
+    {
+      "id": "T-133-41-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-41-SC`."
+    },
+    {
+      "id": "T-133-42-SC",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `T-133-42-SC`."
+    },
+    {
+      "id": "T-133-71",
+      "status": "closed",
+      "evidence": "133-SECURITY.md current Threat Register: Current exact-subject executable proof: `zero exact matches poll until timeout without a receipt`."
+    },
+    {
+      "id": "T-133-606",
+      "status": "closed",
+      "evidence": "Four-workflow parsed credential regression and local fake-GitHub Nightly matrix passed on the frozen subject."
+    },
+    {
+      "id": "T-133-607",
+      "status": "closed",
+      "evidence": "Frozen branch, subject, tree, base ancestry, and seven source digests verified by read-only preflight."
+    },
+    {
+      "id": "T-133-608",
+      "status": "open — blocking",
+      "evidence": "Audit validator accepts an incomplete reviewed_findings list; the positive fixture contains only T-133-606."
+    },
+    {
+      "id": "T-133-608-RETRY",
+      "status": "open — blocking",
+      "evidence": "No attempt-started marker is persisted before proof execution; a red before archive publication leaves the recorder callable again."
+    },
+    {
+      "id": "T-133-609",
+      "status": "open — non-blocking",
+      "evidence": "Candidate validation checks required substrings after the historical prefix but permits contradictory extra content."
+    },
+    {
+      "id": "T-133-SC",
+      "status": "open — blocking",
+      "evidence": "Configured MIX_DEPS_PATH and copied compiled dependency cache are not attested against mix.lock."
+    }
+  ],
+  "unresolved_findings": [
+    {
+      "id": "T-133-608",
+      "severity": "high",
+      "status": "open",
+      "evidence": "scripts/maintainer/validate_phase_133_reconciliation.exs:18914-18940 validates scope and a nonempty unique ID list but not complete register coverage or closed dispositions. The positive test fixture at test/install_smoke/phase_133_reconciliation_test.exs:1463-1486 passes with only T-133-606."
+    },
+    {
+      "id": "T-133-608-RETRY",
+      "severity": "high",
+      "status": "open",
+      "evidence": "scripts/maintainer/validate_phase_133_reconciliation.exs:18188-18197 writes no durable attempt-started marker before proof execution. A red before archive publication leaves the recorder callable again."
+    },
+    {
+      "id": "T-133-SC",
+      "severity": "high",
+      "status": "open — provenance unverified",
+      "evidence": "scripts/maintainer/validate_phase_133_reconciliation.exs:18426-18447 copies compiled dependency cache without attestation; :18476-18497 accepts any configured dependency directory without matching it to mix.lock."
+    },
+    {
+      "id": "T-133-609",
+      "severity": "medium",
+      "status": "open — non-blocking",
+      "evidence": "scripts/maintainer/validate_phase_133_reconciliation.exs:18890-18902 requires historical-prefix preservation and keywords, but does not constrain the appended correction to exact non-contradictory content."
+    }
+  ],
+  "requirements_credit": [],
+  "ci16_credit": 0,
+  "remote_action": "none",
+  "blocking_findings": 3,
+  "historical_caveat": "133-SECURITY.md retains the prior Plan 48 report-digest discrepancy as a historical caveat; later item-level audits supersede current dispositions but do not rewrite that history."
+}
