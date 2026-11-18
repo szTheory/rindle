@@ -1,5 +1,7 @@
 # Test-only worker: load actual policy code once, but reload every request/graph.
 System.put_env("RINDLE_EXACT_HEAD_LIBRARY_ONLY", "1")
+Code.require_file("../maintainer/readiness_workflow.exs", __DIR__)
+:ok = Rindle.ReadinessWorkflow.ensure_crypto!()
 Code.require_file("../maintainer/validate_exact_head_readiness.exs", __DIR__)
 
 defmodule Rindle.ReadinessFixturePolicy do

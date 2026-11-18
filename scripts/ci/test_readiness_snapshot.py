@@ -112,7 +112,7 @@ class Identity(unittest.TestCase):
 
     def capture_case(self,heads):
         tmp=Path(tempfile.mkdtemp(prefix='rindle-capture-test-')).resolve();self.addCleanup(shutil.rmtree,tmp)
-        api=API();seen=[]
+        api=API();api.calls=[];seen=[]
         def get(path):
             if path.endswith('actions/workflows/nightly.yml'):
                 return {'id':120,'name':'Nightly','path':'.github/workflows/nightly.yml','state':'active'},{}
@@ -131,6 +131,23 @@ class Identity(unittest.TestCase):
         with patch.object(capture,'GitHub',return_value=api),patch.object(capture,'observe',return_value={'subject_sha':SHA}),patch.object(capture,'dispatch',side_effect=dispatch):
             self.assertEqual(capture.capture(REPO,tmp/'out'),0)
         self.assertEqual(len(seen),1);self.assertEqual(q.read_json(tmp/'out/capture.json')['subject_sha'],SHA)
+
+    def test_capture_retries_new_run_visibility_without_redispatch(self):
+        tmp,api,seen,dispatch=self.capture_case([SHA]);original_get=api.get;run_reads=[]
+        def get(path):
+            if '/actions/runs/' in path:
+                run_reads.append(path)
+                if len(run_reads)==1:
+                    api.calls.append({'status':404})
+                    raise q.NotReady('remote_unavailable')
+                api.calls.append({'status':200})
+            return original_get(path)
+        api.get=get
+        with patch.object(capture,'GitHub',return_value=api),patch.object(capture,'observe',return_value={'subject_sha':SHA}),patch.object(capture,'dispatch',side_effect=dispatch) as post:
+            self.assertEqual(capture.capture(REPO,tmp/'out'),0)
+        self.assertEqual(post.call_count,1)
+        self.assertEqual(len(run_reads),2)
+        self.assertEqual(q.read_json(tmp/'out/capture.json')['subject_sha'],SHA)
 
     def test_capture_races_are_bounded_and_owned_runs_preserved(self):
         tmp,api,seen,dispatch=self.capture_case([MAIN]*3)
@@ -241,7 +258,7 @@ class Graph(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.shared=Path(tempfile.mkdtemp(prefix='rindle-snapshot-graph-')).resolve()
-        script=cls.shared/'generate.exs';script.write_text('Code.require_file("scripts/ci/readiness_fixture.exs"); {base,m}=ReadinessFixture.fixture(); File.write!(Path.join(base,"manifest.json"),Jason.encode!(m)); e=ReadinessFixture.refresh(base,m); File.write!(Path.join(base,"refresh-envelope.json"),Jason.encode!(e)); IO.puts(Jason.encode!(%{base: base}))')
+        script=cls.shared/'generate.exs';script.write_text('Code.require_file("scripts/maintainer/readiness_workflow.exs"); :ok = Rindle.ReadinessWorkflow.ensure_crypto!(); Code.require_file("scripts/ci/readiness_fixture.exs"); {base,m}=ReadinessFixture.fixture(); File.write!(Path.join(base,"manifest.json"),Jason.encode!(m)); e=ReadinessFixture.refresh(base,m); File.write!(Path.join(base,"refresh-envelope.json"),Jason.encode!(e)); IO.puts(Jason.encode!(%{base: base}))')
         env={**os.environ,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1','RINDLE_READINESS_TEST_ROOT':str(cls.shared)}
         result=subprocess.run(['mix','run','--no-start','--no-compile','--no-deps-check',str(script)],cwd=ROOT,env=env,capture_output=True,timeout=45)
         if result.returncode:raise AssertionError(result.stdout+result.stderr)

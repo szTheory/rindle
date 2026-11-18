@@ -110,7 +110,7 @@ class Closure:
 
     def metadata(self):
         selection='"rindle-snapshot-v3"' if self.snapshot else 'v.policy()'
-        expr='Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs"); v=Rindle.ExactHeadReadiness; p='+selection+'; IO.puts(Jason.encode!(%{policy: p, proofs: v.required_proofs(p), mutable: v.mutable_proofs(p), inputs: v.input_paths()}))'
+        expr='Code.require_file("scripts/maintainer/readiness_workflow.exs"); :ok = Rindle.ReadinessWorkflow.ensure_crypto!(); Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs"); v=Rindle.ExactHeadReadiness; p='+selection+'; IO.puts(Jason.encode!(%{policy: p, proofs: v.required_proofs(p), mutable: v.mutable_proofs(p), inputs: v.input_paths()}))'
         code,raw=self.command(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr],45,
             env={**self.env,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1'})
         require(code==0,'validator_unavailable')

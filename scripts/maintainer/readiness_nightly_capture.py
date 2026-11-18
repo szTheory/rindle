@@ -3,6 +3,7 @@ import argparse
 from pathlib import Path
 import subprocess
 import re
+import time
 
 from exact_head_readiness import NotReady, canonical, now, require, write_new
 from readiness_github import GitHub, json_bytes
@@ -26,6 +27,22 @@ def dispatch(api, output, sequence):
     return id
 
 
+def dispatched_run(api, run_id):
+    path=api.path('actions/runs/'+str(run_id))
+    for attempt in range(3):
+        before=len(api.calls)
+        try:
+            return api.get(path)
+        except NotReady as exc:
+            recent=api.calls[before:]
+            # GitHub can accept the dispatch before the run becomes readable. Retry
+            # only an authenticated 404 response for this exact read; never retry POST.
+            if not (str(exc)=='remote_unavailable' and len(recent)==1 and
+                    recent[0].get('status')==404 and attempt<2):
+                raise
+            time.sleep(2**attempt)
+
+
 def capture(repo, output, fixture=None):
     output=reserve(output)
     verdict={'schema':'rindle-nightly-capture-v1','repository':repo,'policy':'rindle-snapshot-v3',
@@ -43,7 +60,7 @@ def capture(repo, output, fixture=None):
             id=dispatch(api,output,sequence)
             verdict['attempts'].append({'selected_subject_sha':subject,'run_id':id})
             write_new(output/f'owned-run-{sequence}.json',verdict['attempts'][-1])
-            run,_=api.get(api.path('actions/runs/'+str(id)))
+            run,_=dispatched_run(api,id)
             require(run.get('id')==id and run.get('repository',{}).get('full_name')==repo and
                 run.get('workflow_id')==workflow.get('id') and run.get('name')=='Nightly' and
                 run.get('path')==workflow['path'] and run.get('event')=='workflow_dispatch' and
