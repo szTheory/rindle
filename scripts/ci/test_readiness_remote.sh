@@ -370,6 +370,18 @@ class Remote(unittest.TestCase):
         self.assertEqual(len(observed['statuses']),2)
         calls=[v['path'] for v in collector.api.calls]
         self.assertEqual(calls.count(self.run_path),2);self.assertEqual(calls.count(self.job_path),2)
+    def test_known_dirty_pr_with_null_mergeable_is_recorded_as_nonmergeable(self):
+        self.add_pr();path=prefix+'pulls/999'
+        self.body(path)['mergeable']=None;self.body(path)['mergeable_state']='dirty'
+        code,value,collector=self.collect(full=True);self.assertEqual(code,0,value)
+        self.assertIsNone(collector.pull_inputs[1][999]['mergeable'])
+        observed=c.read_json(collector.private/'normalized-1.json')
+        self.assertIs(observed['pulls'][0]['mergeable'],False)
+        self.assertEqual(observed['pulls'][0]['mergeable_state'],'dirty')
+    def test_unknown_pr_mergeability_remains_fail_closed(self):
+        self.add_pr();path=prefix+'pulls/999'
+        self.body(path)['mergeable']=None;self.body(path)['mergeable_state']='unknown'
+        self.full_reject('pull_decision_inputs_unavailable')
     def test_repository_size_changes_do_not_change_pr_decision(self):
         self.add_pr();path=prefix+'pulls/999'
         first=self.responses[path][0]
