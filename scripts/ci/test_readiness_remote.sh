@@ -126,7 +126,7 @@ class Remote(unittest.TestCase):
             'event':'push','head_branch':'main','repository':{'full_name':repo},'path':'.github/workflows/ci.yml',
             'status':'completed','conclusion':'success'}]})
         self.landing_jobs_path=prefix+'actions/runs/'+str(landing['ci_run_id'])+'/jobs?per_page=100'
-        self.put(self.landing_jobs_path,{'total_count':len(landing_jobs),'jobs':[{'id':i+1,'name':name,'conclusion':'success'} for i,name in enumerate(landing_jobs)]})
+        self.put_landing_jobs(landing['ci_run_id'])
         self.put(prefix+'issues?state=open&per_page=100',issues)
         self.issue_path=prefix+'issues?state=open&per_page=100'
         self.put(prefix+'pulls?state=open&per_page=100',[])
@@ -167,6 +167,18 @@ class Remote(unittest.TestCase):
     def put(self,path,body,status=200,headers=None):self.responses[path]=[{'status':status,'body':copy.deepcopy(body),'headers':headers or {}}]
     def subject_file(self,path,raw):self.put(prefix+'contents/'+path+'?ref='+sha,{'path':path,'type':'file','encoding':'base64','size':len(raw),'sha':hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest(),'content':base64.b64encode(raw).decode()})
     def body(self,path):return self.responses[path][0]['body']
+    def put_landing_jobs(self,run_id,page_size=100):
+        route=prefix+'actions/runs/'+str(run_id)+'/jobs'
+        pages=[landing_jobs[index:index+page_size] for index in range(0,len(landing_jobs),page_size)]
+        for page_index,names in enumerate(pages):
+            page_number=page_index+1;query='?per_page='+str(page_size)+('&page='+str(page_number) if page_number>1 else '')
+            headers={}
+            if page_number<len(pages):
+                next_query='?per_page='+str(page_size)+'&page='+str(page_number+1)
+                headers={'link':'<https://api.github.com/'+route+next_query+'>; rel="next"'}
+            start=page_index*page_size
+            jobs=[{'id':start+offset+1,'name':name,'conclusion':'success'} for offset,name in enumerate(names)]
+            self.put(route+query,{'total_count':len(landing_jobs),'jobs':jobs},headers=headers)
     def collect(self,full=False):
         (self.fixture/'responses.json').write_bytes(c.canonical(self.responses))
         collector=c.RemoteCollector(repo,sha,self.tmp/'out',self.fixture,None if full else 'issues');code=collector.run()
@@ -267,6 +279,17 @@ class Remote(unittest.TestCase):
         self.body(prefix+'pulls/105')['merge_commit_sha']='b'*40
         code,value,_=self.collect(full=True);self.assertEqual(code,1)
         self.assertIn(value['reason'],('fixture_response_missing','landing_evidence_unavailable','ledger_reconciliation_failed'))
+    def test_historical_job_pages_fall_back_after_repeated_gateway_errors(self):
+        self.responses[self.landing_jobs_path]=[{'status':502,'body':{'message':'Bad Gateway'},'headers':{}}]*3
+        self.put_landing_jobs(landing['ci_run_id'],page_size=5)
+        code,value,collector=self.collect(full=True);self.assertEqual(code,0,value)
+        calls=collector.api.calls
+        large=[call for call in calls if call['path']==self.landing_jobs_path]
+        route=self.landing_jobs_path.rsplit('?',1)[0]
+        small=[call for call in calls if call['path'].startswith(route+'?per_page=5')]
+        self.assertEqual(len(large),6)
+        self.assertEqual(len(small),6)
+        self.assertEqual({call['path'] for call in small},{route+'?per_page=5',route+'?per_page=5&page=2',route+'?per_page=5&page=3'})
     def test_changed_landing_ci_between_observations_rejects(self):
         self.responses[self.landing_jobs_path].append(copy.deepcopy(self.responses[self.landing_jobs_path][0]))
         self.responses[self.landing_jobs_path][1]['body']['jobs'][0]['conclusion']='failure'
@@ -280,8 +303,7 @@ class Remote(unittest.TestCase):
         repaired={**original,'id':original['id']+1,'head_sha':repair_sha,'conclusion':'success'}
         self.repair_run_path=prefix+'actions/workflows/ci.yml/runs?head_sha='+repair_sha+'&event=push&per_page=5'
         self.put(self.repair_run_path,{'workflow_runs':[repaired]})
-        self.put(prefix+'actions/runs/'+str(repaired['id'])+'/jobs?per_page=100',
-            {'total_count':len(landing_jobs),'jobs':[{'id':i+1,'name':name,'conclusion':'success'} for i,name in enumerate(landing_jobs)]})
+        self.put_landing_jobs(repaired['id'])
         recovery={'policy':'demo-config-repair-v1','merge_sha':landing['merge_sha'],'evidence_sha':repair_sha,
             'changed_files':['examples/adoption_demo/config/dev.exs'],'original':{
                 'run':{k:original[k] for k in ('id','head_sha','event','status','conclusion')},'verdict':'regression',
