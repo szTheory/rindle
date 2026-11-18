@@ -183,6 +183,12 @@ class Acceptance(unittest.TestCase):
         self.assertEqual({p.relative_to(checkout) for p in checkout.rglob('*') if p.is_file()},before)
     def test_public_entrypoint_preserves_clean_checkout_without_caller_env(self):self.clean_bootstrap()
     def test_workflow_direct_admission_preserves_clean_checkout(self):self.clean_bootstrap(workflow=True)
+    def test_retention_workflow_pins_supported_hex_archive(self):
+        workflow=(root/'.github/workflows/readiness-retention.yml').read_text()
+        audit=(root/'scripts/maintainer/readiness_hex_audit.exs').read_text()
+        versions=re.findall(r'(?m)^\s*mix local\.hex\s+([0-9]+\.[0-9]+\.[0-9]+)\s+--force\s*$',workflow)
+        self.assertEqual(versions,['2.6.0'],'retention collector must pin the Hex reader version it verifies')
+        self.assertIn('"2.6.0"',audit,'pinned Hex version must remain supported by the audited cache reader')
     def producer_case(self,**changes):
         owner=a.Acceptance(repo,self.tmp/'out','fixture');owner.subject=sha;owner.api=Main([sha])
         run={'display_title':'Readiness nonce','name':'Readiness nonce','workflow_id':901,'repository':{'full_name':repo},
