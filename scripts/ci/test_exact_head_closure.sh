@@ -112,7 +112,8 @@ IO.puts(Jason.encode!(%{base: base}))
         self.assertEqual(facts['adoption']['pilot_01'],'open');self.assertFalse(facts['adoption']['one_point_zero_authority'])
     def test_candidate_joins_all_proofs_through_actual_validator(self):
         code,value,owner=self.close();self.assertEqual(code,0);self.assertEqual(value['verdict'],'candidate_ready')
-        manifest=c.read_json(owner.portable/'manifest.json');self.assertEqual(len(manifest['proofs']),23)
+        manifest=c.read_json(owner.portable/'manifest.json');self.assertEqual(len(manifest['proofs']),22)
+        self.assertNotIn('nightly-scheduled',{proof['id'] for proof in manifest['proofs']})
         self.assertEqual(c.read_json(owner.output/'candidate-validation.json')['verdict'],'ready')
         self.assertEqual(c.read_json(owner.output/'initial-attempt.json')['verdict'],'not_ready')
     def test_validator_worker_does_not_retain_previous_graph_state(self):
@@ -263,9 +264,8 @@ IO.puts(Jason.encode!(%{base: base}))
         self.refreshing();original=self.fixture/'data/baseline-manifest.json';before=original.read_bytes()
         code,value,owner=self.close(True);self.assertEqual(code,0)
         self.assertEqual(original.read_bytes(),before);self.assertEqual((owner.portable/'manifest.json').read_bytes(),before)
-        envelope=c.read_json(owner.portable/'refresh-envelope.json');self.assertEqual(envelope['manifest_sha256'],c.digest(before));self.assertEqual(len(envelope['proofs']),5)
-        n=c.read_json(owner.portable/next(r for r in envelope['proofs'] if r['id']=='nightly-scheduled')['path'])['source']['normalized']
-        self.assertTrue(n['incident_artifact']['path'].startswith('refresh/'));self.assertTrue((owner.portable/n['incident_artifact']['path']).is_file())
+        envelope=c.read_json(owner.portable/'refresh-envelope.json');self.assertEqual(envelope['manifest_sha256'],c.digest(before));self.assertEqual(len(envelope['proofs']),4)
+        self.assertNotIn('nightly-scheduled',{proof['id'] for proof in envelope['proofs']})
     def test_refresh_rejects_advanced_main(self):
         self.refreshing();self.config['main_sequence']=['b'*40];self.reject('main_changed',True)
     def test_refresh_rejects_changed_source_during_invocation(self):

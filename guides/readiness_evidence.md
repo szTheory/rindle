@@ -1,10 +1,15 @@
 # Readiness evidence storage and access
 
 Readiness evidence is a saved proof of what passed for one exact source commit
-during one recorded interval: test receipts, CI and scheduled Nightly identities,
+during one recorded interval: test receipts, exact-source CI identities,
 security inventory coverage, package identity, checksums and the terminal verdict.
-It does not grant readiness to later commits or authorize a release. The commands
-and acceptance rules are in [Running](running.html#maintainer-exact-head-readiness-evidence).
+It does not grant readiness to later commits or authorize a release. New general
+current-main evidence uses `rindle-exact-head-v2`; fixed previously-main candidates use
+`rindle-snapshot-v4`. Neither requires Nightly. Exact-source push-main CI, effective
+protection, local qualification, current remote dispositions and adoption parity remain
+gates. Nightly remains strict within its own workflow and incident path, but is advisory
+for general readiness. The commands and acceptance rules are in
+[Running](running.html#maintainer-exact-head-readiness-evidence).
 
 ## Recommended storage
 
@@ -81,12 +86,10 @@ presence, while actual workflow reads must still prove its access.
 Security-setting changes and credential provisioning are separate authorized
 maintainer operations under RUNNING.md.
 
-Full push-main CI and complete Nightly qualification must pass for the exact
-snapshot SHA. Qualification may use a dispatch or a schedule; use Running's
-explicit `capture-nightly` command to bind the actual returned source and run ID.
-Keep that source fixed while compatible main changes land.
-
-Separately, the newest genuine scheduled Nightly must prove operational health
+Historical v3 evidence required full push-main CI and complete Nightly qualification
+for the exact snapshot SHA. Qualification could use a dispatch or a schedule; Running's
+explicit `capture-nightly` command bound the returned source and run ID. Under v3, the
+newest genuine scheduled Nightly also had to prove operational health
 at its actual SHA under the same reviewed controls, with authenticated incident
 verdict, checkpoint and current history. It need not run on the candidate SHA.
 A manual qualification cannot supply scheduled incident recovery. The daily slot

@@ -45,7 +45,7 @@ def dispatched_run(api, run_id):
 
 def capture(repo, output, fixture=None):
     output=reserve(output)
-    verdict={'schema':'rindle-nightly-capture-v1','repository':repo,'policy':'rindle-snapshot-v3',
+    verdict={'schema':'rindle-nightly-capture-v1','repository':repo,'policy':'rindle-nightly-advisory-v1',
         'requirements_credit':False,'verdict':'not_ready','started_at':now(),'attempts':[]}
     try:
         api=GitHub(repo,output/'restricted/api',fixture,budget=180)

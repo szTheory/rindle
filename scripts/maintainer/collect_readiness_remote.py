@@ -16,7 +16,8 @@ from readiness_github import GitHub, PULL_DIAGNOSTIC_FIELDS, REMOTE_COLLECTION_S
 from collect_readiness_runs import Collector as RunCollector, policy
 
 LEDGER = '.planning/INBOX-LEDGER.json'
-POLICY = 'rindle-exact-head-v1'
+LEGACY_POLICY = 'rindle-exact-head-v1'
+POLICY = 'rindle-exact-head-v2'
 
 
 def stable_records(values, id_key):
@@ -44,11 +45,16 @@ def pull_decision_identity(value):
 
 
 class RemoteCollector:
-    def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False):
+    def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False,snapshot_policy=None,readiness_policy=None):
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
         self.repo,self.subject,self.output=repo,subject,Path(output).resolve()
+        from readiness_subject import LEGACY_POLICY as LEGACY_SNAPSHOT_POLICY, POLICY as CURRENT_SNAPSHOT_POLICY
         self.snapshot=snapshot
-        self.policy_name='rindle-snapshot-v3' if snapshot else POLICY
+        self.snapshot_policy=(snapshot_policy or CURRENT_SNAPSHOT_POLICY) if snapshot else None
+        require(not snapshot or self.snapshot_policy in (LEGACY_SNAPSHOT_POLICY,CURRENT_SNAPSHOT_POLICY),'snapshot_policy_unsupported')
+        self.readiness_policy=(readiness_policy or POLICY) if not snapshot else None
+        require(snapshot or self.readiness_policy in (LEGACY_POLICY,POLICY),'readiness_policy_unsupported')
+        self.policy_name=self.snapshot_policy if snapshot else self.readiness_policy
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
         self.output.mkdir(mode=0o700,parents=True)
         self.portable=self.output/'portable';self.private=self.output/'restricted'
@@ -63,7 +69,7 @@ class RemoteCollector:
     def main(self):
         if self.snapshot:
             from readiness_subject import observe
-            self.snapshot_binding=observe(self.api,self.subject)
+            self.snapshot_binding=observe(self.api,self.subject,policy=self.snapshot_policy)
             return self.snapshot_binding['current_main_sha']
         value,_=self.api.get(self.api.path('git/ref/heads/main'))
         require(value.get('ref')=='refs/heads/main' and value.get('object',{}).get('type')=='commit' and
@@ -499,10 +505,10 @@ class RemoteCollector:
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo',required=True);parser.add_argument('--subject',required=True);parser.add_argument('--output',required=True)
-    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--fixture');parser.add_argument('--only',choices=['issues'])
+    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--snapshot-policy',choices=['rindle-snapshot-v3','rindle-snapshot-v4']);parser.add_argument('--readiness-policy',choices=['rindle-exact-head-v1','rindle-exact-head-v2']);parser.add_argument('--fixture');parser.add_argument('--only',choices=['issues'])
     args=parser.parse_args()
     try:
-        return RemoteCollector(args.repo,args.subject,args.output,args.fixture,args.only,args.snapshot).run()
+        return RemoteCollector(args.repo,args.subject,args.output,args.fixture,args.only,args.snapshot,args.snapshot_policy,args.readiness_policy).run()
     except NotReady as exc:print('not_ready: '+str(exc));return 1
 
 if __name__=='__main__':raise SystemExit(main())

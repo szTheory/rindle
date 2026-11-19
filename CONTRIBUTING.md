@@ -66,8 +66,9 @@ the disposable source and private dependency/build directories afterwards.
 Run focused checks while editing. Before a PR, run `mix ci`; it exercises the
 ordinary default suite once. Use the canonical local+JSON coverage command once
 for a floor measurement. The finite async experiment is separate local evidence,
-not another CI lane. Fresh/restored Dialyzer analyses belong to Nightly breadth;
-release hygiene belongs to release preparation.
+not another CI lane. Fresh/restored Dialyzer analyses remain strict within Nightly, whose
+status is advisory for ordinary development and readiness. Release hygiene belongs to
+release preparation.
 
 <!-- rindle-verification-map -->
 | Surface | Lane | Command |
@@ -262,7 +263,7 @@ snapshot rule.
 - the **Playwright browser E2E** (`push:main`)
 - the **Docker-compose cold-start smoke** (`push:main`)
 - the broad **OTP×Elixir compatibility matrix** (nightly)
-- the owned **Dialyzer** lane (nightly, gating there)
+- the owned **Dialyzer** lane (Nightly summary remains strict; status is advisory to ordinary readiness)
 - the real-API **GCS soak** lane (nightly) and the **Mux soak** lane (label-gated on
   `streaming`-labeled PRs)
 

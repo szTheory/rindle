@@ -77,6 +77,18 @@ A milestone PR is mergeable only when all of these are true:
 - Public support wording matches shipped code (docs parity tests green)
 - The PR does not bypass Release Please or create a manual release path
 
+## Nightly and general readiness
+
+Nightly stays strict inside its own summary and incident path. Its result and schedule
+freshness are advisory for general development, merge, release readiness, and new DevOps
+certifications. Forward general readiness uses exact-head v2 for current main and snapshot
+v4 for a fixed previously-main candidate; exact-source CI, effective branch protection,
+current remote dispositions, local qualification, and adoption parity remain machine gates.
+A concrete defect may be gated by its severity regardless of how it was found. Keep v1/v3
+receipts historical and do not recollect them solely for general readiness. The rationale,
+tradeoffs, and primary GitHub sources are recorded in
+`.planning/research/2026-11-19-nightly-advisory-policy-review.md`.
+
 ## Release Boundary
 
 Milestone PRs deliver product changes to `main`; they do not publish packages by themselves.
@@ -140,16 +152,10 @@ verification fingerprints can become stale during a later phase: surface that de
 retain the current job's ownership, and re-verify through GSD rather than silently
 rewinding active execution or rewriting old fingerprints to green.
 
-## Immutable snapshot acceptance
+## Historical v3 snapshot acceptance
 
-Phase139's approved `rindle-snapshot-v3` path fixes an explicit authenticated previously-main
-candidate while ordinary development and PRs continue. Full push-main CI and Nightly
-qualification (dispatch or schedule) belong to that candidate. Independently verified
-real scheduled health keeps its actual execution SHA and matching reviewed operational
-controls. Manual qualification never supplies incident recovery. Mutable private sources,
-ledger, protection and authoritative adoption facts refresh from current main. Snapshot
-completion is historical, never current-main or publication credit. Do not freeze the
-train or reset a candidate solely for compatible main movement. Use RUNNING.md's explicit
-`capture-nightly`, then `--snapshot --subject FULL_SHA` qualification/acceptance commands
-after protected policy delivery and full green main CI. Historical v2 receipts retain
-their original semantics and verifier; the amendment does not grant READY credit.
+The historical `rindle-snapshot-v3` contract fixed an authenticated previously-main
+candidate and required full push-main CI, same-source Nightly qualification, and
+independently verified scheduled health. Its receipts remain historical under their
+original verifier. Forward general readiness uses exact-head v2 or snapshot v4; neither
+requires Nightly. Do not start or wait for a new v3 collection to unblock development.

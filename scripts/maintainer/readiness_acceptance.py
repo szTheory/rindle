@@ -14,6 +14,13 @@ from readiness_adoption import check as adoption_check
 from readiness_closure import Closure, object_bytes
 from readiness_github import GitHub
 from readiness_retention import WORKFLOW, WORKFLOW_NAME, durable_path, graph_objects, retrieve, reserve, workflow_identity
+from readiness_subject import LEGACY_POLICY as LEGACY_SNAPSHOT_POLICY, POLICY as SNAPSHOT_POLICY
+from collect_readiness_runs import LEGACY_POLICY as LEGACY_READINESS_POLICY, POLICY as READINESS_POLICY
+
+SNAPSHOT_TERMINALS = {'rindle-snapshot-terminal-v3': LEGACY_SNAPSHOT_POLICY,
+                      'rindle-snapshot-terminal-v4': SNAPSHOT_POLICY}
+EXACT_HEAD_TERMINALS = {'rindle-exact-head-terminal-v1': LEGACY_READINESS_POLICY,
+                        'rindle-exact-head-terminal-v2': READINESS_POLICY}
 
 PHASE='.planning/phases/139-exact-head-readiness-closure'
 RELOCATED_PHASE_FILES={f'{PHASE}/139-preflight.sh':'.planning/evidence/runtime/139-preflight.sh'}
@@ -53,11 +60,13 @@ def declared_files(root=ROOT):
     return sorted(paths)
 
 
-def verify_subject(api,repo,root=ROOT,subject=None,snapshot=False):
+def verify_subject(api,repo,root=ROOT,subject=None,snapshot=False,snapshot_policy=None):
     binding=None
     if snapshot:
-        from readiness_subject import observe
-        binding=observe(api,subject,root)
+        from readiness_subject import LEGACY_POLICY, POLICY as CURRENT_SNAPSHOT_POLICY, observe
+        snapshot_policy=snapshot_policy or CURRENT_SNAPSHOT_POLICY
+        require(snapshot_policy in (LEGACY_POLICY,CURRENT_SNAPSHOT_POLICY),'snapshot_policy_unsupported')
+        binding=observe(api,subject,root,policy=snapshot_policy)
     else:subject=main_sha(api)
     require(git(root,'rev-parse','HEAD').decode().strip()==subject,'closing_subject_not_checked_out')
     require(not git(root,'status','--porcelain','--untracked-files=all').strip(),'dirty_closing_checkout')
@@ -69,7 +78,9 @@ def verify_subject(api,repo,root=ROOT,subject=None,snapshot=False):
     if not snapshot:require(main_sha(api)==subject,'main_changed')
     record={'schema':'rindle-readiness-merged-subject-v1','repository':repo,'subject_sha':subject,
         'tracked_inventory':inventory,'observed_at':now(),'requirements_credit':False}
-    if snapshot:record.update(schema='rindle-readiness-snapshot-checkout-v3',snapshot_binding=binding)
+    if snapshot:
+        checkout_schema='rindle-readiness-snapshot-checkout-v3' if binding['schema'].endswith('-v3') else 'rindle-readiness-snapshot-checkout-v4'
+        record.update(schema=checkout_schema,snapshot_binding=binding)
     return record
 
 
@@ -156,8 +167,13 @@ def metadata_parity(root,subject,interval):
 
 
 class Acceptance:
-    def __init__(self,repo,output,fixture=None,wait=19800,subject=None,snapshot=False):
+    def __init__(self,repo,output,fixture=None,wait=19800,subject=None,snapshot=False,snapshot_policy=None,readiness_policy=None):
+        from readiness_subject import LEGACY_POLICY, POLICY as CURRENT_SNAPSHOT_POLICY
         self.candidate=subject;self.snapshot=snapshot
+        self.snapshot_policy=(snapshot_policy or CURRENT_SNAPSHOT_POLICY) if snapshot else None
+        require(not snapshot or self.snapshot_policy in (LEGACY_POLICY,CURRENT_SNAPSHOT_POLICY),'snapshot_policy_unsupported')
+        self.readiness_policy=(readiness_policy or READINESS_POLICY) if not snapshot else None
+        require(snapshot or self.readiness_policy in (LEGACY_READINESS_POLICY,READINESS_POLICY),'readiness_policy_unsupported')
         self.repo=repo;self.output=Path(output).resolve();self.fixture=fixture
         self.mode='fixture' if fixture is not None else 'execution';self.wait=wait
         self.started=now();self.subject=None;self.reserved=False
@@ -165,7 +181,7 @@ class Acceptance:
         if durable:durable_path(self.output,self.fixture)
         reserve(self.output);self.reserved=True;self.api=GitHub(self.repo,self.output/'restricted/api',self.fixture,budget=self.wait+900,max_calls=3000)
     def subject_record(self):
-        return verify_subject(self.api,self.repo,subject=self.candidate,snapshot=True) if self.snapshot else verify_subject(self.api,self.repo)
+        return verify_subject(self.api,self.repo,subject=self.candidate,snapshot=True,snapshot_policy=self.snapshot_policy) if self.snapshot else verify_subject(self.api,self.repo)
     def dispatch(self,nonce):
         require(self.fixture is None,'fixture_dispatch_forbidden')
         payload=canonical({'ref':'main','inputs':{'expected_subject':self.subject,'request_id':nonce,
@@ -194,7 +210,8 @@ class Acceptance:
             time.sleep(min(30,max(0,deadline-time.monotonic())))
         raise NotReady('producer_wait_timeout')
     def refresh(self,manifest,output):
-        owner=Closure(self.repo,output,manifest,self.fixture)
+        owner=Closure(self.repo,output,manifest,self.fixture,subject=self.subject,snapshot=self.snapshot,
+            snapshot_policy=self.snapshot_policy,readiness_policy=self.readiness_policy)
         require(owner.run()==0,'mutable_refresh_not_ready')
         value=read_json(output/'verdict.json');require(value.get('verdict')=='candidate_ready','mutable_refresh_not_ready')
         return value
@@ -214,7 +231,8 @@ class Acceptance:
             require(locator['subject_sha']==self.subject and locator['evidence_mode']==self.mode and locator['bytes_verified'] is True and
                 locator['storage_scope']==('fixture_only' if self.fixture is not None else 'durable_maintainer_host'),'durable_subject_or_mode')
             manifest_path=self.output/'durable/bundle/manifest.json';manifest=read_json(manifest_path)
-            require((manifest.get('policy')=='rindle-snapshot-v3')==self.snapshot,'acceptance_policy_mismatch')
+            expected_policy=self.snapshot_policy if self.snapshot else self.readiness_policy
+            require(manifest.get('policy')==expected_policy,'acceptance_policy_mismatch')
             self.adoption(manifest)
             self.refresh(manifest_path,self.output/'refresh')
             require((self.output/'refresh/portable/manifest.json').read_bytes()==manifest_path.read_bytes(),'original_manifest_changed')
@@ -227,14 +245,16 @@ class Acceptance:
                 'sidecar':'durable/readiness-digest.json','archive':'durable/readiness-evidence.tar.gz',
                 'refresh_manifest':'refresh/portable/manifest.json','refresh_envelope':'refresh/portable/refresh-envelope.json',
                 'validator':'terminal-validation/refresh-validation.json'}.items()}
-            verdict={'schema':'rindle-snapshot-terminal-v3' if self.snapshot else 'rindle-exact-head-terminal-v1','verdict':'fixture_ready' if self.fixture is not None else 'ready',
+            terminal_schema=('rindle-snapshot-terminal-v3' if self.snapshot_policy==LEGACY_SNAPSHOT_POLICY else 'rindle-snapshot-terminal-v4') if self.snapshot else ('rindle-exact-head-terminal-v1' if self.readiness_policy==LEGACY_READINESS_POLICY else 'rindle-exact-head-terminal-v2')
+            verdict={'schema':terminal_schema,'verdict':'fixture_ready' if self.fixture is not None else 'ready',
                 'repository':self.repo,'subject_sha':self.subject,'evidence_mode':self.mode,'requirements_credit':self.fixture is None,
                 'acceptance_scope':'historical','current_main_sha':main_sha(self.api),'current_readiness':False,'observation_interval':interval,'references':references,'run_id':run,'run_attempt':attempt}
             write_new(self.output/'terminal-verdict.json',verdict);atomic(self.output/'attempt.json',verdict);return 0
         except (NotReady,OSError,ValueError,KeyError,TypeError,IndexError,subprocess.SubprocessError) as exc:
             if self.reserved:
                 write_new(self.output/'restricted/failure.json',{'exception_type':type(exc).__name__,'diagnostic':str(exc)})
-                value={'schema':'rindle-exact-head-terminal-v1','verdict':'not_ready','reason':Closure.public_reason(str(exc)) if isinstance(exc,NotReady) else 'acceptance_unavailable',
+                terminal_schema=('rindle-snapshot-terminal-v3' if self.snapshot_policy==LEGACY_SNAPSHOT_POLICY else 'rindle-snapshot-terminal-v4') if self.snapshot else ('rindle-exact-head-terminal-v1' if self.readiness_policy==LEGACY_READINESS_POLICY else 'rindle-exact-head-terminal-v2')
+                value={'schema':terminal_schema,'verdict':'not_ready','reason':Closure.public_reason(str(exc)) if isinstance(exc,NotReady) else 'acceptance_unavailable',
                     'repository':self.repo,'subject_sha':self.subject,'evidence_mode':self.mode,'requirements_credit':False,'started_at':self.started,'completed_at':now()}
                 if not (self.output/'terminal-verdict.json').exists():write_new(self.output/'terminal-verdict.json',value)
                 atomic(self.output/'attempt.json',value)
@@ -249,10 +269,10 @@ def verifier(repo,output,portable,subject):
 
 def stored_bytes(repo,path,fixture):
     path=Path(path).resolve();value=read_json(path);root=path.parent;mode='fixture' if fixture is not None else 'execution'
-    require(value.get('schema') in ('rindle-exact-head-terminal-v1','rindle-snapshot-terminal-v3') and value.get('repository')==repo and
+    require(value.get('schema') in (*EXACT_HEAD_TERMINALS,*SNAPSHOT_TERMINALS) and value.get('repository')==repo and
         value.get('evidence_mode')==mode and value.get('verdict')==('fixture_ready' if fixture is not None else 'ready') and
         value.get('requirements_credit') is (fixture is None),'terminal_verdict_not_ready')
-    if value['schema']=='rindle-snapshot-terminal-v3':
+    if value['schema'] in SNAPSHOT_TERMINALS:
         require(value.get('acceptance_scope')=='historical' and value.get('current_readiness') is False,'terminal_policy_mismatch')
     interval=value['observation_interval']
     start,end=[dt.datetime.fromisoformat(interval[k].replace('Z','+00:00')) for k in ('started_at','completed_at')]
@@ -266,16 +286,19 @@ def stored_bytes(repo,path,fixture):
         digest(data['archive'])==sidecar.get('archive_sha256')==locator.get('archive_sha256') and
         digest(data['manifest'])==sidecar.get('manifest_sha256')==locator.get('manifest_sha256') and
         digest(data['sidecar'])==locator.get('producer_sidecar_sha256') and data['manifest']==data['refresh_manifest'],'terminal_bytes_mismatch')
-    if value['schema']=='rindle-snapshot-terminal-v3':
+    if value['schema'] in SNAPSHOT_TERMINALS:
         record=read_json(root/refs['subject']['path'])
-        require(record.get('schema')=='rindle-readiness-snapshot-checkout-v3' and
+        expected_checkout='rindle-readiness-snapshot-checkout-v3' if value['schema'].endswith('-v3') else 'rindle-readiness-snapshot-checkout-v4'
+        require(record.get('schema')==expected_checkout and
             record.get('repository')==repo and record.get('subject_sha')==value['subject_sha'] and
             record.get('snapshot_binding',{}).get('subject_sha')==value['subject_sha'],'terminal_subject_identity')
         require(sidecar.get('schema')=='rindle-readiness-producer-digest-v2' and
             sidecar.get('producer_head_sha')==locator.get('producer_head_sha') and
             re.fullmatch(r'[0-9a-f]{40}',sidecar.get('producer_head_sha','')),'terminal_producer_identity')
     manifest=read_json(root/refs['manifest']['path'])
-    require((value['schema']=='rindle-snapshot-terminal-v3')==(manifest.get('policy')=='rindle-snapshot-v3'),'terminal_policy_mismatch')
+    expected_manifest_policy=(SNAPSHOT_TERMINALS.get(value['schema']) if value['schema'] in SNAPSHOT_TERMINALS else
+        EXACT_HEAD_TERMINALS.get(value['schema']))
+    require(manifest.get('policy')==expected_manifest_policy,'terminal_policy_mismatch')
     graph_objects((root/refs['manifest']['path']).parent,manifest)
     require(manifest['subject_sha']==value['subject_sha'] and manifest['evidence_mode']==mode,'terminal_bytes_mismatch')
     return value,manifest
@@ -288,8 +311,8 @@ def claim_status(repo,verdict,output,fixture=None):
     owner=verifier(repo,output/'stored-validation',(source_root/references['refresh_manifest']['path']).parent,value['subject_sha'])
     owner.validate(source_root/references['refresh_manifest']['path'],source_root/references['refresh_envelope']['path'])
     current=main_sha(api)
-    if current!=value['subject_sha'] or value['schema']=='rindle-snapshot-terminal-v3':
-        if value['schema']!='rindle-snapshot-terminal-v3':require(main_sha(api)==current,'main_changed')
+    if current!=value['subject_sha'] or value['schema'] in SNAPSHOT_TERMINALS:
+        if value['schema'] not in SNAPSHOT_TERMINALS:require(main_sha(api)==current,'main_changed')
         status='historical_ready';interval=value['observation_interval']
     else:
         require(verify_subject(api,repo)['subject_sha']==current,'main_changed');adoption_check(ROOT,manifest['adoption'])
@@ -306,26 +329,28 @@ def claim_status(repo,verdict,output,fixture=None):
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('operation',choices=('verify-subject','admit-snapshot','accept','claim-status'))
     parser.add_argument('--repo',required=True);parser.add_argument('--output');parser.add_argument('--verdict');parser.add_argument('--fixture')
-    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--subject')
+    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--snapshot-policy',choices=('rindle-snapshot-v3','rindle-snapshot-v4'));parser.add_argument('--readiness-policy',choices=('rindle-exact-head-v1','rindle-exact-head-v2'));parser.add_argument('--subject')
     args=parser.parse_args(argv)
     if args.snapshot and not args.subject:parser.error('--snapshot requires --subject FULL_SHA')
     if args.subject and not args.snapshot:parser.error('--subject requires --snapshot')
+    if args.snapshot and args.readiness_policy:parser.error('--readiness-policy cannot be combined with --snapshot')
+    if args.snapshot_policy and not args.snapshot:parser.error('--snapshot-policy requires --snapshot')
     if args.output is None:
         if args.operation=='claim-status' and args.verdict:
             args.output=str(Path(args.verdict).resolve().parent/('claim-status-'+secrets.token_hex(8)))
         else:parser.error('--output is required for this operation')
-    if args.operation=='accept':return Acceptance(args.repo,args.output,args.fixture,subject=args.subject,snapshot=args.snapshot).run()
+    if args.operation=='accept':return Acceptance(args.repo,args.output,args.fixture,subject=args.subject,snapshot=args.snapshot,snapshot_policy=args.snapshot_policy,readiness_policy=args.readiness_policy).run()
     try:
         if args.operation=='admit-snapshot':
             from readiness_subject import observe
             require(args.snapshot and args.subject is not None,'snapshot_subject_required')
             output=reserve(args.output);api=GitHub(args.repo,output/'restricted/api',args.fixture)
-            write_new(output/'subject.json',observe(api,args.subject));print('snapshot_admitted')
+            write_new(output/'subject.json',observe(api,args.subject,policy=args.snapshot_policy));print('snapshot_admitted')
         elif args.operation=='claim-status':
             require(args.verdict is not None,'verdict_required');result=claim_status(args.repo,args.verdict,args.output,args.fixture);print(result['status'])
         else:
             output=reserve(args.output);api=GitHub(args.repo,output/'restricted/api',args.fixture)
-            value=verify_subject(api,args.repo,subject=args.subject,snapshot=args.snapshot);value['evidence_mode']='fixture' if args.fixture is not None else 'execution';write_new(output/'subject.json',value);print('merged_subject_verified')
+            value=verify_subject(api,args.repo,subject=args.subject,snapshot=args.snapshot,snapshot_policy=args.snapshot_policy);value['evidence_mode']='fixture' if args.fixture is not None else 'execution';write_new(output/'subject.json',value);print('merged_subject_verified')
         return 0
     except (NotReady,OSError,ValueError,KeyError,TypeError,IndexError,subprocess.SubprocessError) as exc:
         print('not_ready: '+(Closure.public_reason(str(exc)) if isinstance(exc,NotReady) else 'acceptance_unavailable'));return 1

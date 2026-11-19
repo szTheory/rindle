@@ -214,10 +214,13 @@ class OwnedServices:
 class Qualification:
     evidence_mode = 'execution'
 
-    def __init__(self, root, output, repo, subject, deadline_seconds=QUALIFICATION_SECONDS, snapshot=False):
+    def __init__(self, root, output, repo, subject, deadline_seconds=QUALIFICATION_SECONDS, snapshot=False, readiness_policy=None):
         self.root, self.output = Path(root).resolve(), Path(output).absolute()
         self.repo, self.subject = repo, subject
         self.snapshot = snapshot
+        self.readiness_policy = readiness_policy
+        require(readiness_policy is None or readiness_policy in ('rindle-exact-head-v1','rindle-exact-head-v2'),
+                'readiness_policy_unsupported')
         self.run_id = secrets.token_hex(16)
         self.deadline = time.monotonic() + deadline_seconds
         self.workspace = None
@@ -358,10 +361,12 @@ class Qualification:
         expr = ('Code.require_file("' + POLICY_FILE + '"); v=Rindle.ExactHeadReadiness; '
                 'IO.puts(Jason.encode!(%{policy: v.policy(), toolchain: v.toolchain(), '
                 'inputs: v.input_paths(), mutable: v.mutable_proofs(), '
+                'snapshot_policy: v.snapshot_policy(), '
                 'commands: Map.new(v.required_proofs() -- v.mutable_proofs(), &{&1, v.command_prefix(&1)})}))')
         _, data = self.checked(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr], env={**self.env, 'RINDLE_EXACT_HEAD_LIBRARY_ONLY': '1'})
         self.policy = json.loads(data.decode().splitlines()[-1])
-        if self.snapshot:self.policy['policy']='rindle-snapshot-v3'
+        if self.snapshot:self.policy['policy']=self.policy['snapshot_policy']
+        elif self.readiness_policy:self.policy['policy']=self.readiness_policy
         self.checked(['npm','ci'],cwd=self.workspace/'examples/adoption_demo',budget=600)
         self.checked(['npx','playwright','install','chromium'],cwd=self.workspace/'examples/adoption_demo',budget=600)
         require(digest((self.workspace/'scripts/maintainer/exact_head_readiness.py').read_bytes()) == digest(Path(__file__).read_bytes()), 'collector_subject_mismatch')
@@ -761,6 +766,7 @@ def main(argv=None):
     qualify.add_argument('--repo', required=True)
     qualify.add_argument('--subject', required=True)
     qualify.add_argument('--snapshot', action='store_true')
+    qualify.add_argument('--readiness-policy',choices=('rindle-exact-head-v1','rindle-exact-head-v2'))
     qualify.add_argument('--output', type=Path, required=True)
     cleanup = subs.add_parser('cleanup')
     cleanup.add_argument('--output',type=Path,required=True)
@@ -768,7 +774,8 @@ def main(argv=None):
     try:
         if args.operation=='cleanup':
             return cleanup_existing(ROOT,args.output)
-        return Qualification(ROOT, args.output, args.repo, args.subject, snapshot=args.snapshot).run()
+        require(not args.snapshot or args.readiness_policy is None,'policy_mode_conflict')
+        return Qualification(ROOT, args.output, args.repo, args.subject, snapshot=args.snapshot,readiness_policy=args.readiness_policy).run()
     except (NotReady, OSError, ValueError) as exc:
         print('not_ready: ' + (str(exc) if isinstance(exc, NotReady) else 'qualification_unavailable'), file=sys.stderr)
         return 1

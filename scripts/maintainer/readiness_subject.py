@@ -4,7 +4,8 @@ from urllib.parse import urlencode
 
 from exact_head_readiness import ROOT, NotReady, digest, now, require
 
-POLICY = 'rindle-snapshot-v3'
+LEGACY_POLICY = 'rindle-snapshot-v3'
+POLICY = 'rindle-snapshot-v4'
 CONTROL_PATHS = (
     'scripts/maintainer/repo_hygiene_check.sh',
     'scripts/maintainer/readiness_nightly.exs',
@@ -37,7 +38,7 @@ def main_sha(api):
     return sha
 
 
-def observe(api, subject, root=ROOT):
+def observe(api, subject, root=ROOT, policy=POLICY):
     """Admit only an actual push-main tip reachable from currently protected main.
 
     An arbitrary PR commit can be an ancestor of main; ancestry alone is insufficient.
@@ -74,7 +75,9 @@ def observe(api, subject, root=ROOT):
         require((root / path).is_file() and not (root / path).is_symlink() and
                 raw == (root / path).read_bytes(), 'snapshot_policy_mismatch')
         controls[path] = digest(raw)
-    return {'schema': 'rindle-readiness-snapshot-subject-v3', 'repository': api.repo,
+    require(policy in (LEGACY_POLICY, POLICY), 'snapshot_policy_unsupported')
+    schema = 'rindle-readiness-snapshot-subject-v3' if policy == LEGACY_POLICY else 'rindle-readiness-snapshot-subject-v4'
+    return {'schema': schema, 'repository': api.repo,
             'subject_sha': subject, 'current_main_sha': current, 'observed_at': now(),
             'authenticated': True, 'protected_main': {'name': 'main', 'protected': True, 'sha': current},
             'comparison': {'status': comparison['status'], 'base': subject, 'merge_base': subject, 'head': current},

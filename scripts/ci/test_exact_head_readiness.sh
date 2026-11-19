@@ -179,7 +179,8 @@ defmodule ReadinessPolicyTest do
     {"adoption-parity", ["adoption_policy"], "foreign", "adoption_authority"}
   ] do
     test "bound source policy rejects #{id} #{inspect(path)}" do
-      {root, m} = F.fixture()
+      policy = if unquote(id) == "nightly-scheduled", do: V.legacy_policy(), else: V.policy()
+      {root, m} = F.fixture(policy)
       m = F.change_source(root, m, unquote(id), &put_in(&1, unquote(path), unquote(Macro.escape(value))))
       assert [%{"id" => unquote(reason)}] = V.validate_contract(m, F.context(root, m))["reasons"]
     end

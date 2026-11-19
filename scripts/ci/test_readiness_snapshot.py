@@ -35,8 +35,10 @@ def put(root,path,value):
     return q.reference(root,dest)
 
 
-def binding(main,identity,observed='2026-10-22T10:00:30Z'):
-    return {'schema':'rindle-readiness-snapshot-subject-v3','repository':REPO,'subject_sha':SHA,
+def binding(main,identity,observed='2026-10-22T10:00:30Z',policy=None):
+    policy=policy or subject.LEGACY_POLICY
+    schema='rindle-readiness-snapshot-subject-v3' if policy==subject.LEGACY_POLICY else 'rindle-readiness-snapshot-subject-v4'
+    return {'schema':schema,'repository':REPO,'subject_sha':SHA,
         'current_main_sha':main,'observed_at':observed,'authenticated':True,'requirements_credit':False,
         'protected_main':{'name':'main','protected':True,'sha':main},
         'comparison':{'status':'ahead','base':SHA,'merge_base':SHA,'head':main},
@@ -45,24 +47,26 @@ def binding(main,identity,observed='2026-10-22T10:00:30Z'):
         'control_identity':{p:identity[p] for p in subject.CONTROL_PATHS}}
 
 
-def upgrade(root,record,manifest,prefix):
-    record['policy']=subject.POLICY
+def upgrade(root,record,manifest,prefix,policy=None):
+    policy=policy or subject.LEGACY_POLICY
+    record['policy']=policy
     record['remote_main_before']=MAIN;record['remote_main_after']=NEXT
-    record['snapshot_subjects']=[put(root,prefix+'subject-before.json',binding(MAIN,manifest['input_identity'],record['observation_interval']['started_at'])),
-        put(root,prefix+'subject-after.json',binding(NEXT,manifest['input_identity'],record['observation_interval']['completed_at']))]
+    record['snapshot_subjects']=[put(root,prefix+'subject-before.json',binding(MAIN,manifest['input_identity'],record['observation_interval']['started_at'],policy)),
+        put(root,prefix+'subject-after.json',binding(NEXT,manifest['input_identity'],record['observation_interval']['completed_at'],policy))]
     proofs=[]
     for ref in record['proofs']:
-        receipt=q.read_json(root/ref['path']);receipt['policy']=subject.POLICY
-        expanded=split_receipt(receipt,manifest,root,put,prefix) if ref['id']=='nightly-scheduled' else [receipt]
+        if policy==subject.POLICY and ref['id']=='nightly-scheduled':continue
+        receipt=q.read_json(root/ref['path']);receipt['policy']=policy
+        expanded=split_receipt(receipt,manifest,root,put,prefix) if policy==subject.LEGACY_POLICY and ref['id']=='nightly-scheduled' else [receipt]
         for receipt in expanded:
-            receipt['policy']=subject.POLICY
+            receipt['policy']=policy
             id=receipt['id']
             if id=='hygiene':
                 receipt['command']['argv']+=['--snapshot-subject',SHA,'--repo',REPO,'--snapshot-evidence','/external/hygiene-admission']
                 receipt['references'].append(put(root,prefix+'hygiene-subject.json',
-                    binding(NEXT,manifest['input_identity'],receipt['observation_interval']['started_at'])))
+                    binding(NEXT,manifest['input_identity'],receipt['observation_interval']['started_at'],policy)))
             if 'source' in receipt:
-                source=receipt['source'];source['policy']=subject.POLICY;n=source['normalized']
+                source=receipt['source'];source['policy']=policy;n=source['normalized']
                 if id=='remote-inventory':
                     ledger=put(root,prefix+'authority/ledger.json',(ROOT/'.planning/INBOX-LEDGER.json').read_bytes())
                     n.update(ledger_file=ledger,ledger_sha256=ledger['sha256'],authority_main_sha=NEXT)
@@ -258,7 +262,7 @@ class Graph(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.shared=Path(tempfile.mkdtemp(prefix='rindle-snapshot-graph-')).resolve()
-        script=cls.shared/'generate.exs';script.write_text('Code.require_file("scripts/maintainer/readiness_workflow.exs"); :ok = Rindle.ReadinessWorkflow.ensure_crypto!(); Code.require_file("scripts/ci/readiness_fixture.exs"); {base,m}=ReadinessFixture.fixture(); File.write!(Path.join(base,"manifest.json"),Jason.encode!(m)); e=ReadinessFixture.refresh(base,m); File.write!(Path.join(base,"refresh-envelope.json"),Jason.encode!(e)); IO.puts(Jason.encode!(%{base: base}))')
+        script=cls.shared/'generate.exs';script.write_text('Code.require_file("scripts/maintainer/readiness_workflow.exs"); :ok = Rindle.ReadinessWorkflow.ensure_crypto!(); Code.require_file("scripts/ci/readiness_fixture.exs"); {base,m}=ReadinessFixture.fixture("rindle-exact-head-v1"); File.write!(Path.join(base,"manifest.json"),Jason.encode!(m)); e=ReadinessFixture.refresh(base,m); File.write!(Path.join(base,"refresh-envelope.json"),Jason.encode!(e)); IO.puts(Jason.encode!(%{base: base}))')
         env={**os.environ,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1','RINDLE_READINESS_TEST_ROOT':str(cls.shared)}
         result=subprocess.run(['mix','run','--no-start','--no-compile','--no-deps-check',str(script)],cwd=ROOT,env=env,capture_output=True,timeout=45)
         if result.returncode:raise AssertionError(result.stdout+result.stderr)
@@ -475,7 +479,7 @@ class Graph(unittest.TestCase):
         put(fixture,'closure.json',config)
         return fixture
     def test_actual_closure_finishes_after_main_advances(self):
-        fixture=self.closure_fixture();owner=c.Closure(REPO,self.tmp/'close',fixture=fixture,subject=SHA,snapshot=True)
+        fixture=self.closure_fixture();owner=c.Closure(REPO,self.tmp/'close',fixture=fixture,subject=SHA,snapshot=True,snapshot_policy=subject.LEGACY_POLICY)
         self.assertEqual(owner.run(),0)
         manifest=q.read_json(owner.portable/'manifest.json')
         self.assertEqual(manifest['remote_main_before'],MAIN);self.assertEqual(manifest['remote_main_after'],NEXT)
@@ -537,7 +541,7 @@ class Graph(unittest.TestCase):
         with self.assertRaises(q.NotReady):retention.retrieve(REPO,30,1,self.tmp/'retained',fixture)
     def test_full_snapshot_acceptance_and_later_claim_are_historical_only(self):
         fixture=self.closure_fixture(True);self.retention_fixture(fixture)
-        owner=a.Acceptance(REPO,self.tmp/'accept',fixture=fixture,subject=SHA,snapshot=True)
+        owner=a.Acceptance(REPO,self.tmp/'accept',fixture=fixture,subject=SHA,snapshot=True,snapshot_policy=subject.LEGACY_POLICY)
         def setup():
             a.reserve(owner.output);owner.reserved=True;owner.api=API(NEXT)
         with patch.object(owner,'setup',side_effect=setup),patch.object(owner,'subject_record',return_value={'schema':'rindle-readiness-snapshot-checkout-v3','repository':REPO,'subject_sha':SHA,'snapshot_binding':{'subject_sha':SHA}}),patch.object(owner,'dispatch'),patch.object(owner,'producer',return_value=(30,1)):
@@ -559,5 +563,41 @@ class Graph(unittest.TestCase):
         with patch.object(owner,'setup',side_effect=setup),patch.object(owner,'subject_record',return_value={'subject_sha':SHA}),patch.object(owner,'dispatch'),patch.object(owner,'producer',return_value=(30,1)),patch.object(a,'retrieve',side_effect=transport),patch.object(owner,'refresh') as refresh:
             self.assertEqual(owner.run(),1);refresh.assert_not_called()
         self.assertEqual(q.read_json(owner.output/'terminal-verdict.json')['reason'],'acceptance_policy_mismatch')
+
+
+class SnapshotV4(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.shared=Path(tempfile.mkdtemp(prefix='rindle-snapshot-v4-')).resolve()
+        script=cls.shared/'generate.exs'
+        script.write_text('Code.require_file("scripts/ci/readiness_fixture.exs"); {base,m}=ReadinessFixture.fixture(); '
+            'File.write!(Path.join(base,"manifest.json"),Jason.encode!(m)); '
+            'e=ReadinessFixture.refresh(base,m); File.write!(Path.join(base,"refresh-envelope.json"),Jason.encode!(e)); '
+            'IO.puts(Jason.encode!(%{base: base}))')
+        env={**os.environ,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1','RINDLE_READINESS_TEST_ROOT':str(cls.shared)}
+        result=subprocess.run(['mix','run','--no-start','--no-compile','--no-deps-check',str(script)],cwd=ROOT,env=env,capture_output=True,timeout=45)
+        if result.returncode:raise AssertionError(result.stdout+result.stderr)
+        cls.base=Path(json.loads(result.stdout.decode().splitlines()[-1])['base'])
+        manifest=q.read_json(cls.base/'manifest.json');envelope=q.read_json(cls.base/'refresh-envelope.json')
+        upgrade(cls.base,manifest,manifest,'v4/','rindle-snapshot-v4')
+        put(cls.base,'manifest.json',manifest)
+        upgrade(cls.base,envelope,manifest,'v4-refresh/','rindle-snapshot-v4')
+        envelope['manifest_sha256']=q.digest((cls.base/'manifest.json').read_bytes())
+        put(cls.base,'refresh-envelope.json',envelope)
+        if os.environ.get('RINDLE_READINESS_FRESH_VALIDATOR')!='1':
+            cls.validator=ValidatorFixture();cls.addClassCleanup(cls.validator.close)
+            original=c.Closure.command
+            adapter=patch.object(c.Closure,'command',lambda owner,argv,seconds,**kwargs: cls.validator.command(original,owner,argv,seconds,**kwargs))
+            adapter.start();cls.addClassCleanup(adapter.stop)
+    @classmethod
+    def tearDownClass(cls):shutil.rmtree(cls.shared)
+    def test_v4_manifest_passes_without_nightly_proofs(self):
+        manifest=q.read_json(self.base/'manifest.json')
+        ids={row['id'] for row in manifest['proofs']}
+        self.assertEqual(manifest['policy'],subject.POLICY)
+        self.assertTrue({'ci-main','protection','remote-inventory','adoption-parity'}<=ids)
+        self.assertFalse({'nightly-scheduled','nightly-qualification','scheduled-incident-health'}&ids)
+        owner=a.verifier(REPO,self.shared/'validator',self.base,SHA)
+        owner.validate(self.base/'manifest.json',self.base/'refresh-envelope.json')
 
 if __name__=='__main__':unittest.main(verbosity=1)

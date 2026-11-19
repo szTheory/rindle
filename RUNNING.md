@@ -49,7 +49,9 @@ applied GitHub branch-protection state remains remote. The `name: CI` and `ci.ym
 > - The broad OTP×Elixir **`compat-matrix`**, **`dialyzer`**, **`gcs-soak`**, and
 >   **`package-consumer-gcs-live`** lanes live in the separate **`nightly.yml`**
 >   (`name: Nightly`). They are not required PR checks because Nightly has no PR trigger,
->   but are all **Nightly-gating** inputs to the strict `Nightly Summary`.
+>   but are strict inputs to their own `Nightly Summary`. Nightly is advisory to ordinary
+>   development, merge, release readiness and general acceptance; failures go through its
+>   incident path without holding unrelated work.
 >   Any applicable lane that fails, is cancelled, is unexpected, is missing, or is
 >   impermissibly skipped makes Nightly red.
 > - **`mux-soak` stays here** in `ci.yml` as a **label-gated PR lane** (not moved to
@@ -81,10 +83,10 @@ applied GitHub branch-protection state remains remote. The `name: CI` and `ci.ym
 | `brandbook-tokens` | merge-blocking | `needs: [quality, optional-dependencies]`; repo `szTheory/rindle` only | Generated-artifact drift gate: regenerates brandbook token CSS, admin CSS, gallery proof, and shipped priv/ CSS copy, then fails on any generated-artifact diff |
 | `adopter` | merge-blocking | `needs: [quality, optional-dependencies, integration, contract]` | Canonical adopter lifecycle only (doc parity in `proof` job) |
 | `mux-soak` | secret-gated soak (label-gated PR lane) | Label `streaming` on PR; `needs: quality` | Not in branch protection required checks; fails closed when secrets are absent. |
-| `compat-matrix` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Broad OTP×Elixir compatibility; not a required PR check, but every matrix cell feeds strict `Nightly Summary`. |
-| `dialyzer` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Owned type-contract lane; not a required PR check, but a failure makes Nightly red. |
-| `gcs-soak` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets are absent; a live-GCS regression makes Nightly red. |
-| `package-consumer-gcs-live` | nightly (gating) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets are present (skipped otherwise); failures make Nightly red. |
+| `compat-matrix` | Nightly summary input (advisory outside Nightly) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Broad OTP×Elixir compatibility; its strict result feeds Nightly Summary, which is not a general readiness gate. |
+| `dialyzer` | Nightly summary input (advisory outside Nightly) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch` | Owned type-contract lane; failures make Nightly red and trigger its incident path. |
+| `gcs-soak` | Nightly summary input (advisory outside Nightly) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Skipped when secrets are absent; a live-GCS regression makes Nightly red. |
+| `package-consumer-gcs-live` | Nightly summary input (advisory outside Nightly) | `nightly.yml`: schedule 07:27 UTC / `workflow_dispatch`; no `needs:`; repo `szTheory/rindle` + secrets | Live GCS install-smoke when secrets are present (skipped otherwise); failures make Nightly red. |
 
 The full main package-consumer matrix owns its setup and consumes no Quality artifacts,
 so it starts after Optional Dependencies while Quality continues. All five profile proofs,
@@ -178,8 +180,10 @@ a standalone `vips` CLI. The public `mix rindle.doctor` remains a separate, advi
 runtime readiness command in Quality because that job intentionally lacks the adopter's
 DB, Oban, and profile-host setup. Run it only from a DB/Oban/profile-ready adopter host.
 
-Dialyzer remains an owned, gating Nightly signal, outside the PR-local alias and critical
-path. Push-main/full-verification-only lanes likewise remain outside `mix ci`; the release
+Dialyzer remains an owned Nightly analysis. Failures make its strict summary red and enter
+its incident path; Nightly status and freshness are advisory for PR, merge, release, and
+general readiness. Keep its expensive PLT work outside the PR-local alias and critical path.
+Push-main/full-verification-only lanes likewise remain outside `mix ci`; the release
 workflow still relies on the complete `ci.yml` run for the exact release SHA.
 
 For maintainer inbox validation, derive collector arguments as separate lines
@@ -449,7 +453,7 @@ lanes and required contexts stay unchanged.
 
 ## Maintainer: exact-head readiness evidence
 
-Readiness is an observation of one authenticated previously-main snapshot SHA over a recorded interval. The
+Readiness is a versioned observation of one authenticated source commit over a recorded interval. The
 maintainer-operated synthetic twin grants no independent Phoenix pilot or 1.0
 release authority. PILOT-01 and PILOT-02 stay open. The exact-ten median/p95 speed
 target remains `deferred_unfinished`, with zero acceptance credit; its original
@@ -463,9 +467,16 @@ sources. Missing authorization fails closed. The producer requires a
 `READINESS_READ_TOKEN` secret; provisioning it or changing repository security policy
 is a separate authorized maintainer operation.
 
-Every output below must be a **new external directory**. Run from a clean checkout
-of an explicitly selected previously-main commit containing all intended implementation,
-workflow, documentation and planning changes, including the snapshot policy. Keep its
+Every output below must be a **new external directory**. New general readiness uses
+`rindle-snapshot-v4` for a fixed previously-main candidate; it does not dispatch or wait
+for Nightly. Exact-source push-main CI, effective branch protection, current remote
+dispositions, local qualification and adoption parity remain machine checked. Keep exact-head
+current-main readiness on `rindle-exact-head-v2`. See the maintainer research record
+for the decision, evidence, tradeoffs and primary-source links.
+
+Run from a clean checkout of an explicitly selected previously-main commit containing all
+intended implementation, workflow, documentation and planning changes, including the snapshot
+policy. Keep its
 full SHA fixed for the attempt; a different candidate requires a new attempt. Choose an absolute durable evidence location on
 a restricted maintainer host, outside temporary directories and Actions runners.
 Keep the parent directory mode 0700. A runner directory or artifact URL earns no
@@ -482,15 +493,16 @@ export READINESS_SUBJECT_SHA=FULL_PREVIOUSLY_MAIN_SHA
 export READINESS_SUBJECT_DIR=/durable/maintainer/readiness/subject-UNIQUE
 export READINESS_EVIDENCE_DIR=/durable/maintainer/readiness/accept-UNIQUE
 bash scripts/maintainer/exact_head_readiness.sh verify-subject \
-  --snapshot --subject "$READINESS_SUBJECT_SHA" \
+  --snapshot --snapshot-policy rindle-snapshot-v4 --subject "$READINESS_SUBJECT_SHA" \
   --repo szTheory/rindle --output "$READINESS_SUBJECT_DIR"
 bash scripts/maintainer/exact_head_readiness.sh accept \
-  --snapshot --subject "$READINESS_SUBJECT_SHA" \
+  --snapshot --snapshot-policy rindle-snapshot-v4 --subject "$READINESS_SUBJECT_SHA" \
   --repo szTheory/rindle --output "$READINESS_EVIDENCE_DIR"
 ```
 
-`--snapshot --subject FULL_SHA` selects the versioned `rindle-snapshot-v3` policy.
-`verify-subject` checks clean local HEAD, declared files and all eight plans, authenticates
+These commands explicitly select `rindle-snapshot-v4`, the forward policy for new
+general fixed-snapshot readiness. The verifier checks clean local HEAD, declared files,
+all eight plans, authenticates
 protected-main ancestry and actual successful push-main CI provenance, and requires the
 candidate's controller/policy bytes to match the executing tools. An arbitrary PR ancestor
 or a pre-policy commit is ineligible. Main may advance during qualification and refresh;
@@ -557,6 +569,12 @@ The producer runs `close` and uploads separate immutable archive and digest arti
 with missing-file errors, no overwrite and 30-day retention. It never retrieves its own
 output. No candidate snapshot grants merge or publication authority.
 
+### Historical v3 snapshot policy (existing evidence only)
+
+The rules below describe the `rindle-snapshot-v3` contract for interpreting existing
+evidence. Do not use them for new general readiness or start a v3 collection solely to
+unblock ordinary development.
+
 Snapshot mode uses `rindle-snapshot-v3`: full push-main CI and complete Nightly
 qualification pass on the exact candidate. Nightly qualification may be dispatch or
 schedule; the newest candidate run across both events wins, with complete attempt-1
@@ -577,7 +595,9 @@ CI keeps every harness and the shared240s three-worker budget; the independent
 dependency-landing harness runs after readiness fixtures to leave room for the
 new incident acquisition regressions.
 
-After the policy PR and full main CI are green, explicitly capture a source/run:
+For historical v3 collection only, an explicitly authorized run may capture a source/run.
+General v2/v4 readiness does not capture or wait for Nightly. This diagnostic command also
+remains available when investigating Nightly's own incident lane:
 
 ```bash
 bash scripts/maintainer/exact_head_readiness.sh capture-nightly \
@@ -592,8 +612,9 @@ and stops on an ambiguous response without another POST. Compatible later main
 movement does not reset the captured source. The workflow file/name and incident
 write guards are unchanged. Read-only collectors and progress never dispatch.
 
-Before starting the expensive producer with `accept`, run both complete host
-preflights after the captured Nightly qualification succeeds. Use the original
+Only the historical v3 path requires the capture above before its acceptance flow.
+For that path, run both complete host preflights after captured Nightly qualification
+succeeds. Use the original
 GitHub CLI and pinned real Mix runtime, with a new external directory for each
 command. The shell wrappers disable Python bytecode writes to preserve the clean
 checkout. Both must exit zero; these read-only observations grant no READY credit.
@@ -601,9 +622,9 @@ They exercise all pages, both observations, signed root/demo audits and the same
 finite acquisition windows the final maintainer-host refresh needs.
 
 ```bash
-bash scripts/maintainer/collect_readiness_runs.sh --snapshot \
+bash scripts/maintainer/collect_readiness_runs.sh --snapshot --snapshot-policy rindle-snapshot-v4 \
   --repo szTheory/rindle --subject "$READINESS_SUBJECT_SHA" --output NEW_EXTERNAL_RUNS
-bash scripts/maintainer/collect_readiness_remote.sh --snapshot \
+bash scripts/maintainer/collect_readiness_remote.sh --snapshot --snapshot-policy rindle-snapshot-v4 \
   --repo szTheory/rindle --subject "$READINESS_SUBJECT_SHA" --output NEW_EXTERNAL_REMOTE
 ```
 
@@ -634,8 +655,9 @@ adoption/release authority are freshly read from current remote main. Old source
 not permit old security or disposition facts. Candidate locks remain the audited package
 subject. Missing visibility or changed facts fail closed.
 
-Omitting `--snapshot` preserves the legacy current-main policy and its drift rejection.
-It cannot import snapshot evidence or grant that evidence current-head credit.
+Omitting `--snapshot` selects the forward exact-head v2 current-main policy. Explicit
+`--readiness-policy rindle-exact-head-v1` is reserved for interpreting historical receipts.
+Current-head mode cannot import snapshot evidence or grant that evidence current-head credit.
 
 The durable controller authenticates the completed run and current attempt,
 downloads the sidecar first, then verifies downloaded archive and manifest bytes
@@ -713,9 +735,9 @@ record historical completion metadata.
 | `closing_subject_not_checked_out`, `dirty_closing_checkout`, `phase_inventory_missing` | Land the complete PR train, obtain a clean main checkout, then rerun `verify-subject` into a new directory. |
 | `main_changed` | Legacy current-main mode observed drift. Snapshot mode keeps its admitted candidate fixed; never splice another subject's receipts. |
 | `snapshot_not_main_ancestor`, `snapshot_protection_unproved`, `snapshot_policy_mismatch` | Select an eligible protected-main candidate containing the intended matching policy; arbitrary PRs, forks and old policy are refused. |
-| `nightly_qualification_missing` | Explicitly capture/observe one full same-source Nightly dispatch; do not wait for per-SHA cron. |
+| `nightly_qualification_missing` (historical v3 only) | For an explicitly authorized historical v3 acceptance, capture/observe one full same-source Nightly dispatch; do not wait for per-SHA cron. |
 | `nightly_dispatch_unknown`, `nightly_capture_raced` | Inspect preserved owned runs; ambiguous POST is never retried. Resolve capture before qualification. |
-| `scheduled_run_missing`, `scheduled_health_pending`, `scheduled_health_stalled`, `scheduled_health_stale` | Inspect actual newest operational schedule/incident and await authentic recovery if needed. Preserve candidate proof. Legacy mode still requires same-source schedule. |
+| `scheduled_run_missing`, `scheduled_health_pending`, `scheduled_health_stalled`, `scheduled_health_stale` (historical v3 only) | Inspect the actual newest operational schedule/incident for historical v3 evidence. These states do not block forward v2/v4 general readiness. |
 | `scheduled_health_control_mismatch`, `nightly_control_review_required` | Review changed workflow/transitive controls and obtain the matching actual operational witness; do not relabel older proof. |
 | `scheduled_checkpoint_issues`, `scheduled_incident_open`, `incident_artifact_expiring` | Restore authentic retained operational evidence or real scheduled recovery; manual issue closure is not proof. |
 | `pull_undispositioned`, remote inventory drift | Reconcile the executable inbox ledger with every current item, merge it through the PR train, then refresh current dispositions for the same admitted snapshot; policy changes can require a new candidate. |

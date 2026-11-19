@@ -361,7 +361,7 @@ check_snapshot_source() {
       --subject "$SNAPSHOT_SUBJECT" --repo "$SNAPSHOT_REPO" --output "$evidence" \
       >"$WORK/snapshot-admission.log" 2>&1 &&
       jq -e --arg sha "$SNAPSHOT_SUBJECT" --arg repo "$SNAPSHOT_REPO" '
-        .schema == "rindle-readiness-snapshot-subject-v3" and .repository == $repo and
+        (.schema == "rindle-readiness-snapshot-subject-v3" or .schema == "rindle-readiness-snapshot-subject-v4") and .repository == $repo and
         .subject_sha == $sha and .authenticated == true and .requirements_credit == false and
         (.current_main_sha | type == "string" and test("^[0-9a-f]{40}$"))
       ' "$evidence/subject.json" >/dev/null 2>&1; then
