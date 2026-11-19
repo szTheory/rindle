@@ -505,8 +505,8 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     stale_advisory =
       String.replace(
         running,
-        "are all **Nightly-gating** inputs to the strict `Nightly Summary`",
-        "are advisory and never required checks",
+        "Nightly is advisory to ordinary",
+        "Nightly is required for ordinary",
         global: false
       )
 
@@ -1305,7 +1305,10 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
       |> String.replace(~r/\s+/, " ")
 
     assert prose =~ "not required PR checks"
-    assert prose =~ "are all **Nightly-gating** inputs to the strict `Nightly Summary`"
+    assert prose =~ "but are strict inputs to their own `Nightly Summary`"
+
+    assert prose =~
+             "Nightly is advisory to ordinary development, merge, release readiness and general acceptance"
 
     for lane <- model.nightly.required_needs do
       assert running =~ "`#{lane}`"
@@ -1317,7 +1320,7 @@ defmodule Rindle.InstallSmoke.LiveTruthParityTest do
     assert prose =~ "exact-subject Nightly evidence receipt"
     refute running =~ ".planning"
     assert running =~ "scripts/ci/verify_nightly_run.sh verify-receipt"
-    refute prose =~ "advisory and never a required PR check"
+    refute prose =~ "are all **Nightly-gating** inputs to the strict `Nightly Summary`"
     refute Regex.match?(~r/Plan \d+.*live acceptance authority/i, prose)
   end
 
