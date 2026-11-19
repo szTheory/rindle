@@ -471,8 +471,8 @@ Every output below must be a **new external directory**. New general readiness u
 `rindle-snapshot-v4` for a fixed previously-main candidate; it does not dispatch or wait
 for Nightly. Exact-source push-main CI, effective branch protection, current remote
 dispositions, local qualification and adoption parity remain machine checked. Keep exact-head
-current-main readiness on `rindle-exact-head-v2`. See the policy record in
-`.planning/research/2026-11-19-nightly-advisory-policy-review.md`.
+current-main readiness on `rindle-exact-head-v2`. See the maintainer research record
+for the decision, evidence, tradeoffs and primary-source links.
 
 Run from a clean checkout of an explicitly selected previously-main commit containing all
 intended implementation, workflow, documentation and planning changes, including the snapshot
