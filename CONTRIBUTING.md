@@ -76,8 +76,8 @@ release preparation.
 | Complexity policy | focused | `mix test test/install_smoke/credo_policy_test.exs --seed 0` |
 | Current complexity inventory | focused | `mix credo_quality` |
 | CI input and topology policy | focused | `mix test test/install_smoke/quality_signal_policy_test.exs test/install_smoke/ci_cache_hygiene_test.exs --seed 0` |
-| Supported type analysis from cold PLT | Nightly (advisory outside Nightly) | `bash scripts/ci/run_nightly_dialyzer.sh fresh` |
-| Supported type analysis from restored PLT | Nightly (advisory outside Nightly) | `bash scripts/ci/run_nightly_dialyzer.sh restored` |
+| Supported type analysis from cold PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh fresh` |
+| Supported type analysis from restored PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh restored` |
 | Exact coverage floor measurement | measurement | `mix coveralls.multiple --type local --type json` |
 | Async matrix declaration | focused | `bash scripts/maintainer/async_isolation_evidence.sh --validate` |
 | Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |
