@@ -27,6 +27,8 @@ irreversible actions, but their response must not satisfy a requirement. If acce
 automated, add the automation-enablement work or leave the requirement open. After changing active
 planning artifacts, run `./scripts/maintainer/automation_first_contract.sh`.
 
+**Nightly is advisory for general readiness.** Keep its own workflow strict and visible, but do not make its status or schedule freshness a gate for ordinary development, merge, release, general readiness, or new DevOps certifications. New general evidence uses exact-head v2 or snapshot v4; v1/v3 retain their historical meaning. Triage concrete defects under their own severity policy. See [`.planning/VERIFICATION-POLICY.md`](.planning/VERIFICATION-POLICY.md) and the source-backed [policy review](.planning/research/2026-11-19-nightly-advisory-policy-review.md).
+
 For UI/admin-console work, follow [guides/ui_principles.md](guides/ui_principles.md) before changing console, Cohort, E2E, or visual-polish surfaces.
 
 Agents should default to the repo's **green-main release train** posture:

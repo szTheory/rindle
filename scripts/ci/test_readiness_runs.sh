@@ -112,9 +112,9 @@ class Runs(unittest.TestCase):
         self.put(prefix+'actions/runs/20/artifacts?per_page=100',{'total_count':1,'artifacts':[{'id':300,'name':'nightly-incident-verdict-20-2',
             'expired':False,'workflow_run':{'id':20,'head_sha':sha},'digest':'sha256:'+c.digest(raw)}]})
         self.responses[prefix+'actions/artifacts/300/zip']=[{'status':200,'base64':base64.b64encode(raw).decode()}]
-    def collect(self,only=None):
+    def collect(self,only=None,readiness_policy='rindle-exact-head-v1'):
         (self.fixture/'responses.json').write_bytes(c.canonical(self.responses))
-        collector=c.Collector(repo,sha,self.tmp/'out',self.fixture,only)
+        collector=c.Collector(repo,sha,self.tmp/'out',self.fixture,only,readiness_policy=readiness_policy)
         code=collector.run();value=c.read_json(self.tmp/'out/verdict.json')
         self.assertFalse(value['requirements_credit']);self.assertEqual(value['evidence_mode'],'fixture')
         return code,value,collector
@@ -132,6 +132,12 @@ class Runs(unittest.TestCase):
             (root/'.planning/phases/136-measured-quality-and-ci-ratchets/136-QUALIFICATION-CLOSEOUT.json').read_bytes())
         self.assertFalse(sources['nightly-scheduled']['source']['normalized']['incident']['verdict']['jobs'][-1]['applicable'])
         self.assertEqual(os.stat(collector.output/'restricted/0001-response').st_mode&0o777,0o600)
+    def test_v2_general_readiness_does_not_query_or_require_nightly(self):
+        self.responses={key:value for key,value in self.responses.items() if '/actions/workflows/nightly.yml/runs?' not in key}
+        code,value,collector=self.collect(readiness_policy='rindle-exact-head-v2');self.assertEqual(code,0,value)
+        sources=c.read_json(collector.portable/'sources.json')['sources']
+        self.assertEqual(set(sources),{'ci-main','protection'})
+        self.assertNotIn('nightly-scheduled',sources)
     def test_ci_tracer_is_explicitly_partial_and_has_no_readiness_credit(self):
         code,value,_=self.collect('ci');self.assertEqual(code,0);self.assertEqual(value['sources'],['ci-main'])
     def test_missing_matrix_leg_even_all_returned_jobs_success(self):
@@ -334,9 +340,9 @@ class SnapshotRuns(unittest.TestCase):
         self.put(prefix+'issues?state=all&labels=nightly-failure&per_page=100&sort=created&direction=asc',[])
         (b.fixture/'incident-inventory.json').write_bytes(c.canonical([]))
     def tearDown(self):self.base.tearDown()
-    def collect(self):
+    def collect(self,snapshot_policy='rindle-snapshot-v3'):
         b=self.base;(b.fixture/'responses.json').write_bytes(c.canonical(b.responses))
-        owner=c.Collector(repo,sha,b.tmp/'out',b.fixture,snapshot=True)
+        owner=c.Collector(repo,sha,b.tmp/'out',b.fixture,snapshot=True,snapshot_policy=snapshot_policy)
         with patch.object(c,'now',return_value=self.clock):code=owner.run()
         return code,c.read_json(owner.output/'verdict.json'),owner
     def test_dispatch_and_different_source_cron_collect_as_distinct_proofs(self):
@@ -357,6 +363,15 @@ class SnapshotRuns(unittest.TestCase):
     def test_missing_candidate_dispatch_is_actionable_without_waiting_for_cron(self):
         self.put(self.manual_path,{'total_count':0,'workflow_runs':[]})
         code,value,_=self.collect();self.assertEqual(code,1);self.assertEqual(value['reason'],'nightly_qualification_missing')
+    def test_v4_candidate_readiness_has_no_nightly_proof_or_wait(self):
+        self.base.responses={key:value for key,value in self.base.responses.items()
+            if '/actions/workflows/nightly.yml/runs?' not in key}
+        code,value,owner=self.collect('rindle-snapshot-v4')
+        self.assertEqual(code,0,value)
+        sources=c.read_json(owner.portable/'sources.json')['sources']
+        self.assertEqual(set(sources),{'ci-main','protection'})
+        self.assertNotIn('nightly-qualification',sources)
+        self.assertNotIn('scheduled-incident-health',sources)
 
 class Topology(unittest.TestCase):
     def derive(self,body,event='push'):

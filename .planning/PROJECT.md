@@ -1,6 +1,13 @@
 # Rindle
 
-**Snapshot liveness amendment (2026-10-27, user approved):** The opt-in
+**Nightly advisory policy (2026-11-19):** Keep Nightly as a strict compatibility and
+operations signal with its incident path. Its pass, failure, and freshness are advisory
+for ordinary development, merge, release, and general readiness. Forward general evidence
+uses exact-head v2 or snapshot v4; exact-head v1 and snapshot v3 receipts keep their
+original historical criteria. See `.planning/research/2026-11-19-nightly-advisory-policy-review.md`
+for evidence, alternatives, and primary sources.
+
+**Historical snapshot liveness amendment (2026-10-27, user approved):** The opt-in
 `rindle-snapshot-v3` contract joins exact candidate source qualification (full
 push-main CI and full same-source Nightly via dispatch or schedule), independent
 real scheduled operational health under identical reviewed controls, and fresh
@@ -38,9 +45,10 @@ real adopter through an evidence-led quality pass and a maintainer-operated synt
 - Build a dedicated minimal external Phoenix twin, informed by existing canonical/generated
   package proof, with ordinary Repo/default Oban, deterministic fault/recovery observations and
   machine-readable lifecycle, retry, residue and cleanup receipts; keep Cohort semantics intact.
-- Close from a clean checkout with supported-toolchain, package, docs, CI, Nightly, remote-inbox,
-  release-train, and clean-worktree evidence. Phase 136 numeric CI speed acceptance is deferred,
-  unfinished, to SEED-261021-918; required CI must remain green before merge.
+- Close from a clean checkout with supported-toolchain, package, docs, CI, remote-inbox,
+  release-train, and clean-worktree evidence. Nightly contributes operational diagnostics;
+  its result and freshness are not closeout, merge, or release gates. Phase 136 numeric CI
+  speed acceptance is deferred, unfinished, to SEED-261021-918; required CI must remain green before merge.
 
 User decision (2026-10-21): defer the exact-ten CI speed target (<=480-second median / <=600-second p95) to SEED-261021-918; merge PR #162 when required CI is green. The numeric target remains unfinished, receives no acceptance credit, and is no longer a merge gate. Existing failed/blocked receipts remain immutable historical evidence.
 

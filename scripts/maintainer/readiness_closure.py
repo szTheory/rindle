@@ -54,9 +54,18 @@ def semantic(packet):
 
 
 class Closure:
-    def __init__(self,repo,output,manifest=None,fixture=None,deadline=16200,subject=None,snapshot=False):
+    def __init__(self,repo,output,manifest=None,fixture=None,deadline=16200,subject=None,snapshot=False,snapshot_policy=None,readiness_policy=None):
         self.repo=repo;self.output=Path(output).resolve();self.original=Path(manifest).resolve() if manifest else None
+        from readiness_subject import LEGACY_POLICY as LEGACY_SNAPSHOT_POLICY, POLICY as CURRENT_SNAPSHOT_POLICY
+        from collect_readiness_runs import LEGACY_POLICY as LEGACY_READINESS_POLICY, POLICY as CURRENT_READINESS_POLICY
         self.candidate=subject;self.snapshot=snapshot
+        self.snapshot_policy=(snapshot_policy or CURRENT_SNAPSHOT_POLICY) if snapshot else None
+        self.explicit_snapshot_policy=snapshot_policy is not None
+        require(not snapshot or self.snapshot_policy in (LEGACY_SNAPSHOT_POLICY,CURRENT_SNAPSHOT_POLICY),'snapshot_policy_unsupported')
+        require(not snapshot or readiness_policy is None,'policy_mode_conflict')
+        self.readiness_policy=(readiness_policy or CURRENT_READINESS_POLICY) if not snapshot else None
+        self.explicit_readiness_policy=readiness_policy is not None
+        require(snapshot or self.readiness_policy in (LEGACY_READINESS_POLICY,CURRENT_READINESS_POLICY),'readiness_policy_unsupported')
         self.fixture=fixture;self.mode='fixture' if fixture is not None else 'execution'
         self.deadline=time.monotonic()+deadline;self.sequence=0;self.subject=None;self.local_output=None
         self.run_id=secrets.token_hex(16);self.started=now();self.proposed=None;self.objects={};self.index=None
@@ -109,7 +118,7 @@ class Closure:
                 raise
 
     def metadata(self):
-        selection='"rindle-snapshot-v3"' if self.snapshot else 'v.policy()'
+        selection=json.dumps(self.snapshot_policy if self.snapshot else self.readiness_policy)
         expr='Code.require_file("scripts/maintainer/readiness_workflow.exs"); :ok = Rindle.ReadinessWorkflow.ensure_crypto!(); Code.require_file("scripts/maintainer/validate_exact_head_readiness.exs"); v=Rindle.ExactHeadReadiness; p='+selection+'; IO.puts(Jason.encode!(%{policy: p, proofs: v.required_proofs(p), mutable: v.mutable_proofs(p), inputs: v.input_paths()}))'
         code,raw=self.command(['mix','run','--no-start','--no-compile','--no-deps-check','-e',expr],45,
             env={**self.env,'RINDLE_EXACT_HEAD_LIBRARY_ONLY':'1'})
@@ -137,7 +146,7 @@ class Closure:
             current=self.remote_main()
             value=read_json(self.fixture_path('snapshot_'+current))
             require(value.get('current_main_sha')==current and value.get('subject_sha')==self.subject,'snapshot_subject_mismatch')
-        else:value=observe(self.api,self.subject)
+        else:value=observe(self.api,self.subject,policy=self.snapshot_policy)
         ref=self.store_object('subject/'+secrets.token_hex(8)+'.json',canonical(value))
         self.subject_observations=getattr(self,'subject_observations',[])+[ref]
         return value['current_main_sha']
@@ -177,7 +186,8 @@ class Closure:
         else:
             self.local_output=self.private/'local-qualification'
             code,raw=self.command(['bash',str(ROOT/'scripts/maintainer/exact_head_readiness.sh'),'qualify','--repo',self.repo,
-                '--subject',self.subject,'--output',str(self.local_output)]+(['--snapshot'] if self.snapshot else []),QUALIFICATION_SECONDS+300)
+                '--subject',self.subject,'--output',str(self.local_output)]+(['--snapshot'] if self.snapshot else
+                ['--readiness-policy',self.readiness_policy]),QUALIFICATION_SECONDS+300)
             if code:
                 print('LOCAL_QUALIFICATION_FAILURE ' + json.dumps(redact(raw,self.env)[-16384:].decode(errors='replace')),flush=True)
                 attempt=read_json(self.local_output/'attempt.json') if (self.local_output/'attempt.json').is_file() else {}
@@ -209,7 +219,9 @@ class Closure:
             output=self.private/(kind+'-'+position)
             script='collect_readiness_runs.sh' if kind=='runs' else 'collect_readiness_remote.sh'
             seconds=RUN_COLLECTION_SECONDS if kind=='runs' else REMOTE_COLLECTION_SECONDS
-            code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)]+(['--snapshot'] if self.snapshot else []),seconds+COLLECTION_SHUTDOWN_SECONDS)
+            snapshot_args=(['--snapshot','--snapshot-policy',self.snapshot_policy] if self.snapshot else
+                ['--readiness-policy',self.readiness_policy])
+            code,_=self.command(['bash',str(ROOT/'scripts/maintainer'/script),'--repo',self.repo,'--subject',self.subject,'--output',str(output)]+snapshot_args,seconds+COLLECTION_SHUTDOWN_SECONDS)
             if code:
                 value=read_json(output/'verdict.json') if (output/'verdict.json').is_file() else {}
                 self.failed_proof=value.get('failed_proof')
@@ -230,7 +242,10 @@ class Closure:
         value=read_json(path)
         require(value.get('repository')==self.repo and value.get('subject_sha')==self.subject and value.get('evidence_mode')==self.mode,'source_subject_or_mode')
         if value.get('verdict')=='not_ready':raise NotReady(self.public_reason(value.get('reason')))
-        expected=({'ci-main','nightly-qualification','scheduled-incident-health','protection'} if self.snapshot else {'ci-main','nightly-scheduled','protection'}) if kind=='runs' else {'remote-inventory'}
+        expected=({'ci-main','protection'} if self.snapshot_policy=='rindle-snapshot-v4' else
+            {'ci-main','nightly-qualification','scheduled-incident-health','protection'} if self.snapshot else
+            {'ci-main','protection'} if self.readiness_policy=='rindle-exact-head-v2' else
+            {'ci-main','nightly-scheduled','protection'}) if kind=='runs' else {'remote-inventory'}
         require(set(value.get('sources',{}))==expected,'source_registry_incomplete')
         if kind=='runs' and self.mode=='execution':
             timing=value.get('numeric_speed',{})
@@ -344,10 +359,23 @@ class Closure:
             for sig in handlers:signal.signal(sig,interrupt)
             if self.original:
                 existing=read_json(self.original)
-                inferred=existing.get('policy')=='rindle-snapshot-v3'
-                require(not self.snapshot or inferred,'snapshot_policy_mismatch')
+                from readiness_subject import LEGACY_POLICY as LEGACY_SNAPSHOT_POLICY, POLICY as CURRENT_SNAPSHOT_POLICY
+                from collect_readiness_runs import LEGACY_POLICY as LEGACY_READINESS_POLICY, POLICY as CURRENT_READINESS_POLICY
+                inferred_policy=existing.get('policy')
+                inferred_snapshot=inferred_policy in (LEGACY_SNAPSHOT_POLICY,CURRENT_SNAPSHOT_POLICY)
+                inferred_readiness=inferred_policy in (LEGACY_READINESS_POLICY,CURRENT_READINESS_POLICY)
+                require(inferred_snapshot or inferred_readiness,'readiness_policy_mismatch')
+                require(not self.snapshot or inferred_snapshot,'snapshot_policy_mismatch')
+                require(not inferred_snapshot or not self.explicit_readiness_policy,'policy_mode_conflict')
+                require(not inferred_readiness or not self.snapshot,'snapshot_policy_mismatch')
+                if inferred_snapshot and self.explicit_snapshot_policy:
+                    require(self.snapshot_policy==inferred_policy,'snapshot_policy_mismatch')
+                if inferred_readiness and self.explicit_readiness_policy:
+                    require(self.readiness_policy==inferred_policy,'readiness_policy_mismatch')
                 require(self.candidate is None or self.candidate==existing.get('subject_sha'),'snapshot_subject_mismatch')
-                self.snapshot=inferred
+                self.snapshot=inferred_snapshot
+                self.snapshot_policy=inferred_policy if inferred_snapshot else None
+                self.readiness_policy=inferred_policy if inferred_readiness else None
                 self.candidate=existing.get('subject_sha')
             if self.snapshot:
                 require(isinstance(self.candidate,str) and re.fullmatch(r'[0-9a-f]{40}',self.candidate),'snapshot_subject_required')
@@ -438,12 +466,14 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation',choices=['close','refresh']);parser.add_argument('--repo',required=True)
     parser.add_argument('--output',required=True);parser.add_argument('--manifest');parser.add_argument('--fixture')
-    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--subject')
+    parser.add_argument('--snapshot',action='store_true');parser.add_argument('--snapshot-policy',choices=['rindle-snapshot-v3','rindle-snapshot-v4']);parser.add_argument('--readiness-policy',choices=['rindle-exact-head-v1','rindle-exact-head-v2']);parser.add_argument('--subject')
     args=parser.parse_args(argv)
     try:
         require((args.operation=='refresh')==(args.manifest is not None),'refresh_requires_manifest')
         require(args.snapshot or args.subject is None,'snapshot_flag_required')
-        return Closure(args.repo,args.output,args.manifest,args.fixture,subject=args.subject,snapshot=args.snapshot).run()
+        require(args.snapshot or args.snapshot_policy is None,'snapshot_flag_required')
+        return Closure(args.repo,args.output,args.manifest,args.fixture,subject=args.subject,snapshot=args.snapshot,
+            snapshot_policy=args.snapshot_policy,readiness_policy=args.readiness_policy).run()
     except (NotReady,OSError,ValueError) as exc:
         print('not_ready: '+(str(exc) if isinstance(exc,NotReady) else 'closure_unavailable'));return 1
 

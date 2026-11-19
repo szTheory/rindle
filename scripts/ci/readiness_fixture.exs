@@ -39,7 +39,7 @@ defmodule ReadinessFixture do
     }
   end
 
-  def fixture do
+  def fixture(policy \\ V.policy()) do
     root =
       Path.join(
         System.fetch_env!("RINDLE_READINESS_TEST_ROOT"),
@@ -89,7 +89,7 @@ defmodule ReadinessFixture do
       "subject_sha" => String.duplicate("a", 40),
       "remote_main_before" => String.duplicate("a", 40),
       "remote_main_after" => String.duplicate("a", 40),
-      "policy" => V.policy(),
+      "policy" => policy,
       "validator_sha256" =>
         V.sha256(File.read!("scripts/maintainer/validate_exact_head_readiness.exs")),
       "state" => "complete",
@@ -109,7 +109,7 @@ defmodule ReadinessFixture do
     }
 
     proofs =
-      Enum.map(V.required_proofs(), fn id ->
+      Enum.map(V.required_proofs(policy), fn id ->
         receipt =
           Map.take(
             manifest,
@@ -127,7 +127,7 @@ defmodule ReadinessFixture do
           })
 
         receipt =
-          if id in V.mutable_proofs() do
+          if id in V.mutable_proofs(policy) do
             n = normalized(id, manifest)
 
             n =
@@ -174,7 +174,7 @@ defmodule ReadinessFixture do
                 "before_sha256" => hd(observations)["sha256"],
                 "after_sha256" => List.last(observations)["sha256"],
                 "observations" => observations,
-                "policy" => V.policy(),
+                "policy" => policy,
                 "normalized" => n
               }
             })
@@ -439,7 +439,7 @@ defmodule ReadinessFixture do
   def refresh(root, m) do
     refs =
       m["proofs"]
-      |> Enum.filter(&(&1["id"] in V.mutable_proofs()))
+      |> Enum.filter(&(&1["id"] in V.mutable_proofs(m["policy"])))
       |> Enum.map(fn ref ->
         value =
           root

@@ -1,5 +1,14 @@
 # GSD continuity
 
+## Nightly and evidence waits
+
+Nightly remains strict within its own workflow and incident path, but its result and
+freshness do not gate ordinary development, merge, release, general readiness, or new
+DevOps certifications. New general readiness uses exact-head v2 or snapshot v4; v1/v3
+are historical. Do not make waiting or polling Nightly the only development action.
+Use `.planning/VERIFICATION-POLICY.md` and its source-linked policy review for the rationale
+and resume procedure.
+
 Follow the **GSD command handoffs** section of DEVELOPMENT-TRAIN.md for every
 GSD status, pause, completion, and resume response. Give the user the next
 literal `$gsd-...` command, the correct worktree, and its timing/condition.

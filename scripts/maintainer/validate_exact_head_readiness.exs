@@ -11,8 +11,10 @@ Rindle.ReadinessWorkflow.ensure_crypto!()
 
 defmodule Rindle.ExactHeadReadiness do
   @moduledoc false
-  @policy "rindle-exact-head-v1"
-  @snapshot_policy "rindle-snapshot-v3"
+  @legacy_policy "rindle-exact-head-v1"
+  @policy "rindle-exact-head-v2"
+  @legacy_snapshot_policy "rindle-snapshot-v3"
+  @snapshot_policy "rindle-snapshot-v4"
   @snapshot_controls ~w(scripts/maintainer/repo_hygiene_check.sh scripts/maintainer/readiness_nightly_capture.py scripts/maintainer/readiness_nightly.exs scripts/maintainer/readiness_subject.py
     scripts/maintainer/validate_exact_head_readiness.exs
     scripts/maintainer/exact_head_readiness.py
@@ -64,8 +66,10 @@ defmodule Rindle.ExactHeadReadiness do
   @ci_guard "335a6d7f9bbbb6a25566602eb276d6efff0c483b109b02dc49892ea2a18b26fa"
   @release_guard "1158a7e8aee99cfcc55f0ccde0c43ffcddf87ed47e03fbf1cffd8ad1708ccece"
   @local ~w(format compile credo dialyzer-fresh dialyzer-restored doctor coverage security docs contracts package generated-consumer twin-recovery hygiene inbox-ledger contributor-bootstrap async-isolation release-truth)
-  @mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
-  @snapshot_mutable ~w(ci-main nightly-qualification scheduled-incident-health protection remote-inventory adoption-parity)
+  @exact_v1_mutable ~w(ci-main nightly-scheduled protection remote-inventory adoption-parity)
+  @mutable ~w(ci-main protection remote-inventory adoption-parity)
+  @snapshot_v3_mutable ~w(ci-main nightly-qualification scheduled-incident-health protection remote-inventory adoption-parity)
+  @snapshot_mutable ~w(ci-main protection remote-inventory adoption-parity)
   @inputs Enum.uniq(
             ~w(scripts/maintainer/repo_hygiene_check.sh) ++
               ~w(scripts/maintainer/readiness_nightly_capture.py) ++
@@ -132,10 +136,27 @@ defmodule Rindle.ExactHeadReadiness do
   def input_paths, do: @inputs
   def command_prefix(id), do: Map.fetch!(@commands, id)
   def policy, do: @policy
+  def legacy_policy, do: @legacy_policy
+  def exact_policy?(policy), do: policy in [@legacy_policy, @policy]
+  def snapshot_policy, do: @snapshot_policy
+  def legacy_snapshot_policy, do: @legacy_snapshot_policy
+  def snapshot_policy?(policy), do: policy in [@legacy_snapshot_policy, @snapshot_policy]
   def required_proofs(policy \\ @policy), do: @local ++ mutable_proofs(policy)
 
-  def mutable_proofs(policy \\ @policy),
-    do: if(policy == @snapshot_policy, do: @snapshot_mutable, else: @mutable)
+  def mutable_proofs(policy \\ @policy) do
+    cond do
+      policy == @snapshot_policy -> @snapshot_mutable
+      policy == @legacy_snapshot_policy -> @snapshot_v3_mutable
+      policy == @legacy_policy -> @exact_v1_mutable
+      true -> @mutable
+    end
+  end
+
+  defp snapshot_subject_schema(@legacy_snapshot_policy),
+    do: "rindle-readiness-snapshot-subject-v3"
+
+  defp snapshot_subject_schema(@snapshot_policy), do: "rindle-readiness-snapshot-subject-v4"
+  defp snapshot_subject_schema(_policy), do: nil
 
   def resource_kinds, do: @resources
   def toolchain, do: @toolchain
@@ -206,7 +227,8 @@ defmodule Rindle.ExactHeadReadiness do
       comparison = value["comparison"]
 
       ensure!(
-        subject_sha?(current) and value["schema"] == "rindle-readiness-snapshot-subject-v3" and
+        subject_sha?(current) and
+          value["schema"] == snapshot_subject_schema(m["policy"]) and
           value["authenticated"] === true and value["requirements_credit"] === false and
           value["repository"] == m["repository"] and value["subject_sha"] == m["subject_sha"] and
           value["current_main_sha"] == current and
@@ -252,7 +274,12 @@ defmodule Rindle.ExactHeadReadiness do
 
   defp validate_manifest!(m, c) do
     ensure!(is_map(m) and m["schema_version"] == 1, "schema", "manifest schema_version must be 1")
-    ensure!(m["policy"] in [@policy, @snapshot_policy], "policy", "unknown validator policy")
+
+    ensure!(
+      m["policy"] in [@legacy_policy, @policy, @legacy_snapshot_policy, @snapshot_policy],
+      "policy",
+      "unknown validator policy"
+    )
 
     ensure!(
       m["validator_sha256"] == c[:validator_sha256],
@@ -282,7 +309,7 @@ defmodule Rindle.ExactHeadReadiness do
       "full subject SHA required"
     )
 
-    if m["policy"] == @snapshot_policy do
+    if snapshot_policy?(m["policy"]) do
       validate_snapshot_subjects!(m, m, c)
     else
       ensure!(
@@ -496,7 +523,7 @@ defmodule Rindle.ExactHeadReadiness do
     validate_identity!(r["tool_identity"], "tool_identity")
     validate_cleanup!(r["cleanup"])
 
-    if r["policy"] == @snapshot_policy and r["id"] == "hygiene",
+    if snapshot_policy?(r["policy"]) and r["id"] == "hygiene",
       do: validate_hygiene_subject!(r, c)
   end
 
@@ -516,7 +543,7 @@ defmodule Rindle.ExactHeadReadiness do
     current = value["current_main_sha"]
 
     ensure!(
-      value["schema"] == "rindle-readiness-snapshot-subject-v3" and
+      value["schema"] == snapshot_subject_schema(r["policy"]) and
         value["repository"] == r["repository"] and value["subject_sha"] == r["subject_sha"] and
         value["authenticated"] === true and value["requirements_credit"] === false and
         subject_sha?(current) and
@@ -762,7 +789,7 @@ defmodule Rindle.ExactHeadReadiness do
           ~w(.planning/REQUIREMENTS.md .planning/PROJECT.md mix.exs .release-please-manifest.json release-please-config.json)
 
         expected =
-          if m["policy"] == @snapshot_policy do
+          if snapshot_policy?(m["policy"]) do
             files = n["authoritative_files"]
 
             ensure!(
@@ -1122,7 +1149,7 @@ defmodule Rindle.ExactHeadReadiness do
       )
     end)
 
-    if m["policy"] == @snapshot_policy do
+    if snapshot_policy?(m["policy"]) do
       ref = i["ledger_file"]
 
       ensure!(
@@ -1260,7 +1287,7 @@ defmodule Rindle.ExactHeadReadiness do
       ensure!(e[key] == m[key], "refresh_identity", "#{key}: refresh identity differs")
     end)
 
-    if m["policy"] == @snapshot_policy do
+    if snapshot_policy?(m["policy"]) do
       validate_snapshot_subjects!(e, m, c)
     else
       ensure!(
@@ -1515,7 +1542,7 @@ defmodule Rindle.ExactHeadReadiness do
 
       # Only readiness proof receipts carry graph edges. Committed policy,
       # package data, logs and upstream JSON remain opaque byte objects.
-      if ref["id"] in (@local ++ @mutable ++ @snapshot_mutable) do
+      if ref["id"] in (@local ++ @mutable ++ @snapshot_v3_mutable ++ @snapshot_mutable) do
         load_objects!(decode!(bytes), root, acc, MapSet.put(visited, path), depth + 1)
       else
         acc

@@ -213,7 +213,7 @@ def prepare(manifest_path,output,environment=None):
     try:
         manifest_path=Path(manifest_path).resolve();manifest=read_json(manifest_path)
         repo,subject=manifest['repository'],manifest['subject_sha']
-        snapshot=manifest.get('policy')=='rindle-snapshot-v3'
+        snapshot=manifest.get('policy') in ('rindle-snapshot-v3','rindle-snapshot-v4')
         producer_head=environment.get('GITHUB_SHA','')
         run=environment.get('GITHUB_RUN_ID','');attempt=environment.get('GITHUB_RUN_ATTEMPT','')
         require(environment.get('GITHUB_ACTIONS')=='true' and environment.get('GITHUB_REPOSITORY')==repo and
@@ -364,10 +364,10 @@ def retrieve(repo,run,attempt,destination,fixture=None):
         bundle=staging/'bundle';bundle.mkdir(mode=0o700);manifest,objects=unpack(archive,bundle)
         require(digest(objects['manifest.json'])==sidecar.get('manifest_sha256'),'producer_manifest_digest')
         require(manifest.get('repository')==repo and manifest.get('subject_sha')==sidecar['subject_sha'] and manifest.get('evidence_mode')==mode and manifest.get('state')=='complete','bundle_manifest_identity')
-        require(snapshot==(manifest.get('policy')=='rindle-snapshot-v3'),'bundle_policy_identity')
+        require(snapshot==(manifest.get('policy') in ('rindle-snapshot-v3','rindle-snapshot-v4')),'bundle_policy_identity')
         if snapshot:
             from readiness_subject import observe,CONTROL_PATHS
-            observe(api,sidecar['subject_sha'])
+            observe(api,sidecar['subject_sha'],policy=manifest['policy'])
             for path in CONTROL_PATHS:
                 require(api.contents(path,identity['head_sha'])==(ROOT/path).read_bytes(),'producer_policy_mismatch')
         scan_public(objects,os.environ)

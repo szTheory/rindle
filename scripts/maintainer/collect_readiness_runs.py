@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Observe exact-subject CI, scheduled Nightly and effective main protection, read-only."""
+"""Observe exact-subject CI and effective main protection; Nightly is legacy-only."""
 import argparse
 import base64
 import io
@@ -14,8 +14,10 @@ from urllib.parse import urlencode
 
 from exact_head_readiness import ROOT, TOOLCHAIN_ENV, NotReady, canonical, digest, now, read_json, reference, require, write_new
 from readiness_github import GitHub, RUN_COLLECTION_SECONDS, json_bytes
+from readiness_subject import LEGACY_POLICY as LEGACY_SNAPSHOT_POLICY, POLICY as SNAPSHOT_POLICY
 
-POLICY = 'rindle-exact-head-v1'
+LEGACY_POLICY = 'rindle-exact-head-v1'
+POLICY = 'rindle-exact-head-v2'
 HISTORICAL_QUALIFICATION_SHA = 'aba8565ebfb97fd366efd94c691a977b3c29c78e232e2dda7cb338d69997abce'
 TIMING_DEFERRAL_SHA = 'c15572c572a8ca2e7dbdb564b6a50516f1822b6117c2d2430bad1c0f973b9af3'
 
@@ -37,11 +39,15 @@ def policy(request):
 
 
 class Collector:
-    def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False):
+    def __init__(self,repo,subject,output,fixture=None,only=None,snapshot=False,snapshot_policy=None,readiness_policy=None):
         require(re.fullmatch(r'[0-9a-f]{40}',subject),'invalid_subject')
         self.repo,self.subject,self.output=repo,subject,Path(output).resolve()
         self.snapshot=snapshot
-        self.policy_name='rindle-snapshot-v3' if snapshot else POLICY
+        self.snapshot_policy=(snapshot_policy or SNAPSHOT_POLICY) if snapshot else None
+        require(not snapshot or self.snapshot_policy in (LEGACY_SNAPSHOT_POLICY,SNAPSHOT_POLICY),'snapshot_policy_unsupported')
+        self.readiness_policy=(readiness_policy or POLICY) if not snapshot else None
+        require(snapshot or self.readiness_policy in (LEGACY_POLICY,POLICY),'readiness_policy_unsupported')
+        self.policy_name=self.snapshot_policy if snapshot else self.readiness_policy
         require(not self.output.exists() and not self.output.is_relative_to(ROOT),'output_must_be_new_external_directory')
         self.output.mkdir(mode=0o700,parents=True)
         self.portable=self.output/'portable';self.portable.mkdir(mode=0o700)
@@ -54,7 +60,7 @@ class Collector:
     def main(self):
         if self.snapshot:
             from readiness_subject import observe
-            self.snapshot_binding=observe(self.api,self.subject)
+            self.snapshot_binding=observe(self.api,self.subject,policy=self.snapshot_policy)
             return self.snapshot_binding['current_main_sha']
         value,_=self.api.get(self.api.path('git/ref/heads/main'))
         require(value.get('ref')=='refs/heads/main' and value.get('object',{}).get('type')=='commit' and
@@ -290,13 +296,13 @@ class Collector:
         self.current_proof='ci-main'
         result={'ci-main':self.run_observation('ci.yml','push')}
         if self.only!='ci':
-            if self.snapshot:
+            if self.snapshot_policy==LEGACY_SNAPSHOT_POLICY:
                 self.current_proof='nightly-qualification'
                 run=self.qualification_run()
                 result['nightly-qualification']=self.run_observation('nightly.yml',run['event'],run,'nightly-qualification')
                 self.current_proof='scheduled-incident-health'
                 result['scheduled-incident-health']=self.scheduled_health()
-            else:
+            elif not self.snapshot and self.readiness_policy==LEGACY_POLICY:
                 self.current_proof='nightly-scheduled'
                 result['nightly-scheduled']=self.run_observation('nightly.yml','schedule')
             self.current_proof='protection'
@@ -309,7 +315,7 @@ class Collector:
         try:
             self.api=GitHub(self.repo,self.output/'restricted',self.fixture,budget=RUN_COLLECTION_SECONDS)
             self.initialize()
-            if self.snapshot and self.only!='ci':
+            if self.snapshot and self.snapshot_policy==LEGACY_SNAPSHOT_POLICY and self.only!='ci':
                 for path in policy({'operation':'nightly-controls'}):
                     if path not in self.inputs:
                         raw=self.api.contents(path,self.subject);self.inputs[path]=raw.decode()
@@ -355,9 +361,9 @@ class Collector:
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo',required=True);parser.add_argument('--subject',required=True)
-    parser.add_argument('--output',required=True);parser.add_argument('--snapshot',action='store_true');parser.add_argument('--fixture');parser.add_argument('--only',choices=['ci'])
+    parser.add_argument('--output',required=True);parser.add_argument('--snapshot',action='store_true');parser.add_argument('--snapshot-policy',choices=['rindle-snapshot-v3','rindle-snapshot-v4']);parser.add_argument('--readiness-policy',choices=['rindle-exact-head-v1','rindle-exact-head-v2']);parser.add_argument('--fixture');parser.add_argument('--only',choices=['ci'])
     args=parser.parse_args()
-    try:return Collector(args.repo,args.subject,args.output,args.fixture,args.only,args.snapshot).run()
+    try:return Collector(args.repo,args.subject,args.output,args.fixture,args.only,args.snapshot,args.snapshot_policy,args.readiness_policy).run()
     except NotReady as exc: print('not_ready: '+str(exc));return 1
 
 

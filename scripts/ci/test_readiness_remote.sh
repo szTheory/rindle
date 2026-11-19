@@ -93,6 +93,10 @@ class Remote(unittest.TestCase):
         self.assertEqual(code,0,value)
         self.assertEqual(set(c.read_json(owner.portable/'sources.json')['sources']),{'remote-inventory'})
         self.assertTrue(c.read_json(owner.portable/'sources.json')['sources']['remote-inventory']['source']['complete'])
+    def test_default_exact_head_remote_collection_does_not_read_nightly(self):
+        code,value,owner=self.collect(full=True);self.assertEqual(code,0,value)
+        self.assertEqual(owner.policy_name,'rindle-exact-head-v2')
+        self.assertFalse(any('nightly.yml' in call['path'] for call in owner.api.calls))
     def test_remote_collection_deadline_still_rejects_unfinished_inventory(self):
         code,value,_=self.timed_collection(1300)
         self.assertEqual(code,1);self.assertEqual(value['reason'],'remote_budget_exhausted')

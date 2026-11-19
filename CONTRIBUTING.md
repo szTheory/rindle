@@ -66,8 +66,9 @@ the disposable source and private dependency/build directories afterwards.
 Run focused checks while editing. Before a PR, run `mix ci`; it exercises the
 ordinary default suite once. Use the canonical local+JSON coverage command once
 for a floor measurement. The finite async experiment is separate local evidence,
-not another CI lane. Fresh/restored Dialyzer analyses belong to Nightly breadth;
-release hygiene belongs to release preparation.
+not another CI lane. Fresh/restored Dialyzer analyses remain strict within Nightly, whose
+status is advisory for ordinary development and readiness. Release hygiene belongs to
+release preparation.
 
 <!-- rindle-verification-map -->
 | Surface | Lane | Command |
@@ -75,8 +76,8 @@ release hygiene belongs to release preparation.
 | Complexity policy | focused | `mix test test/install_smoke/credo_policy_test.exs --seed 0` |
 | Current complexity inventory | focused | `mix credo_quality` |
 | CI input and topology policy | focused | `mix test test/install_smoke/quality_signal_policy_test.exs test/install_smoke/ci_cache_hygiene_test.exs --seed 0` |
-| Supported type analysis from cold PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh fresh` |
-| Supported type analysis from restored PLT | nightly | `bash scripts/ci/run_nightly_dialyzer.sh restored` |
+| Supported type analysis from cold PLT | Nightly (advisory outside Nightly) | `bash scripts/ci/run_nightly_dialyzer.sh fresh` |
+| Supported type analysis from restored PLT | Nightly (advisory outside Nightly) | `bash scripts/ci/run_nightly_dialyzer.sh restored` |
 | Exact coverage floor measurement | measurement | `mix coveralls.multiple --type local --type json` |
 | Async matrix declaration | focused | `bash scripts/maintainer/async_isolation_evidence.sh --validate` |
 | Finite async isolation experiment | measurement | `bash scripts/maintainer/async_isolation_evidence.sh --report .planning/evidence/async-isolation/NEW.jsonl` |
@@ -262,7 +263,7 @@ snapshot rule.
 - the **Playwright browser E2E** (`push:main`)
 - the **Docker-compose cold-start smoke** (`push:main`)
 - the broad **OTP×Elixir compatibility matrix** (nightly)
-- the owned **Dialyzer** lane (nightly, gating there)
+- the owned **Dialyzer** lane (Nightly summary remains strict; status is advisory to ordinary readiness)
 - the real-API **GCS soak** lane (nightly) and the **Mux soak** lane (label-gated on
   `streaming`-labeled PRs)
 

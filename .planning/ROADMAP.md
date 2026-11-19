@@ -823,7 +823,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. One isolated exact-head checkout passes supported toolchains, formatting, compilation, Credo, Dialyzer, Doctor, coverage, security, docs, built-package, generated-consumer, twin, and repository-hygiene gates.
-  2. The same exact head has green `main` CI and Nightly conclusions, and an automated topology check proves branch protection matches the preserved sole-required-check and release-coupling contract.
+  2. The same exact head has green `main` CI, and an automated topology check proves branch protection matches the preserved sole-required-check and release-coupling contract. Nightly is a strict operational signal but is advisory to general readiness; historical v3 receipts retain their original Nightly criterion.
   3. A current remote-state verifier confirms every open item and advisory has an evidence-backed disposition and no release blocker is undispositioned.
   4. One fail-closed readiness manifest rejects missing, stale, partial, impermissibly skipped, foreign-SHA, unclean, residue-bearing, or unexplained evidence.
   5. Automated release and adoption-truth checks keep the named independent Phoenix pilot open and reject any claim that the synthetic twin satisfies real-adopter validation or authorizes 1.0.
